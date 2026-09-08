@@ -86,7 +86,7 @@ const DueCollectionDate = () => {
           </div>
 
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>{t('common.search_by_date')}</label>
+            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom3: '8px' }}>{t('common.search_by_date')}</label>
             <div style={{ display: 'flex', gap: '12px' }}>
               <div className="form-input floating-label" style={{ flex: 1 }}>
                 <input type="text" name="startDate" value={filters.startDate} onChange={handleInputChange} />

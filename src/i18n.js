@@ -32,7 +32,7 @@ const resources = {
         "sales_return": "Sales Return",
         "purchase_return": "Purchase Return",
         "supplier_payment": "Supplier Payment",
-        "clear_cache": "Clear Cache",
+        "clear_cache": "Clear Cache", 
         "switch_lang": "বাংলা",
         "my_profile": "My Profile",
         "change_password": "Change Password",
