@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { Settings, Plus, Barcode, Calendar } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import AddOptionModal from '../../components/AddOptionModal';
+import { useApi } from '../../hooks/useApi';
+import { ENDPOINTS } from '../../api/endpoints';
 
 const PurchaseCreate = () => {
   const { t } = useTranslation();
@@ -15,8 +17,21 @@ const PurchaseCreate = () => {
     product: ''
   });
   
-  const { state, addSupplier } = useAppContext();
-  const suppliers = state?.suppliers || [];
+  const [suppliers, setSuppliers] = useState([]);
+  const { get, post, loading } = useApi();
+  
+  const fetchSuppliers = async () => {
+    try {
+      const res = await get(ENDPOINTS.CRM_SUPPLIERS);
+      setSuppliers(res.results || res.data || res || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchSuppliers();
+  }, []);
   
   const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -25,14 +40,28 @@ const PurchaseCreate = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
   
-  const handleAddSupplier = (name) => {
-    addSupplier({ name, phone: '', address: '', company: name, group: 'Local', due: 0 });
-    setIsSupplierModalOpen(false);
+  const handleAddSupplier = async (name) => {
+    if (!name || !name.trim()) return;
+    try {
+      // Create a dummy group uuid or let the backend fail if it's required.
+      // Usually "Quick Add" might require a default group.
+      // But we will send the required fields for supplier
+      await post(ENDPOINTS.CRM_SUPPLIERS, { 
+        name: name,
+        phone: '00000000000', 
+        address: 'N/A', 
+        previous_due: '0.00' 
+      }, "Supplier Added");
+      setIsSupplierModalOpen(false);
+      fetchSuppliers();
+    } catch (err) {
+      console.error(err);
+    }
   };
   
   const handleAddProduct = (name) => {
     console.log("Add product:", name);
-    // TODO: Implement addProduct in context if needed
+    // TODO: Implement addProduct with API if needed
     setIsProductModalOpen(false);
   };
 

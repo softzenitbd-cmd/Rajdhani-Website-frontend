@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { User, Briefcase, MapPin, Phone, Mail, Hash, Users, Plus, Settings, List, PlaySquare } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { User, Briefcase, MapPin, Phone, Mail, Hash, Users, Plus, Settings, List, PlaySquare, ArrowLeft, DollarSign } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAppContext } from '../../../context/AppContext';
 import { useToast } from '../../../context/ToastContext';
 import AddOptionModal from '../../../components/AddOptionModal';
 import { useApi } from '../../../hooks/useApi';
 import { ENDPOINTS } from '../../../api/endpoints';
 
-const ClientCreate = () => {
+const ClientEdit = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const toast = useToast();
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
-  const [newGroupName, setNewGroupName] = useState('');
   const [formData, setFormData] = useState({
     clientName: '',
     address: '',
@@ -22,7 +22,7 @@ const ClientCreate = () => {
     group: ''
   });
   const [groups, setGroups] = useState([]);
-  const { get, post, loading } = useApi();
+  const { get, patch, post, loading } = useApi();
 
   const fetchGroups = async () => {
     try {
@@ -33,9 +33,28 @@ const ClientCreate = () => {
     }
   };
 
+  const fetchClient = async () => {
+    try {
+      const res = await get(`${ENDPOINTS.CRM_CLIENTS}${id}/`);
+      const client = res.data || res;
+      setFormData({
+        clientName: client.name || '',
+        address: client.address || '',
+        phone: client.phone || '',
+        phoneOptional: client.phoneOptional || '',
+        previousDue: client.previous_due || '',
+        reference: client.reference || '',
+        group: client.group?.id || client.group || ''
+      });
+    } catch (err) {
+      console.error("Failed to fetch client", err);
+    }
+  };
+
   useEffect(() => {
     fetchGroups();
-  }, []);
+    if (id) fetchClient();
+  }, [id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,20 +63,19 @@ const ClientCreate = () => {
       return;
     }
     
-    // API Body format: { name, phone, address, previous_due, group }
     const payload = {
       name: formData.clientName,
       phone: formData.phone,
       address: formData.address || "",
       previous_due: formData.previousDue || "0.00",
-      group: formData.group // assuming formData.group is holding the group_uuid now
+      group: formData.group
     };
     
     try {
-      await post(ENDPOINTS.CRM_CLIENTS, payload, "Client Added Successfully!");
+      await patch(`${ENDPOINTS.CRM_CLIENTS}${id}/`, payload, "Client Updated Successfully!");
       navigate('/crm/client-list');
     } catch (err) {
-      console.error("Failed to add client", err);
+      console.error("Failed to update client", err);
     }
   };
 
@@ -161,11 +179,7 @@ const ClientCreate = () => {
                   </select>
                   <label>Select client group</label>
                 </div>
-                <button 
-                  type="button" 
-                  className="btn-append"
-                  onClick={() => setIsGroupModalOpen(true)}
-                >
+                <button type="button" className="btn-icon add-btn" onClick={() => setIsGroupModalOpen(true)}>
                   <Plus size={20} />
                 </button>
               </div>
@@ -173,23 +187,12 @@ const ClientCreate = () => {
 
             </div>
 
-            {/* Submit Button */}
-            <div style={{ marginTop: '24px' }}>
-              <button 
-                type="submit" 
-                style={{ 
-                  background: '#10b981', 
-                  color: 'white', 
-                  width: '100%', 
-                  padding: '12px', 
-                  border: 'none', 
-                  borderRadius: '4px', 
-                  fontWeight: '600',
-                  fontSize: '14px',
-                  cursor: 'pointer'
-                }}
-              >
-                Client Add
+            <div style={{ marginTop: '32px', display: 'flex', justifyContent: 'flex-end', gap: '16px' }}>
+              <button type="button" className="btn btn-outline" style={{ padding: '10px 24px' }} onClick={() => navigate(-1)}>
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-primary" style={{ padding: '10px 32px' }} disabled={loading}>
+                {loading ? 'Updating...' : 'Update Client'}
               </button>
             </div>
           </form>
@@ -207,4 +210,4 @@ const ClientCreate = () => {
   );
 };
 
-export default ClientCreate;
+export default ClientEdit;

@@ -14,13 +14,43 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [focusedInput, setFocusedInput] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      // Import apiClient and ENDPOINTS at the top of the file
+      const { default: apiClient } = await import('../../api/apiClient');
+      const { ENDPOINTS } = await import('../../api/endpoints');
+      
+      const response = await apiClient.post(ENDPOINTS.AUTH_LOGIN, {
+        username: email, // The UI has an email field, but we send it as username based on API doc
+        password: password
+      });
+      
+      if (response.access) {
+        localStorage.setItem('token', response.access);
+        if (response.refresh) {
+          localStorage.setItem('refresh_token', response.refresh);
+        }
+        
+        // Save user details for later use
+        if (response.custom_permissions) {
+          localStorage.setItem('custom_permissions', JSON.stringify(response.custom_permissions));
+        }
+        if (response.role) localStorage.setItem('role', response.role);
+        if (response.username) localStorage.setItem('username', response.username);
+        if (response.full_name) localStorage.setItem('full_name', response.full_name);
+        
+        navigate('/dashboard');
+      } else {
+        alert("Login failed, no token received");
+      }
+    } catch (err) {
+      console.error("Login Error:", err);
+      alert("Invalid credentials or server error");
+    } finally {
       setIsLoading(false);
-      navigate('/dashboard');
-    }, 600);
+    }
   };
 
   const handleQuickDemoFill = () => {

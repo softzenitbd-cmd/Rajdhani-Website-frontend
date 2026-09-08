@@ -1,16 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useToast } from '../context/ToastContext';
 
-const AddOptionModal = ({ isOpen, onClose, onSave, title, label, placeholder }) => {
+const AddOptionModal = ({ isOpen, onClose, onSave, title, label, placeholder, initialValue = '' }) => {
   const [inputValue, setInputValue] = useState('');
+  const toast = useToast();
+
+  useEffect(() => {
+    if (isOpen) {
+      setInputValue(initialValue);
+    }
+  }, [isOpen, initialValue]);
 
   if (!isOpen) return null;
 
   const handleSave = () => {
     if (!inputValue.trim()) {
-      alert(`Please enter ${label ? label.toLowerCase() : 'a value'}`);
+      toast.error(`Please enter ${label ? label.toLowerCase() : 'a value'}`);
       return;
     }
     onSave(inputValue.trim());
+    toast.success("Saved successfully!");
     setInputValue('');
     onClose();
   };

@@ -1,28 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../../components/PrintHeader';
 import { List, Plus, FileSpreadsheet, FileText, Printer, RotateCcw, RefreshCw, Edit, Trash2, X, Users } from 'lucide-react';
-import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import AddOptionModal from '../../../components/AddOptionModal';
+import { useApi } from '../../../hooks/useApi';
+import { ENDPOINTS } from '../../../api/endpoints';
 
 const ClientGroup = () => {
   const { t } = useTranslation();
 
-  const [isModalOpen, setIsModalOpen] = useState(false); // Make false by default for better UX
-  const [newGroupName, setNewGroupName] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingGroup, setEditingGroup] = useState(null);
+  const [groups, setGroups] = useState([]);
   
-  const { state, addClientGroup } = useAppContext();
+  const { get, post, put, loading } = useApi();
   const navigate = useNavigate();
-  const groups = state.clientGroups || [];
 
-  const handleAddGroup = (groupName) => {
+  const fetchGroups = async () => {
+    try {
+      const res = await get(ENDPOINTS.CRM_CLIENT_GROUPS);
+      setGroups(res.results || res.data || res || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchGroups();
+  }, []);
+
+  const handleAddGroup = async (groupName) => {
     if (!groupName || !groupName.trim()) return;
-    const now = new Date();
-    const createdAt = `${now.getDate()} ${now.toLocaleString('default', { month: 'short' })} ${now.getFullYear()}`;
-    
-    addClientGroup({ name: groupName.toUpperCase(), createdAt });
-    setIsModalOpen(false);
+    try {
+      await post(ENDPOINTS.CRM_CLIENT_GROUPS, { name: groupName.toUpperCase() }, "Client Group Added");
+      setIsModalOpen(false);
+      fetchGroups();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleEditClick = (group) => {
+    setEditingGroup(group);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSave = async (newName) => {
+    if (!newName || !newName.trim()) return;
+    try {
+      await put(`${ENDPOINTS.CRM_CLIENT_GROUPS}${editingGroup.id}/`, { name: newName.toUpperCase() }, "Client Group Updated");
+      setIsEditModalOpen(false);
+      setEditingGroup(null);
+      fetchGroups();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -79,7 +113,7 @@ const ClientGroup = () => {
                   <td style={{ padding: '8px', textAlign: 'center' }}>{group.name}</td>
                   <td style={{ padding: '8px' }}>{group.createdAt}</td>
                   <td style={{ padding: '8px', textAlign: 'center' }}>
-                    <button style={{ background: 'var(--info)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', marginRight: '4px' }} onClick={() => alert("Edit group feature coming soon!")}>
+                    <button style={{ background: 'var(--info)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', marginRight: '4px' }} onClick={() => handleEditClick(group)}>
                       <Edit size={14} />
                     </button>
                     <button style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer' }} onClick={() => alert("Delete group feature coming soon!")}>
@@ -104,6 +138,15 @@ const ClientGroup = () => {
         onSave={handleAddGroup}
         title="Add New Client Group"
         label="Group Name"
+      />
+
+      <AddOptionModal 
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={handleEditSave}
+        title="Edit Client Group"
+        label="Group Name"
+        initialValue={editingGroup ? editingGroup.name : ''}
       />
     </div>
   );

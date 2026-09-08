@@ -55,6 +55,7 @@ body {
   color: var(--text-main);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  font-size: clamp(14px, 1vw + 10px, 16px);
 }
 
 /* Layout */
@@ -119,12 +120,12 @@ body {
 .profile-name {
   color: white;
   font-weight: 600;
-  font-size: 16px;
+  font-size: clamp(14px, 1.5vw, 16px);
 }
 
 .profile-role {
   color: var(--text-sidebar);
-  font-size: 13px;
+  font-size: clamp(12px, 1.2vw, 13px);
   margin-top: 4px;
 }
 
@@ -146,7 +147,7 @@ body {
   transition: var(--transition);
   cursor: pointer;
   font-weight: 500;
-  font-size: 15px;
+  font-size: clamp(13px, 1.4vw, 15px);
 }
 
 .nav-item-content {
@@ -179,7 +180,7 @@ body {
   padding: 10px 16px;
   color: var(--text-muted);
   text-decoration: none;
-  font-size: 13px;
+  font-size: clamp(12px, 1.2vw, 13px);
   border-radius: var(--radius-md);
   margin-bottom: 4px;
   transition: var(--transition);
@@ -221,7 +222,7 @@ body {
 }
 
 .header-title {
-  font-size: 24px;
+  font-size: clamp(18px, 2.5vw, 24px);
   font-weight: 700;
   color: var(--text-main);
   letter-spacing: -0.5px;
@@ -242,7 +243,7 @@ body {
   padding: 10px 20px;
   border-radius: var(--radius-full);
   font-weight: 600;
-  font-size: 14px;
+  font-size: clamp(13px, 1.4vw, 14px);
   cursor: pointer;
   border: none;
   transition: var(--transition);
@@ -333,7 +334,7 @@ body {
 }
 
 .stat-value {
-  font-size: 24px;
+  font-size: clamp(20px, 2.5vw, 24px);
   font-weight: 700;
   color: var(--text-main);
   display: flex;
@@ -342,7 +343,7 @@ body {
 }
 
 .stat-currency {
-  font-size: 18px;
+  font-size: clamp(14px, 1.8vw, 18px);
   color: var(--text-muted);
 }
 
@@ -365,13 +366,13 @@ body {
 }
 
 .chart-title {
-  font-size: 18px;
+  font-size: clamp(16px, 1.8vw, 18px);
   font-weight: 700;
   color: var(--text-main);
 }
 
 .chart-subtitle {
-  font-size: 14px;
+  font-size: clamp(12px, 1.4vw, 14px);
   color: var(--text-muted);
   margin-top: 4px;
 }
@@ -664,5 +665,80 @@ body {
   }
   50% {
     opacity: 0.5;
+  }
+}
+
+/* --- Print Styles --- */
+@media print {
+  @page {
+    margin: 0.5cm;
+  }
+
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide UI elements not meant for printing */
+  .sidebar, 
+  .app-header,
+  header, 
+  .btn, 
+  .btn-icon, 
+  .fab, 
+  .mobile-menu-btn,
+  .sidebar-overlay,
+  .action-column,
+  .print-hide {
+    display: none !important;
+  }
+
+  /* Reset layout constraints */
+  .app-layout {
+    display: block !important;
+  }
+  
+  .main-wrapper {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding: 0 !important;
+  }
+
+  .main-content, .dashboard-content {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .card, .premium-card {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Fix Header Image */
+  .receipt-header-image img {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: auto !important;
+    object-fit: contain !important;
+    page-break-inside: avoid;
+  }
+
+  /* Better Table Printing */
+  .custom-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+  
+  .custom-table th, .custom-table td {
+    padding: 4px 6px !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #000 !important;
+  }
+  
+  .custom-table th {
+    background-color: #f1f5f9 !important;
   }
 }

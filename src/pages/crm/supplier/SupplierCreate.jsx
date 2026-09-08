@@ -1,19 +1,83 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Settings, List, Users, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAppContext } from '../../../context/AppContext';
 import AddOptionModal from '../../../components/AddOptionModal';
+import { useApi } from '../../../hooks/useApi';
+import { ENDPOINTS } from '../../../api/endpoints';
+import { useToast } from '../../../context/ToastContext';
 
 const SupplierCreate = () => {
   const navigate = useNavigate();
+  const toast = useToast();
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
-  const { state, addSupplierGroup } = useAppContext();
-  const groups = state?.supplierGroups || [];
+  const [groups, setGroups] = useState([]);
+  
+  const [formData, setFormData] = useState({
+    supplierName: '',
+    companyName: '',
+    phone: '',
+    previousDue: '',
+    address: '',
+    domain: '',
+    group: '',
+    bankInfo: 'Bank Name:\nAccount Number:\nAccount Description:'
+  });
 
-  const handleAddGroup = (groupName) => {
-    const now = new Date();
-    const date = `${now.getDate()} ${now.toLocaleString('default', { month: 'short' })} ${now.getFullYear()}`;
-    addSupplierGroup({ name: groupName.toUpperCase(), date });
+  const { get, post, loading } = useApi();
+
+  const fetchGroups = async () => {
+    try {
+      const res = await get(ENDPOINTS.CRM_SUPPLIER_GROUPS);
+      setGroups(res.results || res.data || res || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchGroups();
+  }, []);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddGroup = async (groupName) => {
+    if (!groupName || !groupName.trim()) return;
+    try {
+      await post(ENDPOINTS.CRM_SUPPLIER_GROUPS, { name: groupName.toUpperCase() }, "Supplier Group Added");
+      setIsGroupModalOpen(false);
+      fetchGroups();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.supplierName || !formData.phone || !formData.group) {
+      toast.error("Please fill in required fields: Supplier Name, Phone, and Group.");
+      return;
+    }
+    
+    const payload = {
+      name: formData.supplierName,
+      company_name: formData.companyName,
+      phone: formData.phone,
+      address: formData.address || "",
+      domain: formData.domain || "",
+      previous_due: formData.previousDue || "0.00",
+      group: formData.group,
+      bank_info: formData.bankInfo
+    };
+    
+    try {
+      await post(ENDPOINTS.CRM_SUPPLIERS, payload, "Supplier Added Successfully!");
+      navigate('/crm/supplier-list');
+    } catch (err) {
+      console.error("Failed to add supplier", err);
+    }
   };
 
   return (
@@ -37,12 +101,12 @@ const SupplierCreate = () => {
       </div>
 
       <div className="card-body">
-        <form>
+        <form onSubmit={handleSubmit}>
           <div className="form-grid">
             <div className="form-group">
               <div className="form-input floating-label">
                 <div className="input-icon">👤</div>
-                <input type="text" placeholder=" " />
+                <input type="text" placeholder=" " name="supplierName" value={formData.supplierName} onChange={handleInputChange} />
                 <label>Supplier Name</label>
               </div>
             </div>
@@ -50,7 +114,7 @@ const SupplierCreate = () => {
             <div className="form-group">
               <div className="form-input floating-label">
                 <div className="input-icon">🏢</div>
-                <input type="text" placeholder=" " />
+                <input type="text" placeholder=" " name="companyName" value={formData.companyName} onChange={handleInputChange} />
                 <label>Company Name</label>
               </div>
             </div>
@@ -58,7 +122,7 @@ const SupplierCreate = () => {
             <div className="form-group">
               <div className="form-input floating-label">
                 <div className="input-icon">📱</div>
-                <input type="text" placeholder=" " />
+                <input type="text" placeholder=" " name="phone" value={formData.phone} onChange={handleInputChange} />
                 <label>Phone</label>
               </div>
             </div>
@@ -66,7 +130,7 @@ const SupplierCreate = () => {
             <div className="form-group">
               <div className="form-input floating-label">
                 <div className="input-icon">💳</div>
-                <input type="text" placeholder=" " />
+                <input type="text" placeholder=" " name="previousDue" value={formData.previousDue} onChange={handleInputChange} />
                 <label>Previous Due</label>
               </div>
             </div>
@@ -74,7 +138,7 @@ const SupplierCreate = () => {
             <div className="form-group">
               <div className="form-input floating-label">
                 <div className="input-icon">🏢</div>
-                <input type="text" placeholder=" " />
+                <input type="text" placeholder=" " name="address" value={formData.address} onChange={handleInputChange} />
                 <label>Address</label>
               </div>
             </div>
@@ -82,7 +146,7 @@ const SupplierCreate = () => {
             <div className="form-group">
               <div className="form-input floating-label">
                 <div className="input-icon">🌐</div>
-                <input type="text" placeholder=" " />
+                <input type="text" placeholder=" " name="domain" value={formData.domain} onChange={handleInputChange} />
                 <label>Domain</label>
               </div>
             </div>
@@ -90,11 +154,11 @@ const SupplierCreate = () => {
             <div className="form-group">
               <div className="input-group">
                 <div className="form-input floating-label">
-                  <select>
+                  <select name="group" value={formData.group} onChange={handleInputChange}>
                     <option value="" disabled hidden></option>
                     <option value="test">Select a group</option>
                     {groups.map(group => (
-                      <option key={group.id} value={group.name}>{group.name}</option>
+                      <option key={group.id || group.uuid} value={group.id || group.uuid}>{group.name}</option>
                     ))}
                   </select>
                   <label>Select a group</label>
@@ -111,9 +175,11 @@ const SupplierCreate = () => {
               <span style={{ marginRight: '8px' }}>🏦</span> Bank Account info
             </div>
             <textarea 
+              name="bankInfo"
+              value={formData.bankInfo}
+              onChange={handleInputChange}
               className="form-input floating-label" 
               style={{ height: '120px', padding: '12px', resize: 'vertical' }}
-              defaultValue="Bank Name:&#10;Account Number:&#10;Account Description:"
             ></textarea>
           </div>
 

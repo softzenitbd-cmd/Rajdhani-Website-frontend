@@ -1,28 +1,73 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../../components/PrintHeader';
 import { List, Plus, FileSpreadsheet, Printer, RotateCcw, RefreshCw, Edit, Trash2, X } from 'lucide-react';
-import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import AddOptionModal from '../../../components/AddOptionModal';
+import { useApi } from '../../../hooks/useApi';
+import { ENDPOINTS } from '../../../api/endpoints';
 
 const SupplierGroup = () => {
   const { t } = useTranslation();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newGroupName, setNewGroupName] = useState('');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingGroup, setEditingGroup] = useState(null);
+  const [groups, setGroups] = useState([]);
 
-  const { state, addSupplierGroup } = useAppContext();
+  const { get, post, put, del, loading } = useApi();
   const navigate = useNavigate();
-  const groups = state.supplierGroups || [];
 
-  const handleAddGroup = (groupName) => {
+  const fetchGroups = async () => {
+    try {
+      const res = await get(ENDPOINTS.CRM_SUPPLIER_GROUPS);
+      setGroups(res.results || res.data || res || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchGroups();
+  }, []);
+
+  const handleAddGroup = async (groupName) => {
     if (!groupName || !groupName.trim()) return;
-    const now = new Date();
-    const date = `${now.getDate()} ${now.toLocaleString('default', { month: 'short' })} ${now.getFullYear()}`;
-    
-    addSupplierGroup({ name: groupName.toUpperCase(), date });
-    setIsModalOpen(false);
+    try {
+      await post(ENDPOINTS.CRM_SUPPLIER_GROUPS, { name: groupName.toUpperCase() }, "Supplier Group Added");
+      setIsModalOpen(false);
+      fetchGroups();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleEditClick = (group) => {
+    setEditingGroup(group);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSave = async (newName) => {
+    if (!newName || !newName.trim()) return;
+    try {
+      await put(`${ENDPOINTS.CRM_SUPPLIER_GROUPS}${editingGroup.id || editingGroup.uuid}/`, { name: newName.toUpperCase() }, "Supplier Group Updated");
+      setIsEditModalOpen(false);
+      setEditingGroup(null);
+      fetchGroups();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteClick = async (group) => {
+    if (window.confirm('Are you sure you want to delete this group?')) {
+      try {
+        await del(`${ENDPOINTS.CRM_SUPPLIER_GROUPS}${group.id || group.uuid}/`, "Supplier Group Deleted");
+        fetchGroups();
+      } catch (err) {
+        console.error(err);
+      }
+    }
   };
 
   return (
@@ -79,27 +124,32 @@ const SupplierGroup = () => {
                 </tr>
               </thead>
               <tbody>
-                {groups.map((group, index) => (
-                  <tr key={group.id} style={{ background: index % 2 === 0 ? 'white' : 'var(--card-header-bg)' }}>
-                    <td style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>{group.id}</td>
-                    <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', fontWeight: '500' }}>{group.name}</td>
-                    <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>{group.date}</td>
-                    <td style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0' }}>
-                      <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                        <button style={{ background: 'var(--info)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => alert("Edit group feature coming soon!")}>
-                          <Edit size={14} />
-                        </button>
-                        <button style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => alert("Delete group feature coming soon!")}>
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
+                {loading ? (
+                  <tr>
+                    <td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>Loading...</td>
                   </tr>
-                ))}
-                {groups.length === 0 && (
+                ) : groups.length === 0 ? (
                   <tr>
                     <td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No supplier groups found.</td>
                   </tr>
+                ) : (
+                  groups.map((group, index) => (
+                    <tr key={group.id || group.uuid} style={{ background: index % 2 === 0 ? 'white' : 'var(--card-header-bg)' }}>
+                      <td style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>{group.id || group.uuid}</td>
+                      <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', fontWeight: '500' }}>{group.name}</td>
+                      <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>{group.created_at || group.date}</td>
+                      <td style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0' }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                          <button style={{ background: 'var(--info)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => handleEditClick(group)}>
+                            <Edit size={14} />
+                          </button>
+                          <button style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => handleDeleteClick(group)}>
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
@@ -124,6 +174,17 @@ const SupplierGroup = () => {
         title="Add New Supplier Group"
         label="Group Name"
       />
+
+      {isEditModalOpen && editingGroup && (
+        <AddOptionModal 
+          isOpen={isEditModalOpen}
+          onClose={() => { setIsEditModalOpen(false); setEditingGroup(null); }}
+          onSave={handleEditSave}
+          title="Edit Supplier Group"
+          label="Group Name"
+          initialValue={editingGroup.name}
+        />
+      )}
     </div>
   );
 };

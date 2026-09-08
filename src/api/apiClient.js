@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 1. Create an Axios instance with base configuration
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://server-rajdhaniserver-dbitqs-9932f2-62-84-177-235.sslip.io',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '',
   headers: {
     'Content-Type': 'application/json',
   },
