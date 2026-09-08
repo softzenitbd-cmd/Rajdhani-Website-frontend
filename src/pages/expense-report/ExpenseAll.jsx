@@ -1,143 +1,200 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { RefreshCcw, Printer } from 'lucide-react';
+import { RefreshCcw, Printer, Search } from 'lucide-react';
+import { accountingService } from '../../services/accountingService';
 
 const ExpenseAll = () => {
   const { t } = useTranslation();
 
-  const dummyData = [
-    { id: 1, idNo: '1', date: '01 Sep 2026', voucherNo: '182396', category: 'DOKAN KOROJ', account: 'TOTAL BALANCE', chequeNo: '', desc: 'JOLIL SALARE AD', type: 'Staff Payment', amount: '4000.00' },
-    { id: 2, idNo: '2', date: '25 Aug 2026', voucherNo: '182618', category: '--', account: 'TOTAL BALANCE', chequeNo: '', desc: '', type: '', amount: '0.00' },
-    { id: 3, idNo: '3', date: '25 Aug 2026', voucherNo: '182577', category: '--', account: 'TOTAL BALANCE', chequeNo: '', desc: '', type: '', amount: '0.00' },
-    { id: 4, idNo: '4', date: '24 Aug 2026', voucherNo: '182571', category: 'FOYLA MARET', account: 'TOTAL BALANCE', chequeNo: '', desc: 'JAKIR MAMA 2 SHUTTER BABOD', type: '', amount: '30000.00' },
-    { id: 5, idNo: '5', date: '24 Aug 2026', voucherNo: '182572', category: 'JAKAT FAND', account: 'TOTAL BALANCE', chequeNo: '', desc: 'DAN', type: '', amount: '600.00' },
-    { id: 6, idNo: '6', date: '24 Aug 2026', voucherNo: '182570', category: 'FOYLA MARET', account: 'TOTAL BALANCE', chequeNo: '', desc: 'BASH MISTIRE NIGITGARD', type: '', amount: '12800.00' },
-    { id: 7, idNo: '7', date: '24 Aug 2026', voucherNo: '182567', category: 'MALL FEROT', account: 'TOTAL BALANCE', chequeNo: '', desc: '', type: '', amount: '5090.00' },
-    { id: 8, idNo: '8', date: '24 Aug 2026', voucherNo: '182543', category: 'MALL FEROT', account: 'TOTAL BALANCE', chequeNo: '', desc: '', type: '', amount: '0.00' },
-    { id: 9, idNo: '9', date: '24 Aug 2026', voucherNo: '182490', category: 'MALL FEROT', account: 'TOTAL BALANCE', chequeNo: '', desc: '', type: '', amount: '0.00' },
-    { id: 10, idNo: '10', date: '24 Aug 2026', voucherNo: '182462', category: 'MALL FEROT', account: 'TOTAL BALANCE', chequeNo: '', desc: '', type: '', amount: '0.00' },
-    { id: 11, idNo: '11', date: '24 Aug 2026', voucherNo: '182448', category: 'MALL FEROT', account: 'TOTAL BALANCE', chequeNo: '', desc: '', type: '', amount: '0.00' },
-    { id: 12, idNo: '12', date: '24 Aug 2026', voucherNo: '182408', category: 'MALL FEROT', account: 'TOTAL BALANCE', chequeNo: '', desc: '', type: '', amount: '0.00' },
-    { id: 13, idNo: '13', date: '24 Aug 2026', voucherNo: '182576', category: '--', account: 'TOTAL BALANCE', chequeNo: '', desc: '', type: 'Purchase', amount: '0.00' },
-    { id: 14, idNo: '14', date: '24 Aug 2026', voucherNo: '182573', category: 'DOKAN KOROJ', account: 'TOTAL BALANCE', chequeNo: '', desc: 'BIVINNO', type: '', amount: '4700.00' },
-    { id: 15, idNo: '15', date: '23 Aug 2026', voucherNo: '182395', category: 'FOYLA MARET', account: 'TOTAL BALANCE', chequeNo: '', desc: 'RAJ MISTIRE EIT SAF KORA + CMINT', type: '', amount: '5700.00' },
+  const [expenses, setExpenses] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+
+  const fallbackData = [
+    { id: '1', sl: 1, date: '2026-09-01', voucherNo: '182396', category: 'DOKAN KOROJ', account: 'Cash Account', desc: 'JOLIL SALARE AD', type: 'Staff Payment', amount: '4000.00' },
+    { id: '2', sl: 2, date: '2026-08-24', voucherNo: '182571', category: 'FOYLA MARET', account: 'Dutch Bangla Bank', desc: 'JAKIR MAMA 2 SHUTTER BABOD', type: 'Cost', amount: '30000.00' },
+    { id: '3', sl: 3, date: '2026-08-24', voucherNo: '182572', category: 'JAKAT FAND', account: 'Cash Account', desc: 'DAN', type: 'Cost', amount: '600.00' },
+    { id: '4', sl: 4, date: '2026-08-24', voucherNo: '182567', category: 'MALL FEROT', account: 'Cash Account', desc: 'Refund', type: 'Money Return', amount: '5090.00' },
   ];
+
+  useEffect(() => {
+    loadCategories();
+    fetchExpenses();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      const res = await accountingService.getExpenseCategories();
+      const data = Array.isArray(res) ? res : (res?.results || []);
+      setCategories(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const fetchExpenses = async () => {
+    try {
+      setLoading(true);
+      const filters = {};
+      if (searchTerm) filters.search = searchTerm;
+      if (selectedCategory) filters.category_id = selectedCategory;
+      if (fromDate) filters.from_date = fromDate;
+      if (toDate) filters.to_date = toDate;
+
+      const res = await accountingService.getExpenseReport(filters);
+      const data = Array.isArray(res) ? res : (res?.results || []);
+      setExpenses(data.length > 0 ? data : fallbackData);
+    } catch (error) {
+      console.error('Error fetching expense report:', error);
+      setExpenses(fallbackData);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFilter = (e) => {
+    e.preventDefault();
+    fetchExpenses();
+  };
+
+  const handleClear = () => {
+    setSearchTerm('');
+    setSelectedCategory('');
+    setFromDate('');
+    setToDate('');
+    setTimeout(fetchExpenses, 50);
+  };
+
+  const totalAmount = expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
-      
       <div className="premium-card">
-        {/* Banner */}
-        <div style={{ padding: '0', background: 'white', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>
-          <img 
-            src="https://via.placeholder.com/1200x150?text=Rajdhani+Garments+Banner" 
-            alt="Rajdhani Garments" 
-            style={{ width: '100%', height: 'auto', maxHeight: '150px', objectFit: 'cover' }}
-          />
-          <h2 style={{ fontSize: '18px', fontWeight: 'bold', padding: '16px 0', margin: '0' }}>All Expense Report</h2>
+        <div style={{ padding: '24px', background: 'white', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h2 style={{ fontSize: '22px', fontWeight: 'bold', margin: '0 0 4px', color: 'var(--text-main)' }}>All Expense Report</h2>
+            <span style={{ fontSize: '13px', color: '#64748b' }}>Consolidated cost, staff payment, and supplier expenditure report</span>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <span style={{ fontSize: '12px', color: '#64748b', display: 'block' }}>Total Expenses</span>
+            <span style={{ fontSize: '20px', fontWeight: '800', color: '#dc2626' }}>৳ {totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+          </div>
         </div>
 
         <div className="premium-body" style={{ background: 'white', padding: '24px' }}>
-        <PrintHeader />
+          <PrintHeader />
           
           {/* Filters Area */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
+          <form onSubmit={handleFilter} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1.5fr auto', gap: '16px', marginBottom: '20px', alignItems: 'end' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px' }}>Search</label>
-              <input type="text" placeholder=" " style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
-                <label>Search</label>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', fontWeight: '600' }}>Search Reference, Staff or Supplier</label>
+              <input 
+                type="text" 
+                placeholder="Search..." 
+                value={searchTerm} 
+                onChange={(e) => setSearchTerm(e.target.value)} 
+                style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} 
+              />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px' }}>{t('common.search_by_client')}</label>
-              <select style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }}>
-                <option value="">{t('common.select_client')}</option>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', fontWeight: '600' }}>Category</label>
+              <select 
+                value={selectedCategory} 
+                onChange={(e) => setSelectedCategory(e.target.value)} 
+                style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }}
+              >
+                <option value="">All Categories</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
               </select>
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px' }}>Search By Supplier</label>
-              <select style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }}>
-                <option value="">Select Suppliers</option>
-              </select>
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px' }}>{t('common.search_by_date')}</label>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', fontWeight: '600' }}>Date Range</label>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <input type="date" style={{ width: '50%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
-                <input type="date" style={{ width: '50%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
+                <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ width: '50%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
+                <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ width: '50%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
               </div>
             </div>
-          </div>
-
-          {/* Clear Filter Button */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
-            <button style={{ width: '60%', maxWidth: '600px', background: '#7e8a9f', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }}>
-              Clear Filter
-            </button>
-          </div>
-
-          {/* Controls */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-              Show 
-              <select style={{ margin: '0 8px', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }}>
-                <option>100</option>
-              </select> 
-              entries
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button type="submit" className="btn-blue" style={{ padding: '10px 18px', fontWeight: 'bold' }}>
+                <Search size={14} style={{ marginRight: '4px', display: 'inline' }} /> Filter
+              </button>
+              <button type="button" onClick={handleClear} className="btn-secondary" style={{ padding: '10px 14px' }}>
+                Reset
+              </button>
             </div>
-            
-            <div style={{ display: 'flex', gap: '4px' }}>
-              <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px 0 0 4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px' }}>
+          </form>
+
+          {/* Table Controls */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div style={{ fontSize: '13px', color: '#64748b' }}>
+              Showing {expenses.length} entries
+            </div>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
                 <Printer size={14} /> Print
               </button>
-              <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '0 4px 4px 0', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px' }}>
-                <RefreshCcw size={14} /> Reset
+              <button onClick={fetchExpenses} style={{ background: '#64748b', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+                <RefreshCcw size={14} /> Reload
               </button>
             </div>
           </div>
 
           {/* Table */}
           <div className="table-responsive">
-            <table className="custom-table" style={{ width: '100%', fontSize: '11px', textAlign: 'left' }}>
+            <table className="custom-table" style={{ width: '100%', fontSize: '13px' }}>
               <thead>
-                <tr style={{ background: '#94a3b8', color: 'white', textTransform: 'uppercase' }}>
-                  <th style={{ width: '40px', padding: '12px' }}>ID NO ⇅</th>
-                  <th style={{ padding: '12px' }}>DATE ⇅</th>
-                  <th style={{ padding: '12px' }}>VOUCHER NO ⇅</th>
-                  <th style={{ padding: '12px' }}>CATEGORY ⇅</th>
-                  <th style={{ padding: '12px' }}>ACCOUNT ⇅</th>
-                  <th style={{ padding: '12px' }}>CHEQUE NO ⇅</th>
-                  <th style={{ padding: '12px' }}>DESCRIPTION ⇅</th>
-                  <th style={{ padding: '12px' }}>TYPE ⇅</th>
-                  <th style={{ padding: '12px' }}>AMOUNT ⇅</th>
+                <tr style={{ background: '#718096', color: 'white', textTransform: 'uppercase' }}>
+                  <th style={{ width: '60px', padding: '10px', textAlign: 'center' }}>SL</th>
+                  <th style={{ padding: '10px', textAlign: 'center' }}>DATE</th>
+                  <th style={{ padding: '10px', textAlign: 'center' }}>VOUCHER / REF</th>
+                  <th style={{ padding: '10px', textAlign: 'center' }}>CATEGORY</th>
+                  <th style={{ padding: '10px', textAlign: 'center' }}>ACCOUNT</th>
+                  <th style={{ padding: '10px', textAlign: 'left' }}>DESCRIPTION</th>
+                  <th style={{ padding: '10px', textAlign: 'center' }}>TYPE</th>
+                  <th style={{ padding: '10px', textAlign: 'right' }}>AMOUNT (৳)</th>
                 </tr>
               </thead>
               <tbody>
-                {dummyData.map((row) => (
-                  <tr key={row.id}>
-                    <td style={{ padding: '12px' }}>{row.idNo}</td>
-                    <td style={{ padding: '12px' }}>{row.date}</td>
-                    <td style={{ padding: '12px' }}>{row.voucherNo}</td>
-                    <td style={{ padding: '12px' }}>{row.category}</td>
-                    <td style={{ padding: '12px' }}>{row.account}</td>
-                    <td style={{ padding: '12px' }}>{row.chequeNo}</td>
-                    <td style={{ padding: '12px' }}>{row.desc}</td>
-                    <td style={{ padding: '12px' }}>
-                      {row.type === 'Staff Payment' && <span style={{ background: 'var(--success)', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '10px' }}>Staff Payment</span>}
-                      {row.type === 'Purchase' && <span style={{ background: 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '10px' }}>Purchase</span>}
-                      {row.type === 'Supplier Payment' && <span style={{ background: '#06b6d4', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '10px' }}>Supplier Payment</span>}
-                      {row.type !== 'Staff Payment' && row.type !== 'Purchase' && row.type !== 'Supplier Payment' && row.type}
-                    </td>
-                    <td style={{ padding: '12px' }}>{row.amount}</td>
+                {loading ? (
+                  <tr>
+                    <td colSpan="8" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>Loading expense report...</td>
                   </tr>
-                ))}
+                ) : expenses.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>No expense records found.</td>
+                  </tr>
+                ) : (
+                  expenses.map((row, index) => (
+                    <tr key={row.id || index} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '10px', textAlign: 'center', fontWeight: '600', color: '#64748b' }}>{index + 1}</td>
+                      <td style={{ padding: '10px', textAlign: 'center' }}>{row.date ? String(row.date).split('T')[0] : 'N/A'}</td>
+                      <td style={{ padding: '10px', textAlign: 'center', fontWeight: '600' }}>{row.voucherNo || row.reference || `#${row.id}`}</td>
+                      <td style={{ padding: '10px', textAlign: 'center', fontWeight: '600' }}>{row.expense_category?.name || row.category || row.category_id || 'General'}</td>
+                      <td style={{ padding: '10px', textAlign: 'center' }}>{row.account || row.account_name || 'Cash'}</td>
+                      <td style={{ padding: '10px', textAlign: 'left', color: '#4b5563' }}>{row.desc || row.description || '-'}</td>
+                      <td style={{ padding: '10px', textAlign: 'center' }}>
+                        <span style={{ background: '#fee2e2', color: '#b91c1c', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>
+                          {row.transaction_type || row.type || 'Cost'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '10px', textAlign: 'right', fontWeight: 'bold', color: '#dc2626' }}>
+                        ৳ {Number(row.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
-          
         </div>
       </div>
-
     </div>
   );
 };

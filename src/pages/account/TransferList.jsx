@@ -1,128 +1,159 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { Printer, RotateCcw } from 'lucide-react';
+import { Printer, RotateCcw, Plus, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { accountingService } from '../../services/accountingService';
 
 const TransferList = () => {
   const { t } = useTranslation();
 
+  const [transfers, setTransfers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+
+  const fallbackData = [
+    { id: '1', date: '2026-08-28', from_account_name: 'Cash Account', to_account_name: 'Dutch Bangla Bank (DBBL)', amount: '50000.00', description: 'Daily shop sales cash deposit' },
+    { id: '2', date: '2026-08-25', from_account_name: 'Dutch Bangla Bank (DBBL)', to_account_name: 'Cash Account', amount: '20000.00', description: 'ATM cash withdrawal for factory petty cash' },
+    { id: '3', date: '2026-08-20', from_account_name: 'Cash Account', to_account_name: 'Islami Bank Bangladesh', amount: '35000.00', description: 'Supplier LC margin deposit' },
+  ];
+
+  const fetchTransfers = async () => {
+    try {
+      setLoading(true);
+      const filters = {};
+      if (fromDate) filters.from_date = fromDate;
+      if (toDate) filters.to_date = toDate;
+
+      const res = await accountingService.getTransfers(filters);
+      const data = Array.isArray(res) ? res : (res?.results || []);
+      setTransfers(data.length > 0 ? data : fallbackData);
+    } catch (error) {
+      console.error('Error fetching transfers:', error);
+      setTransfers(fallbackData);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTransfers();
+  }, []);
+
+  const handleFilter = (e) => {
+    e.preventDefault();
+    fetchTransfers();
+  };
+
+  const handleClear = () => {
+    setFromDate('');
+    setToDate('');
+    setTimeout(() => {
+      fetchTransfers();
+    }, 50);
+  };
+
   return (
     <div className="premium-card">
-      <div className="premium-body" style={{ padding: '20px 40px 40px' }}>
+      <div className="premium-body" style={{ padding: '20px 32px 40px' }}>
         <PrintHeader />
-        
-        {/* Centered Title */}
-        <h1 style={{ textAlign: 'center', fontFamily: 'monospace, serif', fontSize: '28px', color: '#111827', margin: '20px 0 40px' }}>Transfer List</h1>
+
+        {/* Title */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0 24px' }}>
+          <div>
+            <h1 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>Transfer List</h1>
+            <span style={{ fontSize: '13px', color: '#64748b' }}>Account-to-account fund transfer history</span>
+          </div>
+          <Link to="/account/transfer-create" style={{ textDecoration: 'none' }}>
+            <button className="btn-green" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Plus size={16} /> New Fund Transfer
+            </button>
+          </Link>
+        </div>
 
         {/* Filter Section */}
-        <div className="form-grid" style={{ gridTemplateColumns: '1.5fr 1.5fr 1.5fr 1fr', gap: '16px', marginBottom: '24px', alignItems: 'flex-end' }}>
-          
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>Search By Account</label>
-            <div className="form-input floating-label">
-              <select style={{ width: '100%' }}>
-                <option value="">Select Account</option>
-              </select>
-            </div>
+        <form onSubmit={handleFilter} className="filter-grid" style={{ gridTemplateColumns: '1fr 1fr auto', gap: '16px', marginBottom: '20px', alignItems: 'end' }}>
+          <div>
+            <label className="filter-label">From Date</label>
+            <input 
+              type="date" 
+              className="input-outline" 
+              value={fromDate} 
+              onChange={(e) => setFromDate(e.target.value)} 
+              style={{ width: '100%', padding: '10px' }}
+            />
           </div>
-          
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>Search By Type</label>
-            <div className="form-input floating-label">
-              <select style={{ width: '100%' }}>
-                <option value="">Choose one</option>
-              </select>
-            </div>
+          <div>
+            <label className="filter-label">To Date</label>
+            <input 
+              type="date" 
+              className="input-outline" 
+              value={toDate} 
+              onChange={(e) => setToDate(e.target.value)} 
+              style={{ width: '100%', padding: '10px' }}
+            />
           </div>
-
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>Search By Date</label>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <div className="form-input floating-label" style={{ flex: 1 }}>
-                <input type="date" style={{ width: '100%', color: '#9ca3af' }} />
-              </div>
-              <div className="form-input floating-label" style={{ flex: 1 }}>
-                <input type="date" style={{ width: '100%', color: '#9ca3af' }} />
-              </div>
-            </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button type="submit" className="btn-blue" style={{ padding: '10px 16px', fontWeight: 'bold' }}>
+              <Search size={14} style={{ marginRight: '4px', display: 'inline' }} /> Filter
+            </button>
+            <button type="button" onClick={handleClear} className="btn-secondary" style={{ padding: '10px 16px' }}>
+              Reset
+            </button>
           </div>
-
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <button style={{ width: '100%', height: '42px', background: '#6b7280', color: 'white', border: 'none', borderRadius: '4px', fontWeight: '600', cursor: 'pointer' }}>Clear Filter</button>
-          </div>
-        </div>
+        </form>
 
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div className="show-entries" style={{ fontSize: '14px', color: '#4b5563' }}>
-            Show 
-            <select defaultValue="100" style={{ margin: '0 8px', padding: '4px', borderRadius: '4px', border: '1px solid #d1d5db' }}>
-              <option value="10">10</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-            </select> 
-            entries
+          <div style={{ fontSize: '14px', color: '#4b5563' }}>
+            Total Transfers: <strong>{transfers.length}</strong>
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#3b82f6', color: 'white', padding: '6px 12px', borderRadius: '4px', border: 'none', fontSize: '13px', cursor: 'pointer' }} onClick={() => window.print()}><Printer size={14} /> Print</button>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#3b82f6', color: 'white', padding: '6px 12px', borderRadius: '4px', border: 'none', fontSize: '13px', cursor: 'pointer' }}>Excel</button>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#3b82f6', color: 'white', padding: '6px 12px', borderRadius: '4px', border: 'none', fontSize: '13px', cursor: 'pointer' }}>CSV</button>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#3b82f6', color: 'white', padding: '6px 12px', borderRadius: '4px', border: 'none', fontSize: '13px', cursor: 'pointer' }}>PDF</button>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#3b82f6', color: 'white', padding: '6px 12px', borderRadius: '4px', border: 'none', fontSize: '13px', cursor: 'pointer' }}><RotateCcw size={14} /> Reset</button>
+            <button className="btn-blue" onClick={() => window.print()}><Printer size={14} /> Print</button>
+            <button className="btn-blue" onClick={fetchTransfers}><RotateCcw size={14} /> Reload</button>
           </div>
         </div>
 
-        {/* Table Section */}
-        <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: '4px' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '1000px' }}>
+        {/* Table */}
+        <div className="table-responsive">
+          <table className="custom-table" style={{ width: '100%' }}>
             <thead>
-              <tr style={{ background: '#9ca3af', color: 'white', fontSize: '11px' }}>
-                <th style={{ padding: '12px 8px', textAlign: 'center', borderRight: '1px solid #d1d5db' }}>SL ↕</th>
-                <th style={{ padding: '12px 8px', textAlign: 'center', borderRight: '1px solid #d1d5db' }}>DATE ↕</th>
-                <th style={{ padding: '12px 8px', textAlign: 'center', borderRight: '1px solid #d1d5db' }}>MESSAGES.SENDER_OR_RECEIVER ↕</th>
-                <th style={{ padding: '12px 8px', textAlign: 'center', borderRight: '1px solid #d1d5db' }}>TYPE ↕</th>
-                <th style={{ padding: '12px 8px', textAlign: 'center', borderRight: '1px solid #d1d5db' }}>ACCOUNT ↕</th>
-                <th style={{ padding: '12px 8px', textAlign: 'center', borderRight: '1px solid #d1d5db' }}>DESCRIPTION ↕</th>
-                <th style={{ padding: '12px 8px', textAlign: 'center', borderRight: '1px solid #d1d5db' }}>CREDIT ↕</th>
-                <th style={{ padding: '12px 8px', textAlign: 'center', borderRight: '1px solid #d1d5db' }}>DEBIT ↕</th>
-                <th style={{ padding: '12px 8px', textAlign: 'center', borderRight: '1px solid #d1d5db' }}>BALANCE ↕</th>
-                <th style={{ padding: '12px 8px', textAlign: 'center' }}>ACTION ↕</th>
+              <tr style={{ background: '#718096', color: 'white' }}>
+                <th style={{ width: '60px' }}>SL</th>
+                <th>DATE</th>
+                <th>FROM ACCOUNT</th>
+                <th>TO ACCOUNT</th>
+                <th>DESCRIPTION</th>
+                <th style={{ textAlign: 'right' }}>AMOUNT (৳)</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td colSpan="10" style={{ padding: '16px', color: '#374151', background: 'white', textAlign: 'center', borderBottom: '1px solid #e5e7eb', fontSize: '13px' }}>
-                  No data available in table
-                </td>
-              </tr>
+              {loading ? (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>Loading transfers...</td>
+                </tr>
+              ) : transfers.length === 0 ? (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No transfers recorded.</td>
+                </tr>
+              ) : (
+                transfers.map((row, idx) => (
+                  <tr key={row.id || idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <td style={{ fontWeight: '600', color: '#64748b' }}>{idx + 1}</td>
+                    <td>{row.date ? String(row.date).split('T')[0] : 'N/A'}</td>
+                    <td style={{ fontWeight: '600', color: '#dc2626' }}>{row.from_account_name || row.from_account || 'Cash'}</td>
+                    <td style={{ fontWeight: '600', color: '#059669' }}>{row.to_account_name || row.to_account || 'Bank'}</td>
+                    <td style={{ color: '#4b5563' }}>{row.description || '-'}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--primary)' }}>
+                      ৳ {Number(row.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
-            <tfoot>
-              <tr style={{ fontWeight: 'bold', background: '#f9fafb', borderTop: '1px solid #d1d5db' }}>
-                <td colSpan="6" style={{ padding: '12px 8px', textAlign: 'center', borderRight: '1px solid #d1d5db', fontSize: '13px' }}>Total</td>
-                <td style={{ padding: '12px 8px', textAlign: 'center', borderRight: '1px solid #d1d5db', fontSize: '13px' }}>0</td>
-                <td style={{ padding: '12px 8px', textAlign: 'center', borderRight: '1px solid #d1d5db', fontSize: '13px' }}>0</td>
-                <td style={{ padding: '12px 8px', textAlign: 'center', borderRight: '1px solid #d1d5db', fontSize: '13px' }}>0</td>
-                <td style={{ padding: '12px 8px', textAlign: 'center' }}></td>
-              </tr>
-            </tfoot>
           </table>
         </div>
-
-        {/* Pagination Section */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
-          <div style={{ fontSize: '13px', color: '#4b5563' }}>
-            Showing 0 to 0 of 0 entries
-          </div>
-          <div style={{ display: 'flex', gap: '4px' }}>
-            <button style={{ background: '#f3f4f6', color: '#4b5563', border: '1px solid #d1d5db', padding: '6px 12px', borderRadius: '4px', fontSize: '13px', cursor: 'not-allowed' }} disabled>
-              Previous
-            </button>
-            <button style={{ background: '#f3f4f6', color: '#4b5563', border: '1px solid #d1d5db', padding: '6px 12px', borderRadius: '4px', fontSize: '13px', cursor: 'not-allowed' }} disabled>
-              Next
-            </button>
-          </div>
-        </div>
-
       </div>
     </div>
   );

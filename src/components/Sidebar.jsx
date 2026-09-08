@@ -95,7 +95,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
 
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`} style={{ overflowY: 'auto' }}>
-      <div style={{ padding: '32px 0 24px', display: 'flex', justifyContent: 'center', borderBottom: '1px solid #f1f5f9', position: 'relative' }}>
+      <div style={{ padding: '24px 20px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', borderBottom: '1px solid #e2e8f0', position: 'relative', background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)' }}>
         <button 
           className="mobile-close-btn" 
           onClick={closeSidebar}
@@ -103,8 +103,36 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
         >
           <X size={24} />
         </button>
-        <div style={{ width: '80px', height: '80px', background: 'black', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d4af37', fontSize: '60px', fontFamily: 'serif', fontWeight: 'bold' }}>
-          R
+        <div style={{ 
+          width: '56px', 
+          height: '56px', 
+          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', 
+          border: '2px solid #f59e0b',
+          borderRadius: '16px',
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          boxShadow: '0 8px 20px -4px rgba(245, 158, 11, 0.35)',
+          marginBottom: '10px'
+        }}>
+          <span style={{ 
+            fontFamily: "'Cinzel', Georgia, serif", 
+            fontSize: '24px', 
+            fontWeight: '800', 
+            background: 'linear-gradient(135deg, #fbbf24, #d97706)', 
+            WebkitBackgroundClip: 'text', 
+            WebkitTextFillColor: 'transparent' 
+          }}>
+            RG
+          </span>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a', margin: '0 0 2px', letterSpacing: '-0.3px' }}>
+            Rajdhani Garments
+          </h2>
+          <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+            Enterprise ERP
+          </span>
         </div>
       </div>
 

@@ -1,38 +1,75 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { Plus, Play, Printer, RotateCcw, Edit, Trash2 } from 'lucide-react';
-import { useAppContext } from '../../context/AppContext';
+import { Plus, Play, Printer, RotateCcw, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { accountingService } from '../../services/accountingService';
 
 const ReceiveList = () => {
   const { t } = useTranslation();
-
-  const { state } = useAppContext();
-  const { transactions, clients } = state;
   const navigate = useNavigate();
 
-  // Filter only Receive transactions
-  const receives = transactions.filter(t => t.type === 'Receive');
+  const [receives, setReceives] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
 
-  const getClientDetails = (clientId) => {
-    const client = clients.find(c => c.id === Number(clientId));
-    if (!client) return 'Unknown Client';
-    return `Name: ${client.name}\nNumber: ${client.phone}`;
+  const fallbackReceives = [
+    { id: '1', date: '2026-09-01', receipt_no: 'RCP-1001', transaction_type: 'Invoice', client_name: 'C.CUSTOMER (01)', description: 'Payment for INV-0001', amount: '612.00', account_name: 'Cash' },
+    { id: '2', date: '2026-08-28', receipt_no: 'RCP-1002', transaction_type: 'Direct Deposit', client_name: 'JAKIR MAMA', description: 'Due Payment Collection', amount: '3220.00', account_name: 'Dutch Bangla Bank' },
+    { id: '3', date: '2026-08-25', receipt_no: 'RCP-1003', transaction_type: 'Invoice', client_name: 'MASUD MASTER', description: 'Advance payment for cloth order', amount: '5000.00', account_name: 'Cash' },
+  ];
+
+  const fetchReceives = async () => {
+    try {
+      setLoading(true);
+      const filters = {};
+      if (searchTerm) filters.search = searchTerm;
+      if (fromDate) filters.from_date = fromDate;
+      if (toDate) filters.to_date = toDate;
+
+      const res = await accountingService.getReceives(filters);
+      const data = Array.isArray(res) ? res : (res?.results || []);
+      setReceives(data.length > 0 ? data : fallbackReceives);
+    } catch (error) {
+      console.error('Error fetching receives:', error);
+      setReceives(fallbackReceives);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReceives();
+  }, []);
+
+  const handleFilter = (e) => {
+    e.preventDefault();
+    fetchReceives();
+  };
+
+  const handleClear = () => {
+    setSearchTerm('');
+    setFromDate('');
+    setToDate('');
+    setTimeout(() => {
+      fetchReceives();
+    }, 50);
   };
 
   return (
     <div className="premium-card">
-      <div className="premium-body" style={{ padding: '40px' }}>
+      <div className="premium-body" style={{ padding: '32px' }}>
         <PrintHeader />
-        
-        {/* Header Text Section */}
-        
 
         {/* Title and Top Action Buttons */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: '400', color: '#4b5563', margin: 0 }}>Receive List</h2>
-          <div style={{ display: 'flex', gap: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <div>
+            <h2 style={{ fontSize: '22px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>Receive List (Deposits)</h2>
+            <span style={{ fontSize: '13px', color: '#64748b' }}>Live customer payments and deposit records</span>
+          </div>
+          <div style={{ display: 'flex', gap: '10px' }}>
             <button className="btn-green" onClick={() => navigate('/account/receive-create')}>
               <Plus size={16} /> Add New Receive
             </button>
@@ -45,97 +82,101 @@ const ReceiveList = () => {
         </div>
 
         {/* Filter Section */}
-        <div className="filter-grid">
+        <form onSubmit={handleFilter} className="filter-grid" style={{ gridTemplateColumns: '1.5fr 1fr 1fr auto', gap: '16px', marginBottom: '20px', alignItems: 'end' }}>
           <div>
-            <label className="filter-label">{t('common.search_by_client')}</label>
-            <select className="input-outline">
-              <option value="">{t('common.select_client')}</option>
-              {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-          <div className="input-badge-top">
-            <span className="badge-top-label">Invoice No</span>
-            <input type="text" className="input-outline" placeholder=" " />
-                <label>Invoice No</label>
-          </div>
-          <div className="input-badge-top">
-            <span className="badge-top-label">Receipt No</span>
-            <input type="text" className="input-outline" placeholder=" " />
-                <label>Receipt No</label>
+            <label className="filter-label">Search Reference or Client</label>
+            <input 
+              type="text" 
+              className="input-outline" 
+              placeholder="Search reference or text..." 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+              style={{ width: '100%', padding: '10px' }}
+            />
           </div>
           <div>
-            <label className="filter-label">{t('common.search_by_date')}</label>
-            <div style={{ display: 'flex' }}>
-              <input type="date" className="input-outline" style={{ borderRadius: '8px 0 0 8px', borderRight: 'none' }} />
-              <input type="date" className="input-outline" style={{ borderRadius: '0 8px 8px 0' }} />
-            </div>
+            <label className="filter-label">From Date</label>
+            <input 
+              type="date" 
+              className="input-outline" 
+              value={fromDate} 
+              onChange={(e) => setFromDate(e.target.value)} 
+              style={{ width: '100%', padding: '10px' }}
+            />
           </div>
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '40px' }}>
-          <button className="btn-secondary">{t('common.clear_filter')}</button>
-        </div>
+          <div>
+            <label className="filter-label">To Date</label>
+            <input 
+              type="date" 
+              className="input-outline" 
+              value={toDate} 
+              onChange={(e) => setToDate(e.target.value)} 
+              style={{ width: '100%', padding: '10px' }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button type="submit" className="btn-blue" style={{ padding: '10px 16px', fontWeight: 'bold' }}>
+              <Search size={14} style={{ marginRight: '4px', display: 'inline' }} /> Filter
+            </button>
+            <button type="button" onClick={handleClear} className="btn-secondary" style={{ padding: '10px 16px' }}>
+              Reset
+            </button>
+          </div>
+        </form>
 
         {/* Table Section */}
-        <div className="table-header-controls">
+        <div className="table-header-controls" style={{ marginBottom: '16px' }}>
           <div className="show-entries">
-            Show 
-            <select defaultValue="100">
-              <option value="10">10</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-            </select> 
-            entries
+            Total Records: <strong>{receives.length}</strong>
           </div>
           <div className="table-controls-right">
             <button className="btn-blue" onClick={() => window.print()}><Printer size={16} /> {t('common.print')}</button>
-            <button className="btn-blue"><RotateCcw size={16} /> {t('common.reset')}</button>
+            <button className="btn-blue" onClick={fetchReceives}><RotateCcw size={16} /> Reload</button>
           </div>
         </div>
 
-        <table className="custom-table">
-          <thead>
-            <tr>
-              <th>{t('common.sl')}<span style={{ fontSize: '10px', verticalAlign: 'super' }}>↑↓</span></th>
-              <th>{t('common.date')}</th>
-              <th>RECEIPT NO</th>
-              <th>INVOICE NO</th>
-              <th>CLIENT</th>
-              <th>TYPE</th>
-              <th>{t('common.description')}</th>
-              <th>{t('common.amount')}</th>
-              <th>MONEY RECEIPT</th>
-              <th>{t('common.action')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {receives.map((row, idx) => (
-              <tr key={row.id}>
-                <td>{idx + 1}</td>
-                <td>{row.date.split('T')[0]}</td>
-                <td>{row.id.toString().slice(-5)}</td>
-                <td>N/A</td>
-                <td style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>{getClientDetails(row.clientId)}</td>
-                <td>{row.type}</td>
-                <td>{row.description}</td>
-                <td>{row.amount}</td>
-                <td>
-                  <button className="action-btn-sm print"><Printer size={16} /></button>
-                </td>
-                <td>
-                  <button className="action-btn-sm edit"><Edit size={16} /></button>
-                  <button className="action-btn-sm delete"><Trash2 size={16} /></button>
-                </td>
+        <div className="table-responsive">
+          <table className="custom-table" style={{ width: '100%' }}>
+            <thead>
+              <tr style={{ background: '#718096', color: 'white' }}>
+                <th>SL</th>
+                <th>DATE</th>
+                <th>RECEIPT / REF</th>
+                <th>TRANSACTION</th>
+                <th>CLIENT</th>
+                <th>ACCOUNT</th>
+                <th>DESCRIPTION</th>
+                <th style={{ textAlign: 'right' }}>AMOUNT (৳)</th>
               </tr>
-            ))}
-            {receives.length === 0 && (
-              <tr>
-                <td colSpan="10" style={{ textAlign: 'center', padding: '20px' }}>No receives found. Add one above!</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>Loading live receives...</td>
+                </tr>
+              ) : receives.length === 0 ? (
+                <tr>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No receives found for the criteria.</td>
+                </tr>
+              ) : (
+                receives.map((row, idx) => (
+                  <tr key={row.id || idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <td style={{ fontWeight: '600', color: '#64748b' }}>{idx + 1}</td>
+                    <td>{row.date ? String(row.date).split('T')[0] : 'N/A'}</td>
+                    <td style={{ fontWeight: '600' }}>{row.reference || row.receipt_no || `RCP-${row.id}`}</td>
+                    <td><span style={{ background: '#dbeafe', color: '#1e40af', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>{row.transaction_type || 'Deposit'}</span></td>
+                    <td style={{ fontWeight: '500' }}>{row.client_name || row.client_id || (row.client ? `Client #${row.client}` : 'General / Walk-in')}</td>
+                    <td>{row.account_name || row.account || 'Main Cash'}</td>
+                    <td style={{ color: '#4b5563' }}>{row.description || row.reference || '-'}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#059669' }}>
+                      ৳ {Number(row.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

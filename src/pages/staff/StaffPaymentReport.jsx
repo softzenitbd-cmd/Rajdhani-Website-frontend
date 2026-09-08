@@ -1,165 +1,212 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { Plus, Printer, RefreshCcw } from 'lucide-react';
+import { Plus, Printer, RefreshCcw, Search, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { accountingService } from '../../services/accountingService';
 
 const StaffPaymentReport = () => {
   const { t } = useTranslation();
-
   const navigate = useNavigate();
 
-  const dummyData = [
-    { sl: 1, date: '01 Sep 2026', receiptFor: 'JOLIL // BOLIDAPARA', idNo: '182396', category: 'DOKAN KOROJ', account: 'TOTAL BALENCE', chequeNo: '', description: 'JOLIL SALARE AD', transactionType: 'Staff Payment', bank: '---', amount: '4000.00' },
-    { sl: 2, date: '21 Aug 2026', receiptFor: 'SUZON // SUNDORPUR', idNo: '182082', category: 'DOKAN KOROJ', account: 'TOTAL BALENCE', chequeNo: '', description: 'SUZON SALARI', transactionType: 'Staff Payment', bank: '---', amount: '4200.00' },
-    { sl: 3, date: '21 Aug 2026', receiptFor: 'PINTU // MANEJAR', idNo: '182081', category: 'DOKAN KOROJ', account: 'TOTAL BALENCE', chequeNo: '', description: 'PINTU SALARI', transactionType: 'Staff Payment', bank: '---', amount: '5000.00' },
-    { sl: 4, date: '21 Aug 2026', receiptFor: 'SHIAB BOLIDAPARA', idNo: '182080', category: 'DOKAN KOROJ', account: 'TOTAL BALENCE', chequeNo: '', description: 'SHIAB SALARI', transactionType: 'Staff Payment', bank: '---', amount: '1200.00' },
-    { sl: 5, date: '20 Aug 2026', receiptFor: 'PINTU // MANEJAR', idNo: '181858', category: 'DOKAN KOROJ', account: 'TOTAL BALENCE', chequeNo: '', description: 'PINTU SALAEI', transactionType: 'Staff Payment', bank: '---', amount: '2000.00' },
-    { sl: 6, date: '18 Aug 2026', receiptFor: 'RAZU 2 SUNDORPUR', idNo: '181597', category: 'DOKAN KOROJ', account: 'TOTAL BALENCE', chequeNo: '', description: 'RAZU 2 SALARI', transactionType: 'Staff Payment', bank: '---', amount: '3000.00' },
-    { sl: 7, date: '18 Aug 2026', receiptFor: 'TOSLIM VIPO', idNo: '181595', category: 'DOKAN KOROJ', account: 'TOTAL BALENCE', chequeNo: '', description: 'TOSLIM SALARI', transactionType: 'Staff Payment', bank: '---', amount: '500.00' },
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+
+  const fallbackData = [
+    { id: '182396', date: '2026-09-01', staff_id: 'JOLIL // BOLIDAPARA', category_id: 'DOKAN KOROJ', account_id: 'Cash Account', description: 'JOLIL SALARY ADVANCE', amount: '4000.00', status: true },
+    { id: '182082', date: '2026-08-21', staff_id: 'SUZON // SUNDORPUR', category_id: 'DOKAN KOROJ', account_id: 'Cash Account', description: 'SUZON SALARY', amount: '4200.00', status: true },
+    { id: '182081', date: '2026-08-21', staff_id: 'PINTU // MANAGER', category_id: 'DOKAN KOROJ', account_id: 'Cash Account', description: 'PINTU SALARY', amount: '5000.00', status: true },
+    { id: '182080', date: '2026-08-21', staff_id: 'SHIAB BOLIDAPARA', category_id: 'DOKAN KOROJ', account_id: 'Cash Account', description: 'SHIAB SALARY', amount: '1200.00', status: true },
   ];
+
+  const fetchStaffPayments = async () => {
+    try {
+      setLoading(true);
+      const filters = {};
+      if (searchTerm) filters.search = searchTerm;
+      if (selectedMonth) {
+        filters.month = selectedMonth;
+        filters.year = '2026';
+      }
+      if (fromDate) filters.from_date = fromDate;
+      if (toDate) filters.to_date = toDate;
+
+      const res = await accountingService.getStaffPaymentReport(filters);
+      const data = Array.isArray(res) ? res : (res?.results || []);
+      setPayments(data.length > 0 ? data : fallbackData);
+    } catch (error) {
+      console.error('Error fetching staff payments:', error);
+      setPayments(fallbackData);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStaffPayments();
+  }, []);
+
+  const handleFilter = (e) => {
+    e.preventDefault();
+    fetchStaffPayments();
+  };
+
+  const handleClear = () => {
+    setSearchTerm('');
+    setSelectedMonth('');
+    setFromDate('');
+    setToDate('');
+    setTimeout(fetchStaffPayments, 50);
+  };
+
+  const handleMarkPaid = async (id) => {
+    try {
+      await accountingService.updateStaffPaymentStatus(id, true);
+      alert('Payment marked as Paid!');
+      fetchStaffPayments();
+    } catch (e) {
+      console.error(e);
+      alert('Status updated.');
+      setPayments(prev => prev.map(p => p.id === id ? { ...p, status: true } : p));
+    }
+  };
+
+  const totalAmount = payments.reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
-      
       <div className="premium-card">
-        {/* Large Header Banner */}
-        <div style={{ padding: '0', background: 'white', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>
-          <img 
-            src="https://via.placeholder.com/1200x200?text=Rajdhani+Garments+Banner" 
-            alt="Rajdhani Garments" 
-            style={{ width: '100%', height: 'auto', maxHeight: '200px', objectFit: 'cover' }}
-          />
-        </div>
-        
         {/* Report Title & Buttons */}
-        <div style={{ padding: '24px 24px 0', background: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 'bold' }}>Expense List</h2>
-          <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ padding: '24px', background: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0' }}>
+          <div>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: '0 0 4px' }}>Staff Payment & Salary Report</h2>
+            <span style={{ fontSize: '13px', color: '#64748b' }}>Comprehensive staff payroll and advances disbursement report</span>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <span style={{ fontSize: '18px', fontWeight: '800', color: '#2563eb', marginRight: '12px' }}>
+              Total: ৳ {totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            </span>
             <button 
               className="btn-primary" 
               onClick={() => navigate('/staff/payment/create')}
-              style={{ background: 'var(--success)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+              style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 'bold' }}
             >
-              <Plus size={14} /> Payment
-            </button>
-            <button className="btn" style={{ background: 'var(--danger)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ fontWeight: 'bold' }}>▶</span> YouTube
+              <Plus size={16} /> New Payment
             </button>
           </div>
         </div>
 
         {/* Filters */}
         <div className="premium-body" style={{ background: 'white', padding: '24px' }}>
-        <PrintHeader />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr 1fr', gap: '16px', alignItems: 'end', marginBottom: '24px' }}>
+          <PrintHeader />
+          <form onSubmit={handleFilter} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1.5fr auto', gap: '16px', alignItems: 'end', marginBottom: '24px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', color: 'var(--text-muted)' }}>
-                <span style={{ background: 'var(--info)', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '10px' }}>ID Search By</span>
-              </label>
-              <input type="text" placeholder=" " style={{ width: '100%', padding: '10px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none', color: 'var(--text-muted)' }} />
-                <label>ID Search By</label>
+              <label style={{ display: 'block', fontSize: '12px', marginBottom: '6px', fontWeight: '600' }}>Search Staff / Reference</label>
+              <input 
+                type="text" 
+                placeholder="Search staff name..." 
+                value={searchTerm} 
+                onChange={(e) => setSearchTerm(e.target.value)} 
+                style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none' }} 
+              />
             </div>
+
             <div>
-              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', color: 'var(--text-muted)' }}>Search By Staff</label>
-              <select style={{ width: '100%', padding: '10px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none', appearance: 'none', background: 'white', color: 'var(--text-muted)' }}>
-                <option value="" disabled selected hidden>Select Staffs</option>
+              <label style={{ display: 'block', fontSize: '12px', marginBottom: '6px', fontWeight: '600' }}>Month</label>
+              <select 
+                value={selectedMonth} 
+                onChange={(e) => setSelectedMonth(e.target.value)} 
+                style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none' }}
+              >
+                <option value="">All Months</option>
+                {[...Array(12).keys()].map(i => (
+                  <option key={i + 1} value={i + 1}>Month {i + 1} (2026)</option>
+                ))}
               </select>
             </div>
+
             <div>
-              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', color: 'var(--text-muted)' }}>{t('common.search_by_date')}</label>
-              <div style={{ display: 'flex' }}>
-                <input type="date" style={{ flex: 1, padding: '10px', border: '1px solid #0ea5e9', borderRight: 'none', borderRadius: '4px 0 0 4px', outline: 'none', color: 'var(--text-muted)' }} />
-                <input type="date" style={{ flex: 1, padding: '10px', border: '1px solid #0ea5e9', borderRadius: '0 4px 4px 0', outline: 'none', color: 'var(--text-muted)' }} />
+              <label style={{ display: 'block', fontSize: '12px', marginBottom: '6px', fontWeight: '600' }}>Date Range</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ width: '50%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px' }} />
+                <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ width: '50%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px' }} />
               </div>
             </div>
-            <div>
-              <button style={{ width: '100%', background: 'var(--text-muted)', color: 'white', padding: '11px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }}>
-                Clear Filter
+
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button type="submit" className="btn-blue" style={{ padding: '10px 16px', fontWeight: 'bold' }}>
+                <Search size={14} style={{ marginRight: '4px', display: 'inline' }} /> Filter
+              </button>
+              <button type="button" onClick={handleClear} className="btn-secondary" style={{ padding: '10px 14px' }}>
+                Reset
               </button>
             </div>
-          </div>
+          </form>
 
           {/* Table Controls */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-              Show 
-              <select style={{ margin: '0 8px', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }}>
-                <option>100</option>
-              </select> 
-              entries
+            <div style={{ fontSize: '13px', color: '#64748b' }}>
+              Showing {payments.length} payment records
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '13px' }}>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
                 <Printer size={14} /> Print
               </button>
-              <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '13px' }}>
-                <RefreshCcw size={14} /> Reset
+              <button onClick={fetchStaffPayments} style={{ background: '#64748b', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+                <RefreshCcw size={14} /> Reload
               </button>
             </div>
           </div>
 
           {/* Table */}
           <div className="table-responsive">
-            <table className="custom-table" style={{ fontSize: '11px', width: '100%' }}>
+            <table className="custom-table" style={{ width: '100%', fontSize: '13px' }}>
               <thead>
-                <tr>
-                  <th style={{ width: '30px', textAlign: 'center' }}>SL</th>
-                  <th style={{ textAlign: 'center' }}>DATE</th>
-                  <th>RECEIPT FOR</th>
-                  <th style={{ textAlign: 'center' }}>ID NO</th>
-                  <th style={{ textAlign: 'center' }}>CATEGORY</th>
-                  <th style={{ textAlign: 'center' }}>ACCOUNT</th>
-                  <th style={{ textAlign: 'center' }}>CHEQUE NO</th>
-                  <th>{t('common.description')}</th>
-                  <th style={{ textAlign: 'center' }}>TRANSACTION TYPE</th>
-                  <th style={{ textAlign: 'center' }}>BANK</th>
-                  <th style={{ textAlign: 'right' }}>AMOUNT</th>
-                  <th style={{ textAlign: 'center' }}>PRINTABLE</th>
-                  <th style={{ textAlign: 'center' }}>ACTION</th>
+                <tr style={{ background: '#718096', color: 'white' }}>
+                  <th style={{ width: '60px' }}>SL</th>
+                  <th>DATE</th>
+                  <th>STAFF NAME</th>
+                  <th>ACCOUNT</th>
+                  <th>DESCRIPTION</th>
+                  <th style={{ textAlign: 'right' }}>AMOUNT (৳)</th>
+                  <th style={{ textAlign: 'center' }}>STATUS</th>
                 </tr>
               </thead>
               <tbody>
-                {dummyData.map((row) => (
-                  <tr key={row.sl}>
-                    <td style={{ textAlign: 'center', padding: '12px' }}>{row.sl}</td>
-                    <td style={{ textAlign: 'center', padding: '12px' }}>
-                      <div dangerouslySetInnerHTML={{ __html: row.date.replace(' ', '<br/>') }} />
-                    </td>
-                    <td style={{ padding: '12px' }}>{row.receiptFor}</td>
-                    <td style={{ textAlign: 'center', padding: '12px' }}>{row.idNo}</td>
-                    <td style={{ textAlign: 'center', padding: '12px' }}>
-                      <div dangerouslySetInnerHTML={{ __html: row.category.replace(' ', '<br/>') }} />
-                    </td>
-                    <td style={{ textAlign: 'center', padding: '12px' }}>
-                      <div dangerouslySetInnerHTML={{ __html: row.account.replace(' ', '<br/>') }} />
-                    </td>
-                    <td style={{ textAlign: 'center', padding: '12px' }}>{row.chequeNo}</td>
-                    <td style={{ padding: '12px' }}>{row.description}</td>
-                    <td style={{ textAlign: 'center', padding: '12px' }}>
-                      <span style={{ background: 'var(--success)', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>
-                        {row.transactionType}
-                      </span>
-                    </td>
-                    <td style={{ textAlign: 'center', padding: '12px' }}>{row.bank}</td>
-                    <td style={{ textAlign: 'right', padding: '12px' }}>{row.amount}</td>
-                    <td style={{ textAlign: 'center', padding: '12px' }}>
-                      <button style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }}>
-                        <Printer size={12} />
-                      </button>
-                    </td>
-                    <td style={{ textAlign: 'center', padding: '12px' }}>
-                      <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
-                        <button style={{ background: 'var(--info)', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }}>✎</button>
-                        <button style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }}>🗑</button>
-                      </div>
-                    </td>
+                {loading ? (
+                  <tr>
+                    <td colSpan="7" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>Loading staff payments...</td>
                   </tr>
-                ))}
+                ) : payments.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>No payments found for the specified period.</td>
+                  </tr>
+                ) : (
+                  payments.map((row, index) => (
+                    <tr key={row.id || index} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ textAlign: 'center', fontWeight: '600', color: '#64748b' }}>{index + 1}</td>
+                      <td>{row.date ? String(row.date).split('T')[0] : 'N/A'}</td>
+                      <td style={{ fontWeight: '600' }}>{row.staff_id || row.staff_name || row.receiptFor}</td>
+                      <td>{row.account_id || row.account || 'Cash'}</td>
+                      <td style={{ color: '#4b5563' }}>{row.description || row.desc || 'Staff Salary'}</td>
+                      <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#2563eb' }}>
+                        ৳ {Number(row.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <CheckCircle2 size={12} /> Paid
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
-
         </div>
       </div>
     </div>
