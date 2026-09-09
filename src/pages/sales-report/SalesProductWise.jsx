@@ -1,23 +1,96 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { RefreshCcw, Printer, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { saleService } from '../../services/saleService';
+import { productService } from '../../services/productService';
 
 const SalesProductWise = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  const [reports, setReports] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [productGroups, setProductGroups] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const [filters, setFilters] = useState({
+    product_group_id: '',
+    product_id: '',
+    barcode: '',
+    from_date: '',
+    to_date: ''
+  });
 
   const dummyData = [
-    { sl: 1, date: '25 Apr 2024', voucher: '25', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'S VOIL 70', unit: 'GOZ', qty: 5, price: '68.00', total: '340', dis: '0', transport: '0', returnQty: '', grandTotal: '', receive: '', due: '' },
-    { sl: 2, date: '25 Apr 2024', voucher: '26', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'THREE PIECE', unit: 'PEACE', qty: 1, price: '1590.00', total: '1590', dis: '0', transport: '0', returnQty: '', grandTotal: '', receive: '', due: '' },
-    { sl: 3, date: '25 Apr 2024', voucher: '27', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'BORKA', unit: 'PEACE', qty: 1, price: '1250.00', total: '1250', dis: '0', transport: '0', returnQty: '', grandTotal: '', receive: '', due: '' },
-    { sl: 4, date: '25 Apr 2024', voucher: '28', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'DIGITAL CHUMKI 250', unit: 'GOZ', qty: 2, price: '250.00', total: '500', dis: '0', transport: '0', returnQty: '', grandTotal: '', receive: '', due: '' },
-    { sl: 5, date: '25 Apr 2024', voucher: '29', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'JTLC N S R BORKHA', unit: 'PEACE', qty: 1, price: '1300.00', total: '1300', dis: '0', transport: '0', returnQty: '', grandTotal: '', receive: '', due: '' },
-    { sl: 6, date: '25 Apr 2024', voucher: '30', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'ORBIT PRINT 90', unit: 'GOZ', qty: 2, price: '90.00', total: '180', dis: '0', transport: '0', returnQty: '', grandTotal: '', receive: '', due: '' },
-    { sl: 7, date: '25 Apr 2024', voucher: '31', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'CHARI JORJET 180', unit: 'GOZ', qty: 6, price: '200.00', total: '1200', dis: '0', transport: '0', returnQty: '', grandTotal: '', receive: '', due: '' },
-    { sl: 8, date: '25 Apr 2024', voucher: '32', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'DP INDIA SHIRT', unit: 'PEACE', qty: 1, price: '1700.00', total: '1700', dis: '0', transport: '0', returnQty: '', grandTotal: '', receive: '', due: '' },
-    { sl: 9, date: '25 Apr 2024', voucher: '32', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'PANJABI', unit: 'PEACE', qty: 1, price: '2000.00', total: '2000', dis: '0', transport: '0', returnQty: '', grandTotal: '', receive: '', due: '' },
-    { sl: 10, date: '25 Apr 2024', voucher: '33', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'DP INDIA SHIRT', unit: 'PEACE', qty: 1, price: '1700.00', total: '1700', dis: '0', transport: '0', returnQty: '', grandTotal: '', receive: '', due: '' },
+    { sl: 1, date: '25 Apr 2024', voucher: '25', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'S VOIL 70', unit: 'GOZ', qty: 5, price: 68.00, total: 340, dis: 0, transport: 0, returnQty: 0, grandTotal: 340, receive: 314.50, due: 0 },
+    { sl: 2, date: '25 Apr 2024', voucher: '26', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'THREE PIECE', unit: 'PEACE', qty: 1, price: 1590.00, total: 1590, dis: 0, transport: 0, returnQty: 0, grandTotal: 1590, receive: 1590, due: 0 },
+    { sl: 3, date: '25 Apr 2024', voucher: '27', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'BORKA', unit: 'PEACE', qty: 1, price: 1250.00, total: 1250, dis: 0, transport: 0, returnQty: 0, grandTotal: 1250, receive: 1250, due: 0 }
   ];
+
+  const fetchPrerequisites = async () => {
+    try {
+      const [prodRes, groupRes] = await Promise.all([
+        productService.getProducts().catch(() => []),
+        productService.groups.getAll().catch(() => [])
+      ]);
+      setProducts(Array.isArray(prodRes) ? prodRes : (prodRes?.results || []));
+      setProductGroups(Array.isArray(groupRes) ? groupRes : (groupRes?.results || []));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchReports = async () => {
+    try {
+      setLoading(true);
+      const res = await saleService.getSalesReport(filters);
+      const data = Array.isArray(res) ? res : (res?.results || []);
+      setReports(data.length > 0 ? data : dummyData);
+    } catch (err) {
+      console.error("Error fetching sales report:", err);
+      setReports(dummyData);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPrerequisites();
+  }, []);
+
+  useEffect(() => {
+    fetchReports();
+  }, [filters]);
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      product_group_id: '',
+      product_id: '',
+      barcode: '',
+      from_date: '',
+      to_date: ''
+    });
+  };
+
+  const calculateTotals = () => {
+    return reports.reduce((acc, row) => ({
+      qty: acc.qty + Number(row.qty || row.quantity || 0),
+      total: acc.total + Number(row.total || row.total_amount || 0),
+      dis: acc.dis + Number(row.dis || row.discount || 0),
+      grandTotal: acc.grandTotal + Number(row.grandTotal || row.grand_total || row.total || 0),
+      receive: acc.receive + Number(row.receive || row.receive_amount || 0),
+      due: acc.due + Number(row.due || row.due_amount || 0)
+    }), { qty: 0, total: 0, dis: 0, grandTotal: 0, receive: 0, due: 0 });
+  };
+
+  const totals = calculateTotals();
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
@@ -34,12 +107,15 @@ const SalesProductWise = () => {
         </div>
 
         <div className="premium-body" style={{ background: 'white', padding: '24px' }}>
-        <PrintHeader />
+          <PrintHeader />
           
           {/* Header row with Title and Go Back */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
             <h3 style={{ fontSize: '14px', fontWeight: 'bold', margin: '0', textTransform: 'uppercase' }}>PRODUCT WISE SALES REPORTS</h3>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--text-muted)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: '13px' }}>
+            <button 
+              onClick={() => navigate('/invoice/list')}
+              style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--text-muted)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: '13px' }}
+            >
               <ArrowLeft size={14} /> Go Back
             </button>
           </div>
@@ -48,55 +124,83 @@ const SalesProductWise = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>Group</label>
-              <select style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }}>
+              <select 
+                name="product_group_id"
+                value={filters.product_group_id}
+                onChange={handleFilterChange}
+                style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }}
+              >
                 <option value="">Select Product Group</option>
+                {productGroups.map(g => (
+                  <option key={g.id} value={g.id}>{g.name}</option>
+                ))}
               </select>
             </div>
             <div>
               <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>Search By Product</label>
-              <select style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }}>
+              <select 
+                name="product_id"
+                value={filters.product_id}
+                onChange={handleFilterChange}
+                style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }}
+              >
                 <option value="">Select Product</option>
+                {products.map(p => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
               </select>
             </div>
             <div>
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>
-                <span style={{ background: '#38bdf8', color: 'white', fontSize: '11px', padding: '2px 8px', borderRadius: '12px' }}>Barcode</span>
-              </div>
-              <input type="text" placeholder=" " style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
-                <label>Barcode</label>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>Barcode</label>
+              <input 
+                type="text" 
+                name="barcode"
+                value={filters.barcode}
+                onChange={handleFilterChange}
+                placeholder="Barcode" 
+                style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} 
+              />
             </div>
             <div>
               <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t('common.search_by_date')}</label>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <input type="date" style={{ width: '50%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
-                <input type="date" style={{ width: '50%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
+                <input 
+                  type="date" 
+                  name="from_date"
+                  value={filters.from_date}
+                  onChange={handleFilterChange}
+                  style={{ width: '50%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} 
+                />
+                <input 
+                  type="date" 
+                  name="to_date"
+                  value={filters.to_date}
+                  onChange={handleFilterChange}
+                  style={{ width: '50%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} 
+                />
               </div>
             </div>
           </div>
 
           {/* Clear Filter Button */}
-          <button style={{ width: '100%', background: '#7e8a9f', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', marginBottom: '24px' }}>
+          <button 
+            onClick={handleClearFilters}
+            style={{ width: '100%', background: '#7e8a9f', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', marginBottom: '24px' }}
+          >
             Clear Filter
           </button>
 
           {/* Controls */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-              Show 
-              <select style={{ margin: '0 8px', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }}>
-                <option>10</option>
-              </select> 
-              entries
+              Showing {reports.length} entries
             </div>
             
             <div style={{ display: 'flex', gap: '4px' }}>
-              <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px 0 0 4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px' }}>
+              <button onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px 0 0 4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px' }}>
                 <Printer size={14} /> Print
               </button>
-              <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', cursor: 'pointer', fontSize: '12px' }}>Excel</button>
-              <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', cursor: 'pointer', fontSize: '12px' }}>CSV</button>
-              <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', cursor: 'pointer', fontSize: '12px' }}>PDF</button>
-              <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '0 4px 4px 0', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px' }}>
+              <button onClick={handleClearFilters} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '0 4px 4px 0', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px' }}>
                 <RefreshCcw size={14} /> Reset
               </button>
             </div>
@@ -117,66 +221,52 @@ const SalesProductWise = () => {
                   <th style={{ padding: '12px' }}>PRICE ⇅</th>
                   <th style={{ padding: '12px' }}>TOTAL ⇅</th>
                   <th style={{ padding: '12px' }}>DIS ⇅</th>
-                  <th style={{ padding: '12px' }}>TRANSPORT FARE ⇅</th>
-                  <th style={{ padding: '12px' }}>RETURN QTY ⇅</th>
                   <th style={{ padding: '12px' }}>GRAND TOTAL ⇅</th>
                   <th style={{ padding: '12px' }}>RECEIVE ⇅</th>
                   <th style={{ padding: '12px' }}>DUE ⇅</th>
                 </tr>
               </thead>
               <tbody>
-                {dummyData.map((row) => (
-                  <tr key={row.sl}>
-                    <td style={{ padding: '12px' }}>{row.sl}</td>
-                    <td style={{ padding: '12px' }}>{row.date}</td>
-                    <td style={{ padding: '12px' }}>{row.voucher}</td>
-                    <td style={{ padding: '12px' }}>{row.client}</td>
-                    <td style={{ padding: '12px' }}>{row.product}</td>
-                    <td style={{ padding: '12px' }}>{row.unit}</td>
-                    <td style={{ padding: '12px' }}>{row.qty}</td>
-                    <td style={{ padding: '12px' }}>{row.price}</td>
-                    <td style={{ padding: '12px' }}>{row.total}</td>
-                    <td style={{ padding: '12px' }}>{row.dis}</td>
-                    <td style={{ padding: '12px' }}>{row.transport}</td>
-                    <td style={{ padding: '12px' }}>{row.returnQty}</td>
-                    <td style={{ padding: '12px' }}>{row.grandTotal}</td>
-                    <td style={{ padding: '12px' }}>{row.receive}</td>
-                    <td style={{ padding: '12px' }}>{row.due}</td>
+                {loading ? (
+                  <tr>
+                    <td colSpan="13" style={{ padding: '24px', textAlign: 'center' }}>Loading product sales report...</td>
                   </tr>
-                ))}
+                ) : reports.length === 0 ? (
+                  <tr>
+                    <td colSpan="13" style={{ padding: '24px', textAlign: 'center' }}>No product sales records found.</td>
+                  </tr>
+                ) : (
+                  reports.map((row, idx) => (
+                    <tr key={row.id || idx}>
+                      <td style={{ padding: '12px' }}>{idx + 1}</td>
+                      <td style={{ padding: '12px' }}>{row.date || row.issued_date || '-'}</td>
+                      <td style={{ padding: '12px' }}>{row.voucher || row.invoice_id || '-'}</td>
+                      <td style={{ padding: '12px' }}>{row.client_name || row.client || '-'}</td>
+                      <td style={{ padding: '12px' }}>{row.product_name || row.product || '-'}</td>
+                      <td style={{ padding: '12px' }}>{row.unit_name || row.unit || 'PEACE'}</td>
+                      <td style={{ padding: '12px' }}>{row.qty || row.quantity || 0}</td>
+                      <td style={{ padding: '12px' }}>৳{Number(row.price || row.unit_price || 0).toFixed(2)}</td>
+                      <td style={{ padding: '12px' }}>৳{Number(row.total || row.total_amount || 0).toFixed(2)}</td>
+                      <td style={{ padding: '12px' }}>৳{Number(row.dis || row.discount || 0).toFixed(2)}</td>
+                      <td style={{ padding: '12px' }}>৳{Number(row.grandTotal || row.grand_total || row.total || 0).toFixed(2)}</td>
+                      <td style={{ padding: '12px' }}>৳{Number(row.receive || row.receive_amount || 0).toFixed(2)}</td>
+                      <td style={{ padding: '12px' }}>৳{Number(row.due || row.due_amount || 0).toFixed(2)}</td>
+                    </tr>
+                  ))
+                )}
                 {/* Total Row */}
-                <tr style={{ fontWeight: 'bold' }}>
+                <tr style={{ fontWeight: 'bold', background: '#f8fafc' }}>
                   <td colSpan="6" style={{ padding: '12px', textAlign: 'center' }}>{t('common.total')}</td>
-                  <td style={{ padding: '12px' }}>21</td>
-                  <td style={{ padding: '12px' }}></td>
-                  <td style={{ padding: '12px' }}>11650</td>
-                  <td style={{ padding: '12px' }}>0</td>
-                  <td style={{ padding: '12px' }}>0</td>
-                  <td style={{ padding: '12px' }}>0</td>
-                  <td style={{ padding: '12px' }}>0</td>
-                  <td style={{ padding: '12px' }}>0</td>
-                  <td style={{ padding: '12px' }}>0</td>
+                  <td style={{ padding: '12px' }}>{totals.qty}</td>
+                  <td style={{ padding: '12px' }}>-</td>
+                  <td style={{ padding: '12px' }}>৳{totals.total.toFixed(2)}</td>
+                  <td style={{ padding: '12px' }}>৳{totals.dis.toFixed(2)}</td>
+                  <td style={{ padding: '12px' }}>৳{totals.grandTotal.toFixed(2)}</td>
+                  <td style={{ padding: '12px' }}>৳{totals.receive.toFixed(2)}</td>
+                  <td style={{ padding: '12px' }}>৳{totals.due.toFixed(2)}</td>
                 </tr>
               </tbody>
             </table>
-          </div>
-          
-          {/* Pagination */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
-            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-              Showing 1 to 10 of 323,992 entries
-            </div>
-            <div style={{ display: 'flex' }}>
-              <button style={{ padding: '6px 12px', border: '1px solid #e2e8f0', background: 'var(--card-header-bg)', color: 'var(--text-muted)', borderRadius: '4px 0 0 4px', cursor: 'pointer' }}>Previous</button>
-              <button style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderLeft: 'none', background: 'var(--primary)', color: 'white', cursor: 'pointer' }}>1</button>
-              <button style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderLeft: 'none', background: 'var(--card-header-bg)', color: 'var(--label-color)', cursor: 'pointer' }}>2</button>
-              <button style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderLeft: 'none', background: 'var(--card-header-bg)', color: 'var(--label-color)', cursor: 'pointer' }}>3</button>
-              <button style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderLeft: 'none', background: 'var(--card-header-bg)', color: 'var(--label-color)', cursor: 'pointer' }}>4</button>
-              <button style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderLeft: 'none', background: 'var(--card-header-bg)', color: 'var(--label-color)', cursor: 'pointer' }}>5</button>
-              <button style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderLeft: 'none', background: 'var(--card-header-bg)', color: 'var(--text-muted)', cursor: 'pointer' }}>...</button>
-              <button style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderLeft: 'none', background: 'var(--card-header-bg)', color: 'var(--label-color)', cursor: 'pointer' }}>32400</button>
-              <button style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderLeft: 'none', background: 'var(--card-header-bg)', color: 'var(--label-color)', borderRadius: '0 4px 4px 0', cursor: 'pointer' }}>Next</button>
-            </div>
           </div>
 
         </div>

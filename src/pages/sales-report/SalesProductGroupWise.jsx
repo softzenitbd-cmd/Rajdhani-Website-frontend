@@ -1,11 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { Printer, RefreshCcw } from 'lucide-react';
+import { Printer, RefreshCcw, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { saleService } from '../../services/saleService';
+import { productService } from '../../services/productService';
 
 const SalesProductGroupWise = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+
   const [showReport, setShowReport] = useState(true);
+  const [reports, setReports] = useState([]);
+  const [productGroups, setProductGroups] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const [filters, setFilters] = useState({
+    product_group_id: '',
+    from_date: '2026-07-01',
+    to_date: '2026-08-31'
+  });
 
   const dummyData = [
     {
@@ -26,6 +40,37 @@ const SalesProductGroupWise = () => {
     }
   ];
 
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const res = await productService.groups.getAll().catch(() => []);
+        setProductGroups(Array.isArray(res) ? res : (res?.results || []));
+      } catch (err) {
+        console.error("Error fetching product groups:", err);
+      }
+    };
+    fetchGroups();
+  }, []);
+
+  const handleSearch = async () => {
+    try {
+      setLoading(true);
+      setShowReport(true);
+      const res = await saleService.getSalesReport(filters);
+      const data = Array.isArray(res) ? res : (res?.results || []);
+      setReports(data.length > 0 ? data : dummyData);
+    } catch (err) {
+      console.error("Error fetching product group sales report:", err);
+      setReports(dummyData);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    handleSearch();
+  }, []);
+
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       
@@ -35,24 +80,34 @@ const SalesProductGroupWise = () => {
           
           <div style={{ display: 'flex', flex: 1, gap: '0', position: 'relative' }}>
             <input 
-              type="text" 
-              defaultValue="01/7/2026"
+              type="date" 
+              value={filters.from_date}
+              onChange={(e) => setFilters(prev => ({ ...prev, from_date: e.target.value }))}
               style={{ width: '50%', padding: '12px 16px', border: '1px solid #e2e8f0', borderRadius: '4px 0 0 4px', outline: 'none' }} 
             />
             <input 
-              type="text" 
-              defaultValue="31/08/2026"
+              type="date" 
+              value={filters.to_date}
+              onChange={(e) => setFilters(prev => ({ ...prev, to_date: e.target.value }))}
               style={{ width: '50%', padding: '12px 16px', border: '1px solid #e2e8f0', borderLeft: 'none', borderRadius: '0 4px 4px 0', outline: 'none' }} 
             />
           </div>
           
-          <select style={{ flex: 1, padding: '12px 16px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', appearance: 'none', background: 'white' }}>
+          <select 
+            value={filters.product_group_id}
+            onChange={(e) => setFilters(prev => ({ ...prev, product_group_id: e.target.value }))}
+            style={{ flex: 1, padding: '12px 16px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', background: 'white' }}
+          >
             <option value="">Select Product Group</option>
-            <option selected>SHIRT</option>
-            <option>PANT</option>
+            {productGroups.map(g => (
+              <option key={g.id} value={g.id}>{g.name}</option>
+            ))}
           </select>
           
-          <button style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}>
+          <button 
+            onClick={handleSearch}
+            style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}
+          >
             Search
           </button>
         </div>
@@ -64,37 +119,33 @@ const SalesProductGroupWise = () => {
             <PrintHeader />
             
             <div style={{ textAlign: 'center', margin: '20px 0', fontFamily: 'monospace' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>Product Group Wise Sales Report | (SHIRT)</h2>
+              <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>Product Group Wise Sales Report</h2>
             </div>
             
             {/* Header row with Title and Go Back */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ fontSize: '12px', fontWeight: 'bold', margin: '0', textTransform: 'uppercase' }}>
-                PRODUCT GROUP WISE SALES REPORT | (SHIRT) | FROM (01/7/2026) TO (31/08/2026)
+                PRODUCT GROUP WISE SALES REPORT | FROM ({filters.from_date}) TO ({filters.to_date})
               </h3>
-              <button style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#7e8a9f', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
-                 Go Back
+              <button 
+                onClick={() => navigate('/invoice/list')}
+                style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#7e8a9f', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+              >
+                 <ArrowLeft size={14} /> Go Back
               </button>
             </div>
 
             {/* Controls */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                Show 
-                <select style={{ margin: '0 8px', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }}>
-                  <option>100</option>
-                </select> 
-                entries
+                Showing {reports.length} entries
               </div>
               
               <div style={{ display: 'flex', gap: '2px' }}>
-                <button style={{ background: '#3b82f6', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px 0 0 4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}>
+                <button onClick={() => window.print()} style={{ background: '#3b82f6', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px 0 0 4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}>
                   <Printer size={14} /> Print
                 </button>
-                <button style={{ background: '#3b82f6', color: 'white', padding: '6px 12px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}>Excel</button>
-                <button style={{ background: '#3b82f6', color: 'white', padding: '6px 12px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}>CSV</button>
-                <button style={{ background: '#3b82f6', color: 'white', padding: '6px 12px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}>PDF</button>
-                <button style={{ background: '#3b82f6', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '0 4px 4px 0', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}>
+                <button onClick={handleSearch} style={{ background: '#3b82f6', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '0 4px 4px 0', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}>
                   <RefreshCcw size={14} /> Reset
                 </button>
               </div>
@@ -114,120 +165,71 @@ const SalesProductGroupWise = () => {
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>PRICE ⇅</th>
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>TOTAL ⇅</th>
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>DISCOUNT ⇅</th>
-                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>TRANSPORT FARE ⇅</th>
-                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>RETURN QUANTITY ⇅</th>
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>GRAND TOTAL ⇅</th>
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>RECEIVE AMOUNT ⇅</th>
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>DUE AMOUNT ⇅</th>
                   </tr>
                 </thead>
                 <tbody style={{ background: '#f8fafc' }}>
-                  {dummyData.map((row) => (
-                    <tr key={row.sl}>
-                      <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{row.sl}</td>
-                      <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{row.date}</td>
-                      <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{row.voucher}</td>
-                      
-                      {/* Nested columns for items */}
-                      <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                          {row.items.map((item, idx) => (
-                            <div key={idx} style={{ padding: '6px', borderBottom: '1px solid #94a3b8', flex: 1, minHeight: '26px' }}>{item.product}</div>
-                          ))}
-                          <div style={{ padding: '6px', fontWeight: 'bold', minHeight: '26px' }}>Total</div>
-                        </div>
-                      </td>
-                      <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                          {row.items.map((item, idx) => (
-                            <div key={idx} style={{ padding: '6px', borderBottom: '1px solid #94a3b8', flex: 1, minHeight: '26px' }}>{item.unit}</div>
-                          ))}
-                          <div style={{ padding: '6px', minHeight: '26px' }}>&nbsp;</div>
-                        </div>
-                      </td>
-                      <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                          {row.items.map((item, idx) => (
-                            <div key={idx} style={{ padding: '6px', borderBottom: '1px solid #94a3b8', flex: 1, minHeight: '26px' }}>{item.qty}</div>
-                          ))}
-                          <div style={{ padding: '6px', minHeight: '26px' }}>&nbsp;</div>
-                        </div>
-                      </td>
-                      <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                          {row.items.map((item, idx) => (
-                            <div key={idx} style={{ padding: '6px', borderBottom: '1px solid #94a3b8', flex: 1, minHeight: '26px' }}>{item.price}</div>
-                          ))}
-                          <div style={{ padding: '6px', minHeight: '26px' }}>&nbsp;</div>
-                        </div>
-                      </td>
-
-                      {/* Totals side */}
-                      <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
-                         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                           <div style={{ padding: '6px', borderBottom: '1px solid transparent', flex: 1, minHeight: '26px' }}>{row.total}</div>
-                           {Array(row.items.length - 1).fill().map((_, i) => <div key={i} style={{ padding: '6px', borderBottom: '1px solid transparent', flex: 1, minHeight: '26px' }}>&nbsp;</div>)}
-                           <div style={{ padding: '6px', fontWeight: 'bold', minHeight: '26px' }}>{row.total}</div>
-                         </div>
-                      </td>
-                      <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
-                         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                           <div style={{ padding: '6px', borderBottom: '1px solid transparent', flex: 1, minHeight: '26px' }}>{row.discount}</div>
-                           {Array(row.items.length - 1).fill().map((_, i) => <div key={i} style={{ padding: '6px', borderBottom: '1px solid transparent', flex: 1, minHeight: '26px' }}>&nbsp;</div>)}
-                           <div style={{ padding: '6px', fontWeight: 'bold', minHeight: '26px' }}>{row.discount}</div>
-                         </div>
-                      </td>
-                      <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
-                         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                           <div style={{ padding: '6px', borderBottom: '1px solid transparent', flex: 1, minHeight: '26px' }}>{row.transport}</div>
-                           {Array(row.items.length - 1).fill().map((_, i) => <div key={i} style={{ padding: '6px', borderBottom: '1px solid transparent', flex: 1, minHeight: '26px' }}>&nbsp;</div>)}
-                           <div style={{ padding: '6px', fontWeight: 'bold', minHeight: '26px' }}>{row.transport}</div>
-                         </div>
-                      </td>
-                      <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
-                         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                           <div style={{ padding: '6px', borderBottom: '1px solid transparent', flex: 1, minHeight: '26px' }}>{row.returnQty}</div>
-                           {Array(row.items.length - 1).fill().map((_, i) => <div key={i} style={{ padding: '6px', borderBottom: '1px solid transparent', flex: 1, minHeight: '26px' }}>&nbsp;</div>)}
-                           <div style={{ padding: '6px', fontWeight: 'bold', minHeight: '26px' }}>&nbsp;</div>
-                         </div>
-                      </td>
-                      <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
-                         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                           <div style={{ padding: '6px', borderBottom: '1px solid transparent', flex: 1, minHeight: '26px' }}>{row.grandTotal}</div>
-                           {Array(row.items.length - 1).fill().map((_, i) => <div key={i} style={{ padding: '6px', borderBottom: '1px solid transparent', flex: 1, minHeight: '26px' }}>&nbsp;</div>)}
-                           <div style={{ padding: '6px', fontWeight: 'bold', minHeight: '26px' }}>{row.grandTotal.replace('.00', '')}</div>
-                         </div>
-                      </td>
-                      <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
-                         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                           <div style={{ padding: '6px', borderBottom: '1px solid transparent', flex: 1, minHeight: '26px' }}>{row.receiveAmount}</div>
-                           {Array(row.items.length - 1).fill().map((_, i) => <div key={i} style={{ padding: '6px', borderBottom: '1px solid transparent', flex: 1, minHeight: '26px' }}>&nbsp;</div>)}
-                           <div style={{ padding: '6px', fontWeight: 'bold', minHeight: '26px' }}>{row.receiveAmount.replace('.00', '')}</div>
-                         </div>
-                      </td>
-                      <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
-                         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                           <div style={{ padding: '6px', borderBottom: '1px solid transparent', flex: 1, minHeight: '26px' }}>{row.dueAmount}</div>
-                           {Array(row.items.length - 1).fill().map((_, i) => <div key={i} style={{ padding: '6px', borderBottom: '1px solid transparent', flex: 1, minHeight: '26px' }}>&nbsp;</div>)}
-                           <div style={{ padding: '6px', fontWeight: 'bold', minHeight: '26px' }}>{row.dueAmount}</div>
-                         </div>
-                      </td>
+                  {loading ? (
+                    <tr>
+                      <td colSpan="12" style={{ padding: '24px', textAlign: 'center' }}>Loading product group report...</td>
                     </tr>
-                  ))}
+                  ) : reports.length === 0 ? (
+                    <tr>
+                      <td colSpan="12" style={{ padding: '24px', textAlign: 'center' }}>No records found.</td>
+                    </tr>
+                  ) : (
+                    reports.map((row, index) => {
+                      const items = row.items || [{ product: row.product_name || row.product || '-', unit: row.unit_name || row.unit || 'PEACE', qty: row.qty || 1, price: row.price || 0 }];
+                      return (
+                        <tr key={row.id || index}>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{index + 1}</td>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{row.date || row.issued_date || '-'}</td>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{row.voucher || row.invoice_id || '-'}</td>
+                          
+                          {/* Nested columns for items */}
+                          <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                              {items.map((item, idx) => (
+                                <div key={idx} style={{ padding: '6px', borderBottom: '1px solid #94a3b8', flex: 1, minHeight: '26px' }}>{item.product}</div>
+                              ))}
+                            </div>
+                          </td>
+                          <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                              {items.map((item, idx) => (
+                                <div key={idx} style={{ padding: '6px', borderBottom: '1px solid #94a3b8', flex: 1, minHeight: '26px' }}>{item.unit}</div>
+                              ))}
+                            </div>
+                          </td>
+                          <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                              {items.map((item, idx) => (
+                                <div key={idx} style={{ padding: '6px', borderBottom: '1px solid #94a3b8', flex: 1, minHeight: '26px' }}>{item.qty}</div>
+                              ))}
+                            </div>
+                          </td>
+                          <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                              {items.map((item, idx) => (
+                                <div key={idx} style={{ padding: '6px', borderBottom: '1px solid #94a3b8', flex: 1, minHeight: '26px' }}>৳{Number(item.price).toFixed(2)}</div>
+                              ))}
+                            </div>
+                          </td>
+
+                          {/* Totals side */}
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>৳{Number(row.total || row.total_amount || 0).toFixed(2)}</td>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>৳{Number(row.discount || 0).toFixed(2)}</td>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>৳{Number(row.grandTotal || row.grand_total || row.total || 0).toFixed(2)}</td>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>৳{Number(row.receiveAmount || row.receive_amount || row.receive || 0).toFixed(2)}</td>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>৳{Number(row.dueAmount || row.due_amount || row.due || 0).toFixed(2)}</td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
-            </div>
-            
-            {/* Pagination */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                Showing 1 to 1 of 1 entries
-              </div>
-              <div style={{ display: 'flex' }}>
-                <button style={{ padding: '6px 12px', border: '1px solid #e2e8f0', background: '#f1f5f9', color: '#64748b', borderRadius: '4px 0 0 4px', cursor: 'pointer', fontSize: '12px' }}>Previous</button>
-                <button style={{ padding: '6px 12px', border: '1px solid #3b82f6', borderLeft: 'none', background: '#3b82f6', color: 'white', cursor: 'pointer', fontSize: '12px' }}>1</button>
-                <button style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderLeft: 'none', background: '#f1f5f9', color: '#000', borderRadius: '0 4px 4px 0', cursor: 'pointer', fontSize: '12px' }}>Next</button>
-              </div>
             </div>
 
           </div>

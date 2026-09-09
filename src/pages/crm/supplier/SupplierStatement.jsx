@@ -1,28 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import PrintHeader from '../../../components/PrintHeader';
 import { Printer, RotateCcw, Plus } from 'lucide-react';
+import { useApi } from '../../../hooks/useApi';
+import { ENDPOINTS } from '../../../api/endpoints';
 
 const SupplierStatement = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { get, loading } = useApi();
 
-  const [statementData] = useState([
-    { sl: 1, date: '2024-04-22', product: 'Previous Due', unit: '', qty: '', price: '', buyPrice: '', discount: '', grandTotal: '42300.00', return: '0', receive: '0', due: '42300.00' },
-    { sl: 2, date: '2024-04-22', product: 'Previous Due', unit: '', qty: '', price: '', buyPrice: '', discount: '', grandTotal: '0.00', return: '0', receive: '0', due: '0.00' },
-    { sl: 3, date: '2024-04-22', product: 'Previous Due', unit: '', qty: '', price: '', buyPrice: '', discount: '', grandTotal: '0.00', return: '0', receive: '0', due: '0.00' },
-    { sl: 4, date: '2024-04-22', product: 'Previous Due', unit: '', qty: '', price: '', buyPrice: '', discount: '', grandTotal: '194410.00', return: '0', receive: '0', due: '194410.00' },
-    { sl: 5, date: '2024-04-22', product: 'Previous Due', unit: '', qty: '', price: '', buyPrice: '', discount: '', grandTotal: '562325.00', return: '0', receive: '0', due: '562325.00' },
-    { sl: 6, date: '2024-04-22', product: 'Previous Due', unit: '', qty: '', price: '', buyPrice: '', discount: '', grandTotal: '-56311.00', return: '0', receive: '0', due: '-56311.00' },
-    { sl: 7, date: '2024-04-22', product: 'Previous Due', unit: '', qty: '', price: '', buyPrice: '', discount: '', grandTotal: '0.00', return: '0', receive: '0', due: '0.00' },
-    { sl: 8, date: '2024-04-22', product: 'Previous Due', unit: '', qty: '', price: '', buyPrice: '', discount: '', grandTotal: '84820.00', return: '0', receive: '0', due: '84820.00' },
-    { sl: 9, date: '2024-04-22', product: 'Previous Due', unit: '', qty: '', price: '', buyPrice: '', discount: '', grandTotal: '2800.00', return: '0', receive: '0', due: '2800.00' },
-    { sl: 10, date: '2024-04-22', product: 'Previous Due', unit: '', qty: '', price: '', buyPrice: '', discount: '', grandTotal: '14034.00', return: '0', receive: '0', due: '14034.00' },
-    { sl: 11, date: '2024-04-22', product: 'Previous Due', unit: '', qty: '', price: '', buyPrice: '', discount: '', grandTotal: '254960.00', return: '0', receive: '0', due: '254960.00' },
-    { sl: 12, date: '2024-04-22', product: 'Previous Due', unit: '', qty: '', price: '', buyPrice: '', discount: '', grandTotal: '139490.00', return: '0', receive: '0', due: '139490.00' },
-    { sl: 13, date: '2024-04-22', product: 'Previous Due', unit: '', qty: '', price: '', buyPrice: '', discount: '', grandTotal: '0.00', return: '0', receive: '0', due: '0.00' },
-  ]);
+  const [statementData, setStatementData] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
 
   const [filters, setFilters] = useState({
     supplier: '',
@@ -31,6 +21,43 @@ const SupplierStatement = () => {
   });
 
   const [entries, setEntries] = useState(100);
+
+  // Fetch Suppliers for dropdown
+  const fetchSuppliers = async () => {
+    try {
+      const res = await get(ENDPOINTS.CRM_SUPPLIERS);
+      setSuppliers(res.results || res.data || res || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Fetch Statement Data
+  const fetchStatement = async () => {
+    // We only fetch if a supplier is selected, or you can fetch all
+    try {
+      let url = `${ENDPOINTS.ACCOUNTING_REPORT_SUPPLIER_LEDGER}?`;
+      if (filters.supplier) url += `supplier_id=${filters.supplier}&`;
+      if (filters.startDate) url += `start_date=${filters.startDate}&`;
+      if (filters.endDate) url += `end_date=${filters.endDate}&`;
+      
+      const res = await get(url);
+      setStatementData(res.results || res.data || res || []);
+    } catch (err) {
+      console.error(err);
+      // Fallback empty if API fails or doesn't exist
+      setStatementData([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchSuppliers();
+  }, []);
+
+  // Fetch statement whenever filters change
+  useEffect(() => {
+    fetchStatement();
+  }, [filters]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -50,16 +77,12 @@ const SupplierStatement = () => {
     setEntries(100);
   };
 
-  // Basic client-side filtering logic
-  const filteredData = statementData.filter(item => {
-    let match = true;
-    if (filters.startDate && item.date < filters.startDate) match = false;
-    if (filters.endDate && item.date > filters.endDate) match = false;
-    return match;
-  }).slice(0, entries);
+  // Basic client-side slicing
+  const displayedData = statementData.slice(0, entries);
 
   // Format date helper
   const formatDate = (dateString) => {
+    if (!dateString) return '-';
     const options = { day: '2-digit', month: 'short', year: 'numeric' };
     return new Date(dateString).toLocaleDateString('en-GB', options);
   };
@@ -88,8 +111,9 @@ const SupplierStatement = () => {
             <div className="form-input floating-label">
               <select name="supplier" value={filters.supplier} onChange={handleInputChange}>
                 <option value="">Select Suppliers</option>
-                <option value="supplier1">Supplier 1</option>
-                <option value="supplier2">Supplier 2</option>
+                {suppliers.map(s => (
+                  <option key={s.id || s.uuid} value={s.id || s.uuid}>{s.name}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -144,6 +168,7 @@ const SupplierStatement = () => {
               <option value={100}>100</option>
             </select>
             entries
+            {loading && <span style={{ marginLeft: '16px', color: '#3b82f6' }}>Loading...</span>}
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button className="btn" onClick={() => window.print()} style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
@@ -175,25 +200,25 @@ const SupplierStatement = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredData.length > 0 ? filteredData.map((row) => (
-                <tr key={row.sl} style={{ background: 'white' }}>
-                  <td style={{ textAlign: 'center', borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.sl}</td>
+              {displayedData.length > 0 ? displayedData.map((row, index) => (
+                <tr key={row.id || index} style={{ background: 'white' }}>
+                  <td style={{ textAlign: 'center', borderRight: '1px solid #e2e8f0', padding: '8px' }}>{index + 1}</td>
                   <td style={{ textAlign: 'center', borderRight: '1px solid #e2e8f0', padding: '8px' }}>{formatDate(row.date)}</td>
-                  <td style={{ borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.product}</td>
-                  <td style={{ borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.unit}</td>
-                  <td style={{ borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.qty}</td>
-                  <td style={{ borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.price}</td>
-                  <td style={{ borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.buyPrice}</td>
-                  <td style={{ borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.discount}</td>
-                  <td style={{ textAlign: 'center', borderRight: '1px solid #e2e8f0', padding: '8px', fontWeight: '500' }}>{row.grandTotal}</td>
-                  <td style={{ textAlign: 'center', borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.return}</td>
-                  <td style={{ textAlign: 'center', borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.receive}</td>
-                  <td style={{ textAlign: 'center', padding: '8px', fontWeight: '600' }}>{row.due}</td>
+                  <td style={{ borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.product || row.product_name || '-'}</td>
+                  <td style={{ borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.unit || '-'}</td>
+                  <td style={{ borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.quantity || row.qty || '0'}</td>
+                  <td style={{ borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.price || '0.00'}</td>
+                  <td style={{ borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.buy_price || row.buyPrice || '0.00'}</td>
+                  <td style={{ borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.discount || '0.00'}</td>
+                  <td style={{ textAlign: 'center', borderRight: '1px solid #e2e8f0', padding: '8px', fontWeight: '500' }}>{row.grand_total || row.grandTotal || '0.00'}</td>
+                  <td style={{ textAlign: 'center', borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.purchase_return || row.return || '0.00'}</td>
+                  <td style={{ textAlign: 'center', borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.receive || row.payment || '0.00'}</td>
+                  <td style={{ textAlign: 'center', padding: '8px', fontWeight: '600' }}>{row.due || '0.00'}</td>
                 </tr>
               )) : (
                 <tr>
                   <td colSpan="12" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
-                    No data found
+                    {loading ? 'Loading statement...' : 'No data found'}
                   </td>
                 </tr>
               )}

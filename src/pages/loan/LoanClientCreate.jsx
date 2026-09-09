@@ -1,32 +1,20 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { User, Building, MapPin, Phone, Mail, Users, Settings, Play, Plus, List, Layers, Wallet } from 'lucide-react';
+import { User, MapPin, Phone, Wallet, Settings, Play, List, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { loanService } from '../../services/loanService';
 import PrintHeader from '../../components/PrintHeader';
-import AddOptionModal from '../../components/AddOptionModal';
-
 
 const LoanClientCreate = () => {
-  const { t } = useTranslation();
-
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
-    fatherName: '',
-    company: '',
-    address: '',
     phone: '',
-    phoneOptional: '',
-    previousDue: '',
-    email: '',
-    reference: '',
-    group: ''
+    address: '',
+    previous_due: '',
+    max_due_limit: ''
   });
-  
-  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -35,7 +23,7 @@ const LoanClientCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.phone) {
-      alert("Name and Phone are required.");
+      alert("Loan Account Name and Phone Number are required.");
       return;
     }
 
@@ -44,13 +32,15 @@ const LoanClientCreate = () => {
       await loanService.createLoanAccount({
         name: formData.name,
         phone: formData.phone,
-        address: formData.address
+        address: formData.address || '',
+        previous_due: formData.previous_due || '0.00',
+        max_due_limit: formData.max_due_limit || '0.00'
       });
-      alert("Loan Client added successfully!");
-      navigate('/loan/loan-client-list');
+      alert("Loan Account created successfully!");
+      navigate('/loan/client-list');
     } catch (error) {
-      console.error("Error creating loan client:", error);
-      alert("Failed to create loan client");
+      console.error("Error creating loan account:", error);
+      alert("Failed to create loan account. Please verify input and try again.");
     } finally {
       setLoading(false);
     }
@@ -58,18 +48,15 @@ const LoanClientCreate = () => {
 
   return (
     <div className="premium-card">
-        <PrintHeader />
+      <PrintHeader />
       <div className="premium-header">
-        <h2 className="premium-title" style={{ textTransform: 'uppercase' }}>Client Create</h2>
+        <h2 className="premium-title" style={{ textTransform: 'uppercase' }}>Add New Loan Account</h2>
         <div className="header-actions">
           <button className="btn-icon">
             <Settings size={18} />
           </button>
-          <button className="btn-gray-outline" onClick={() => navigate('/loan/loan-client-list')}>
-            <List size={16} /> Client List
-          </button>
-          <button className="btn-gray-outline">
-            <Layers size={16} /> Client Group
+          <button className="btn-gray-outline" onClick={() => navigate('/loan/client-list')}>
+            <List size={16} /> Account List
           </button>
           <button className="btn-youtube">
             <div style={{ display: 'flex', alignItems: 'center', background: '#ff0000', color: 'white', padding: '6px 12px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold' }}>
@@ -79,34 +66,29 @@ const LoanClientCreate = () => {
         </div>
       </div>
 
-      <div className="premium-body">
+      <div className="premium-body" style={{ padding: '32px' }}>
         <form onSubmit={handleSubmit}>
-          <div className="form-grid">
+          <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             
+            {/* Account Name */}
             <div className="form-group">
               <div className="form-input floating-label">
                 <User size={18} className="input-icon" />
                 <input type="text" name="name" placeholder=" " value={formData.name} onChange={handleChange} required />
-                <label>Client Name</label>
+                <label>Loan Account Title (e.g. IDLC LOAN) *</label>
               </div>
             </div>
 
+            {/* Phone */}
             <div className="form-group">
               <div className="form-input floating-label">
-                <User size={18} className="input-icon" />
-                <input type="text" name="fatherName" placeholder=" " value={formData.fatherName} onChange={handleChange} />
-                <label>Father's Name</label>
+                <Phone size={18} className="input-icon" />
+                <input type="text" name="phone" placeholder=" " value={formData.phone} onChange={handleChange} required />
+                <label>Phone Number *</label>
               </div>
             </div>
 
-            <div className="form-group">
-              <div className="form-input floating-label">
-                <Building size={18} className="input-icon" />
-                <input type="text" name="company" placeholder=" " value={formData.company} onChange={handleChange} />
-                <label>Company Name</label>
-              </div>
-            </div>
-
+            {/* Address */}
             <div className="form-group">
               <div className="form-input floating-label">
                 <MapPin size={18} className="input-icon" />
@@ -115,76 +97,31 @@ const LoanClientCreate = () => {
               </div>
             </div>
 
-            <div className="form-group">
-              <div className="form-input floating-label">
-                <Phone size={18} className="input-icon" />
-                <input type="text" name="phone" placeholder=" " value={formData.phone} onChange={handleChange} required />
-                <label>Phone Number</label>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <div className="form-input floating-label">
-                <Phone size={18} className="input-icon" />
-                <input type="text" name="phoneOptional" placeholder=" " value={formData.phoneOptional} onChange={handleChange} />
-                <label>Phone Optional</label>
-              </div>
-            </div>
-
+            {/* Previous Due */}
             <div className="form-group">
               <div className="form-input floating-label">
                 <Wallet size={18} className="input-icon" />
-                <input type="number" name="previousDue" placeholder=" " value={formData.previousDue} onChange={handleChange} />
-                <label>Previous Due</label>
+                <input type="number" step="0.01" name="previous_due" placeholder=" " value={formData.previous_due} onChange={handleChange} />
+                <label>Previous Due Amount</label>
               </div>
             </div>
 
-            <div className="form-group">
+            {/* Max Due Limit */}
+            <div className="form-group" style={{ gridColumn: 'span 2' }}>
               <div className="form-input floating-label">
-                <Mail size={18} className="input-icon" />
-                <input type="email" name="email" placeholder=" " value={formData.email} onChange={handleChange} />
-                <label>E-mail</label>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <div className="form-input floating-label">
-                <Users size={18} className="input-icon" />
-                <input type="text" name="reference" placeholder=" " value={formData.reference} onChange={handleChange} />
-                <label>Reference</label>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <div className="input-group">
-                <div className="form-input floating-label no-icon">
-                  <select name="group" value={formData.group} onChange={handleChange}>
-                    <option value="" disabled hidden></option>
-                    <option value="Group 1">Group 1</option>
-                  </select>
-                  <label>Select client group</label>
-                </div>
-                <button type="button" className="btn-append" onClick={() => setIsGroupModalOpen(true)}>
-                  <Plus size={20} />
-                </button>
+                <ShieldAlert size={18} className="input-icon" />
+                <input type="number" step="0.01" name="max_due_limit" placeholder=" " value={formData.max_due_limit} onChange={handleChange} />
+                <label>Max Due Limit</label>
               </div>
             </div>
 
           </div>
 
-          <button type="submit" className="btn-green" style={{ width: '100%', padding: '14px', fontSize: '16px', marginTop: '16px' }} disabled={loading}>
-            {loading ? 'Adding...' : 'Client Add'}
+          <button type="submit" className="btn-green" style={{ width: '100%', padding: '14px', fontSize: '16px', marginTop: '24px', background: 'var(--success)', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }} disabled={loading}>
+            {loading ? 'Creating Loan Account...' : 'Add Loan Account'}
           </button>
         </form>
       </div>
-      
-      <AddOptionModal 
-        isOpen={isGroupModalOpen}
-        onClose={() => setIsGroupModalOpen(false)}
-        onSave={(val) => { console.log('Add Group', val); setIsGroupModalOpen(false); }}
-        title="Add Client Group"
-        label="Group Name"
-      />
     </div>
   );
 };

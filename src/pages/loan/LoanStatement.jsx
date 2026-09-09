@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { Printer, RotateCcw } from 'lucide-react';
@@ -8,27 +8,59 @@ const LoanStatement = () => {
   const { t } = useTranslation();
 
   const [statements, setStatements] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [selectedClient, setSelectedClient] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [loading, setLoading] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
+    fetchClients();
     fetchStatements();
   }, []);
+
+  const fetchClients = async () => {
+    try {
+      const res = await loanService.getLoanAccounts().catch(() => []);
+      const data = Array.isArray(res) ? res : (res?.results || []);
+      setClients(data);
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+      setClients([]);
+    }
+  };
 
   const fetchStatements = async () => {
     try {
       setLoading(true);
-      const res = await loanService.getLoanStatement();
-      setStatements(res || []);
+      const filters = {};
+      if (selectedClient) filters.loan_account = selectedClient;
+      if (fromDate) filters.from_date = fromDate;
+      if (toDate) filters.to_date = toDate;
+
+      const res = await loanService.getLoanStatement(filters).catch(() => []);
+      const data = Array.isArray(res) ? res : (res?.results || []);
+      setStatements(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error fetching loan statement:", err);
+      setStatements([]);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleClearFilter = () => {
+    setSelectedClient('');
+    setFromDate('');
+    setToDate('');
+    fetchStatements();
+  };
+
+  const selectedClientObj = clients.find(c => String(c.id) === String(selectedClient));
+
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px', background: 'white' }}>
-        <PrintHeader />
+      <PrintHeader />
       
       {/* Center Title - stylized */}
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
@@ -38,12 +70,12 @@ const LoanStatement = () => {
       {/* Header Info */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px', fontSize: '14px' }}>
         <div>
-          <div><span style={{ fontWeight: 'bold' }}>Name :</span> BIPUL LATA INGIN MISTREE</div>
-          <div><span style={{ fontWeight: 'bold' }}>Address :</span> MONOHAR PUR //FOYLA</div>
-          <div><span style={{ fontWeight: 'bold' }}>Contact No :</span> 0</div>
+          <div><span style={{ fontWeight: 'bold' }}>Name :</span> {selectedClientObj?.name || 'All Clients'}</div>
+          <div><span style={{ fontWeight: 'bold' }}>Address :</span> {selectedClientObj?.address || '-'}</div>
+          <div><span style={{ fontWeight: 'bold' }}>Contact No :</span> {selectedClientObj?.phone || '-'}</div>
         </div>
         <div>
-          <span style={{ fontWeight: 'bold' }}>Date :</span> 25 Aug 2026
+          <span style={{ fontWeight: 'bold' }}>Date :</span> {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
         </div>
       </div>
 
@@ -58,30 +90,27 @@ const LoanStatement = () => {
 
       <div className="card-body">
         {/* Filters */}
-        <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', marginBottom: '24px', alignItems: 'flex-end', gap: '16px', maxWidth: '800px', margin: '0 auto 24px auto' }}>
+        <div className="form-grid" style={{ gridTemplateColumns: '1fr 1.3fr 1fr', marginBottom: '24px', alignItems: 'flex-end', gap: '16px', maxWidth: '840px', margin: '0 auto 24px auto' }}>
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px', textAlign: 'center', display: 'block' }}>{t('common.search_by_client')}</label>
-            <div className="form-input floating-label" style={{ borderRadius: '24px' }}>
-              <select style={{ textAlign: 'center' }}>
-                <option>{t('common.select_client')}</option>
-              </select>
+            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px', color: '#334155', display: 'block' }}>{t('common.search_by_client')}</label>
+            <select style={{ width: '100%', height: '44px', padding: '0 12px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: '14px', outline: 'none', background: 'white', color: '#1e293b' }} value={selectedClient} onChange={(e) => setSelectedClient(e.target.value)}>
+              <option value="">{t('common.select_client')}</option>
+              {(clients || []).map((c) => (
+                <option key={c.id} value={c.id}>{c.name} ({c.phone || '-'})</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px', color: '#334155', display: 'block' }}>{t('common.search_by_date')}</label>
+            <div style={{ display: 'flex', border: '1px solid #93c5fd', borderRadius: '6px', overflow: 'hidden', background: 'white', height: '44px', alignItems: 'center' }}>
+              <input type="date" style={{ width: '50%', border: 'none', borderRight: '1px solid #cbd5e1', padding: '0 10px', fontSize: '13px', color: '#1e293b', outline: 'none', height: '100%' }} value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+              <input type="date" style={{ width: '50%', border: 'none', padding: '0 10px', fontSize: '13px', color: '#1e293b', outline: 'none', height: '100%' }} value={toDate} onChange={(e) => setToDate(e.target.value)} />
             </div>
           </div>
 
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px', textAlign: 'center', display: 'block' }}>{t('common.search_by_date')}</label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <div className="form-input floating-label" style={{ flex: 1, padding: '0 8px', borderRadius: '24px' }}>
-                <input type="date" style={{ color: '#94a3b8', textAlign: 'center' }} />
-              </div>
-              <div className="form-input floating-label" style={{ flex: 1, padding: '0 8px', borderRadius: '24px' }}>
-                <input type="date" style={{ color: '#94a3b8', textAlign: 'center' }} />
-              </div>
-            </div>
-          </div>
-
-          <div className="form-group">
-            <button className="btn btn-outline" style={{ height: '48px', width: '100%', background: 'var(--table-header-bg)', color: 'white', justifyContent: 'center', borderRadius: '4px', border: 'none' }}>
+            <button className="btn btn-outline" onClick={handleClearFilter} style={{ height: '44px', width: '100%', background: '#64748b', color: 'white', justifyContent: 'center', borderRadius: '6px', border: 'none', fontWeight: 'bold', fontSize: '14px' }}>
               Clear Filter
             </button>
           </div>
@@ -100,7 +129,7 @@ const LoanStatement = () => {
             <button className="btn" onClick={() => window.print()} style={{ background: '#4F46E5', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
               <Printer size={16} style={{ marginRight: '6px' }} /> Print
             </button>
-            <button className="btn" style={{ background: '#4F46E5', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
+            <button className="btn" onClick={handleClearFilter} style={{ background: '#4F46E5', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
               <RotateCcw size={16} style={{ marginRight: '6px' }} /> Reset
             </button>
           </div>
@@ -123,21 +152,21 @@ const LoanStatement = () => {
               </tr>
             </thead>
             <tbody>
-              {statements.map((statement, index) => (
-                <tr key={statement.id} style={{ background: 'white', borderBottom: '1px solid #e2e8f0' }}>
+              {Array.isArray(statements) && statements.map((statement, index) => (
+                <tr key={statement.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0' }}>
                   <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
-                  <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0' }}>{statement.date}</td>
-                  <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0' }}>{statement.receiptNo || statement.id?.slice(-6)}</td>
+                  <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0' }}>{statement.date || statement.created_at?.split('T')[0] || '-'}</td>
+                  <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0' }}>{statement.receiptNo || statement.receipt_no || (statement.id ? String(statement.id).slice(-6) : '-')}</td>
                   <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0', fontSize: '13px' }}>
                     {statement.source || (
                       <>
-                        <div>Name: {statement.clientName} | </div>
-                        <div>Number: {statement.clientNumber}</div>
+                        <div>Name: {statement.clientName || statement.loan_account?.name || '-'} | </div>
+                        <div>Number: {statement.clientNumber || statement.loan_account?.phone || '-'}</div>
                       </>
                     )}
                   </td>
-                  <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0', fontSize: '13px' }}>{statement.description}</td>
-                  <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0' }}>{statement.transaction_type || statement.type}</td>
+                  <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0', fontSize: '13px' }}>{statement.description || statement.note || '-'}</td>
+                  <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0' }}>{statement.transaction_type || statement.type || '-'}</td>
                   <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0' }}>{statement.credit || statement.loanReceive || '--'}</td>
                   <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0' }}>{statement.debit || statement.loanPayment || '--'}</td>
                   <td style={{ textAlign: 'center', padding: '12px' }}>{statement.balance || '--'}</td>
@@ -148,7 +177,7 @@ const LoanStatement = () => {
                   <td colSpan="9" style={{ textAlign: 'center', padding: '20px' }}>Loading...</td>
                 </tr>
               )}
-              {!loading && statements.length === 0 && (
+              {!loading && (!Array.isArray(statements) || statements.length === 0) && (
                 <tr>
                   <td colSpan="9" style={{ textAlign: 'center', padding: '20px' }}>No statements found.</td>
                 </tr>
@@ -162,3 +191,4 @@ const LoanStatement = () => {
 };
 
 export default LoanStatement;
+

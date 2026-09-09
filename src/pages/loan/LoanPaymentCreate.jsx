@@ -7,14 +7,14 @@ import { accountingService } from '../../services/accountingService';
 import PrintHeader from '../../components/PrintHeader';
 import AddOptionModal from '../../components/AddOptionModal';
 
-const LoanReceiveCreate = () => {
+const LoanPaymentCreate = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     clientId: '',
     accountId: '',
-    date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+    date: new Date().toISOString().split('T')[0],
     amount: '',
     note: '',
     categoryId: '',
@@ -60,23 +60,23 @@ const LoanReceiveCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.clientId || !formData.accountId || !formData.amount) {
-      alert("Please select Loan Account, Receiving Account, and enter Amount.");
+      alert("Please select Loan Account, Payment Account, and enter Amount.");
       return;
     }
 
     try {
       setLoading(true);
-      await loanService.createLoanReceive({
+      await loanService.createLoanPayment({
         loan_account: formData.clientId,
         account: formData.accountId,
         amount: String(formData.amount),
-        description: formData.note || "Loan Receive"
+        description: formData.note || "Loan Payment"
       });
-      alert("Loan Receive added successfully!");
-      navigate('/loan/receive');
+      alert("Loan Payment added successfully!");
+      navigate('/loan/payment');
     } catch (error) {
-      console.error("Error creating loan receive:", error);
-      alert("Failed to create loan receive.");
+      console.error("Error creating loan payment:", error);
+      alert("Failed to create loan payment.");
     } finally {
       setLoading(false);
     }
@@ -84,12 +84,12 @@ const LoanReceiveCreate = () => {
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
-        <PrintHeader />
+      <PrintHeader />
       <div className="premium-card">
         <div className="premium-header">
-          <h2 className="premium-title">Create Loan Receive</h2>
+          <h2 className="premium-title">Create Loan Payment</h2>
           <div className="header-actions">
-            <button className="btn-gray-outline" onClick={() => navigate('/loan/receive')}>
+            <button className="btn-gray-outline" onClick={() => navigate('/loan/payment')}>
               <List size={16} /> List
             </button>
             <button className="btn-youtube" style={{ border: '1px solid #e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
@@ -141,7 +141,7 @@ const LoanReceiveCreate = () => {
                   <div style={{ padding: '0 12px', display: 'flex', alignItems: 'center' }}>
                     <FileText size={18} color="#1e293b" />
                   </div>
-                  <input type="text" name="note" placeholder="Receive Description in a short note" value={formData.note} onChange={handleChange} style={{ flex: 1, padding: '12px 16px 12px 0', border: 'none', outline: 'none', fontSize: '14px' }} />
+                  <input type="text" name="note" placeholder="Payment Description in a short note" value={formData.note} onChange={handleChange} style={{ flex: 1, padding: '12px 16px 12px 0', border: 'none', outline: 'none', fontSize: '14px' }} />
                 </div>
               </div>
             </div>
@@ -160,8 +160,8 @@ const LoanReceiveCreate = () => {
                 <div style={{ display: 'flex', border: '1px solid #93c5fd', borderRadius: '6px', overflow: 'hidden', background: 'white' }}>
                   <select name="categoryId" value={formData.categoryId} onChange={handleChange} style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px', appearance: 'none', background: 'transparent' }}>
                     <option value="">Select Categories</option>
-                    <option value="1">Advance</option>
-                    <option value="2">Return</option>
+                    <option value="1">Loan Repayment</option>
+                    <option value="2">Interest</option>
                   </select>
                   <button type="button" onClick={() => setIsCategoryModalOpen(true)} style={{ background: '#22c55e', color: 'white', border: 'none', padding: '0 16px', cursor: 'pointer' }}><Plus size={18} /></button>
                 </div>
@@ -189,9 +189,9 @@ const LoanReceiveCreate = () => {
             {/* Footer Buttons */}
             <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '32px' }}>
               <button type="submit" className="btn-primary" style={{ background: 'var(--primary)', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }} disabled={loading}>
-                {loading ? 'Processing...' : 'Add New Receive'}
+                {loading ? 'Processing...' : 'Add New Payment'}
               </button>
-              <button type="button" className="btn-danger" onClick={() => navigate('/loan/receive')} style={{ background: 'var(--danger)', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }}>
+              <button type="button" className="btn-danger" onClick={() => navigate('/loan/payment')} style={{ background: 'var(--danger)', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }}>
                 Close
               </button>
             </div>
@@ -224,4 +224,4 @@ const LoanReceiveCreate = () => {
   );
 };
 
-export default LoanReceiveCreate;
+export default LoanPaymentCreate;

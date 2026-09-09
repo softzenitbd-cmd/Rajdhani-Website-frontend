@@ -13,21 +13,23 @@ const LoanClientList = () => {
   const [loading, setLoading] = useState(true);
   const [activeAction, setActiveAction] = useState(null);
 
-  React.useEffect(() => {
-    fetchLoanClients();
-  }, []);
-
   const fetchLoanClients = async () => {
     try {
       setLoading(true);
-      const res = await loanService.getLoanAccounts();
-      setLoanClients(res || []);
+      const res = await loanService.getLoanAccounts().catch(() => []);
+      const data = Array.isArray(res) ? res : (res?.results || []);
+      setLoanClients(data);
     } catch (error) {
       console.error("Error fetching loan clients:", error);
+      setLoanClients([]);
     } finally {
       setLoading(false);
     }
   };
+
+  React.useEffect(() => {
+    fetchLoanClients();
+  }, []);
 
   const toggleAction = (id) => {
     if (activeAction === id) {
@@ -48,7 +50,7 @@ const LoanClientList = () => {
           <button className="btn-gray-outline">
             <Layers size={16} /> Client Group
           </button>
-          <Link to="/loan/loan-client-create" style={{ textDecoration: 'none' }}>
+          <Link to="/loan/client-create" style={{ textDecoration: 'none' }}>
             <button className="btn-green">
               <Plus size={16} /> Add New
             </button>
@@ -112,34 +114,18 @@ const LoanClientList = () => {
             <thead>
               <tr>
                 <th style={{ background: 'var(--secondary)', color: 'white', padding: '12px', textAlign: 'center', width: '60px', borderRight: '1px solid #d1d5db' }}>ID NO</th>
-                <th style={{ background: 'var(--secondary)', color: 'white', padding: '12px', textAlign: 'center', width: '180px', borderRight: '1px solid #d1d5db' }}>IMAGE</th>
                 <th style={{ background: 'var(--secondary)', color: 'white', padding: '12px', textAlign: 'left', borderRight: '1px solid #d1d5db' }}>CLIENT DETAILS</th>
                 <th style={{ background: 'var(--secondary)', color: 'white', padding: '12px', textAlign: 'left', width: '280px', borderRight: '1px solid #d1d5db' }}>DETAILS</th>
                 <th style={{ background: 'var(--secondary)', color: 'white', padding: '12px', textAlign: 'center', width: '100px' }}>ACTION</th>
               </tr>
             </thead>
             <tbody>
-              {loanClients.map((client) => (
-                <tr key={client.id} style={{ borderBottom: '1px solid #d1d5db' }}>
+              {(loanClients || []).map((client, index) => (
+                <tr key={client.id || index} style={{ borderBottom: '1px solid #d1d5db' }}>
                   
                   {/* ID Column */}
                   <td style={{ padding: '16px', textAlign: 'center', borderRight: '1px solid #d1d5db', verticalAlign: 'top' }}>
-                    {client.id.toString().slice(-5)}
-                  </td>
-                  
-                  {/* Image Column */}
-                  <td style={{ padding: '16px', textAlign: 'center', borderRight: '1px solid #d1d5db', verticalAlign: 'top' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <div style={{ width: '90px', height: '90px', borderRadius: '50%', border: '1px solid #d1d5db', marginBottom: '8px', background: 'var(--card-header-bg)', position: 'relative' }}>
-                        {/* Placeholder inner circle */}
-                        <div style={{ position: 'absolute', top: '10%', left: '10%', width: '80%', height: '80%', borderRadius: '50%', border: '1px solid #e2e8f0' }}></div>
-                        <div style={{ position: 'absolute', top: '20%', left: '20%', width: '60%', height: '60%', borderRadius: '50%', border: '1px solid #e2e8f0' }}></div>
-                      </div>
-                      <div style={{ display: 'flex', width: '100%', justifyContent: 'center' }}>
-                        <button style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '6px 8px', fontSize: '11px', borderTopLeftRadius: '4px', borderBottomLeftRadius: '4px', cursor: 'pointer' }}>Choose a file</button>
-                        <button style={{ background: '#64748b', color: 'white', border: 'none', padding: '6px 8px', fontSize: '11px', borderTopRightRadius: '4px', borderBottomRightRadius: '4px', cursor: 'pointer' }}>{t('common.save')}</button>
-                      </div>
-                    </div>
+                    {client.id ? client.id.toString().slice(-5) : index + 1}
                   </td>
                   
                   {/* Client Details Column */}
@@ -194,7 +180,7 @@ const LoanClientList = () => {
                         <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}><Eye size={14} /> View</div>
                         <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}><Edit size={14} /> Edit</div>
                         <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}><Trash2 size={14} /> Delete</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => navigate('/loan/loan-payment')}><DollarSign size={14} /> Payment</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => navigate('/loan/payment-create')}><DollarSign size={14} /> Payment</div>
                         <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}><FileText size={14} /> Statement</div>
                       </div>
                     )}
@@ -204,12 +190,12 @@ const LoanClientList = () => {
               ))}
               {loading && (
                 <tr>
-                  <td colSpan="5" style={{ textAlign: 'center', padding: '24px' }}>Loading loan clients...</td>
+                  <td colSpan="4" style={{ textAlign: 'center', padding: '24px' }}>Loading loan clients...</td>
                 </tr>
               )}
               {!loading && loanClients.length === 0 && (
                 <tr>
-                  <td colSpan="5" style={{ textAlign: 'center', padding: '24px' }}>No loan clients found.</td>
+                  <td colSpan="4" style={{ textAlign: 'center', padding: '24px' }}>No loan clients found.</td>
                 </tr>
               )}
             </tbody>

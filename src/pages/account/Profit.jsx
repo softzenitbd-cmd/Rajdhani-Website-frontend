@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { Play, Printer, RotateCcw, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { Play, Printer } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { accountingService } from '../../services/accountingService';
 
@@ -11,22 +11,8 @@ const Profit = () => {
 
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
-  const [profitData, setProfitData] = useState(null);
+  const [profitData, setProfitData] = useState({});
   const [loading, setLoading] = useState(true);
-
-  const fallbackData = {
-    "Total Sales": "৳ 260,550,615.68",
-    "Total Buy Price": "৳ 188,037,863.51",
-    "Discount": "৳ 0.00",
-    "Total Client Due": "৳ 7,824,583.00",
-    "Total Supplier Due": "৳ 14,929,806.91",
-    "Total Receive": "৳ 257,977,650.14",
-    "Total Expense": "৳ 336,859,154.11",
-    "Total Balance": "৳ -5,064,326.97",
-    "Product Profit": "৳ 72,512,752.17",
-    "Gross Profit": "৳ -78,881,503.97",
-    "Net Profit": "৳ -415,740,658.08"
-  };
 
   const fetchProfit = async () => {
     try {
@@ -35,15 +21,12 @@ const Profit = () => {
       if (fromDate) filters.from_date = fromDate;
       if (toDate) filters.to_date = toDate;
 
-      const res = await accountingService.getProfit(filters);
-      if (res && typeof res === 'object' && Object.keys(res).length > 0) {
-        setProfitData(res);
-      } else {
-        setProfitData(fallbackData);
-      }
+      const res = await accountingService.getProfit(filters).catch(() => ({}));
+      const data = (res && typeof res === 'object') ? res : {};
+      setProfitData(data);
     } catch (error) {
       console.error('Error fetching profit report:', error);
-      setProfitData(fallbackData);
+      setProfitData({});
     } finally {
       setLoading(false);
     }
@@ -57,8 +40,6 @@ const Profit = () => {
     e.preventDefault();
     fetchProfit();
   };
-
-  const currentData = profitData || fallbackData;
 
   return (
     <div className="premium-card">
@@ -128,7 +109,7 @@ const Profit = () => {
                 </tr>
               </thead>
               <tbody>
-                {Object.entries(currentData).map(([key, val], idx) => {
+                {Object.entries(profitData || {}).map(([key, val], idx) => {
                   const isHighlight = key.includes('Profit') || key === 'Total Balance';
                   const isNegative = String(val).includes('-');
                   return (
@@ -143,11 +124,21 @@ const Profit = () => {
                         fontSize: isHighlight ? '15px' : '14px',
                         color: isNegative ? '#dc2626' : (isHighlight ? '#059669' : '#0f172a') 
                       }}>
-                        {val}
+                        {typeof val === 'number' ? `৳ ${val.toLocaleString()}` : val}
                       </td>
                     </tr>
                   );
                 })}
+                {loading && (
+                  <tr>
+                    <td colSpan="2" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>Loading profit data...</td>
+                  </tr>
+                )}
+                {!loading && Object.keys(profitData || {}).length === 0 && (
+                  <tr>
+                    <td colSpan="2" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No profit records found for the selected period.</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

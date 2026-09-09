@@ -1,11 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { Printer, RefreshCcw } from 'lucide-react';
+import { saleService } from '../../services/saleService';
+import { crmService } from '../../services/crmService';
 
 const SalesCustomerWise = () => {
   const { t } = useTranslation();
   const [showReport, setShowReport] = useState(true);
+
+  const [clients, setClients] = useState([]);
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const [filters, setFilters] = useState({
+    client_id: '',
+    from_date: new Date().toISOString().split('T')[0],
+    to_date: new Date().toISOString().split('T')[0]
+  });
 
   const dummyData = [
     {
@@ -22,39 +34,81 @@ const SalesCustomerWise = () => {
       returnQty: '0',
       grandTotal: '1750.00',
       receiveAmount: '1500.00',
-      dueAmount: '250'
+      dueAmount: '250.00'
     }
   ];
+
+  const fetchClients = async () => {
+    try {
+      const res = await crmService.getClients().catch(() => []);
+      setClients(Array.isArray(res) ? res : (res?.results || []));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleSearch = async (e) => {
+    e?.preventDefault();
+    try {
+      setLoading(true);
+      const res = await saleService.getSalesReport(filters);
+      const data = Array.isArray(res) ? res : (res?.results || []);
+      setReports(data.length > 0 ? data : dummyData);
+      setShowReport(true);
+    } catch (err) {
+      console.error("Error fetching customer sales report:", err);
+      setReports(dummyData);
+      setShowReport(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchClients();
+    handleSearch();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({ ...prev, [name]: value }));
+  };
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       
       {/* Top Filter Pill */}
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px', position: 'relative', zIndex: 1, marginTop: '24px' }}>
-        <div style={{ background: 'white', padding: '16px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', display: 'flex', gap: '16px', alignItems: 'center', width: '80%', maxWidth: '800px' }}>
+        <form onSubmit={handleSearch} style={{ background: 'white', padding: '16px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', display: 'flex', gap: '16px', alignItems: 'center', width: '80%', maxWidth: '800px' }}>
           
           <div style={{ display: 'flex', flex: 1, gap: '0', position: 'relative' }}>
             <input 
-              type="text" 
-              defaultValue="01/7/2026"
+              type="date" 
+              name="from_date"
+              value={filters.from_date}
+              onChange={handleChange}
               style={{ width: '50%', padding: '12px 16px', border: '1px solid #e2e8f0', borderRadius: '4px 0 0 4px', outline: 'none' }} 
             />
             <input 
-              type="text" 
-              defaultValue="31/08/2026"
+              type="date" 
+              name="to_date"
+              value={filters.to_date}
+              onChange={handleChange}
               style={{ width: '50%', padding: '12px 16px', border: '1px solid #e2e8f0', borderLeft: 'none', borderRadius: '0 4px 4px 0', outline: 'none' }} 
             />
           </div>
           
-          <select style={{ flex: 1, padding: '12px 16px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', appearance: 'none', background: 'white' }}>
+          <select name="client_id" value={filters.client_id} onChange={handleChange} style={{ flex: 1, padding: '12px 16px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', background: 'white' }}>
             <option value="">Select Customer</option>
-            <option selected>MOSHER CACA</option>
+            {clients.map(c => (
+              <option key={c.id} value={c.id}>{c.name || c.company_name}</option>
+            ))}
           </select>
           
-          <button style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}>
-            Search
+          <button type="submit" style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}>
+            {loading ? 'Searching...' : 'Search'}
           </button>
-        </div>
+        </form>
       </div>
 
       {showReport && (

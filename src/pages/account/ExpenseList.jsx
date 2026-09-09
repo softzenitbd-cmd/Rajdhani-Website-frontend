@@ -129,43 +129,74 @@ const ExpenseList = () => {
 
         {/* Edit Expense Modal / Drawer */}
         {editingExpense && (
-          <div style={{ background: '#f8fafc', border: '1.5px solid #3b82f6', borderRadius: '12px', padding: '24px', marginBottom: '30px', boxShadow: '0 10px 25px -5px rgba(59, 130, 246, 0.15)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#1e293b', margin: 0 }}>
-                Edit Expense &bull; Ref: {editingExpense.reference || editingExpense.id}
-              </h3>
-              <button onClick={() => setEditingExpense(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
+          <div 
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(15, 23, 42, 0.45)',
+              backdropFilter: 'blur(2px)',
+              zIndex: 9999,
+              display: 'flex',
+              justify: 'flex-end'
+            }}
+            onClick={() => setEditingExpense(null)}
+          >
+            <div 
+              style={{
+                width: '440px',
+                maxWidth: '92vw',
+                height: '100vh',
+                background: 'white',
+                boxShadow: '-10px 0 30px rgba(0,0,0,0.18)',
+                display: 'flex',
+                flexDirection: 'column',
+                animation: 'slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                overflow: 'hidden'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ background: '#2563eb', color: 'white', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>
+                  Edit Expense &bull; Ref: {editingExpense.reference || editingExpense.id}
+                </h3>
+                <button onClick={() => setEditingExpense(null)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <X size={18} />
+                </button>
+              </div>
+              <form onSubmit={handleSaveEdit} style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#1e293b', marginBottom: '8px' }}>Amount (৳) *</label>
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    value={editAmount} 
+                    onChange={(e) => setEditAmount(e.target.value)} 
+                    required 
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 'bold', fontSize: '15px' }} 
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#1e293b', marginBottom: '8px' }}>Description / Note</label>
+                  <textarea 
+                    rows="4" 
+                    value={editDesc} 
+                    onChange={(e) => setEditDesc(e.target.value)} 
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none' }} 
+                  />
+                </div>
+                <div style={{ marginTop: 'auto', display: 'flex', gap: '12px', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
+                  <button type="button" onClick={() => setEditingExpense(null)} style={{ padding: '10px 18px', border: '1px solid #cbd5e1', background: 'white', borderRadius: '6px', cursor: 'pointer' }}>
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={savingEdit} style={{ padding: '10px 22px', background: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>
+                    {savingEdit ? 'Saving...' : 'Update & Re-adjust'}
+                  </button>
+                </div>
+              </form>
             </div>
-            <form onSubmit={handleSaveEdit} style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto', gap: '16px', alignItems: 'end' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px' }}>Amount (৳) *</label>
-                <input 
-                  type="number" 
-                  step="0.01" 
-                  value={editAmount} 
-                  onChange={(e) => setEditAmount(e.target.value)} 
-                  required 
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: 'bold' }} 
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px' }}>Description / Note</label>
-                <input 
-                  type="text" 
-                  value={editDesc} 
-                  onChange={(e) => setEditDesc(e.target.value)} 
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} 
-                />
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button type="submit" disabled={savingEdit} className="btn-primary" style={{ padding: '10px 18px', background: '#2563eb' }}>
-                  {savingEdit ? 'Saving...' : 'Update & Re-adjust'}
-                </button>
-                <button type="button" onClick={() => setEditingExpense(null)} className="btn-secondary" style={{ padding: '10px 14px' }}>
-                  Cancel
-                </button>
-              </div>
-            </form>
           </div>
         )}
 

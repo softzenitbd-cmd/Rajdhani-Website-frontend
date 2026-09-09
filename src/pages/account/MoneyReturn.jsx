@@ -1,117 +1,280 @@
-import React from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useEffect } from 'react';
+import { Settings, List, Layers, Play, Plus, X, User, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
-import { Plus, Play, Printer, RotateCcw } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import AddOptionModal from '../../components/AddOptionModal';
+import { accountingService } from '../../services/accountingService';
+import { crmService } from '../../services/crmService';
 
 const MoneyReturn = () => {
-  const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  const [clients, setClients] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+
+  const [formData, setFormData] = useState({
+    clientId: '',
+    accountId: '',
+    categoryId: '',
+    date: new Date().toISOString().split('T')[0],
+    amount: '',
+    description: ''
+  });
+
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+
+  const loadPrerequisites = async () => {
+    try {
+      const [accRes, catRes, clientRes] = await Promise.all([
+        accountingService.getAccounts().catch(() => []),
+        accountingService.getExpenseCategories().catch(() => []),
+        crmService.getClients().catch(() => [])
+      ]);
+
+      const accData = Array.isArray(accRes) ? accRes : (accRes?.results || []);
+      const catData = Array.isArray(catRes) ? catRes : (catRes?.results || []);
+      const clientData = Array.isArray(clientRes) ? clientRes : (clientRes?.results || []);
+
+      setAccounts(accData.length > 0 ? accData : [
+        { id: '1', name: 'TOTAL BALENCE' }
+      ]);
+
+      setCategories(catData.length > 0 ? catData : [
+        { id: '1', name: 'UPDETED DOKAN' }
+      ]);
+
+      setClients(clientData.length > 0 ? clientData : [
+        { id: '1', name: 'RANIG CUSTOMER 2024' }
+      ]);
+    } catch (err) {
+      console.error('Failed to load prerequisites:', err);
+    }
+  };
+
+  useEffect(() => {
+    loadPrerequisites();
+  }, []);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const clearField = (field) => {
+    setFormData({ ...formData, [field]: '' });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.accountId || !formData.amount) {
+      alert("Please select an Account and enter an Amount.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const payload = {
+        type: "cost",
+        transaction_type: "Money Return",
+        account: formData.accountId,
+        amount: String(formData.amount),
+        date: formData.date
+      };
+
+      if (formData.clientId) payload.client = formData.clientId;
+      if (formData.categoryId) payload.category = formData.categoryId;
+      if (formData.description) payload.reference = formData.description;
+
+      await accountingService.createExpense(payload);
+      alert("Money Return recorded successfully!");
+      navigate('/account/expense-list');
+    } catch (error) {
+      console.error("Error submitting money return:", error);
+      const errorDetail = error.response?.data ? JSON.stringify(error.response.data, null, 2) : error.message;
+      alert(`Failed to submit Money Return:\n${errorDetail}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
-    <div className="premium-card">
-      <div className="premium-body" style={{ padding: '40px' }}>
-        <PrintHeader />
-        
-        {/* Header Text Section */}
-        
-
-        {/* Title and Top Action Buttons */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: '400', color: '#4b5563', margin: 0 }}>Money Return List</h2>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <Link to="/account/expense-create" style={{ textDecoration: 'none' }}>
-              <button className="btn-green">
-                <Plus size={16} /> Money Return
-              </button>
-            </Link>
-            <button className="btn-youtube">
-              <div style={{ display: 'flex', alignItems: 'center', background: '#ff0000', color: 'white', padding: '6px 12px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold' }}>
-                <Play size={16} fill="white" style={{ marginRight: '6px' }} /> YouTube
-              </div>
+    <div className="dashboard-content" style={{ paddingBottom: '100px', background: '#f1f5f9', minHeight: '100vh', padding: '24px' }}>
+      <PrintHeader />
+      
+      <div style={{ background: 'white', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', borderBottom: '6px solid #2e7d32' }}>
+        {/* Header */}
+        <div style={{ background: '#2e7d32', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px' }}>
+          <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>Money Return</h2>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button style={{ background: '#818cf8', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer' }}><Settings size={16} /></button>
+            <button onClick={() => navigate('/crm/client-list')} style={{ background: '#818cf8', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
+              <List size={14} /> Client List
+            </button>
+            <button onClick={() => navigate('/crm/client-groups')} style={{ background: '#818cf8', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
+              <Layers size={14} /> Client Group
+            </button>
+            <button style={{ background: 'white', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}>
+              <Play size={16} fill="#ef4444" /> YouTube
             </button>
           </div>
         </div>
 
-        {/* Filter Section */}
-        <div style={{ display: 'flex', gap: '20px', marginBottom: '40px', alignItems: 'end' }}>
-          <div style={{ flex: 1 }}>
-            <label className="filter-label">{t('common.search_by_client')}</label>
-            <select className="input-outline">
-              <option value="">{t('common.select_client')}</option>
-              <option value="1">Client 1</option>
-            </select>
-          </div>
-          <div style={{ flex: 1 }}>
-            <label className="filter-label">{t('common.search_by_date')}</label>
-            <div style={{ display: 'flex' }}>
-              <input type="date" className="input-outline" style={{ borderRadius: '8px 0 0 8px', borderRight: 'none' }} />
-              <input type="date" className="input-outline" style={{ borderRadius: '0 8px 8px 0' }} />
+        {/* Body */}
+        <div style={{ padding: '30px 40px' }}>
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+              
+              {/* Left Column */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                
+                {/* Date Input */}
+                <div style={{ position: 'relative' }}>
+                  <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    📅 Date
+                  </div>
+                  <input 
+                    type="date" 
+                    name="date" 
+                    value={formData.date} 
+                    onChange={handleChange}
+                    style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: '14px', outline: 'none' }} 
+                  />
+                </div>
+
+                {/* Client Select */}
+                <div style={{ display: 'flex', border: '1px solid #93c5fd', borderRadius: '6px', overflow: 'hidden' }}>
+                  <select 
+                    name="clientId" 
+                    value={formData.clientId} 
+                    onChange={handleChange}
+                    style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px', appearance: 'none', background: 'transparent' }}
+                  >
+                    <option value="">Select Client</option>
+                    {(clients || []).map(c => <option key={c.id} value={c.id}>{c.name || c.company_name}</option>)}
+                  </select>
+                  {formData.clientId && (
+                    <button type="button" onClick={() => clearField('clientId')} style={{ background: 'white', border: 'none', borderLeft: '1px solid #93c5fd', padding: '0 12px', cursor: 'pointer' }}>
+                      <X size={16} />
+                    </button>
+                  )}
+                  <button type="button" onClick={() => setIsClientModalOpen(true)} style={{ background: '#22c55e', color: 'white', border: 'none', padding: '0 16px', cursor: 'pointer' }}>
+                    <Plus size={18} />
+                  </button>
+                </div>
+
+                {/* Category Select */}
+                <div style={{ display: 'flex', border: '1px solid #93c5fd', borderRadius: '6px', overflow: 'hidden' }}>
+                  <select 
+                    name="categoryId" 
+                    value={formData.categoryId} 
+                    onChange={handleChange}
+                    style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px', appearance: 'none', background: 'transparent' }}
+                  >
+                    <option value="">Select Category</option>
+                    {(categories || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                  {formData.categoryId && (
+                    <button type="button" onClick={() => clearField('categoryId')} style={{ background: 'white', border: 'none', borderLeft: '1px solid #93c5fd', padding: '0 12px', cursor: 'pointer' }}>
+                      <X size={16} />
+                    </button>
+                  )}
+                  <button type="button" onClick={() => navigate('/settings/expense-category')} style={{ background: '#22c55e', color: 'white', border: 'none', padding: '0 16px', cursor: 'pointer' }}>
+                    <Plus size={18} />
+                  </button>
+                </div>
+
+              </div>
+
+              {/* Right Column */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                
+                {/* Account Select */}
+                <div style={{ display: 'flex', border: '1px solid #93c5fd', borderRadius: '6px', overflow: 'hidden' }}>
+                  <select 
+                    name="accountId" 
+                    value={formData.accountId} 
+                    onChange={handleChange}
+                    required
+                    style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px', appearance: 'none', background: 'transparent' }}
+                  >
+                    <option value="">Select Account</option>
+                    {(accounts || []).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  </select>
+                  {formData.accountId && (
+                    <button type="button" onClick={() => clearField('accountId')} style={{ background: 'white', border: 'none', borderLeft: '1px solid #93c5fd', padding: '0 12px', cursor: 'pointer' }}>
+                      <X size={16} />
+                    </button>
+                  )}
+                  <button type="button" onClick={() => navigate('/account/account-create')} style={{ background: '#22c55e', color: 'white', border: 'none', padding: '0 16px', cursor: 'pointer' }}>
+                    <Plus size={18} />
+                  </button>
+                </div>
+
+                {/* Amount Input */}
+                <div style={{ display: 'flex', border: '1px solid #93c5fd', borderRadius: '6px', overflow: 'hidden', background: 'white', alignItems: 'center' }}>
+                  <div style={{ padding: '0 14px', display: 'flex', alignItems: 'center' }}>
+                    <User size={18} color="#1e293b" />
+                  </div>
+                  <input 
+                    type="number" 
+                    name="amount" 
+                    placeholder="Amount" 
+                    value={formData.amount} 
+                    onChange={handleChange}
+                    required
+                    style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px' }}
+                  />
+                </div>
+
+                {/* Description Input */}
+                <div style={{ display: 'flex', border: '1px solid #93c5fd', borderRadius: '6px', overflow: 'hidden', background: 'white', alignItems: 'center' }}>
+                  <div style={{ padding: '0 14px', display: 'flex', alignItems: 'center' }}>
+                    <FileText size={18} color="#1e293b" />
+                  </div>
+                  <input 
+                    type="text" 
+                    name="description" 
+                    placeholder="Expense Description in a short note" 
+                    value={formData.description} 
+                    onChange={handleChange}
+                    style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px' }}
+                  />
+                </div>
+
+              </div>
             </div>
-          </div>
-          <div style={{ flex: 2 }}>
-            <button className="btn-secondary" style={{ width: '100%', height: '44px' }}>{t('common.clear_filter')}</button>
-          </div>
+
+            {/* Buttons */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '40px' }}>
+              <button 
+                type="submit" 
+                disabled={submitting} 
+                style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                {submitting ? 'Adding...' : 'Add New'}
+              </button>
+              <button 
+                type="button" 
+                onClick={() => navigate('/account/expense-list')} 
+                style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                Close
+              </button>
+            </div>
+          </form>
         </div>
-
-        {/* Table Section */}
-        <div className="table-header-controls">
-          <div className="show-entries">
-            Show 
-            <select defaultValue="100">
-              <option value="10">10</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-            </select> 
-            entries
-          </div>
-          <div className="table-controls-right">
-            <button className="btn-blue" onClick={() => window.print()}><Printer size={16} /> {t('common.print')}</button>
-            <button className="btn-blue"><RotateCcw size={16} /> {t('common.reset')}</button>
-          </div>
-        </div>
-
-        <table className="custom-table" style={{ border: '1px solid #d1d5db' }}>
-          <thead>
-            <tr>
-              <th>{t('common.sl')}<span style={{ fontSize: '10px', verticalAlign: 'super' }}>↑↓</span></th>
-              <th>{t('common.date')}</th>
-              <th>RECEIPT FOR</th>
-              <th>ID NO</th>
-              <th>{t('common.category')}</th>
-              <th>{t('common.account')}</th>
-              <th>CHEQUE NO</th>
-              <th>{t('common.description')}</th>
-              <th>TRANSACTION TYPE</th>
-              <th>BANK</th>
-              <th>{t('common.amount')}</th>
-              <th>PRINTABLE</th>
-              <th>{t('common.action')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colSpan="13" style={{ padding: '24px', color: '#374151', background: 'white' }}>No data available in table</td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr style={{ fontWeight: 'bold', background: '#f9fafb' }}>
-              <td colSpan="10" style={{ textAlign: 'center' }}>{t('common.total')}</td>
-              <td>undefined</td>
-              <td colSpan="2"></td>
-            </tr>
-          </tfoot>
-        </table>
-
-        {/* Pagination Section */}
-        <div className="table-footer-controls">
-          <div>Showing 0 to 0 of 0 entries</div>
-          <div className="pagination-controls">
-            <button className="pagination-btn">Previous</button>
-            <button className="pagination-btn">Next</button>
-          </div>
-        </div>
-
       </div>
+
+      <AddOptionModal 
+        isOpen={isClientModalOpen}
+        onClose={() => setIsClientModalOpen(false)}
+        title="Quick Add Client"
+        placeholder="Client Name"
+        onSave={() => {
+          setIsClientModalOpen(false);
+        }}
+      />
     </div>
   );
 };

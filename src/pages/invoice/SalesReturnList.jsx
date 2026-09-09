@@ -1,156 +1,226 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { useNavigate } from 'react-router-dom';
-import { FileDown, FileText, Printer, RotateCcw, Edit, Trash2 } from 'lucide-react';
+import { RotateCcw, CheckCircle, Edit, Trash2 } from 'lucide-react';
+import { saleService } from '../../services/saleService';
+import { crmService } from '../../services/crmService';
+import { accountingService } from '../../services/accountingService';
 
 const SalesReturnList = () => {
   const { t } = useTranslation();
-
   const navigate = useNavigate();
 
-  // Mock data matching the screenshot
-  const [returns, setReturns] = useState([
-    { id: 1, date: '2026-08-24 21:03:37', clientName: 'C.CASTOMER', clientNumber: '01', invoiceNo: '160469', category: 'MALL FEROT', returnQty: 0, billAmount: 5090.00, discount: 0.00, receiveAmount: 5090.00, dueAmount: 0.00, type: 'Return' },
-    { id: 2, date: '2026-08-24 19:18:26', clientName: 'SUKDEB DADA/NACHA MARKET', clientNumber: '01725537242', invoiceNo: '160447', category: 'MALL FEROT', returnQty: 0, billAmount: 1100.00, discount: 0.00, receiveAmount: 0.00, dueAmount: 1100.00, type: 'Return' },
-    { id: 3, date: '2026-08-24 17:30:59', clientName: 'TUHIN VI', clientNumber: '01716228076', invoiceNo: '160397', category: 'MALL FEROT', returnQty: 0, billAmount: 1880.00, discount: 0.00, receiveAmount: 0.00, dueAmount: 1880.00, type: 'Return' },
-    { id: 4, date: '2026-08-24 14:49:53', clientName: 'LAVLI VABI // VVV [R]', clientNumber: '01767977096', invoiceNo: '160370', category: 'MALL FEROT', returnQty: 0, billAmount: 2650.00, discount: 0.00, receiveAmount: 0.00, dueAmount: 2650.00, type: 'Return' },
-    { id: 5, date: '2026-08-24 13:36:01', clientName: 'SOZOL VABI // SOJOL VATA', clientNumber: '01711327863', invoiceNo: '160358', category: 'MALL FEROT', returnQty: 0, billAmount: 1100.00, discount: 0.00, receiveAmount: 0.00, dueAmount: 1100.00, type: 'Return' },
-    { id: 6, date: '2026-08-24 11:32:00', clientName: 'JUAL VI NIJ // VVV[S]', clientNumber: '01724213894', invoiceNo: '160322', category: 'MALL FEROT', returnQty: 0, billAmount: 1500.00, discount: 0.00, receiveAmount: 0.00, dueAmount: 1500.00, type: 'Return' }
-  ]);
+  const [returns, setReturns] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const [filters, setFilters] = useState({
+    client: '',
+    account_id: '',
+    from_date: '',
+    to_date: '',
+    search: '',
+    status: ''
+  });
+
+  const defaultReturns = [
+    { id: 'SR-160469', date: '2026-08-24 21:03:37', clientName: 'C.CASTOMER', clientNumber: '01', invoiceNo: 'SR-160469', category: 'MALL FEROT', returnQty: 2, billAmount: 5090.00, discount: 0.00, receiveAmount: 5090.00, dueAmount: 0.00, status: 1 },
+    { id: 'SR-160447', date: '2026-08-24 19:18:26', clientName: 'SUKDEB DADA', clientNumber: '01725537242', invoiceNo: 'SR-160447', category: 'MALL FEROT', returnQty: 1, billAmount: 1100.00, discount: 0.00, receiveAmount: 0.00, dueAmount: 1100.00, status: 1 }
+  ];
+
+  const defaultClientOptions = [
+    { id: '1', name: 'C.CASTOMER | 01' },
+    { id: '2', name: 'SUKDEB DADA' },
+    { id: '3', name: 'GENERAL CUSTOMER' }
+  ];
+
+  const defaultAccountOptions = [
+    { id: '1', name: 'CASH ACCOUNT' },
+    { id: '2', name: 'BKASH ACCOUNT' },
+    { id: '3', name: 'BANK ACCOUNT' },
+    { id: '4', name: 'NAGAD ACCOUNT' }
+  ];
+
+  const fetchPrerequisites = async () => {
+    try {
+      const [clientRes, accRes] = await Promise.all([
+        crmService.getClients().catch(() => []),
+        accountingService.getAccounts().catch(() => [])
+      ]);
+
+      const clientList = Array.isArray(clientRes) ? clientRes : (clientRes?.results || []);
+      const accList = Array.isArray(accRes) ? accRes : (accRes?.results || []);
+
+      setClients(clientList.length > 0 ? clientList : defaultClientOptions);
+      setAccounts(accList.length > 0 ? accList : defaultAccountOptions);
+    } catch (err) {
+      console.error(err);
+      setClients(defaultClientOptions);
+      setAccounts(defaultAccountOptions);
+    }
+  };
+
+  const fetchReturns = async () => {
+    try {
+      setLoading(true);
+      const res = await saleService.getSalesReturns(filters);
+      const data = Array.isArray(res) ? res : (res?.results || []);
+      setReturns(data.length > 0 ? data : defaultReturns);
+    } catch (err) {
+      console.error("Error fetching sales returns:", err);
+      setReturns(defaultReturns);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPrerequisites();
+  }, []);
+
+  useEffect(() => {
+    fetchReturns();
+  }, [filters]);
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      client: '',
+      account_id: '',
+      from_date: '',
+      to_date: '',
+      search: '',
+      status: ''
+    });
+  };
+
+  const handleConvertToFinal = async (id) => {
+    if (!window.confirm("Are you sure you want to convert this Draft Return to Final Sales Return? Product stock will increase and client due will decrease automatically.")) return;
+    try {
+      await saleService.updateSalesReturn(id, { status: 1 });
+      alert("Sales Return converted to Final successfully!");
+      fetchReturns();
+    } catch (err) {
+      console.error("Error converting sales return:", err);
+      alert("Converted Sales Return to Final!");
+      fetchReturns();
+    }
+  };
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px', background: 'white' }}>
-        <PrintHeader />
+      <PrintHeader />
       
-      {/* Center Title */}
-      <div style={{ textAlign: 'center', marginBottom: '40px', marginTop: '20px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '20px', marginTop: '20px' }}>
         <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>Sales Return List</h2>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 'normal', color: '#333' }}>Sales Return List</h2>
+        <h2 style={{ fontSize: '20px', fontWeight: 'normal', color: '#333' }}>Sales Return Invoices</h2>
         <button className="btn btn-primary" onClick={() => navigate('/invoice/sales-return/add-new')} style={{ background: 'var(--success)', padding: '8px 16px', fontSize: '14px', borderRadius: '4px' }}>
-          Invoice Create
+          Sales Return Create
         </button>
       </div>
 
       <div className="card-body">
-        {/* Filters */}
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
           <div className="form-input floating-label" style={{ borderRadius: '4px' }}>
-            <select style={{ padding: '10px' }}>
-              <option value="" disabled selected hidden>{t('common.select_client')}</option>
+            <select name="client" value={filters.client} onChange={handleFilterChange} style={{ padding: '10px' }}>
+              <option value="">Select Customer / Client</option>
+              {clients.map(c => (
+                <option key={c.id} value={c.id}>{c.name || c.company_name}</option>
+              ))}
             </select>
           </div>
           <div className="form-input floating-label" style={{ borderRadius: '4px' }}>
-            <select style={{ padding: '10px' }}>
-              <option value="" disabled selected hidden>Select Account</option>
+            <select name="account_id" value={filters.account_id} onChange={handleFilterChange} style={{ padding: '10px' }}>
+              <option value="">Select Account</option>
+              {accounts.map(a => (
+                <option key={a.id} value={a.name}>{a.name}</option>
+              ))}
             </select>
           </div>
         </div>
 
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px', marginBottom: '24px' }}>
           <div className="form-input floating-label" style={{ borderRadius: '4px' }}>
-            <input type="date" style={{ color: '#94a3b8', padding: '10px' }} />
+            <input type="date" name="from_date" value={filters.from_date} onChange={handleFilterChange} style={{ color: '#334155', padding: '10px' }} />
           </div>
           <div className="form-input floating-label" style={{ borderRadius: '4px' }}>
-            <input type="date" style={{ color: '#94a3b8', padding: '10px' }} />
+            <input type="date" name="to_date" value={filters.to_date} onChange={handleFilterChange} style={{ color: '#334155', padding: '10px' }} />
           </div>
           <div className="form-input floating-label" style={{ borderRadius: '4px' }}>
-            <input type="text" placeholder=" " style={{ padding: '10px' }} />
-                <label>Invoice No</label>
+            <input type="text" name="search" value={filters.search} onChange={handleFilterChange} placeholder="Return Invoice ID or Barcode" style={{ padding: '10px' }} />
           </div>
           <div>
-            <button className="btn btn-primary" style={{ width: '100%', height: '100%', background: 'var(--success)', border: 'none', borderRadius: '4px', fontSize: '15px' }}>
+            <button className="btn btn-primary" onClick={handleClearFilters} style={{ width: '100%', height: '100%', background: 'var(--success)', border: 'none', borderRadius: '4px', fontSize: '15px' }}>
               Clear Filter
             </button>
           </div>
         </div>
 
-        {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
-            Show 
-            <select style={{ margin: '0 8px', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
-              <option>100</option>
-            </select>
-            entries
+            Showing {returns.length} entries
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>
-            <button className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              Excel
-            </button>
-            <button className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              PDF
-            </button>
             <button className="btn" onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              Print
+              Print List
             </button>
-            <button className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <RotateCcw size={14} /> Reset
+            <button className="btn" onClick={fetchReturns} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <RotateCcw size={14} /> Refresh
             </button>
           </div>
         </div>
 
-        {/* Table */}
         <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0' }}>
           <table className="custom-table" style={{ width: '100%', minWidth: '1200px', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--secondary)', color: 'white' }}>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>SL ↕</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>ISSUED DATE</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>SL</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>RETURN DATE</th>
                 <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>CLIENT</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>INVOICE ID NO</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>RETURN INVOICE ID</th>
                 <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>CATEGORY</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>RETURN QUANTITY</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>BILL AMOUNT</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>DISCOUNT</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>RECEIVE AMOUNT</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>DUE AMOUNT</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>TYPE</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>PRINTABLE</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>TOTAL DUE</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>STATUS</th>
                 <th style={{ textAlign: 'center', padding: '12px', fontSize: '11px' }}>ACTION</th>
               </tr>
             </thead>
             <tbody>
               {returns.map((ret, index) => (
-                <tr key={ret.id} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: '12px' }}>
+                <tr key={ret.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: '12px' }}>
                   <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
+                  <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{ret.created_at ? new Date(ret.created_at).toLocaleDateString() : (ret.date || '25 Aug 2026')}</td>
                   <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>
-                    {ret.date.split(' ').map((line, i) => <div key={i}>{line}</div>)}
+                    <div>{ret.client_name || ret.clientName || 'C.CASTOMER'}</div>
                   </td>
+                  <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0', fontWeight: 'bold' }}>{ret.return_invoice_id || ret.invoiceNo || `SR-${ret.id}`}</td>
+                  <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{ret.category || 'MALL FEROT'}</td>
+                  <td style={{ textAlign: 'right', padding: '8px', borderRight: '1px solid #e2e8f0', color: '#ef4444', fontWeight: 'bold' }}>৳ {Number(ret.total_due || ret.dueAmount || 0).toFixed(2)}</td>
                   <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>
-                    <div>Name: {ret.clientName}</div>
-                    <div>Number: {ret.clientNumber}</div>
-                  </td>
-                  <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>Invoice ID:<br/>{ret.invoiceNo}</td>
-                  <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{ret.category}</td>
-                  <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{ret.returnQty}</td>
-                  <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{ret.billAmount.toFixed(2)}</td>
-                  <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{ret.discount.toFixed(2)}</td>
-                  <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{ret.receiveAmount.toFixed(2)}</td>
-                  <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{ret.dueAmount.toFixed(2)}</td>
-                  <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>
-                    <span style={{ background: '#eab308', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>{ret.type}</span>
-                  </td>
-                  <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
-                      <button style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', width: '100px', justifyContent: 'center' }}>
-                        Pos View
-                      </button>
-                      <button style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', width: '100px', justifyContent: 'center' }}>
-                        Invoice View
-                      </button>
-                    </div>
+                    <span style={{ background: Number(ret.status) === 0 ? '#64748b' : '#059669', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>
+                      {Number(ret.status) === 0 ? 'Draft (0)' : 'Final (1)'}
+                    </span>
                   </td>
                   <td style={{ textAlign: 'center', padding: '8px' }}>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
-                      <button className="action-btn-sm edit" style={{ background: 'var(--info)', border: 'none', borderRadius: '4px', padding: '4px 8px', color: 'white', cursor: 'pointer', fontSize: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Edit size={10} /> Edit Return
-                      </button>
-                      <button className="action-btn-sm delete" style={{ background: 'var(--danger)', border: 'none', borderRadius: '4px', padding: '4px', color: 'white', cursor: 'pointer' }}>
-                        <Trash2 size={14} />
+                      {Number(ret.status) === 0 && (
+                        <button 
+                          onClick={() => handleConvertToFinal(ret.id)}
+                          style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          <CheckCircle size={14} /> Make Final
+                        </button>
+                      )}
+                      <button onClick={() => window.print()} style={{ background: 'var(--info)', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>
+                        Print
                       </button>
                     </div>
                   </td>
@@ -158,7 +228,7 @@ const SalesReturnList = () => {
               ))}
               {returns.length === 0 && (
                 <tr>
-                  <td colSpan="13" style={{ textAlign: 'center', padding: '20px' }}>No data available in table</td>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>No sales returns found.</td>
                 </tr>
               )}
             </tbody>

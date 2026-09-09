@@ -11,6 +11,8 @@ import SupplierList from '../pages/crm/supplier/SupplierList';
 import SupplierGroup from '../pages/crm/supplier/SupplierGroup';
 import SupplierStatement from '../pages/crm/supplier/SupplierStatement';
 import SupplierChequeSchedule from '../pages/crm/supplier/SupplierChequeSchedule';
+import SupplierEdit from '../pages/crm/supplier/SupplierEdit';
+import ClientChequeSchedule from '../pages/crm/client/ClientChequeSchedule';
 
 const CrmRoutes = () => {
   return (
@@ -26,6 +28,8 @@ const CrmRoutes = () => {
       <Route path="supplier-group" element={<SupplierGroup />} />
       <Route path="supplier-statement" element={<SupplierStatement />} />
       <Route path="supplier-cheque-schedule" element={<SupplierChequeSchedule />} />
+      <Route path="supplier-edit/:id" element={<SupplierEdit />} />
+      <Route path="client-cheque-schedule" element={<ClientChequeSchedule />} />
     </Routes>
   );
 };

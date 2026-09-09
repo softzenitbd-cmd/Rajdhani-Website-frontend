@@ -1,18 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { ArrowLeft, Printer, RotateCcw } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAppContext } from '../../context/AppContext';
+import { accountingService } from '../../services/accountingService';
 
 const AccountBalance = () => {
   const { t } = useTranslation();
-
-  const { state } = useAppContext();
-  const { accounts } = state;
   const navigate = useNavigate();
 
-  const totalBalance = accounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
+  const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchAccounts = async () => {
+    try {
+      setLoading(true);
+      const res = await accountingService.getAccounts().catch(() => []);
+      const data = Array.isArray(res) ? res : (res?.results || []);
+      setAccounts(data);
+    } catch (err) {
+      console.error("Error fetching accounts:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAccounts();
+  }, []);
+
+  const totalBalance = (accounts || []).reduce((sum, acc) => sum + (Number(acc.balance) || 0), 0);
 
   return (
     <div className="premium-card">
@@ -45,7 +62,7 @@ const AccountBalance = () => {
             <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>CSV</button>
             <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>PDF</button>
             <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }} onClick={() => window.print()}><Printer size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.print')}</button>
-            <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}><RotateCcw size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.reset')}</button>
+            <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }} onClick={fetchAccounts}><RotateCcw size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.reset')}</button>
           </div>
         </div>
 
@@ -59,15 +76,20 @@ const AccountBalance = () => {
             </tr>
           </thead>
           <tbody>
-            {accounts.map((acc, idx) => (
-              <tr key={acc.id}>
+            {(accounts || []).map((acc, idx) => (
+              <tr key={acc.id || idx}>
                 <td style={{ textAlign: 'left', paddingLeft: '12px' }}>{idx + 1}</td>
                 <td style={{ textAlign: 'left' }}>{acc.name}</td>
-                <td style={{ textAlign: 'left' }}>{acc.accountNumber || 'N/A'}</td>
-                <td style={{ textAlign: 'left' }}>{acc.balance}</td>
+                <td style={{ textAlign: 'left' }}>{acc.account_number || acc.accountNumber || 'N/A'}</td>
+                <td style={{ textAlign: 'left' }}>৳ {Number(acc.balance || 0).toLocaleString()}</td>
               </tr>
             ))}
-            {accounts.length === 0 && (
+            {loading && (
+              <tr>
+                <td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>Loading account balances...</td>
+              </tr>
+            )}
+            {!loading && (accounts || []).length === 0 && (
               <tr>
                 <td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No accounts found.</td>
               </tr>
@@ -76,7 +98,7 @@ const AccountBalance = () => {
           <tfoot>
             <tr style={{ fontWeight: 'bold', background: '#f9fafb' }}>
               <td colSpan="3" style={{ textAlign: 'center', padding: '12px' }}>{t('common.total')}</td>
-              <td style={{ textAlign: 'left', padding: '12px' }}>{totalBalance}</td>
+              <td style={{ textAlign: 'left', padding: '12px' }}>৳ {totalBalance.toLocaleString()}</td>
             </tr>
           </tfoot>
         </table>
