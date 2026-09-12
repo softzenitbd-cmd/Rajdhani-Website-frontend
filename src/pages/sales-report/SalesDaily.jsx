@@ -22,13 +22,6 @@ const SalesDaily = () => {
     search: ''
   });
 
-  const dummyData = [
-    { sl: 1, date: '25 Aug 2026', voucher: '160472', client: 'C.CASTOMER | 01 | all', product: 'REY GAR', barcode: '17916', unit: 'PEACE', qty: 1, price: 1350, total: 1350, receive: 1350, due: 0, profit: 350 },
-    { sl: 2, date: '25 Aug 2026', voucher: '160473', client: 'C.CASTOMER | 01 | all', product: 'CHARI JORJET 180', barcode: '33', unit: 'GOZ', qty: 1.5, price: 180, total: 270, receive: 270, due: 0, profit: 67.5 },
-    { sl: 3, date: '25 Aug 2026', voucher: '160474', client: 'C.CASTOMER | 01 | all', product: 'FOC T- SHIRT 2/6', barcode: '18368', unit: 'PEACE', qty: 1, price: 430, total: 800, receive: 800, due: 0, profit: 220 },
-    { sl: 4, date: '25 Aug 2026', voucher: '160475', client: 'C.CASTOMER | 01 | all', product: 'DP TUPI 30', barcode: '16829', unit: 'PEACE', qty: 1, price: 30, total: 130, receive: 130, due: 0, profit: 48 },
-    { sl: 5, date: '25 Aug 2026', voucher: '160476', client: 'C.CASTOMER | 01 | all', product: 'POD SLEEPER DGN -', barcode: '18302', unit: 'PEACE', qty: 1, price: 930, total: 930, receive: 930, due: 0, profit: 280 }
-  ];
 
   const fetchPrerequisites = async () => {
     try {
@@ -44,10 +37,10 @@ const SalesDaily = () => {
       setLoading(true);
       const res = await saleService.getSalesReport(filters);
       const data = Array.isArray(res) ? res : (res?.results || []);
-      setReports(data.length > 0 ? data : dummyData);
+      setReports(data);
     } catch (err) {
       console.error("Error fetching sales report:", err);
-      setReports(dummyData);
+      setReports([]);
     } finally {
       setLoading(false);
     }
@@ -94,11 +87,6 @@ const SalesDaily = () => {
       <div className="premium-card">
         {/* Banner */}
         <div style={{ padding: '0', background: 'white', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>
-          <img 
-            src="https://via.placeholder.com/1200x150?text=Rajdhani+Garments+Banner" 
-            alt="Rajdhani Garments" 
-            style={{ width: '100%', height: 'auto', maxHeight: '150px', objectFit: 'cover' }}
-          />
           <h2 style={{ fontSize: '18px', fontWeight: 'bold', padding: '16px 0', margin: '0' }}>Daily Sales Report</h2>
         </div>
 

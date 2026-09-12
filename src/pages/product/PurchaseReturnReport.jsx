@@ -5,20 +5,14 @@ import { RotateCcw, Plus, Printer, RefreshCw, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { purchaseService } from '../../services/purchaseService';
 import { crmService } from '../../services/crmService';
+import { exportToExcel } from '../../utils/excelExporter';
 
 const PurchaseReturnReport = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const defaultReports = [
-    { id: 1, date: '24 Aug 2026', supplier: 'ROKSANA TOPS BONGO', product: 'ROK XL HAF 150 | 7511', group: 'LADIS GERMENTS', buy: '90.00', sell: '150.00', qty: '25', total: '2250.00', desc: 'Return due to size' },
-    { id: 2, date: '24 Aug 2026', supplier: 'ROKSANA TOPS BONGO', product: 'ROK XXL HAF 170 | 7512', group: 'LADIS GERMENTS', buy: '110.00', sell: '170.00', qty: '25', total: '2750.00', desc: 'Fabric defect' },
-    { id: 3, date: '24 Aug 2026', supplier: 'ROKSANA TOPS BONGO', product: 'ROK HAF 3XL | 16546', group: 'LADIS GERMENTS', buy: '140.00', sell: '220.00', qty: '25', total: '3500.00', desc: 'Excess quantity' },
-    { id: 4, date: '22 Apr 2026', supplier: 'BROTHERS TRADERS 23', product: 'PRINT 130 | 14', group: 'SIT KAPOR', buy: '103.00', sell: '130.00', qty: '1343', total: '138329.00', desc: 'Damaged shipment' },
-    { id: 5, date: '22 Apr 2026', supplier: 'BROTHERS TRADERS 23', product: 'PRINT 130 | 14', group: 'SIT KAPOR', buy: '101.00', sell: '130.00', qty: '287', total: '28987.00', desc: 'Color fade' }
-  ];
 
-  const [reports, setReports] = useState(defaultReports);
+  const [reports, setReports] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -44,13 +38,12 @@ const PurchaseReturnReport = () => {
         setSuppliers(sList);
       }
 
-      const localReturns = JSON.parse(localStorage.getItem('rajdhani_purchase_returns') || '[]');
-      let apiReturns = [];
+       let apiReturns = [];
       if (returnsRes) {
         apiReturns = Array.isArray(returnsRes) ? returnsRes : (returnsRes?.results || []);
       }
 
-      const combinedReturns = [...localReturns, ...apiReturns];
+      const combinedReturns = apiReturns;
       
       if (combinedReturns.length > 0) {
         let flattened = [];
@@ -85,13 +78,13 @@ const PurchaseReturnReport = () => {
             });
           }
         });
-        setReports([...flattened, ...defaultReports]);
+        setReports([...flattened]);
       } else {
-        setReports(defaultReports);
+        setReports([]);
       }
     } catch (err) {
       console.error(err);
-      setReports(defaultReports);
+      setReports([]);
     } finally {
       setLoading(false);
     }
@@ -117,16 +110,19 @@ const PurchaseReturnReport = () => {
   };
 
   const handleExportExcel = () => {
-    const headers = ['ID NO,DATE,SUPPLIER,PRODUCT,GROUP,BUYING PRICE,SELLING PRICE,QUANTITY,TOTAL BUYING PRICE,DESCRIPTION'];
-    const rows = filteredReports.map(r => `${r.id},"${r.date}","${r.supplier}","${r.product}","${r.group}",${r.buy},${r.sell},${r.qty},${r.total},"${r.desc}"`);
-    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `purchase_return_report_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const dataToExport = filteredReports.map((r, i) => ({
+      'SL': i + 1,
+      'Date': r.date,
+      'Supplier': r.supplier,
+      'Product': r.product,
+      'Group': r.group,
+      'Buying Price': parseFloat(r.buy || 0),
+      'Selling Price': parseFloat(r.sell || 0),
+      'Quantity': parseInt(r.qty || 0),
+      'Total Buying Price': parseFloat(r.total || 0),
+      'Description': r.desc || '-'
+    }));
+    exportToExcel(dataToExport, 'Purchase_Return_Report');
   };
 
   const filteredReports = reports.filter(r => {

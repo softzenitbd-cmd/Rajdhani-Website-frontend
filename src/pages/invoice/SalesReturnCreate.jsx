@@ -7,6 +7,7 @@ import AddOptionModal from '../../components/AddOptionModal';
 import { crmService } from '../../services/crmService';
 import { productService } from '../../services/productService';
 import { accountingService } from '../../services/accountingService';
+import { saleService } from '../../services/saleService';
 
 const SalesReturnCreate = () => {
   const { t } = useTranslation();
@@ -34,26 +35,10 @@ const SalesReturnCreate = () => {
   const [isTotalBalanceAccModalOpen, setIsTotalBalanceAccModalOpen] = useState(false);
   const [isMallFerotAccModalOpen, setIsMallFerotAccModalOpen] = useState(false);
 
-  const defaultProducts = [
-    { id: '1', name: 'FABRIC T-SHIRT 2026', code: 'TS-101', sales_price: 450, stock: 50, unit: 'Pcs' },
-    { id: '2', name: 'PREMIUM DENIM JEANS', code: 'DJ-202', sales_price: 1200, stock: 35, unit: 'Pcs' },
-    { id: '3', name: 'COTTON CASUAL SHIRT', code: 'CS-303', sales_price: 850, stock: 60, unit: 'Pcs' }
-  ];
 
   const [items, setItems] = useState([]);
 
-  const defaultClients = [
-    { id: '1', name: 'C.CASTOMER | 01', phone: '01' },
-    { id: '2', name: 'SUKDEB DADA', phone: '01725537242' },
-    { id: '3', name: 'GENERAL CUSTOMER', phone: '01700000000' }
-  ];
 
-  const defaultAccounts = [
-    { id: '1', name: 'CASH ACCOUNT' },
-    { id: '2', name: 'BKASH ACCOUNT' },
-    { id: '3', name: 'BANK ACCOUNT' },
-    { id: '4', name: 'NAGAD ACCOUNT' }
-  ];
 
   const fetchPrerequisites = async () => {
     try {
@@ -68,14 +53,14 @@ const SalesReturnCreate = () => {
       const prodData = Array.isArray(prodRes) ? prodRes : (prodRes?.results || []);
       const accData = Array.isArray(accRes) ? accRes : (accRes?.results || []);
 
-      setClients(clientData.length > 0 ? clientData : defaultClients);
-      setProducts(prodData.length > 0 ? prodData : defaultProducts);
-      setAccounts(accData.length > 0 ? accData : defaultAccounts);
+      setClients(clientData);
+      setProducts(prodData);
+      setAccounts(accData);
     } catch (err) {
       console.error("Error loading prerequisites for sales return:", err);
-      setClients(defaultClients);
-      setProducts(defaultProducts);
-      setAccounts(defaultAccounts);
+      setClients([]);
+      setProducts([]);
+      setAccounts([]);
     } finally {
       setLoadingPrereqs(false);
     }

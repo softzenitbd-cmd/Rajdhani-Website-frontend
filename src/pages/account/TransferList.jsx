@@ -13,11 +13,6 @@ const TransferList = () => {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
 
-  const fallbackData = [
-    { id: '1', date: '2026-08-28', from_account_name: 'Cash Account', to_account_name: 'Dutch Bangla Bank (DBBL)', amount: '50000.00', description: 'Daily shop sales cash deposit' },
-    { id: '2', date: '2026-08-25', from_account_name: 'Dutch Bangla Bank (DBBL)', to_account_name: 'Cash Account', amount: '20000.00', description: 'ATM cash withdrawal for factory petty cash' },
-    { id: '3', date: '2026-08-20', from_account_name: 'Cash Account', to_account_name: 'Islami Bank Bangladesh', amount: '35000.00', description: 'Supplier LC margin deposit' },
-  ];
 
   const fetchTransfers = async () => {
     try {
@@ -28,10 +23,10 @@ const TransferList = () => {
 
       const res = await accountingService.getTransfers(filters);
       const data = Array.isArray(res) ? res : (res?.results || []);
-      setTransfers(data.length > 0 ? data : fallbackData);
+      setTransfers(data);
     } catch (error) {
       console.error('Error fetching transfers:', error);
-      setTransfers(fallbackData);
+      setTransfers([]);
     } finally {
       setLoading(false);
     }

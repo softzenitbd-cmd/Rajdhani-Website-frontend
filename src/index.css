@@ -483,70 +483,194 @@ body {
   }
 }
 
+/* --- Unified Professional Print Stylesheet --- */
 @media print {
   @page {
-    size: A4;
-    margin: 1cm;
+    size: A4 portrait;
+    margin: 10mm 8mm 10mm 8mm;
   }
-  
-  /* Hide UI elements */
-  .sidebar, .header, .fab, .card-actions, .form-grid, footer, .header-actions, button, .pagination-controls, input, .filter-label, .btn-icon, .btn-youtube, .btn-secondary, .btn-blue {
+
+  html, body {
+    background: white !important;
+    color: #000000 !important;
+    font-size: 11px !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* -------------------------------------------------------------------------
+     1. MODAL PRINT ISOLATION
+     When a printable modal overlay (.printable-modal-overlay) is open,
+     HIDE all background page elements so ONLY the modal content prints.
+     ------------------------------------------------------------------------- */
+  body:has(.printable-modal-overlay) .sidebar,
+  body:has(.printable-modal-overlay) .header,
+  body:has(.printable-modal-overlay) .app-header,
+  body:has(.printable-modal-overlay) .fab,
+  body:has(.printable-modal-overlay) .mobile-menu-btn,
+  body:has(.printable-modal-overlay) .sidebar-overlay,
+  body:has(.printable-modal-overlay) .premium-body,
+  body:has(.printable-modal-overlay) .dashboard-content > *:not(.printable-modal-overlay):not(:has(.printable-modal-overlay)),
+  body:has(.printable-modal-overlay) .premium-card > *:not(.printable-modal-overlay):not(:has(.printable-modal-overlay)),
+  body:has(.printable-modal-overlay) .card-body > *:not(.printable-modal-overlay):not(:has(.printable-modal-overlay)) {
     display: none !important;
   }
-  
-  /* Reset layout for printing */
-  body, .app-layout, .main-wrapper, .dashboard-content, .chart-card, .premium-card {
+
+  /* Convert floating modal overlay to full page document block */
+  .printable-modal-overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    z-index: 999999 !important;
+    display: block !important;
+    box-shadow: none !important;
+    border: none !important;
+    overflow: visible !important;
+  }
+
+  .printable-modal-content {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+    display: block !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* -------------------------------------------------------------------------
+     2. MAIN PAGE / LIST PRINT ISOLATION
+     When NO modal is active, print the main table report cleanly.
+     ------------------------------------------------------------------------- */
+  .sidebar, 
+  .header,
+  .app-header, 
+  header, 
+  .fab, 
+  .mobile-menu-btn, 
+  .sidebar-overlay, 
+  footer, 
+  .no-print, 
+  .no-print-col, 
+  .action-column, 
+  .card-actions, 
+  .form-grid, 
+  .filter-section, 
+  .filter-label, 
+  .table-header-controls, 
+  .table-footer-controls, 
+  .show-entries, 
+  .table-controls-right, 
+  .pagination-controls,
+  .btn-youtube,
+  .btn-green,
+  .btn-blue,
+  .btn-secondary,
+  .btn-outline,
+  .action-btn-sm,
+  .header-actions,
+  input, 
+  select, 
+  button {
+    display: none !important;
+  }
+
+  /* Reset layout containers for full-width printing */
+  #root, 
+  .app-layout, 
+  .main-wrapper, 
+  .dashboard-content, 
+  .premium-card, 
+  .premium-body, 
+  .card-body {
     background: white !important;
     height: auto !important;
     width: 100% !important;
+    max-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: visible !important;
     box-shadow: none !important;
-  }
-  
-  /* Remove border and radius from cards when printing */
-  .dashboard-content, .chart-card, .premium-card {
     border: none !important;
-    border-radius: 0 !important;
-  }
-  
-  /* Make sure table is fully visible */
-  table, .custom-table {
-    page-break-inside: auto;
-    width: 100% !important;
-    min-width: 0 !important; /* Override large min-widths */
-    table-layout: auto !important;
-  }
-  tr {
-    page-break-inside: avoid;
-    page-break-after: auto;
-  }
-  th, td {
-    font-size: 11px !important;
-    padding: 6px 4px !important;
-    white-space: normal !important;
-    word-wrap: break-word !important;
-  }
-  
-  /* Show print header */
-  .receipt-header-text {
     display: block !important;
   }
-  
-  /* Hide table controls */
-  .btn, select {
-    display: none !important;
+
+  div, section, article {
+    overflow: visible !important;
   }
 
-  /* Specifically hide the text container that has the select dropdown (e.g. "Show XX entries") */
-  div:has(> select) {
-    display: none !important;
+  /* -------------------------------------------------------------------------
+     3. TABLE FIT & FORMATTING (A4 PORTRAIT)
+     ------------------------------------------------------------------------- */
+  table, .custom-table {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+    page-break-inside: auto !important;
   }
-  
-  th:last-child,
-  td:last-child:has(button) {
-    display: none !important;
+
+  tr {
+    page-break-inside: avoid !important;
+    page-break-after: auto !important;
+  }
+
+  th, td {
+    font-size: 10px !important;
+    padding: 5px 3px !important;
+    color: #000000 !important;
+    border: 1px solid #64748b !important;
+    word-break: break-word !important;
+    word-wrap: break-word !important;
+    white-space: normal !important;
+  }
+
+  th {
+    background-color: #f1f5f9 !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+  }
+
+  /* -------------------------------------------------------------------------
+     4. BRAND HEADER & FOOTER SIGNATURES
+     ------------------------------------------------------------------------- */
+  .receipt-header-text, 
+  .receipt-header-image, 
+  .print-header {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 auto 15px auto !important;
+  }
+
+  .receipt-header-image img {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 140px !important;
+    object-fit: contain !important;
+    page-break-inside: avoid !important;
+  }
+
+  .print-only {
+    display: flex !important;
   }
 }
 
@@ -665,89 +789,5 @@ body {
   }
   50% {
     opacity: 0.5;
-  }
-}
-
-@keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-/* --- Print Styles --- */
-@media print {
-  @page {
-    margin: 0.5cm;
-  }
-
-  body {
-    background: white !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* Hide UI elements not meant for printing */
-  .sidebar, 
-  .app-header,
-  header, 
-  .btn, 
-  .btn-icon, 
-  .fab, 
-  .mobile-menu-btn,
-  .sidebar-overlay,
-  .action-column,
-  .print-hide {
-    display: none !important;
-  }
-
-  /* Reset layout constraints */
-  .app-layout {
-    display: block !important;
-  }
-  
-  .main-wrapper {
-    margin-left: 0 !important;
-    width: 100% !important;
-    padding: 0 !important;
-  }
-
-  .main-content, .dashboard-content {
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  .card, .premium-card {
-    box-shadow: none !important;
-    border: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  /* Fix Header Image */
-  .receipt-header-image img {
-    max-width: 100% !important;
-    width: 100% !important;
-    height: auto !important;
-    object-fit: contain !important;
-    page-break-inside: avoid;
-  }
-
-  /* Better Table Printing */
-  .custom-table {
-    width: 100% !important;
-    border-collapse: collapse !important;
-  }
-  
-  .custom-table th, .custom-table td {
-    padding: 4px 6px !important;
-    border: 1px solid #cbd5e1 !important;
-    color: #000 !important;
-  }
-  
-  .custom-table th {
-    background-color: #f1f5f9 !important;
   }
 }

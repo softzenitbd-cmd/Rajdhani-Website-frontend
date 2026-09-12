@@ -1,111 +1,142 @@
-import React from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useEffect, useState } from 'react';
+import { Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
-import { RefreshCcw, Download, FileText, Printer } from 'lucide-react';
+import TableToolbar from '../../components/TableToolbar';
+import staffApi from '../../api/staffApi';
+import { accountingService } from '../../services/accountingService';
+import { useToast } from '../../context/ToastContext';
+import { toList, fmtDate, nameOf, money, MONTHS, YEARS } from '../../utils/apiHelpers';
 
+/** Salary report = staff payment report filtered by month/year (transaction_type "Staff Salary") */
 const StaffSalaryReport = () => {
-  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const toast = useToast();
+  const now = new Date();
+
+  const [month, setMonth] = useState(now.getMonth() + 1);
+  const [year, setYear] = useState(now.getFullYear());
+  const [staffId, setStaffId] = useState('');
+  const [staff, setStaff] = useState([]);
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [entries, setEntries] = useState(100);
+
+  useEffect(() => {
+    staffApi.getStaffList().then((r) => setStaff(toList(r))).catch(() => {});
+  }, []);
+
+  const load = async () => {
+    try {
+      setLoading(true);
+      const filters = { month, year };
+      if (staffId) filters.staff_id = staffId;
+      const res = await accountingService.getStaffPaymentReport(filters);
+      const all = toList(res);
+      // keep salary rows when the backend tags the transaction type; otherwise show all payments
+      const salaryOnly = all.filter((r) => /salary/i.test(r.transaction_type || r.description || ''));
+      setRows(salaryOnly.length ? salaryOnly : all);
+    } catch (e) {
+      toast.error(e.message || 'Failed to load salary report');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const visible = rows.slice(0, entries);
+  const total = rows.reduce((s, r) => s + Number(r.amount || 0), 0);
+  const excelData = visible.map((r, i) => ({
+    SL: i + 1,
+    Date: fmtDate(r.date),
+    Staff: nameOf(r.staff_name || r.staff || r.staff_id),
+    Account: nameOf(r.account_name || r.account || r.account_id),
+    Description: r.description || '',
+    Amount: Number(r.amount || 0),
+  }));
+
+  const inputStyle = { padding: '10px 12px', border: '1px solid #38bdf8', borderRadius: '6px', outline: 'none', minWidth: '150px' };
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
-      
-      {/* Top Filters (Outside of the main card, or part of it but styled differently) */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginBottom: '24px', alignItems: 'end' }}>
-        <div>
-          <label style={{ display: 'block', fontSize: '13px', color: 'white', marginBottom: '8px' }}>Month</label>
-          <select style={{ width: '200px', padding: '10px 12px', borderRadius: '4px', border: 'none', outline: 'none' }}>
-            <option>January</option>
-          </select>
-        </div>
-        <div>
-          <label style={{ display: 'block', fontSize: '13px', color: 'white', marginBottom: '8px' }}>Year</label>
-          <select style={{ width: '200px', padding: '10px 12px', borderRadius: '4px', border: 'none', outline: 'none' }}>
-            <option>2026</option>
-          </select>
-        </div>
-        <div>
-          <button style={{ background: 'var(--success)', color: 'white', padding: '10px 32px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}>
-            Search
-          </button>
-        </div>
-      </div>
-
-      <div className="premium-card" style={{ background: 'white', borderRadius: '8px', padding: '24px' }}>
-        <PrintHeader />
-        
-        {/* Table Controls */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-            Show 
-            <select style={{ margin: '0 8px', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }}>
-              <option>100</option>
-            </select> 
-            entries
+      <div className="premium-card">
+        <div className="premium-header no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'white' }}>
+          <div>
+            <h2 className="premium-title" style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>Salary Report</h2>
+            <span style={{ fontSize: '12px', color: '#64748b' }}>{MONTHS[month - 1]} {year}</span>
           </div>
-          
-          <div style={{ display: 'flex', gap: '4px' }}>
-            <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px 0 0 4px', cursor: 'pointer', fontSize: '12px' }}>
-              Excel
-            </button>
-            <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', cursor: 'pointer', fontSize: '12px' }}>
-              CSV
-            </button>
-            <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', cursor: 'pointer', fontSize: '12px' }}>
-              PDF
-            </button>
-            <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px' }}>
-              <Printer size={12} /> Print
-            </button>
-            <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '0 4px 4px 0', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px' }}>
-              <RefreshCcw size={12} /> Reset
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '11px', color: '#64748b' }}>Total Paid</div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: '#dc2626' }}>৳ {money(total)}</div>
+            </div>
+            <button onClick={() => navigate('/staff/salary/create')} style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+              <Plus size={16} /> Add Salary
             </button>
           </div>
         </div>
 
-        {/* Table */}
-        <div className="table-responsive">
-          <table className="custom-table" style={{ width: '100%', fontSize: '12px', textAlign: 'center' }}>
-            <thead>
-              <tr style={{ background: '#94a3b8', color: 'white' }}>
-                <th style={{ width: '60px' }}>ID NO</th>
-                <th>IMAGE</th>
-                <th>{t('common.name')}</th>
-                <th>SALLARY</th>
-                <th>PAYMENT</th>
-                <th>WILL GET</th>
-                <th>{t('common.status')}</th>
-                <th>SIGNATURE</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td colSpan="8" style={{ padding: '24px', color: 'var(--text-muted)' }}>
-                  No data available in table
-                </td>
-              </tr>
-              {/* Total Row */}
-              <tr style={{ fontWeight: 'bold' }}>
-                <td colSpan="3" style={{ textAlign: 'center', padding: '12px' }}>{t('common.total')}</td>
-                <td style={{ padding: '12px' }}>0.00</td>
-                <td style={{ padding: '12px' }}>0.00</td>
-                <td style={{ padding: '12px' }}>0.00</td>
-                <td colSpan="2"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <div className="premium-body" style={{ background: 'white', padding: '24px' }}>
+          <PrintHeader />
 
-        {/* Pagination */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
-          <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-            Showing 0 to 0 of 0 entries
-          </div>
-          <div style={{ display: 'flex' }}>
-            <button style={{ padding: '6px 12px', border: '1px solid #e2e8f0', background: 'var(--card-header-bg)', color: 'var(--text-muted)', borderRadius: '4px 0 0 4px', cursor: 'not-allowed' }}>Previous</button>
-            <button style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderLeft: 'none', background: 'var(--card-header-bg)', color: 'var(--text-muted)', borderRadius: '0 4px 4px 0', cursor: 'not-allowed' }}>Next</button>
+          <form className="no-print" onSubmit={(e) => { e.preventDefault(); load(); }} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'end', marginBottom: '16px' }}>
+            <select value={staffId} onChange={(e) => setStaffId(e.target.value)} style={inputStyle}>
+              <option value="">All Staff</option>
+              {staff.map((s) => <option key={s.id || s.uuid} value={s.id || s.uuid}>{s.name || s.full_name}</option>)}
+            </select>
+            <select value={month} onChange={(e) => setMonth(Number(e.target.value))} style={inputStyle}>
+              {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+            </select>
+            <select value={year} onChange={(e) => setYear(Number(e.target.value))} style={inputStyle}>
+              {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
+            </select>
+            <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>Search</button>
+          </form>
+
+          <TableToolbar entries={entries} setEntries={setEntries} total={rows.length} excelData={excelData} excelName={`Salary_${MONTHS[month - 1]}_${year}`} onReload={load} onReset={() => { setStaffId(''); setMonth(now.getMonth() + 1); setYear(now.getFullYear()); setTimeout(load, 0); }} />
+
+          <div className="table-responsive">
+            <table className="custom-table" style={{ width: '100%', fontSize: '12px' }}>
+              <thead>
+                <tr style={{ background: '#718096', color: 'white', textTransform: 'uppercase' }}>
+                  <th style={{ width: '50px', textAlign: 'center' }}>SL</th>
+                  <th>DATE</th>
+                  <th>STAFF</th>
+                  <th>ACCOUNT</th>
+                  <th>DESCRIPTION</th>
+                  <th style={{ textAlign: 'right' }}>AMOUNT</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan="6" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>Loading...</td></tr>
+                ) : visible.length === 0 ? (
+                  <tr><td colSpan="6" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>No salary payments found for this period</td></tr>
+                ) : (
+                  visible.map((r, i) => (
+                    <tr key={r.id || i}>
+                      <td style={{ textAlign: 'center', padding: '10px' }}>{i + 1}</td>
+                      <td style={{ padding: '10px' }}>{fmtDate(r.date)}</td>
+                      <td style={{ padding: '10px', fontWeight: 600 }}>{nameOf(r.staff_name || r.staff || r.staff_id)}</td>
+                      <td style={{ padding: '10px' }}>{nameOf(r.account_name || r.account || r.account_id)}</td>
+                      <td style={{ padding: '10px', color: '#475569' }}>{r.description || '-'}</td>
+                      <td style={{ padding: '10px', textAlign: 'right', fontWeight: 'bold', color: '#dc2626' }}>৳ {money(r.amount)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+              {rows.length > 0 && (
+                <tfoot>
+                  <tr style={{ background: '#f8fafc', fontWeight: 'bold' }}>
+                    <td colSpan="5" style={{ padding: '10px', textAlign: 'right' }}>TOTAL</td>
+                    <td style={{ padding: '10px', textAlign: 'right', color: '#dc2626' }}>৳ {money(total)}</td>
+                  </tr>
+                </tfoot>
+              )}
+            </table>
           </div>
         </div>
-
       </div>
     </div>
   );

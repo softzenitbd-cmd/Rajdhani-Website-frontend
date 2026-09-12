@@ -22,11 +22,6 @@ const SalesAll = () => {
     product_id: ''
   });
 
-  const dummyData = [
-    { id: '1', sl: 1, date: '25 Apr 2024', voucher: '25', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'S VOIL 70', barcode: '12', unit: 'GOZ', qty: 5, price: '68.00', total: '340.00', receive: '314.50', due: '0.00', profit: '60.00' },
-    { id: '2', sl: 2, date: '25 Apr 2024', voucher: '26', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'THREE PIECE', barcode: '355', unit: 'PEACE', qty: 1, price: '1590.00', total: '1590.00', receive: '1590.00', due: '0.00', profit: '340.00' },
-    { id: '3', sl: 3, date: '25 Apr 2024', voucher: '27', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'BORKA', barcode: '254', unit: 'PEACE', qty: 1, price: '1250.00', total: '1250.00', receive: '1250.00', due: '0.00', profit: '250.00' }
-  ];
 
   const fetchPrerequisites = async () => {
     try {
@@ -42,10 +37,10 @@ const SalesAll = () => {
       setLoading(true);
       const res = await saleService.getSalesReport(filters);
       const data = Array.isArray(res) ? res : (res?.results || []);
-      setReports(data.length > 0 ? data : dummyData);
+      setReports(data);
     } catch (err) {
       console.error("Error fetching sales report:", err);
-      setReports(dummyData);
+      setReports([]);
     } finally {
       setLoading(false);
     }

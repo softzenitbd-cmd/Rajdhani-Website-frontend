@@ -21,24 +21,6 @@ const SalesGroupWise = () => {
     to_date: '2026-08-31'
   });
 
-  const dummyData = [
-    {
-      sl: 1,
-      date: '24 Aug 2026',
-      voucher: '160328',
-      items: [
-        { product: 'PB LUNGI MAJBA', unit: 'PEACE', qty: 1, price: '700.00' },
-        { product: 'PB LUNGI SUHAS', unit: 'PEACE', qty: 1, price: '1050.00' }
-      ],
-      total: '1750',
-      discount: '0',
-      transport: '0',
-      returnQty: '0',
-      grandTotal: '1750.00',
-      receiveAmount: '1500.00',
-      dueAmount: '250'
-    }
-  ];
 
   useEffect(() => {
     const fetchGroups = async () => {
@@ -58,10 +40,10 @@ const SalesGroupWise = () => {
       setShowReport(true);
       const res = await saleService.getSalesReport(filters);
       const data = Array.isArray(res) ? res : (res?.results || []);
-      setReports(data.length > 0 ? data : dummyData);
+      setReports(data);
     } catch (err) {
       console.error("Error fetching group sales report:", err);
-      setReports(dummyData);
+      setReports([]);
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { List, Play, Plus, ArrowLeft } from 'lucide-react';
+import { List, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
 import { accountingService } from '../../services/accountingService';
@@ -85,12 +85,7 @@ const TransferCreate = () => {
         <h2 className="premium-title" style={{ textTransform: 'uppercase' }}>Add New Transfer</h2>
         <div className="header-actions">
           <button className="btn-gray-outline" onClick={() => navigate('/account/transfer-list')}><List size={16} /> Transfer List</button>
-          <button className="btn-gray-outline" onClick={() => navigate(-1)}><ArrowLeft size={16} /> Go Back</button>
-          <button className="btn-youtube">
-            <div style={{ display: 'flex', alignItems: 'center', background: '#ff0000', color: 'white', padding: '6px 12px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold' }}>
-              <Play size={16} fill="white" style={{ marginRight: '6px' }} /> YouTube
-            </div>
-          </button>
+          <button className="btn-gray-outline" onClick={() => navigate(-1)}><ArrowLeft size={16} /> Go Back</button>
         </div>
       </div>
 

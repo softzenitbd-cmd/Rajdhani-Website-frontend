@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, MapPin, Phone, Wallet, Settings, Play, List, ShieldAlert } from 'lucide-react';
+import { User, MapPin, Phone, Wallet, Settings, List, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { loanService } from '../../services/loanService';
 import PrintHeader from '../../components/PrintHeader';
@@ -57,11 +57,6 @@ const LoanClientCreate = () => {
           </button>
           <button className="btn-gray-outline" onClick={() => navigate('/loan/client-list')}>
             <List size={16} /> Account List
-          </button>
-          <button className="btn-youtube">
-            <div style={{ display: 'flex', alignItems: 'center', background: '#ff0000', color: 'white', padding: '6px 12px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold' }}>
-              <Play size={16} fill="white" style={{ marginRight: '6px' }} /> YouTube
-            </div>
           </button>
         </div>
       </div>

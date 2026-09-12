@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, List, Layers, Play, Plus, X, User, FileText } from 'lucide-react';
+import { List, Layers, Plus, X, User, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
 import AddOptionModal from '../../components/AddOptionModal';
@@ -107,15 +107,11 @@ const MoneyReturn = () => {
         <div style={{ background: '#2e7d32', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px' }}>
           <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>Money Return</h2>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button style={{ background: '#818cf8', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer' }}><Settings size={16} /></button>
             <button onClick={() => navigate('/crm/client-list')} style={{ background: '#818cf8', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
               <List size={14} /> Client List
             </button>
             <button onClick={() => navigate('/crm/client-groups')} style={{ background: '#818cf8', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
               <Layers size={14} /> Client Group
-            </button>
-            <button style={{ background: 'white', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}>
-              <Play size={16} fill="#ef4444" /> YouTube
             </button>
           </div>
         </div>

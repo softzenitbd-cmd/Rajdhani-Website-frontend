@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { List, Play, Plus, Calendar, DollarSign, Type } from 'lucide-react';
+import { List, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
 import { accountingService } from '../../services/accountingService';
@@ -96,12 +96,7 @@ const ExpenseCreate = () => {
         <h2 className="premium-title" style={{ textTransform: 'uppercase' }}>Add New Expense (Cost)</h2>
         <div className="header-actions">
           <button className="btn-gray-outline" onClick={() => navigate('/account/expense-list')}><List size={16} /> Expense List</button>
-          <button className="btn-gray-outline" onClick={() => navigate('/settings/expense-category')}><List size={16} /> Expense Category</button>
-          <button className="btn-youtube">
-            <div style={{ display: 'flex', alignItems: 'center', background: '#ff0000', color: 'white', padding: '6px 12px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold' }}>
-              <Play size={16} fill="white" style={{ marginRight: '6px' }} /> YouTube
-            </div>
-          </button>
+          <button className="btn-gray-outline" onClick={() => navigate('/settings/expense-category')}><List size={16} /> Expense Category</button>
         </div>
       </div>
 

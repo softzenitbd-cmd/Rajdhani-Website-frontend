@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { useNavigate } from 'react-router-dom';
-import { RotateCcw, CheckCircle, Edit, Trash2 } from 'lucide-react';
+import { RotateCcw, CheckCircle } from 'lucide-react';
 import { saleService } from '../../services/saleService';
 import { crmService } from '../../services/crmService';
 import { accountingService } from '../../services/accountingService';
@@ -25,23 +25,8 @@ const SalesReturnList = () => {
     status: ''
   });
 
-  const defaultReturns = [
-    { id: 'SR-160469', date: '2026-08-24 21:03:37', clientName: 'C.CASTOMER', clientNumber: '01', invoiceNo: 'SR-160469', category: 'MALL FEROT', returnQty: 2, billAmount: 5090.00, discount: 0.00, receiveAmount: 5090.00, dueAmount: 0.00, status: 1 },
-    { id: 'SR-160447', date: '2026-08-24 19:18:26', clientName: 'SUKDEB DADA', clientNumber: '01725537242', invoiceNo: 'SR-160447', category: 'MALL FEROT', returnQty: 1, billAmount: 1100.00, discount: 0.00, receiveAmount: 0.00, dueAmount: 1100.00, status: 1 }
-  ];
 
-  const defaultClientOptions = [
-    { id: '1', name: 'C.CASTOMER | 01' },
-    { id: '2', name: 'SUKDEB DADA' },
-    { id: '3', name: 'GENERAL CUSTOMER' }
-  ];
 
-  const defaultAccountOptions = [
-    { id: '1', name: 'CASH ACCOUNT' },
-    { id: '2', name: 'BKASH ACCOUNT' },
-    { id: '3', name: 'BANK ACCOUNT' },
-    { id: '4', name: 'NAGAD ACCOUNT' }
-  ];
 
   const fetchPrerequisites = async () => {
     try {
@@ -53,12 +38,12 @@ const SalesReturnList = () => {
       const clientList = Array.isArray(clientRes) ? clientRes : (clientRes?.results || []);
       const accList = Array.isArray(accRes) ? accRes : (accRes?.results || []);
 
-      setClients(clientList.length > 0 ? clientList : defaultClientOptions);
-      setAccounts(accList.length > 0 ? accList : defaultAccountOptions);
+      setClients(clientList);
+      setAccounts(accList);
     } catch (err) {
       console.error(err);
-      setClients(defaultClientOptions);
-      setAccounts(defaultAccountOptions);
+      setClients([]);
+      setAccounts([]);
     }
   };
 
@@ -67,10 +52,10 @@ const SalesReturnList = () => {
       setLoading(true);
       const res = await saleService.getSalesReturns(filters);
       const data = Array.isArray(res) ? res : (res?.results || []);
-      setReturns(data.length > 0 ? data : defaultReturns);
+      setReturns(data);
     } catch (err) {
       console.error("Error fetching sales returns:", err);
-      setReturns(defaultReturns);
+      setReturns([]);
     } finally {
       setLoading(false);
     }

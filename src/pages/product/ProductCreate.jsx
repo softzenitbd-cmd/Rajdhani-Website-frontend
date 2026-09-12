@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Settings, List, Layers, Plus, Package, Scale, Video } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { List, Layers, Plus, Package, Scale } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
 import AddOptionModal from '../../components/AddOptionModal';
 import { productService } from '../../services/productService';
@@ -9,6 +9,9 @@ import { productService } from '../../services/productService';
 const ProductCreate = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
+  const editingProduct = location.state?.product || null;
+  const isEditMode = !!editingProduct;
 
   const [formData, setFormData] = useState({
     name: '',
@@ -26,23 +29,20 @@ const ProductCreate = () => {
   const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
 
-  const defaultUnits = [
-    { id: '1', name: 'PEACE' },
-    { id: '2', name: 'GOZ' },
-    { id: '3', name: 'Pcs' },
-    { id: '4', name: 'Kg' },
-    { id: '5', name: 'Set' }
-  ];
 
-  const defaultGroups = [
-    { id: '1', name: 'SHIRT' },
-    { id: '2', name: 'PANT' },
-    { id: '3', name: 'SAREE' },
-    { id: '4', name: 'LUNGI' },
-    { id: '5', name: 'THREE PIECE' },
-    { id: '6', name: 'ORNA' },
-    { id: '7', name: 'MOSLA' }
-  ];
+
+  useEffect(() => {
+    if (editingProduct) {
+      setFormData({
+        name: editingProduct.name || '',
+        purchase_price: editingProduct.purchase_price || editingProduct.buy || '',
+        sales_price: editingProduct.sales_price || editingProduct.sell || '',
+        unit: editingProduct.unit || editingProduct.unit_id || '',
+        stock: editingProduct.stock || editingProduct.openingStock || '',
+        group: editingProduct.group || editingProduct.group_id || ''
+      });
+    }
+  }, [editingProduct]);
 
   const fetchPrerequisites = async () => {
     try {
@@ -54,12 +54,12 @@ const ProductCreate = () => {
       const unitList = Array.isArray(unitsRes) ? unitsRes : (unitsRes?.results || []);
       const groupList = Array.isArray(groupsRes) ? groupsRes : (groupsRes?.results || []);
 
-      setUnits(unitList.length > 0 ? unitList : defaultUnits);
-      setGroups(groupList.length > 0 ? groupList : defaultGroups);
+      setUnits(unitList);
+      setGroups(groupList);
     } catch (err) {
       console.error("Error fetching units/groups:", err);
-      setUnits(defaultUnits);
-      setGroups(defaultGroups);
+      setUnits([]);
+      setGroups([]);
     }
   };
 
@@ -89,27 +89,23 @@ const ProductCreate = () => {
       };
 
       try {
-        await productService.createProduct(payload);
-        alert("Product created successfully via API!");
+        if (isEditMode && editingProduct?.id) {
+          await productService.updateProduct(editingProduct.id, payload);
+          alert("Product updated successfully via API!");
+        } else {
+          await productService.createProduct(payload);
+          alert("Product created successfully via API!");
+        }
       } catch (apiErr) {
-        console.warn("Backend API error, storing product locally:", apiErr);
-        // Fallback local persistence so user flow is not broken
-        const localProducts = JSON.parse(localStorage.getItem('rajdhani_custom_products') || '[]');
-        localProducts.unshift({
-          id: Date.now(),
-          ...payload,
-          unit_name: units.find(u => String(u.id) === String(formData.unit))?.name || 'Pcs',
-          group_name: groups.find(g => String(g.id) === String(formData.group))?.name || 'General',
-          created_at: new Date().toISOString()
-        });
-        localStorage.setItem('rajdhani_custom_products', JSON.stringify(localProducts));
-        alert("Product created successfully!");
+        console.error("Error saving product:", apiErr);
+        alert(apiErr?.message || "Failed to save product. Please check the form and try again.");
+        return;
       }
 
       navigate('/product/list');
     } catch (err) {
-      console.error("Error creating product:", err);
-      alert("An unexpected error occurred while creating product.");
+      console.error("Error saving product:", err);
+      alert("An unexpected error occurred while saving product.");
     } finally {
       setSubmitting(false);
     }
@@ -157,20 +153,14 @@ const ProductCreate = () => {
       <div className="premium-card">
         <div className="premium-header" style={{ padding: '16px 24px', background: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold', textTransform: 'uppercase' }}>
-            Product Create
+            {isEditMode ? 'Product Edit' : 'Product Create'}
           </h2>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="btn" style={{ background: 'var(--text-muted)', color: 'white', padding: '8px', borderRadius: '4px' }}>
-              <Settings size={16} />
-            </button>
             <button className="btn" onClick={() => navigate('/product/list')} style={{ background: 'var(--text-muted)', color: 'white', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
               <List size={16} /> Product List
             </button>
             <button className="btn" onClick={() => navigate('/product/group')} style={{ background: 'var(--text-muted)', color: 'white', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
               <Layers size={16} /> Product Group
-            </button>
-            <button className="btn" style={{ background: 'var(--danger)', color: 'white', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
-              <Video size={16} /> YouTube
             </button>
           </div>
         </div>
@@ -247,7 +237,7 @@ const ProductCreate = () => {
             </div>
 
             <button type="submit" disabled={submitting} className="btn-primary" style={{ width: '100%', padding: '16px', background: 'var(--success)', border: 'none', borderRadius: '4px', fontSize: '16px', cursor: 'pointer' }}>
-              {submitting ? 'Adding...' : 'Add Product'}
+              {submitting ? (isEditMode ? 'Updating...' : 'Adding...') : (isEditMode ? 'Update Product' : 'Add Product')}
             </button>
           </form>
         </div>

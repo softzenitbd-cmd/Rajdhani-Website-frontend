@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, List, ArrowLeft, Play } from 'lucide-react';
+import { User, List, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
 import { accountingService } from '../../services/accountingService';
@@ -68,12 +68,7 @@ const AccountCreate = () => {
               style={{ background: '#94a3b8', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
             >
               <ArrowLeft size={15} /> Go Back
-            </button>
-            <button 
-              style={{ background: '#ff0000', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}
-            >
-              <Play size={14} fill="white" /> YouTube
-            </button>
+            </button>
           </div>
         </div>
 

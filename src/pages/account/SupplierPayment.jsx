@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { Plus, Play, Printer, RotateCcw } from 'lucide-react';
+import { Plus, Printer, RotateCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { accountingService } from '../../services/accountingService';
 import { crmService } from '../../services/crmService';
@@ -17,6 +17,9 @@ const SupplierPayment = () => {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
 
+  const [selectedPayment, setSelectedPayment] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+
   const fetchPrerequisites = async () => {
     try {
       const res = await crmService.getSuppliers().catch(() => []);
@@ -30,11 +33,12 @@ const SupplierPayment = () => {
   const fetchPayments = async (filters = {}) => {
     try {
       setLoading(true);
-      const res = await accountingService.getExpenses(filters).catch(() => []);
+      const res = await accountingService.getExpenses(filters);
       const data = Array.isArray(res) ? res : (res?.results || []);
       setPayments(data);
     } catch (err) {
       console.error("Error fetching supplier payments:", err);
+      setPayments([]);
     } finally {
       setLoading(false);
     }
@@ -76,11 +80,6 @@ const SupplierPayment = () => {
                 <Plus size={16} /> Payment
               </button>
             </Link>
-            <button className="btn-youtube">
-              <div style={{ display: 'flex', alignItems: 'center', background: '#ff0000', color: 'white', padding: '6px 12px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold' }}>
-                <Play size={16} fill="white" style={{ marginRight: '6px' }} /> YouTube
-              </div>
-            </button>
           </div>
         </div>
 
@@ -155,8 +154,8 @@ const SupplierPayment = () => {
               <th>TRANSACTION TYPE</th>
               <th>BANK</th>
               <th>{t('common.amount')}</th>
-              <th>PRINTABLE</th>
-              <th>{t('common.action')}</th>
+              <th className="no-print">PRINTABLE</th>
+              <th className="no-print">{t('common.action')}</th>
             </tr>
           </thead>
           <tbody>
@@ -173,8 +172,24 @@ const SupplierPayment = () => {
                 <td>{item.transaction_type || 'Payment'}</td>
                 <td>{item.bank || '-'}</td>
                 <td>৳ {Number(item.amount || 0).toLocaleString()}</td>
-                <td><button className="btn-sm btn-outline">Print</button></td>
-                <td><button className="btn-sm btn-primary">View</button></td>
+                <td className="no-print">
+                  <button 
+                    className="btn-sm btn-outline"
+                    onClick={() => { setSelectedPayment(item); setShowViewModal(true); }}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    Print
+                  </button>
+                </td>
+                <td className="no-print">
+                  <button 
+                    className="btn-sm btn-primary"
+                    onClick={() => { setSelectedPayment(item); setShowViewModal(true); }}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    View
+                  </button>
+                </td>
               </tr>
             ))}
             {loading && (
@@ -192,7 +207,7 @@ const SupplierPayment = () => {
             <tr style={{ fontWeight: 'bold', background: '#f9fafb' }}>
               <td colSpan="10" style={{ textAlign: 'center' }}>{t('common.total')}</td>
               <td>৳ {totalAmount.toLocaleString()}</td>
-              <td colSpan="2"></td>
+              <td colSpan="2" className="no-print"></td>
             </tr>
           </tfoot>
         </table>
@@ -207,6 +222,81 @@ const SupplierPayment = () => {
         </div>
 
       </div>
+
+      {/* Printable Supplier Payment Voucher Modal */}
+      {showViewModal && selectedPayment && (
+        <div className="printable-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="printable-modal-content" style={{ background: 'white', width: '700px', maxWidth: '95vw', borderRadius: '12px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', maxHeight: '90vh', overflowY: 'auto' }}>
+            
+            <PrintHeader />
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '2px solid #0ea5e9', paddingBottom: '12px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#0f172a' }}>Supplier Payment Voucher</h3>
+                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '600' }}>Voucher #{selectedPayment.id || selectedPayment.voucherNo || 'PAY-001'}</span>
+              </div>
+              <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#f1f5f9', padding: '6px 12px', borderRadius: '50%', cursor: 'pointer', color: '#64748b' }}>✕</button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px', marginBottom: '20px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <div><strong>Supplier Name:</strong> {selectedPayment.supplier_name || selectedPayment.supplier?.name || 'Supplier'}</div>
+              <div><strong>Payment Date:</strong> {selectedPayment.date || '-'}</div>
+              <div><strong>Category:</strong> {selectedPayment.category_name || selectedPayment.category?.name || 'Supplier Payment'}</div>
+              <div><strong>Payment Account:</strong> {selectedPayment.account_name || selectedPayment.account?.name || 'Cash Account'}</div>
+              <div><strong>Transaction Type:</strong> {selectedPayment.transaction_type || 'General Expense'}</div>
+              <div><strong>Cheque / Ref No:</strong> {selectedPayment.cheque_no || '-'}</div>
+            </div>
+
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px', fontSize: '13px' }}>
+              <thead>
+                <tr style={{ background: '#1e293b', color: 'white' }}>
+                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', width: '40px' }}>SL</th>
+                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'left' }}>Description / Particulars</th>
+                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'right', width: '140px' }}>Amount (৳)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                  <td style={{ padding: '10px', border: '1px solid #e2e8f0', textAlign: 'center' }}>1</td>
+                  <td style={{ padding: '10px', border: '1px solid #e2e8f0', fontWeight: '500' }}>
+                    {selectedPayment.reference || selectedPayment.description || 'Supplier Payment Clearance'}
+                  </td>
+                  <td style={{ padding: '10px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 'bold' }}>
+                    ৳ {Number(selectedPayment.amount || 0).toLocaleString()}
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr style={{ background: '#f1f5f9', fontWeight: 'bold' }}>
+                  <td colSpan="2" style={{ padding: '10px', textAlign: 'right', border: '1px solid #cbd5e1' }}>Total Paid Amount:</td>
+                  <td style={{ padding: '10px', textAlign: 'right', border: '1px solid #cbd5e1', color: '#059669', fontSize: '14px' }}>
+                    ৳ {Number(selectedPayment.amount || 0).toLocaleString()}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+
+            {/* Signature Footer */}
+            <div className="print-only" style={{ display: 'none', justifyContent: 'space-between', marginTop: '60px', paddingTop: '20px' }}>
+              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: '12px' }}>
+                Supplier Signature
+              </div>
+              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: '12px' }}>
+                Authorized Signature
+              </div>
+            </div>
+
+            <div className="no-print" style={{ textAlign: 'right', marginTop: '16px' }}>
+              <button onClick={() => window.print()} className="btn" style={{ background: 'var(--success)', color: 'white', padding: '10px 24px', borderRadius: '6px', marginRight: '8px', fontWeight: '600' }}>
+                🖨️ Print Memo
+              </button>
+              <button onClick={() => setShowViewModal(false)} className="btn" style={{ background: '#64748b', color: 'white', padding: '10px 20px', borderRadius: '6px' }}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

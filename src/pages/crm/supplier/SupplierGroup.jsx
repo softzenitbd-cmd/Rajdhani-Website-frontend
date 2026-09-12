@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../../components/PrintHeader';
-import { List, Plus, FileSpreadsheet, Printer, RotateCcw, RefreshCw, Edit, Trash2, X } from 'lucide-react';
+import { List, Plus, FileSpreadsheet, Printer, RotateCcw, RefreshCw, Edit, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AddOptionModal from '../../../components/AddOptionModal';
 import { useApi } from '../../../hooks/useApi';
 import { ENDPOINTS } from '../../../api/endpoints';
+import { exportVisibleTable } from '../../../utils/tableExport';
 
 const SupplierGroup = () => {
   const { t } = useTranslation();
@@ -97,16 +98,16 @@ const SupplierGroup = () => {
               entries
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>
+              <button onClick={() => exportVisibleTable('xlsx')} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>
                 <FileSpreadsheet size={14} style={{ marginRight: '6px' }} /> Excel
               </button>
               <button className="btn" onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>
                 <Printer size={14} style={{ marginRight: '6px' }} /> Print
               </button>
-              <button className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>
+              <button onClick={() => window.location.reload()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>
                 <RotateCcw size={14} style={{ marginRight: '6px' }} /> Reset
               </button>
-              <button className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>
+              <button onClick={() => window.location.reload()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>
                 <RefreshCw size={14} style={{ marginRight: '6px' }} /> Reload
               </button>
             </div>

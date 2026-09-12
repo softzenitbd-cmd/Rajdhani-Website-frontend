@@ -17,6 +17,7 @@ const StaffRoutes = () => {
     <div style={{ flex: 1, overflowY: 'auto' }}>
       <Routes>
         <Route path="create" element={<StaffCreate />} />
+        <Route path="edit/:id" element={<StaffCreate />} />
         <Route path="list" element={<StaffList />} />
         
         {/* Payment */}

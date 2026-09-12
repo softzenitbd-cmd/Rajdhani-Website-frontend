@@ -23,11 +23,6 @@ const SalesProductWise = () => {
     to_date: ''
   });
 
-  const dummyData = [
-    { sl: 1, date: '25 Apr 2024', voucher: '25', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'S VOIL 70', unit: 'GOZ', qty: 5, price: 68.00, total: 340, dis: 0, transport: 0, returnQty: 0, grandTotal: 340, receive: 314.50, due: 0 },
-    { sl: 2, date: '25 Apr 2024', voucher: '26', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'THREE PIECE', unit: 'PEACE', qty: 1, price: 1590.00, total: 1590, dis: 0, transport: 0, returnQty: 0, grandTotal: 1590, receive: 1590, due: 0 },
-    { sl: 3, date: '25 Apr 2024', voucher: '27', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'BORKA', unit: 'PEACE', qty: 1, price: 1250.00, total: 1250, dis: 0, transport: 0, returnQty: 0, grandTotal: 1250, receive: 1250, due: 0 }
-  ];
 
   const fetchPrerequisites = async () => {
     try {
@@ -47,10 +42,10 @@ const SalesProductWise = () => {
       setLoading(true);
       const res = await saleService.getSalesReport(filters);
       const data = Array.isArray(res) ? res : (res?.results || []);
-      setReports(data.length > 0 ? data : dummyData);
+      setReports(data);
     } catch (err) {
       console.error("Error fetching sales report:", err);
-      setReports(dummyData);
+      setReports([]);
     } finally {
       setLoading(false);
     }
@@ -98,11 +93,6 @@ const SalesProductWise = () => {
       <div className="premium-card">
         {/* Banner */}
         <div style={{ padding: '0', background: 'white', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>
-          <img 
-            src="https://via.placeholder.com/1200x150?text=Rajdhani+Garments+Banner" 
-            alt="Rajdhani Garments" 
-            style={{ width: '100%', height: 'auto', maxHeight: '150px', objectFit: 'cover' }}
-          />
           <h2 style={{ fontSize: '18px', fontWeight: 'bold', padding: '16px 0', margin: '0' }}>Product Wise Sales Reports</h2>
         </div>
 

@@ -48,12 +48,20 @@ const AppContent = () => {
     setIsSidebarOpen(false);
   };
 
+  const isAuthenticated = !!localStorage.getItem('token');
+
   if (location.pathname === '/login') {
+    if (isAuthenticated) return <Navigate to="/dashboard" replace />;
     return (
       <Routes>
         <Route path="/login" element={<Login />} />
       </Routes>
     );
+  }
+
+  // Every other route requires a logged in user
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
   return (
@@ -113,6 +121,9 @@ const AppContent = () => {
             
             {/* Profile Route */}
             <Route path="/profile" element={<Profile />} />
+
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </div>
         <footer style={{ textAlign: 'center', padding: '20px', color: '#6b7280', fontSize: '13px', flexShrink: 0 }}>

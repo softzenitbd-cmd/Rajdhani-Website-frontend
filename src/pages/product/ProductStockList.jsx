@@ -7,34 +7,12 @@ import { productService } from '../../services/productService';
 const ProductStockList = () => {
   const { t } = useTranslation();
 
-  const defaultGroups = [
-    { id: '1', name: 'SIT KAPOR' },
-    { id: '2', name: 'SAREE' },
-    { id: '3', name: 'ORNA' },
-    { id: '4', name: 'SHIRT' },
-    { id: '5', name: 'PANT' }
-  ];
 
-  const defaultProductsList = [
-    { id: '1', name: 'BATIK PRINT ORNA 380' },
-    { id: '2', name: 'BR ORNA 380' },
-    { id: '3', name: 'SAB INDIA KANI SOFT' },
-    { id: '4', name: 'DP HEZAB RIMON' }
-  ];
 
-  const defaultStocks = [
-    { id: 1, date: '24 Aug 2026', product: 'BATIK PRINT ORNA 380 | 18647', buyPrice: '287.00', sellPrice: '380.00', group: 'SIT KAPOR', opening: '0.00', buyQty: '2.00', saleQty: '0.00', stock: '2.00', totalBuy: '575', totalSell: '760' },
-    { id: 2, date: '24 Aug 2026', product: 'BR ORNA 380 | 18646', buyPrice: '240.00', sellPrice: '380.00', group: 'SIT KAPOR', opening: '0.00', buyQty: '4.00', saleQty: '0.00', stock: '4.00', totalBuy: '960', totalSell: '1520' },
-    { id: 3, date: '24 Aug 2026', product: 'BR ORNA 500 | 18645', buyPrice: '362.00', sellPrice: '500.00', group: 'SIT KAPOR', opening: '0.00', buyQty: '9.00', saleQty: '0.00', stock: '9.00', totalBuy: '3262.5', totalSell: '4500' },
-    { id: 4, date: '23 Aug 2026', product: 'SAB INDIA KANI SOFT | 18644', buyPrice: '1900.00', sellPrice: '2580.00', group: 'SAREE', opening: '0.00', buyQty: '5.00', saleQty: '0.00', stock: '5.00', totalBuy: '9500', totalSell: '12900' },
-    { id: 5, date: '23 Aug 2026', product: 'SAB INDIA KANI SHAREE | 18643', buyPrice: '1750.00', sellPrice: '2380.00', group: 'SAREE', opening: '0.00', buyQty: '5.00', saleQty: '0.00', stock: '5.00', totalBuy: '8750', totalSell: '11900' },
-    { id: 6, date: '23 Aug 2026', product: 'NS INDIA KANI SHAREE | 18642', buyPrice: '1800.00', sellPrice: '2450.00', group: 'SAREE', opening: '0.00', buyQty: '6.00', saleQty: '0.00', stock: '6.00', totalBuy: '10800', totalSell: '14700' },
-    { id: 7, date: '22 Aug 2026', product: 'DP HEZAB RIMON || 18641', buyPrice: '410.00', sellPrice: '550.00', group: 'ORNA', opening: '0.00', buyQty: '35.00', saleQty: '0.00', stock: '35.00', totalBuy: '14350', totalSell: '19250' }
-  ];
 
-  const [stocks, setStocks] = useState(defaultStocks);
-  const [groups, setGroups] = useState(defaultGroups);
-  const [productsList, setProductsList] = useState(defaultProductsList);
+  const [stocks, setStocks] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [productsList, setProductsList] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const [filters, setFilters] = useState({
@@ -73,24 +51,24 @@ const ProductStockList = () => {
             totalSell: (parseFloat(item.sales_price || 0) * parseFloat(item.current_stock || item.stock || 0)).toFixed(2)
           })));
         } else {
-          setStocks(defaultStocks);
+          setStocks([]);
         }
       }
 
       if (groupsRes) {
         const gList = Array.isArray(groupsRes) ? groupsRes : (groupsRes?.results || []);
-        setGroups(gList.length > 0 ? gList : defaultGroups);
+        setGroups(gList);
       }
 
       if (prodsRes) {
         const pList = Array.isArray(prodsRes) ? prodsRes : (prodsRes?.results || []);
-        setProductsList(pList.length > 0 ? pList : defaultProductsList);
+        setProductsList(pList);
       }
     } catch (err) {
       console.error("Error fetching stock data:", err);
-      setStocks(defaultStocks);
-      setGroups(defaultGroups);
-      setProductsList(defaultProductsList);
+      setStocks([]);
+      setGroups([]);
+      setProductsList([]);
     } finally {
       setLoading(false);
     }

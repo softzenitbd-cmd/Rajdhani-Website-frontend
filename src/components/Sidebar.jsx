@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { forceLogout } from '../api/apiClient';
 import { 
   LayoutDashboard, Users, CreditCard, Banknote, 
   FileText, Package, MessageSquare, UserCircle,
-  AlertCircle, TrendingUp, Download, Upload,
-  Settings, HelpCircle, LogOut, ChevronDown, ChevronRight, X
+  Settings, LogOut, ChevronDown, ChevronRight, X
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, closeSidebar }) => {
@@ -205,6 +205,9 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                     </NavLink>
                     <NavLink to="/crm/due-collection-date" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.due_collection_date')}
+                    </NavLink>
+                    <NavLink to="/crm/client-cheque-schedule" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                      <span style={{ marginRight: '8px' }}>»</span> Client Cheque Schedule
                     </NavLink>
                   </div>
                 )}
@@ -756,6 +759,9 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
               <NavLink to="/due-report/group-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.group_wise')}
               </NavLink>
+              <NavLink to="/due-report/supplier-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+                <span style={{ marginRight: '8px' }}>»</span> Supplier Due
+              </NavLink>
             </div>
           )}
         </div>
@@ -926,13 +932,16 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
               <NavLink to="/settings/settings" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('menu.settings')}
               </NavLink>
+              <NavLink to="/settings/users" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+                <span style={{ marginRight: '8px' }}>»</span> Users & Permissions
+              </NavLink>
 
             </div>
           )}
         </div>
 
         {/* Sign Out */}
-        <div className="nav-item" style={{ cursor: 'pointer' }}>
+        <div className="nav-item" style={{ cursor: 'pointer' }} onClick={() => forceLogout()}>
           <div className="nav-item-content">
             <LogOut size={20} />
             <span>{t('menu.sign_out')}</span>

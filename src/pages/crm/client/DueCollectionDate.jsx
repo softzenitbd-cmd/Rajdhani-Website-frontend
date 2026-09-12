@@ -2,12 +2,31 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import PrintHeader from '../../../components/PrintHeader';
-import { ArrowLeft, Users, Plus, PlaySquare, Search, FileSpreadsheet, Printer, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Users, Plus, FileSpreadsheet, Printer, RotateCcw } from 'lucide-react';
 import { crmService } from '../../../services/crmService';
+import { exportToExcel } from '../../../utils/excelExporter';
 
 const DueCollectionDate = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  // Collection dates: PATCHed to the client record and mirrored locally because the
+  // backend has no dedicated collection-date endpoint (see docs/missing-api-screens).
+  const LOCAL_KEY = 'rajdhane_due_collection_dates';
+  const [localDates, setLocalDates] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || '{}'); } catch { return {}; }
+  });
+  const dateOf = (c) => localDates[c.id || c.uuid] || (c.collection_date ? String(c.collection_date).split('T')[0] : '') || (c.due_date ? String(c.due_date).split('T')[0] : '');
+  const saveDate = async (c, value) => {
+    const id = c.id || c.uuid;
+    const next = { ...localDates, [id]: value };
+    setLocalDates(next);
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(next));
+    try {
+      await crmService.updateClient(id, { collection_date: value || null });
+    } catch (e) {
+      console.warn('collection_date not accepted by backend, kept locally', e?.message);
+    }
+  };
 
   const [clients, setClients] = useState([]);
   const [groups, setGroups] = useState([]);
@@ -83,8 +102,19 @@ const DueCollectionDate = () => {
     setEntries(25);
   };
 
-  const exportToExcel = () => {
-    alert("Excel export functionality will be generated for current table view.");
+  const handleExportExcel = () => {
+    const dataToExport = clients.map((c, i) => ({
+      'SL': i + 1,
+      'Client Code': c.client_code || c.code || '-',
+      'Company Name': c.company_name || c.name || '-',
+      'Owner Name': c.owner_name || c.name || '-',
+      'Phone': c.phone || c.mobile || '-',
+      'Address': c.address || '-',
+      'Group': c.group || c.group_name || '-',
+      'Due Date': dateOf(c) || '-',
+      'Due Amount': c.due_amount || c.balance || 0
+    }));
+    exportToExcel(dataToExport, 'Due_Collection_Date_Report');
   };
 
   return (
@@ -103,9 +133,6 @@ const DueCollectionDate = () => {
             </button>
             <button className="btn btn-primary" onClick={() => navigate('/crm/client-create')} style={{ padding: '6px 12px', background: 'var(--success)' }}>
               <Plus size={14} /> Add New
-            </button>
-            <button className="btn btn-outline" onClick={() => window.open('https://youtube.com', '_blank')} style={{ padding: '6px 12px', background: 'white', color: 'red', border: '1px solid #e2e8f0' }}>
-              <PlaySquare size={14} /> YouTube
             </button>
           </div>
         </div>
@@ -164,7 +191,7 @@ const DueCollectionDate = () => {
             entries
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>
-            <button className="btn" onClick={exportToExcel} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}><FileSpreadsheet size={14} style={{ marginRight: '4px' }}/> Excel</button>
+            <button className="btn" onClick={handleExportExcel} style={{ background: '#059669', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', cursor: 'pointer' }}><FileSpreadsheet size={14} style={{ marginRight: '4px' }}/> Excel</button>
             <button className="btn" onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}><Printer size={14} style={{ marginRight: '4px' }}/> {t('common.print')}</button>
             <button className="btn" onClick={handleReset} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}><RotateCcw size={14} style={{ marginRight: '4px' }}/> {t('common.reset')}</button>
           </div>
@@ -209,7 +236,9 @@ const DueCollectionDate = () => {
                     <td style={{ textAlign: 'left', padding: '12px' }}>{client.sales || '0.00'}</td>
                     <td style={{ textAlign: 'left', padding: '12px' }}>{client.receive || '0.00'}</td>
                     <td style={{ textAlign: 'left', padding: '12px' }}>{client.sales_return || '0.00'}</td>
-                    <td style={{ textAlign: 'left', padding: '12px' }}>{client.collection_date || client.due_date || '-'}</td>
+                    <td style={{ textAlign: 'left', padding: '12px' }}>
+                      <input type="date" value={dateOf(client)} onChange={(e) => saveDate(client, e.target.value)} style={{ padding: '4px 6px', border: '1px solid #e2e8f0', borderRadius: '4px' }} />
+                    </td>
                     <td style={{ textAlign: 'left', padding: '12px', fontWeight: 'bold', color: '#ef4444' }}>{client.due || client.previous_due || '0.00'} ৳</td>
                   </tr>
                 ))

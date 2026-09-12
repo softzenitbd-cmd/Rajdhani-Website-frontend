@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { Settings, Plus, Barcode, Calendar, Trash2 } from 'lucide-react';
+import { Plus, Barcode, Calendar, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AddOptionModal from '../../components/AddOptionModal';
 import { crmService } from '../../services/crmService';
@@ -24,18 +24,7 @@ const PurchaseCreate = () => {
   const [items, setItems] = useState([]);
   const [submitting, setSubmitting] = useState(false);
 
-  const defaultSuppliers = [
-    { id: '1', name: 'SUKDEB FABRICS' },
-    { id: '2', name: 'RAJDHANI WHOLESALE' },
-    { id: '3', name: 'BEXIMCO TEXTILES' },
-    { id: '4', name: 'GENERAL SUPPLIER' }
-  ];
 
-  const defaultProducts = [
-    { id: '1', name: 'FABRIC T-SHIRT 2026', code: 'TS-101', purchase_price: 300, sales_price: 450, barcode: '10001' },
-    { id: '2', name: 'PREMIUM DENIM JEANS', code: 'DJ-202', purchase_price: 800, sales_price: 1200, barcode: '10002' },
-    { id: '3', name: 'COTTON CASUAL SHIRT', code: 'CS-303', purchase_price: 550, sales_price: 850, barcode: '10003' }
-  ];
 
   const fetchPrerequisites = async () => {
     try {
@@ -47,14 +36,12 @@ const PurchaseCreate = () => {
       const supData = Array.isArray(supRes) ? supRes : (supRes?.results || []);
       const prodData = Array.isArray(prodRes) ? prodRes : (prodRes?.results || []);
 
-      setSuppliers(supData.length > 0 ? supData : defaultSuppliers);
-      
-      const localProducts = JSON.parse(localStorage.getItem('rajdhani_custom_products') || '[]');
-      setProducts([...localProducts, ...(prodData.length > 0 ? prodData : defaultProducts)]);
+      setSuppliers(supData);
+      setProducts(prodData);
     } catch (err) {
       console.error("Error loading purchase prerequisites:", err);
-      setSuppliers(defaultSuppliers);
-      setProducts(defaultProducts);
+      setSuppliers([]);
+      setProducts([]);
     }
   };
 
@@ -219,9 +206,6 @@ const PurchaseCreate = () => {
             Purchase Create
           </h2>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="btn" style={{ background: 'var(--text-muted)', color: 'white', padding: '8px', borderRadius: '4px' }}>
-              <Settings size={16} />
-            </button>
           </div>
         </div>
 

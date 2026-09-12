@@ -4,6 +4,7 @@ import PrintHeader from '../../components/PrintHeader';
 import { RotateCcw, Edit, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { productService } from '../../services/productService';
+import { exportToExcel } from '../../utils/excelExporter';
 
 const ProductList = () => {
   const { t } = useTranslation();
@@ -22,13 +23,20 @@ const ProductList = () => {
     to_date: ''
   });
 
-  const defaultProducts = [
-    { id: 1, name: 'BATIK PRINT ORNA 380', buy: '287.50', sell: '380.00', wholesale: '0.00', unit: 'PEACE', barcode: '18647', stockWarning: '1', asset: '-', openingStock: '2.0000', createdAt: '24 Aug 2026' },
-    { id: 2, name: 'BR ORNA 380', buy: '240.00', sell: '380.00', wholesale: '0.00', unit: 'PEACE', barcode: '18646', stockWarning: '1', asset: '-', openingStock: '4.0000', createdAt: '24 Aug 2026' },
-    { id: 3, name: 'BR ORNA 500', buy: '362.50', sell: '500.00', wholesale: '0.00', unit: 'PEACE', barcode: '18645', stockWarning: '1', asset: '-', openingStock: '9.0000', createdAt: '24 Aug 2026' },
-    { id: 4, name: 'SAB INDIA KANI SOFT', buy: '1900.00', sell: '2580.00', wholesale: '0.00', unit: 'PEACE', barcode: '18644', stockWarning: '1', asset: '-', openingStock: '5.0000', createdAt: '23 Aug 2026' },
-    { id: 5, name: 'SAB INDIA KANI SHAREE', buy: '1750.00', sell: '2380.00', wholesale: '0.00', unit: 'PEACE', barcode: '18643', stockWarning: '1', asset: '-', openingStock: '5.0000', createdAt: '23 Aug 2026' }
-  ];
+  const handleExportExcel = () => {
+    const dataToExport = products.map((p, index) => ({
+      'SL': index + 1,
+      'Product Name': p.name,
+      'Buying Price (BDT)': p.purchase_price || p.buy || '0.00',
+      'Selling Price (BDT)': p.sales_price || p.sell || '0.00',
+      'Unit': p.unit_name || p.unit || 'Pcs',
+      'Barcode': p.code || p.barcode || '-',
+      'Stock Warning': p.stockWarning || '1',
+      'Opening Stock': p.stock || p.openingStock || '0.00',
+      'Created Date': p.created_at ? new Date(p.created_at).toLocaleDateString() : (p.createdAt || '-')
+    }));
+    exportToExcel(dataToExport, 'Product_List');
+  };
 
   const fetchPrerequisites = async () => {
     try {
@@ -47,21 +55,18 @@ const ProductList = () => {
     try {
       setLoading(true);
       const res = await productService.getProducts(filters);
-      const data = Array.isArray(res) ? res : (res?.results || []);
-      const localProducts = JSON.parse(localStorage.getItem('rajdhani_custom_products') || '[]');
-      
-      const combined = [...localProducts, ...(data.length > 0 ? data : defaultProducts)];
+      const apiData = Array.isArray(res) ? res : (res?.results || []);
+      const combined = apiData;
       
       // Filter if search query exists
       const finalProducts = filters.search 
-        ? combined.filter(p => p.name.toLowerCase().includes(filters.search.toLowerCase()))
+        ? combined.filter(p => p.name?.toLowerCase().includes(filters.search.toLowerCase()))
         : combined;
         
       setProducts(finalProducts);
     } catch (err) {
       console.error("Error fetching products:", err);
-      const localProducts = JSON.parse(localStorage.getItem('rajdhani_custom_products') || '[]');
-      setProducts([...localProducts, ...defaultProducts]);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -93,10 +98,7 @@ const ProductList = () => {
   const handleDeleteProduct = async (id) => {
     if (!window.confirm("Are you sure you want to delete this product?")) return;
     try {
-      await productService.deleteProduct(id).catch(() => null);
-      const localProducts = JSON.parse(localStorage.getItem('rajdhani_custom_products') || '[]');
-      const updatedLocal = localProducts.filter(p => p.id !== id);
-      localStorage.setItem('rajdhani_custom_products', JSON.stringify(updatedLocal));
+      await productService.deleteProduct(id);
       
       setProducts(prev => prev.filter(p => p.id !== id));
       alert("Product deleted successfully!");
@@ -207,6 +209,9 @@ const ProductList = () => {
             Showing {products.length} entries
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>
+            <button className="btn" onClick={handleExportExcel} style={{ background: '#059669', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+              📊 Excel
+            </button>
             <button className="btn" onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
               Print
             </button>
@@ -255,7 +260,7 @@ const ProductList = () => {
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.created_at ? new Date(prod.created_at).toLocaleDateString() : (prod.createdAt || '-')}</td>
                     <td style={{ textAlign: 'center', padding: '8px' }}>
                       <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
-                        <button onClick={() => navigate('/product/create')} className="action-btn-sm edit" style={{ background: 'var(--info)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title="Edit Product">
+                        <button onClick={() => navigate('/product/create', { state: { product: prod } })} className="action-btn-sm edit" style={{ background: 'var(--info)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title="Edit Product">
                           <Edit size={14} />
                         </button>
                         <button onClick={() => handleDeleteProduct(prod.id)} className="action-btn-sm delete" style={{ background: 'var(--danger)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title="Delete Product">

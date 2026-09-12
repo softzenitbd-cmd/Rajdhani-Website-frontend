@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../../components/PrintHeader';
-import { List, Plus, FileSpreadsheet, FileText, Printer, RotateCcw, RefreshCw, Edit, Trash2, X, Users } from 'lucide-react';
+import { List, Plus, Printer, RotateCcw, Edit, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AddOptionModal from '../../../components/AddOptionModal';
 import { useApi } from '../../../hooks/useApi';
 import { ENDPOINTS } from '../../../api/endpoints';
+import { exportVisibleTable } from '../../../utils/tableExport';
+import { printPage } from '../../../utils/printUtils';
 
 const ClientGroup = () => {
   const { t } = useTranslation();
@@ -86,12 +88,12 @@ const ClientGroup = () => {
             entries
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>
-            <button className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>Excel</button>
-            <button className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>CSV</button>
-            <button className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>PDF</button>
+            <button onClick={() => exportVisibleTable('xlsx')} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>Excel</button>
+            <button onClick={() => exportVisibleTable('csv')} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>CSV</button>
+            <button onClick={() => printPage()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>PDF</button>
             <button className="btn" onClick={window.print} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}><Printer size={14} style={{ marginRight: '4px' }} /> {t('common.print')}</button>
-            <button className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}><RotateCcw size={14} style={{ marginRight: '4px' }} /> {t('common.reset')}</button>
-            <button className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>Reload</button>
+            <button onClick={() => window.location.reload()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}><RotateCcw size={14} style={{ marginRight: '4px' }} /> {t('common.reset')}</button>
+            <button onClick={() => window.location.reload()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>Reload</button>
           </div>
         </div>
 

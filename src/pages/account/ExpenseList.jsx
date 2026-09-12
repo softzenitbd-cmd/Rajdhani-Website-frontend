@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { Plus, Play, Printer, RotateCcw, Edit, Trash2, Settings, List, Users, X, Search } from 'lucide-react';
+import { Plus, Printer, RotateCcw, Edit, X, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { accountingService } from '../../services/accountingService';
 
@@ -18,12 +18,6 @@ const ExpenseList = () => {
   const [editDesc, setEditDesc] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
 
-  const fallbackData = [
-    { id: '1', sl: 1, date: '2026-08-30', receipt_for: '', reference: '183648', category: 'DOKAN KOROJ', account_name: 'Cash Account', description: 'Office refreshments and snacks', transaction_type: 'Cost', amount: '1300.00' },
-    { id: '2', sl: 2, date: '2026-08-30', receipt_for: 'C.CUSTOMER', reference: '183647', category: 'MALL FEROT', account_name: 'Cash Account', description: 'Product return refund', transaction_type: 'Money Return', amount: '8555.00' },
-    { id: '3', sl: 3, date: '2026-08-30', receipt_for: 'RFL LAGINC', reference: '183645', category: 'PRODUCT KROY', account_name: 'Dutch Bangla Bank', description: 'Fabric Supplier Payment', transaction_type: 'Supplier Payment', amount: '19000.00' },
-    { id: '4', sl: 4, date: '2026-08-28', receipt_for: 'AJMUL', reference: '183644', category: 'STAFF SALARY', account_name: 'Cash Account', description: 'August Staff Salary', transaction_type: 'Staff Payment', amount: '12000.00' },
-  ];
 
   const fetchExpenses = async () => {
     try {
@@ -35,10 +29,10 @@ const ExpenseList = () => {
 
       const res = await accountingService.getExpenses(filters);
       const data = Array.isArray(res) ? res : (res?.results || []);
-      setExpenses(data.length > 0 ? data : fallbackData);
+      setExpenses(data);
     } catch (error) {
       console.error('Error fetching expenses:', error);
-      setExpenses(fallbackData);
+      setExpenses([]);
     } finally {
       setLoading(false);
     }
@@ -119,11 +113,6 @@ const ExpenseList = () => {
                 <Plus size={16} /> Add New Expense
               </button>
             </Link>
-            <button className="btn-youtube">
-              <div style={{ display: 'flex', alignItems: 'center', background: '#ff0000', color: 'white', padding: '6px 12px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold' }}>
-                <Play size={16} fill="white" style={{ marginRight: '6px' }} /> YouTube
-              </div>
-            </button>
           </div>
         </div>
 

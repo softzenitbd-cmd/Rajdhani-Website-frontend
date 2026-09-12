@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, List, Users, Plus } from 'lucide-react';
+import { List, Users, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AddOptionModal from '../../../components/AddOptionModal';
 import { useApi } from '../../../hooks/useApi';
@@ -85,17 +85,11 @@ const SupplierCreate = () => {
       <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2 className="card-title">SUPPLIER CREATE</h2>
         <div className="card-actions">
-          <button className="btn btn-outline" style={{ padding: '6px 12px', background: '#718096', color: 'white' }}>
-            <Settings size={14} />
-          </button>
           <button className="btn btn-outline" style={{ padding: '6px 12px', background: 'var(--table-header-bg)', color: 'white' }} onClick={() => navigate('/crm/supplier-list')}>
             <List size={14} /> Supplier List
           </button>
           <button className="btn btn-outline" style={{ padding: '6px 12px', background: 'var(--table-header-bg)', color: 'white' }} onClick={() => navigate('/crm/supplier-group')}>
             <Users size={14} /> Supplier Group
-          </button>
-          <button className="btn btn-primary" style={{ padding: '6px 12px', background: 'var(--danger)' }}>
-            <span style={{ fontWeight: 'bold' }}>▶ YouTube</span>
           </button>
         </div>
       </div>

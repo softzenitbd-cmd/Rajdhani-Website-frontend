@@ -1,129 +1,158 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ShoppingBag, CreditCard, Receipt, CalendarClock, Scale } from 'lucide-react';
-import { 
+import { useNavigate } from 'react-router-dom';
+import { ShoppingBag, CreditCard, Receipt, CalendarClock, Scale, Plus, RefreshCcw } from 'lucide-react';
+import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell
+  PieChart, Pie, Cell, Legend
 } from 'recharts';
+import { settingService } from '../services/settingService';
+import { saleService } from '../services/saleService';
+import { accountingService } from '../services/accountingService';
+import { useToast } from '../context/ToastContext';
+import { money, toList, MONTHS } from '../utils/apiHelpers';
 
-const StatCard = ({ title, amount, type, icon }) => {
-  return (
-    <div className="stat-card">
-      <div className={`icon-box ${type}`}>
-        {icon}
-      </div>
-      <div className="stat-info">
-        <div className="stat-label">{title}</div>
-        <div className="stat-value">
-          {amount} <span className="stat-currency">৳</span>
-        </div>
+const StatCard = ({ title, amount, type, icon }) => (
+  <div className="stat-card">
+    <div className={`icon-box ${type}`}>{icon}</div>
+    <div className="stat-info">
+      <div className="stat-label">{title}</div>
+      <div className="stat-value">
+        {money(amount)} <span className="stat-currency">৳</span>
       </div>
     </div>
-  );
+  </div>
+);
+
+// Reads a stat from the dashboard payload trying several likely key spellings
+const pick = (obj, ...keys) => {
+  for (const k of keys) {
+    if (obj && obj[k] !== undefined && obj[k] !== null) return Number(obj[k]) || 0;
+  }
+  return 0;
 };
+
+const ymd = (d) => d.toISOString().split('T')[0];
 
 const Dashboard = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const toast = useToast();
+  const [stats, setStats] = useState(null);
+  const [series, setSeries] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const lineData = [
-    { name: '9 August', sales: 15000, receive: 0, due: 0 },
-    { name: '10 August', sales: 10000, receive: 0, due: 0 },
-    { name: '11 August', sales: 12000, receive: 0, due: 0 },
-    { name: '12 August', sales: 0, receive: 0, due: 0 },
-    { name: '13 August', sales: 12500, receive: 0, due: 0 },
-    { name: '14 August', sales: 0, receive: 0, due: 0 },
-    { name: '15 August', sales: 14000, receive: 0, due: 0 },
-    { name: '16 August', sales: 11000, receive: 0, due: 0 },
-    { name: '17 August', sales: 10000, receive: 0, due: 0 },
-    { name: '18 August', sales: 22000, receive: 0, due: 0 },
-    { name: '19 August', sales: 0, receive: 0, due: 0 },
-    { name: '20 August', sales: 16000, receive: 0, due: 0 },
-    { name: '21 August', sales: 13000, receive: 0, due: 0 },
-    { name: '22 August', sales: 10505, receive: 0, due: 0 },
-  ];
+  const monthName = MONTHS[new Date().getMonth()];
 
-  const pieData = [
-    { name: t('dashboard.due'), value: 7917240 },
-    { name: t('dashboard.sales'), value: 3000000 },
-    { name: t('dashboard.receive'), value: 1000000 }
-  ];
-  
+  const load = async () => {
+    try {
+      setLoading(true);
+      const res = await settingService.getDashboardStats();
+      const data = res?.data || res || {};
+      setStats(data);
+
+      // Weekly chart: use the backend series if present, otherwise build it from the last 14 days of sales / receives
+      const backendSeries = toList(data.weekly || data.chart || data.daily || data.series);
+      if (backendSeries.length) {
+        setSeries(backendSeries.map((d) => ({
+          name: d.name || d.label || d.date,
+          sales: pick(d, 'sales', 'sale', 'total_sales'),
+          receive: pick(d, 'receive', 'receives', 'total_receive'),
+          due: pick(d, 'due', 'total_due'),
+        })));
+      } else {
+        const to = new Date();
+        const from = new Date();
+        from.setDate(to.getDate() - 13);
+        const [sales, receives] = await Promise.all([
+          saleService.getSalesInvoices({ from_date: ymd(from), to_date: ymd(to), status: 1 }).catch(() => []),
+          accountingService.getReceives({ from_date: ymd(from), to_date: ymd(to) }).catch(() => []),
+        ]);
+        const byDay = {};
+        for (let i = 0; i < 14; i++) {
+          const d = new Date(from);
+          d.setDate(from.getDate() + i);
+          byDay[ymd(d)] = { name: `${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)}`, sales: 0, receive: 0, due: 0 };
+        }
+        toList(sales).forEach((inv) => {
+          const k = String(inv.date || inv.created_at || '').split('T')[0];
+          if (byDay[k]) {
+            byDay[k].sales += Number(inv.grand_total || inv.total || inv.amount || 0);
+            byDay[k].due += Number(inv.due || 0);
+          }
+        });
+        toList(receives).forEach((r) => {
+          const k = String(r.date || r.created_at || '').split('T')[0];
+          if (byDay[k]) byDay[k].receive += Number(r.amount || 0);
+        });
+        setSeries(Object.values(byDay));
+      }
+    } catch (e) {
+      toast.error(e.message || 'Failed to load dashboard');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const s = stats || {};
+  const todayBlock = s.today || s;
+  const monthBlock = s.month || s.this_month || s.monthly || s;
+
+  const today = {
+    sales: pick(todayBlock, 'today_sales', 'sales', 'total_sales'),
+    receive: pick(todayBlock, 'today_receive', 'receive', 'receives', 'total_receive'),
+    expense: pick(todayBlock, 'today_expense', 'expense', 'expenses', 'total_expense'),
+    due: pick(todayBlock, 'today_due', 'due', 'total_due'),
+  };
+  today.balance = pick(todayBlock, 'today_balance', 'balance') || today.receive - today.expense;
+
+  const month = {
+    sales: pick(monthBlock, 'month_sales', 'monthly_sales', 'sales', 'total_sales'),
+    receive: pick(monthBlock, 'month_receive', 'monthly_receive', 'receive', 'receives', 'total_receive'),
+    expense: pick(monthBlock, 'month_expense', 'monthly_expense', 'expense', 'expenses', 'total_expense'),
+    due: pick(monthBlock, 'month_due', 'monthly_due', 'due', 'total_due'),
+  };
+  month.balance = pick(monthBlock, 'month_balance', 'monthly_balance', 'balance') || month.receive - month.expense;
+
+  const totalDue = pick(s, 'total_due', 'client_due', 'total_client_due') || month.due;
+  const pieData = useMemo(() => [
+    { name: t('dashboard.due'), value: totalDue },
+    { name: t('dashboard.sales'), value: month.sales },
+    { name: t('dashboard.receive'), value: month.receive },
+  ], [totalDue, month.sales, month.receive, t]);
+
   const COLORS = ['#00e396', '#4318ff', '#ff4560'];
 
   return (
     <div className="dashboard-content">
+      <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
+        <button onClick={load} disabled={loading} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#475569' }}>
+          <RefreshCcw size={14} className={loading ? 'spin' : ''} /> {loading ? 'Loading...' : 'Refresh'}
+        </button>
+      </div>
+
       {/* Today Stats */}
       <div className="stats-grid">
-        <StatCard 
-          title={t('dashboard.today_sales')} 
-          amount="10,505.00" 
-          type="sales" 
-          icon={<ShoppingBag />} 
-        />
-        <StatCard 
-          title={t('dashboard.today_receive')} 
-          amount="10,505.00" 
-          type="receive" 
-          icon={<CreditCard />} 
-        />
-        <StatCard 
-          title={t('dashboard.today_expense')} 
-          amount="0.00" 
-          type="expense" 
-          icon={<Receipt />} 
-        />
+        <StatCard title={t('dashboard.today_sales')} amount={today.sales} type="sales" icon={<ShoppingBag />} />
+        <StatCard title={t('dashboard.today_receive')} amount={today.receive} type="receive" icon={<CreditCard />} />
+        <StatCard title={t('dashboard.today_expense')} amount={today.expense} type="expense" icon={<Receipt />} />
       </div>
-
       <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
-        <StatCard 
-          title={t('dashboard.today_due')} 
-          amount="0.00" 
-          type="expense" 
-          icon={<CalendarClock />} 
-        />
-        <StatCard 
-          title={t('dashboard.today_balance')} 
-          amount="10,505.00" 
-          type="sales" 
-          icon={<Scale />} 
-        />
+        <StatCard title={t('dashboard.today_due')} amount={today.due} type="expense" icon={<CalendarClock />} />
+        <StatCard title={t('dashboard.today_balance')} amount={today.balance} type="sales" icon={<Scale />} />
       </div>
 
-      {/* August Stats */}
+      {/* This month */}
       <div className="stats-grid">
-        <StatCard 
-          title={t('dashboard.august_sales')} 
-          amount="216,432.00" 
-          type="sales" 
-          icon={<ShoppingBag />} 
-        />
-        <StatCard 
-          title={t('dashboard.august_receive')} 
-          amount="216,432.00" 
-          type="receive" 
-          icon={<CreditCard />} 
-        />
-        <StatCard 
-          title={t('dashboard.august_expense')} 
-          amount="0.00" 
-          type="expense" 
-          icon={<Receipt />} 
-        />
+        <StatCard title={`${monthName} ${t('dashboard.sales')}`} amount={month.sales} type="sales" icon={<ShoppingBag />} />
+        <StatCard title={`${monthName} ${t('dashboard.receive')}`} amount={month.receive} type="receive" icon={<CreditCard />} />
+        <StatCard title={`${monthName} Expense`} amount={month.expense} type="expense" icon={<Receipt />} />
       </div>
-
       <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
-        <StatCard 
-          title={t('dashboard.august_due')} 
-          amount="0.00" 
-          type="expense" 
-          icon={<CalendarClock />} 
-        />
-        <StatCard 
-          title={t('dashboard.august_balance')} 
-          amount="216,432.00" 
-          type="sales" 
-          icon={<Scale />} 
-        />
+        <StatCard title={`${monthName} ${t('dashboard.due')}`} amount={month.due} type="expense" icon={<CalendarClock />} />
+        <StatCard title={`${monthName} Balance`} amount={month.balance} type="sales" icon={<Scale />} />
       </div>
 
       {/* Charts */}
@@ -135,16 +164,15 @@ const Dashboard = () => {
           </div>
           <div style={{ height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={lineData}>
+              <LineChart data={series}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e5f2" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#a3aed1', fontSize: 12}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#a3aed1', fontSize: 12}} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
-                />
-                <Line type="monotone" dataKey="sales" stroke="#00e396" strokeWidth={3} dot={{r: 4, fill: '#00e396', strokeWidth: 2, stroke: '#fff'}} />
-                <Line type="monotone" dataKey="receive" stroke="#4318ff" strokeWidth={3} dot={{r: 4, fill: '#4318ff', strokeWidth: 2, stroke: '#fff'}} />
-                <Line type="monotone" dataKey="due" stroke="#ff4560" strokeWidth={3} dot={{r: 4, fill: '#ff4560', strokeWidth: 2, stroke: '#fff'}} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#a3aed1', fontSize: 12 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#a3aed1', fontSize: 12 }} />
+                <Tooltip formatter={(v) => `৳ ${money(v)}`} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
+                <Legend />
+                <Line type="monotone" dataKey="sales" name="Sales" stroke="#00e396" strokeWidth={3} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="receive" name="Receive" stroke="#4318ff" strokeWidth={3} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="due" name="Due" stroke="#ff4560" strokeWidth={3} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -158,36 +186,23 @@ const Dashboard = () => {
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={70}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
+                <Pie data={pieData} cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={5} dataKey="value">
+                  {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                 </Pie>
-                <Tooltip />
+                <Tooltip formatter={(v) => `৳ ${money(v)}`} />
               </PieChart>
             </ResponsiveContainer>
-            <div style={{ position: 'absolute', textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#00e396' }}>{t('dashboard.due')}</div>
-              <div style={{ fontSize: '14px', color: '#a3aed1' }}>7,917,240</div>
+            <div style={{ position: 'absolute', textAlign: 'center', pointerEvents: 'none' }}>
+              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#00e396' }}>{t('dashboard.due')}</div>
+              <div style={{ fontSize: '14px', color: '#a3aed1' }}>{money(totalDue)}</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Floating Action Button */}
-      <div className="fab">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
+      {/* Floating Action Button → new invoice */}
+      <div className="fab" onClick={() => navigate('/invoice/add-new')} title="New Invoice" style={{ cursor: 'pointer' }}>
+        <Plus size={24} />
       </div>
     </div>
   );

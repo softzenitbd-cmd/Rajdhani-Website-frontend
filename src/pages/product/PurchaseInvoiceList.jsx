@@ -10,20 +10,10 @@ const PurchaseInvoiceList = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const defaultPurchases = [
-    { id: 1, date: '24 Aug 2026', supplier: 'ROKSANA TOPS BONGO', product: 'ROK XL HAF 150 | 7511', buy: '90.00', sell: '150.00', qty: '25', total: '2250.00', desc: '-' },
-    { id: 2, date: '24 Aug 2026', supplier: 'ROKSANA TOPS BONGO', product: 'ROK XXL HAF 170 | 7512', buy: '110.00', sell: '170.00', qty: '25', total: '2750.00', desc: '-' },
-    { id: 3, date: '24 Aug 2026', supplier: 'ROKSANA TOPS BONGO', product: 'ROK HAF 3XL | 16546', buy: '140.00', sell: '220.00', qty: '25', total: '3500.00', desc: '-' },
-    { id: 4, date: '24 Aug 2026', supplier: 'ROKSANA TOPS BONGO', product: 'ROK 5XL HAF 250 | 9087', buy: '160.00', sell: '250.00', qty: '25', total: '4000.00', desc: '-' }
-  ];
 
-  const defaultSuppliers = [
-    { id: '1', name: 'ROKSANA TOPS BONGO' },
-    { id: '2', name: 'BROTHERS TRADERS 23' }
-  ];
 
-  const [purchases, setPurchases] = useState(defaultPurchases);
-  const [suppliers, setSuppliers] = useState(defaultSuppliers);
+  const [purchases, setPurchases] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const [filters, setFilters] = useState({
@@ -75,19 +65,19 @@ const PurchaseInvoiceList = () => {
               });
             }
           });
-          setPurchases(flatItems.length > 0 ? flatItems : defaultPurchases);
+          setPurchases(flatItems);
         } else {
-          setPurchases(defaultPurchases);
+          setPurchases([]);
         }
       }
 
       if (supRes) {
         const sList = Array.isArray(supRes) ? supRes : (supRes?.results || []);
-        setSuppliers(sList.length > 0 ? sList : defaultSuppliers);
+        setSuppliers(sList);
       }
     } catch (err) {
       console.error("Error fetching purchase items:", err);
-      setPurchases(defaultPurchases);
+      setPurchases([]);
     } finally {
       setLoading(false);
     }

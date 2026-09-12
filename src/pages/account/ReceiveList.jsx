@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { Plus, Play, Printer, RotateCcw, Search } from 'lucide-react';
+import { Plus, Printer, RotateCcw, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { accountingService } from '../../services/accountingService';
 
@@ -15,11 +15,6 @@ const ReceiveList = () => {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
 
-  const fallbackReceives = [
-    { id: '1', date: '2026-09-01', receipt_no: 'RCP-1001', transaction_type: 'Invoice', client_name: 'C.CUSTOMER (01)', description: 'Payment for INV-0001', amount: '612.00', account_name: 'Cash' },
-    { id: '2', date: '2026-08-28', receipt_no: 'RCP-1002', transaction_type: 'Direct Deposit', client_name: 'JAKIR MAMA', description: 'Due Payment Collection', amount: '3220.00', account_name: 'Dutch Bangla Bank' },
-    { id: '3', date: '2026-08-25', receipt_no: 'RCP-1003', transaction_type: 'Invoice', client_name: 'MASUD MASTER', description: 'Advance payment for cloth order', amount: '5000.00', account_name: 'Cash' },
-  ];
 
   const fetchReceives = async () => {
     try {
@@ -31,10 +26,10 @@ const ReceiveList = () => {
 
       const res = await accountingService.getReceives(filters);
       const data = Array.isArray(res) ? res : (res?.results || []);
-      setReceives(data.length > 0 ? data : fallbackReceives);
+      setReceives(data);
     } catch (error) {
       console.error('Error fetching receives:', error);
-      setReceives(fallbackReceives);
+      setReceives([]);
     } finally {
       setLoading(false);
     }
@@ -72,11 +67,6 @@ const ReceiveList = () => {
           <div style={{ display: 'flex', gap: '10px' }}>
             <button className="btn-green" onClick={() => navigate('/account/receive-create')}>
               <Plus size={16} /> Add New Receive
-            </button>
-            <button className="btn-youtube">
-              <div style={{ display: 'flex', alignItems: 'center', background: '#ff0000', color: 'white', padding: '6px 12px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold' }}>
-                <Play size={16} fill="white" style={{ marginRight: '6px' }} /> YouTube
-              </div>
             </button>
           </div>
         </div>

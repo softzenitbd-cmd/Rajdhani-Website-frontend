@@ -4,10 +4,12 @@ import PrintHeader from '../../components/PrintHeader';
 import { Plus, Printer, RefreshCcw, Search, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { accountingService } from '../../services/accountingService';
+import { useToast } from '../../context/ToastContext';
 
 const StaffPaymentReport = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const toast = useToast();
 
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,12 +18,6 @@ const StaffPaymentReport = () => {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
 
-  const fallbackData = [
-    { id: '182396', date: '2026-09-01', staff_id: 'JOLIL // BOLIDAPARA', category_id: 'DOKAN KOROJ', account_id: 'Cash Account', description: 'JOLIL SALARY ADVANCE', amount: '4000.00', status: true },
-    { id: '182082', date: '2026-08-21', staff_id: 'SUZON // SUNDORPUR', category_id: 'DOKAN KOROJ', account_id: 'Cash Account', description: 'SUZON SALARY', amount: '4200.00', status: true },
-    { id: '182081', date: '2026-08-21', staff_id: 'PINTU // MANAGER', category_id: 'DOKAN KOROJ', account_id: 'Cash Account', description: 'PINTU SALARY', amount: '5000.00', status: true },
-    { id: '182080', date: '2026-08-21', staff_id: 'SHIAB BOLIDAPARA', category_id: 'DOKAN KOROJ', account_id: 'Cash Account', description: 'SHIAB SALARY', amount: '1200.00', status: true },
-  ];
 
   const fetchStaffPayments = async () => {
     try {
@@ -30,17 +26,17 @@ const StaffPaymentReport = () => {
       if (searchTerm) filters.search = searchTerm;
       if (selectedMonth) {
         filters.month = selectedMonth;
-        filters.year = '2026';
+        filters.year = String(new Date().getFullYear());
       }
       if (fromDate) filters.from_date = fromDate;
       if (toDate) filters.to_date = toDate;
 
       const res = await accountingService.getStaffPaymentReport(filters);
       const data = Array.isArray(res) ? res : (res?.results || []);
-      setPayments(data.length > 0 ? data : fallbackData);
+      setPayments(data);
     } catch (error) {
       console.error('Error fetching staff payments:', error);
-      setPayments(fallbackData);
+      setPayments([]);
     } finally {
       setLoading(false);
     }
@@ -66,12 +62,11 @@ const StaffPaymentReport = () => {
   const handleMarkPaid = async (id) => {
     try {
       await accountingService.updateStaffPaymentStatus(id, true);
-      alert('Payment marked as Paid!');
+      toast.success('Payment marked as Paid');
       fetchStaffPayments();
     } catch (e) {
       console.error(e);
-      alert('Status updated.');
-      setPayments(prev => prev.map(p => p.id === id ? { ...p, status: true } : p));
+      toast.error(e.message || 'Failed to update status');
     }
   };
 

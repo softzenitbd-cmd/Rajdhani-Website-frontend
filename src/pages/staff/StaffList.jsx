@@ -1,120 +1,172 @@
-import React from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useEffect, useState } from 'react';
 import PrintHeader from '../../components/PrintHeader';
-import { Plus, RefreshCcw, Download, RotateCcw } from 'lucide-react';
+import TableToolbar from '../../components/TableToolbar';
+import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import staffApi from '../../api/staffApi';
+import { useToast } from '../../context/ToastContext';
+import { toList, fmtDate, nameOf, money } from '../../utils/apiHelpers';
 
 const StaffList = () => {
-  const { t } = useTranslation();
-
   const navigate = useNavigate();
+  const toast = useToast();
 
-  const dummyData = [
-    { id: 1, name: 'JEYA VI // BOLIDAPARA (jeya010733)', phone: '', email: '', image: '', password: 'jeya010733', roles: '', createdAt: '30 Dec 2025' },
-    { id: 2, name: 'ALOM VI // BOLIDAPARA (alom010044)', phone: '', email: '', image: '', password: 'alom010044', roles: '', createdAt: '30 Dec 2025' },
-    { id: 3, name: 'IKBAL VI // SUNDORPUR (ikbal104720)', phone: '', email: '', image: '', password: 'ikbal104720', roles: '', createdAt: '23 Dec 2025' },
-    { id: 4, name: 'JOLIL // BOLIDAPARA (jolil085042)', phone: '', email: '', image: '', password: 'jolil085042', roles: '', createdAt: '21 Dec 2025' },
-    { id: 5, name: 'BAPPY // BOLIDAPARA (jabir042754)', phone: '', email: '', image: '', password: 'jabir042754', roles: '', createdAt: '14 Aug 2025' },
-    { id: 6, name: 'JIHAD // DULALMUNDIYA (milon095117)', phone: '', email: '', image: '', password: 'milon095117', roles: '', createdAt: '03 Sep 2024' },
-    { id: 7, name: 'SHAHIN VI (shahin094001)', phone: '', email: '', image: '', password: 'shahin094001', roles: '', createdAt: '03 Sep 2024' },
-    { id: 8, name: 'SHIAB BOLIDAPARA (maruf093705)', phone: '', email: '', image: '', password: 'maruf093705', roles: '', createdAt: '03 Sep 2024' },
-    { id: 9, name: 'RAZU 2 SUNDORPUR (0000)', phone: '', email: '', image: '', password: '0000', roles: '', createdAt: '03 Sep 2024' },
-    { id: 10, name: 'SUMON ARPARA (raki094654)', phone: '', email: '', image: '', password: 'raki094654', roles: '', createdAt: '03 May 2024' },
-    { id: 11, name: 'TAMIM VIPO (roki024051)', phone: '', email: '', image: '', password: 'roki024051', roles: '', createdAt: '27 Apr 2024' },
-  ];
+  const [rows, setRows] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [department, setDepartment] = useState('');
+  const [entries, setEntries] = useState(50);
+
+  const load = async (params = { search, department }) => {
+    try {
+      setLoading(true);
+      const filters = {};
+      if (params.search) filters.search = params.search;
+      if (params.department) filters.department = params.department;
+      const res = await staffApi.getStaffList(filters);
+      setRows(toList(res));
+    } catch (e) {
+      toast.error(e.message || 'Failed to load staff');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+    staffApi.getDepartments().then((r) => setDepartments(toList(r))).catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleDelete = async (row) => {
+    const rid = row.id || row.uuid;
+    if (!window.confirm(`Delete staff "${row.name || row.full_name}"?`)) return;
+    try {
+      await staffApi.deleteStaff(rid);
+      toast.success('Staff deleted');
+      setRows((p) => p.filter((r) => (r.id || r.uuid) !== rid));
+    } catch (e) {
+      toast.error(e.message || 'Delete failed');
+    }
+  };
+
+  const reset = () => {
+    setSearch('');
+    setDepartment('');
+    load({ search: '', department: '' });
+  };
+
+  const visible = rows.slice(0, entries);
+  const excelData = visible.map((s, i) => ({
+    SL: i + 1,
+    Name: s.name || s.full_name,
+    Phone: s.phone || '-',
+    Email: s.email || '-',
+    Department: nameOf(s.department_name || s.department),
+    Designation: nameOf(s.designation_name || s.designation),
+    Salary: s.salary ?? '',
+    'Joining Date': fmtDate(s.joining_date),
+    Status: (s.is_active ?? s.status) ? 'Active' : 'Inactive',
+  }));
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
-      
       <div className="premium-card">
-        {/* Header */}
-        <div className="premium-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'white' }}>
+        <div className="premium-header no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'white' }}>
           <h2 className="premium-title" style={{ fontSize: '18px', fontWeight: 'bold' }}>Staff List</h2>
-          <button 
-            className="btn-primary" 
-            onClick={() => navigate('/staff/create')}
-            style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
-          >
+          <button onClick={() => navigate('/staff/create')} style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
             <Plus size={16} /> Add Staff
           </button>
         </div>
 
-        {/* Body */}
         <div className="premium-body" style={{ background: 'white', padding: '24px' }}>
-        <PrintHeader />
-          
-          {/* Table Controls */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-              Show 
-              <select style={{ margin: '0 8px', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }}>
-                <option>50</option>
-              </select> 
-              entries
-            </div>
-            
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px' }}>
-                Excel
-              </button>
-              <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px' }}>
-                <RotateCcw size={14} /> Reset
-              </button>
-              <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
-                Reload
-              </button>
-            </div>
-          </div>
+          <PrintHeader />
 
-          {/* Table */}
+          <form
+            className="no-print"
+            onSubmit={(e) => { e.preventDefault(); load(); }}
+            style={{ display: 'grid', gridTemplateColumns: '2fr 1fr auto', gap: '12px', marginBottom: '16px', alignItems: 'end' }}
+          >
+            <div>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: 'var(--label-color)' }}>Search (name / phone)</label>
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search..." style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '6px', outline: 'none' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: 'var(--label-color)' }}>Department</label>
+              <select value={department} onChange={(e) => setDepartment(e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '6px', outline: 'none' }}>
+                <option value="">All departments</option>
+                {departments.map((d) => <option key={d.id || d.uuid} value={d.id || d.uuid}>{d.name}</option>)}
+              </select>
+            </div>
+            <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '10px 18px', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Search size={14} /> Filter
+            </button>
+          </form>
+
+          <TableToolbar entries={entries} setEntries={setEntries} total={rows.length} excelData={excelData} excelName="Staff_List" onReload={() => load()} onReset={reset} />
+
           <div className="table-responsive">
             <table className="custom-table" style={{ width: '100%', fontSize: '12px' }}>
               <thead>
                 <tr>
-                  <th style={{ width: '50px', textAlign: 'center' }}>ID NO</th>
-                  <th>{t('common.name')}</th>
-                  <th>PHONE NUMBER</th>
-                  <th>E-MAIL</th>
+                  <th style={{ width: '50px', textAlign: 'center' }}>SL</th>
                   <th style={{ textAlign: 'center' }}>IMAGE</th>
-                  <th>PASSWORD</th>
-                  <th>ROLES</th>
-                  <th style={{ textAlign: 'center' }}>PERMISSIONS</th>
-                  <th>CREATED AT</th>
-                  <th style={{ textAlign: 'center' }}>ACTION</th>
+                  <th>NAME</th>
+                  <th>PHONE</th>
+                  <th>E-MAIL</th>
+                  <th>DEPARTMENT</th>
+                  <th>DESIGNATION</th>
+                  <th style={{ textAlign: 'right' }}>SALARY</th>
+                  <th>JOINING</th>
+                  <th style={{ textAlign: 'center' }}>STATUS</th>
+                  <th className="action-column" style={{ textAlign: 'center' }}>ACTION</th>
                 </tr>
               </thead>
               <tbody>
-                {dummyData.map((row) => (
-                  <tr key={row.id}>
-                    <td style={{ textAlign: 'center', padding: '12px' }}>{row.id}</td>
-                    <td style={{ padding: '12px' }}>{row.name}</td>
-                    <td style={{ padding: '12px' }}>{row.phone}</td>
-                    <td style={{ padding: '12px' }}>{row.email}</td>
-                    <td style={{ textAlign: 'center', padding: '12px' }}>
-                      <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#f1f5f9', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--card-border)' }}>
-                         {/* Placeholder for image */}
-                         <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: '2px solid #cbd5e1' }}></div>
-                      </div>
-                    </td>
-                    <td style={{ padding: '12px' }}>{row.password}</td>
-                    <td style={{ padding: '12px' }}>{row.roles}</td>
-                    <td style={{ textAlign: 'center', padding: '12px' }}>
-                      <button style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>
-                        Permissions
-                      </button>
-                    </td>
-                    <td style={{ padding: '12px' }}>{row.createdAt}</td>
-                    <td style={{ textAlign: 'center', padding: '12px' }}>
-                      <button style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', margin: '0 auto', gap: '4px' }}>
-                        Action <span style={{ fontSize: '8px' }}>▼</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {loading ? (
+                  <tr><td colSpan="11" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>Loading staff...</td></tr>
+                ) : visible.length === 0 ? (
+                  <tr><td colSpan="11" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>No staff found</td></tr>
+                ) : (
+                  visible.map((s, i) => {
+                    const active = s.is_active ?? s.status ?? true;
+                    return (
+                      <tr key={s.id || s.uuid || i}>
+                        <td style={{ textAlign: 'center', padding: '10px' }}>{i + 1}</td>
+                        <td style={{ textAlign: 'center', padding: '10px' }}>
+                          {s.image ? (
+                            <img src={s.image} alt="" style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }} />
+                          ) : (
+                            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#e0e7ff', color: '#4338ca', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                              {String(s.name || s.full_name || '?').charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </td>
+                        <td style={{ padding: '10px', fontWeight: 600 }}>{s.name || s.full_name}</td>
+                        <td style={{ padding: '10px' }}>{s.phone || '-'}</td>
+                        <td style={{ padding: '10px' }}>{s.email || '-'}</td>
+                        <td style={{ padding: '10px' }}>{nameOf(s.department_name || s.department)}</td>
+                        <td style={{ padding: '10px' }}>{nameOf(s.designation_name || s.designation)}</td>
+                        <td style={{ padding: '10px', textAlign: 'right' }}>{s.salary !== undefined && s.salary !== null ? money(s.salary) : '-'}</td>
+                        <td style={{ padding: '10px' }}>{fmtDate(s.joining_date || s.created_at)}</td>
+                        <td style={{ padding: '10px', textAlign: 'center' }}>
+                          <span style={{ background: active ? '#dcfce7' : '#fee2e2', color: active ? '#166534' : '#991b1b', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>
+                            {active ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                        <td className="action-column" style={{ padding: '10px' }}>
+                          <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                            <button onClick={() => navigate(`/staff/edit/${s.id || s.uuid}`)} title="Edit" style={{ background: 'var(--info)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}><Pencil size={14} /></button>
+                            <button onClick={() => handleDelete(s)} title="Delete" style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}><Trash2 size={14} /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
-
         </div>
       </div>
     </div>

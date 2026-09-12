@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { useNavigate } from 'react-router-dom';
-import { RotateCcw, Edit, Trash2, CheckCircle } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { RotateCcw, Edit, Trash2 } from 'lucide-react';
 import { saleService } from '../../services/saleService';
 import { crmService } from '../../services/crmService';
 import { accountingService } from '../../services/accountingService';
@@ -10,11 +10,25 @@ import { accountingService } from '../../services/accountingService';
 const InvoiceList = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Opened from "Save & Print" on the create page: show the receipt and print it
+  useEffect(() => {
+    const inv = location.state?.printInvoice;
+    if (inv && typeof inv === 'object') {
+      setSelectedInvoice(inv);
+      setShowViewModal(true);
+      window.history.replaceState({}, '');
+      setTimeout(() => window.print(), 600);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [invoices, setInvoices] = useState([]);
   const [clients, setClients] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
 
   const [filters, setFilters] = useState({
     client: '',
@@ -25,25 +39,8 @@ const InvoiceList = () => {
     status: 1
   });
 
-  const defaultInvoices = [
-    { id: '160477', date: '25 Aug 2026', clientName: 'C.CASTOMER', clientNumber: '01', invoiceNo: 'INV-160477', category: 'CASH SELL', returnQty: 0, billAmount: 3420.00, discount: 0.00, receiveAmount: 3420.00, dueAmount: 0.00, type: 'General' },
-    { id: '160476', date: '25 Aug 2026', clientName: 'C.CASTOMER', clientNumber: '01', invoiceNo: 'INV-160476', category: 'CASH SELL', returnQty: 0, billAmount: 930.00, discount: 0.00, receiveAmount: 930.00, dueAmount: 0.00, type: 'General' },
-    { id: '160475', date: '25 Aug 2026', clientName: 'C.CASTOMER', clientNumber: '01', invoiceNo: 'INV-160475', category: 'CASH SELL', returnQty: 0, billAmount: 130.00, discount: 0.00, receiveAmount: 130.00, dueAmount: 0.00, type: 'General' },
-    { id: '160474', date: '25 Aug 2026', clientName: 'C.CASTOMER', clientNumber: '01', invoiceNo: 'INV-160474', category: 'CASH SELL', returnQty: 0, billAmount: 800.00, discount: 0.00, receiveAmount: 800.00, dueAmount: 0.00, type: 'General' }
-  ];
 
-  const defaultClientOptions = [
-    { id: '1', name: 'C.CASTOMER | 01' },
-    { id: '2', name: 'SUKDEB DADA' },
-    { id: '3', name: 'GENERAL CUSTOMER' }
-  ];
 
-  const defaultAccountOptions = [
-    { id: '1', name: 'CASH ACCOUNT' },
-    { id: '2', name: 'BKASH ACCOUNT' },
-    { id: '3', name: 'BANK ACCOUNT' },
-    { id: '4', name: 'NAGAD ACCOUNT' }
-  ];
 
   const fetchPrerequisites = async () => {
     try {
@@ -55,12 +52,12 @@ const InvoiceList = () => {
       const clientList = Array.isArray(clientRes) ? clientRes : (clientRes?.results || []);
       const accList = Array.isArray(accRes) ? accRes : (accRes?.results || []);
 
-      setClients(clientList.length > 0 ? clientList : defaultClientOptions);
-      setAccounts(accList.length > 0 ? accList : defaultAccountOptions);
+      setClients(clientList);
+      setAccounts(accList);
     } catch (err) {
       console.error(err);
-      setClients(defaultClientOptions);
-      setAccounts(defaultAccountOptions);
+      setClients([]);
+      setAccounts([]);
     }
   };
 
@@ -69,10 +66,10 @@ const InvoiceList = () => {
       setLoading(true);
       const res = await saleService.getSalesInvoices(filters);
       const data = Array.isArray(res) ? res : (res?.results || []);
-      setInvoices(data.length > 0 ? data : defaultInvoices);
+      setInvoices(data);
     } catch (err) {
       console.error("Error fetching sales invoices:", err);
-      setInvoices(defaultInvoices);
+      setInvoices([]);
     } finally {
       setLoading(false);
     }
@@ -152,21 +149,50 @@ const InvoiceList = () => {
           </div>
         </div>
 
-        <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px', marginBottom: '24px' }}>
-          <div className="form-input floating-label" style={{ borderRadius: '4px' }}>
-            <input type="date" name="from_date" value={filters.from_date} onChange={handleFilterChange} style={{ color: '#334155', padding: '10px' }} />
-          </div>
-          <div className="form-input floating-label" style={{ borderRadius: '4px' }}>
-            <input type="date" name="to_date" value={filters.to_date} onChange={handleFilterChange} style={{ color: '#334155', padding: '10px' }} />
-          </div>
-          <div className="form-input floating-label" style={{ borderRadius: '4px' }}>
-            <input type="text" name="search" value={filters.search} onChange={handleFilterChange} placeholder="Invoice ID or Barcode" style={{ padding: '10px' }} />
-          </div>
+        <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '24px' }}>
           <div>
-            <button className="btn btn-primary" onClick={handleClearFilters} style={{ width: '100%', height: '100%', background: 'var(--success)', border: 'none', borderRadius: '4px', fontSize: '15px' }}>
-              Clear Filter
-            </button>
+            <div style={{ fontSize: '12px', marginBottom: '4px' }}>From Date</div>
+            <input 
+              type="date" 
+              name="from_date"
+              value={filters.from_date}
+              onChange={handleFilterChange}
+              style={{ padding: '10px', width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', color: '#334155' }} 
+            />
           </div>
+
+          <div>
+            <div style={{ fontSize: '12px', marginBottom: '4px' }}>To Date</div>
+            <input 
+              type="date" 
+              name="to_date"
+              value={filters.to_date}
+              onChange={handleFilterChange}
+              style={{ padding: '10px', width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', color: '#334155' }} 
+            />
+          </div>
+
+          <div>
+            <div style={{ fontSize: '12px', marginBottom: '4px' }}>Search Invoice / Customer</div>
+            <input 
+              type="text" 
+              name="search"
+              placeholder="Search..."
+              value={filters.search}
+              onChange={handleFilterChange}
+              style={{ padding: '10px', width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px' }} 
+            />
+          </div>
+        </div>
+
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <button 
+            onClick={handleClearFilters}
+            className="btn" 
+            style={{ background: 'var(--text-muted)', color: 'white', padding: '12px 48px', borderRadius: '4px', fontSize: '16px', width: '30%', cursor: 'pointer' }}
+          >
+            Clear Filter
+          </button>
         </div>
 
         {/* Table Controls */}
@@ -175,10 +201,10 @@ const InvoiceList = () => {
             Showing {invoices.length} entries
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>
-            <button className="btn" onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <button className="btn" onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
               Print List
             </button>
-            <button className="btn" onClick={fetchInvoices} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <button className="btn" onClick={fetchInvoices} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
               <RotateCcw size={14} /> Refresh
             </button>
           </div>
@@ -200,8 +226,8 @@ const InvoiceList = () => {
                 <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>RECEIVE AMOUNT</th>
                 <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>DUE AMOUNT</th>
                 <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>TYPE</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>PRINTABLE</th>
-                <th style={{ textAlign: 'center', padding: '12px', fontSize: '11px' }}>ACTION</th>
+                <th className="no-print" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>PRINTABLE</th>
+                <th className="no-print" style={{ textAlign: 'center', padding: '12px', fontSize: '11px' }}>ACTION</th>
               </tr>
             </thead>
             <tbody>
@@ -222,12 +248,12 @@ const InvoiceList = () => {
                   <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>
                     <span style={{ background: 'var(--success)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>General</span>
                   </td>
-                  <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>
-                    <button onClick={() => window.print()} style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', margin: '0 auto', cursor: 'pointer', fontSize: '11px' }}>
+                  <td className="no-print" style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>
+                    <button onClick={() => { setSelectedInvoice(inv); setShowViewModal(true); }} style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', margin: '0 auto', cursor: 'pointer', fontSize: '11px' }}>
                        Pos View
                     </button>
                   </td>
-                  <td style={{ textAlign: 'center', padding: '8px' }}>
+                  <td className="no-print" style={{ textAlign: 'center', padding: '8px' }}>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
                       <button onClick={() => navigate('/invoice/add-new')} className="action-btn-sm edit" style={{ background: 'var(--info)', border: 'none', borderRadius: '4px', padding: '4px', color: 'white', cursor: 'pointer' }} title="Edit Invoice">
                         <Edit size={14} />
@@ -248,6 +274,97 @@ const InvoiceList = () => {
           </table>
         </div>
       </div>
+
+      {/* POS / Printable Invoice Modal */}
+      {showViewModal && selectedInvoice && (
+        <div className="printable-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="printable-modal-content" style={{ background: 'white', width: '700px', maxWidth: '95vw', borderRadius: '12px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', maxHeight: '90vh', overflowY: 'auto' }}>
+            
+            <PrintHeader />
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '2px solid #0ea5e9', paddingBottom: '12px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#0f172a' }}>Sales Cash Memo</h3>
+                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '600' }}>Invoice #{selectedInvoice.invoice_id || selectedInvoice.invoiceNo || `INV-${selectedInvoice.id}`}</span>
+              </div>
+              <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#f1f5f9', padding: '6px', borderRadius: '50%', cursor: 'pointer', color: '#64748b' }}>✕</button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px', marginBottom: '20px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <div><strong>Customer Name:</strong> {selectedInvoice.client_name || selectedInvoice.clientName || 'C.CUSTOMER'}</div>
+              <div><strong>Invoice Date:</strong> {selectedInvoice.created_at ? new Date(selectedInvoice.created_at).toLocaleDateString() : (selectedInvoice.date || '-')}</div>
+              <div><strong>Category:</strong> {selectedInvoice.category_id || selectedInvoice.category || 'CASH SELL'}</div>
+              <div><strong>Invoice Status:</strong> <span style={{ color: '#059669', fontWeight: 'bold' }}>PAID</span></div>
+            </div>
+
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px', fontSize: '13px' }}>
+              <thead>
+                <tr style={{ background: '#1e293b', color: 'white' }}>
+                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', width: '40px' }}>SL</th>
+                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'left' }}>Item Details</th>
+                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', width: '60px' }}>Qty</th>
+                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'right', width: '100px' }}>Rate</th>
+                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'right', width: '110px' }}>Total Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedInvoice.items && selectedInvoice.items.length > 0 ? (
+                  selectedInvoice.items.map((item, idx) => (
+                    <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>{idx + 1}</td>
+                      <td style={{ padding: '8px', border: '1px solid #e2e8f0', fontWeight: '500' }}>{item.name || item.product_name}</td>
+                      <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>{item.quantity || 1}</td>
+                      <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right' }}>৳ {Number(item.price || item.sales_price || 0).toFixed(2)}</td>
+                      <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 'bold' }}>৳ {(Number(item.quantity || 1) * Number(item.price || item.sales_price || 0)).toFixed(2)}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>1</td>
+                    <td style={{ padding: '8px', border: '1px solid #e2e8f0', fontWeight: '500' }}>GENERAL APPAREL / GARMENTS ITEM</td>
+                    <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>1</td>
+                    <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right' }}>৳ {Number(selectedInvoice.grand_total || selectedInvoice.billAmount || 0).toFixed(2)}</td>
+                    <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 'bold' }}>৳ {Number(selectedInvoice.grand_total || selectedInvoice.billAmount || 0).toFixed(2)}</td>
+                  </tr>
+                )}
+              </tbody>
+              <tfoot>
+                <tr style={{ background: '#f1f5f9', fontWeight: 'bold' }}>
+                  <td colSpan="4" style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>Total Bill:</td>
+                  <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>৳ {Number(selectedInvoice.grand_total || selectedInvoice.billAmount || 0).toFixed(2)}</td>
+                </tr>
+                <tr style={{ background: '#f1f5f9' }}>
+                  <td colSpan="4" style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>Discount:</td>
+                  <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>৳ {Number(selectedInvoice.discount || 0).toFixed(2)}</td>
+                </tr>
+                <tr style={{ background: '#f1f5f9', fontWeight: 'bold', color: '#059669' }}>
+                  <td colSpan="4" style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>Paid / Received Amount:</td>
+                  <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>৳ {Number(selectedInvoice.receive_amount || selectedInvoice.receiveAmount || selectedInvoice.grand_total || 0).toFixed(2)}</td>
+                </tr>
+              </tfoot>
+            </table>
+
+            {/* Signature Footer */}
+            <div className="print-only" style={{ display: 'none', justifyContent: 'space-between', marginTop: '60px', paddingTop: '20px' }}>
+              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: '12px' }}>
+                Customer Signature
+              </div>
+              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: '12px' }}>
+                Authorized Signature
+              </div>
+            </div>
+
+            <div className="no-print" style={{ textAlign: 'right', marginTop: '16px' }}>
+              <button onClick={() => window.print()} className="btn" style={{ background: 'var(--success)', color: 'white', padding: '10px 24px', borderRadius: '6px', marginRight: '8px', fontWeight: '600' }}>
+                🖨️ Print Memo
+              </button>
+              <button onClick={() => setShowViewModal(false)} className="btn" style={{ background: '#64748b', color: 'white', padding: '10px 20px', borderRadius: '6px' }}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

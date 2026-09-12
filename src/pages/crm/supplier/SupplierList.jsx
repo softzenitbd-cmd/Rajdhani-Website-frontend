@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Users, Plus, PlaySquare, Search, FileSpreadsheet, Printer, RotateCcw, ChevronDown, Eye, Edit, Trash2, DollarSign, FileText, FileBarChart } from 'lucide-react';
+import { ArrowLeft, Users, Plus, FileSpreadsheet, Printer, RotateCcw, ChevronDown, Eye, Edit, Trash2, DollarSign, FileText, FileBarChart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PrintHeader from '../../../components/PrintHeader';
 import { useApi } from '../../../hooks/useApi';
 import { ENDPOINTS } from '../../../api/endpoints';
+import { exportToExcel } from '../../../utils/excelExporter';
 
 const SupplierList = () => {
   const navigate = useNavigate();
   const [activeAction, setActiveAction] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGroup, setSelectedGroup] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [suppliers, setSuppliers] = useState([]);
   const [groups, setGroups] = useState([]);
   
@@ -38,6 +41,8 @@ const SupplierList = () => {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
       if (selectedGroup) params.append('group', selectedGroup);
+      if (fromDate) params.append('from_date', fromDate);
+      if (toDate) params.append('to_date', toDate);
       
       if (params.toString()) {
         url += `?${params.toString()}`;
@@ -59,7 +64,23 @@ const SupplierList = () => {
       fetchSuppliers();
     }, 300);
     return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, selectedGroup]);
+  }, [searchTerm, selectedGroup, fromDate, toDate]);
+
+  const handleExportExcel = () => {
+    const dataToExport = suppliers.map((sup, i) => ({
+      'SL': i + 1,
+      'Supplier Code': sup.supplier_code || sup.code || '-',
+      'Company Name': sup.company_name || sup.name || '-',
+      'Owner Name': sup.owner_name || sup.name || '-',
+      'Group': sup.group || sup.group_name || '-',
+      'Phone': sup.phone || sup.mobile || '-',
+      'Email': sup.email || '-',
+      'Opening Balance': sup.opening_balance || 0,
+      'Current Balance': sup.current_balance || sup.balance || 0,
+      'Status': sup.status ? 'Active' : 'Inactive'
+    }));
+    exportToExcel(dataToExport, 'Supplier_List');
+  };
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
@@ -67,7 +88,7 @@ const SupplierList = () => {
       <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2 className="card-title">SUPPLIER LIST</h2>
         <div className="card-actions">
-          <button className="btn btn-outline" style={{ padding: '6px 12px', background: '#718096', color: 'white' }}>
+          <button onClick={() => navigate(-1)} className="btn btn-outline" style={{ padding: '6px 12px', background: '#718096', color: 'white' }}>
             <ArrowLeft size={14} /> Go Back
           </button>
           <button className="btn btn-outline" style={{ padding: '6px 12px', background: 'var(--table-header-bg)', color: 'white' }} onClick={() => navigate('/crm/supplier-group')}>
@@ -75,9 +96,6 @@ const SupplierList = () => {
           </button>
           <button className="btn btn-primary" onClick={() => navigate('/crm/supplier-create')} style={{ padding: '6px 12px', background: 'var(--success)' }}>
             <Plus size={14} /> Add Supplier
-          </button>
-          <button className="btn btn-primary" style={{ padding: '6px 12px', background: '#ef4444' }}>
-            <span style={{ fontWeight: 'bold' }}>▶ YouTube</span>
           </button>
         </div>
       </div>
@@ -109,10 +127,10 @@ const SupplierList = () => {
             <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>Search By Date</label>
             <div style={{ display: 'flex', gap: '8px' }}>
               <div className="form-input floating-label" style={{ flex: 1, padding: '0 8px' }}>
-                <input type="date" style={{ color: '#94a3b8' }} />
+                <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ color: '#94a3b8' }} />
               </div>
               <div className="form-input floating-label" style={{ flex: 1, padding: '0 8px' }}>
-                <input type="date" style={{ color: '#94a3b8' }} />
+                <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ color: '#94a3b8' }} />
               </div>
             </div>
           </div>
@@ -121,7 +139,7 @@ const SupplierList = () => {
             <button 
               className="btn btn-outline" 
               style={{ height: '48px', width: '100%', background: '#718096', color: 'white', justifyContent: 'center' }}
-              onClick={() => { setSearchTerm(''); setSelectedGroup(''); }}
+              onClick={() => { setSearchTerm(''); setSelectedGroup(''); setFromDate(''); setToDate(''); }}
             >
               Clear Filter
             </button>
@@ -143,13 +161,13 @@ const SupplierList = () => {
             entries
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="btn" style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
+            <button className="btn" onClick={handleExportExcel} style={{ background: '#059669', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px', cursor: 'pointer' }}>
               <FileSpreadsheet size={16} style={{ marginRight: '6px' }} /> Excel
             </button>
             <button className="btn" onClick={() => window.print()} style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
               <Printer size={16} style={{ marginRight: '6px' }} /> Print
             </button>
-            <button className="btn" style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
+            <button onClick={() => window.location.reload()} className="btn" style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
               <RotateCcw size={16} style={{ marginRight: '6px' }} /> Reset
             </button>
           </div>
@@ -257,13 +275,13 @@ const SupplierList = () => {
                         zIndex: 100,
                         textAlign: 'left'
                       }}>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => navigate('/crm/supplier-statement')}><Eye size={14} /> View</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => navigate('/crm/supplier-statement', { state: { supplierId: supplier.id || supplier.uuid } })}><Eye size={14} /> View</div>
                         <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => alert("Edit supplier feature coming soon!")}><Edit size={14} /> Edit</div>
                         <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => alert("Delete supplier feature coming soon!")}><Trash2 size={14} /> Delete</div>
                         <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => navigate('/account/supplier-payment')}><DollarSign size={14} /> Payment</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => navigate('/crm/supplier-statement')}><FileText size={14} /> Payment Report</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}><FileBarChart size={14} /> Purchase Report</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}><FileText size={14} /> Statement</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => navigate('/expense-report/supplier-purchase')}><FileText size={14} /> Payment Report</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}onClick={() => { navigate("/product/purchase/report", { state: { supplierId: supplier.id || supplier.uuid } }); setActiveAction(null); }}><FileBarChart size={14} /> Purchase Report</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}onClick={() => { navigate("/crm/supplier-statement", { state: { supplierId: supplier.id || supplier.uuid } }); setActiveAction(null); }}><FileText size={14} /> Statement</div>
                       </div>
                     )}
                   </td>

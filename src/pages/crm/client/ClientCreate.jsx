@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { User, Briefcase, MapPin, Phone, Mail, Hash, Users, Plus, Settings, List, PlaySquare } from 'lucide-react';
+import { User, MapPin, Phone, Hash, Users, Plus, List } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAppContext } from '../../../context/AppContext';
 import { useToast } from '../../../context/ToastContext';
 import AddOptionModal from '../../../components/AddOptionModal';
 import { useApi } from '../../../hooks/useApi';
@@ -79,17 +78,11 @@ const ClientCreate = () => {
         <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid #e2e8f0' }}>
           <h2 style={{ fontSize: '14px', fontWeight: '800', color: '#1e293b', margin: 0, textTransform: 'uppercase' }}>CLIENT CREATE</h2>
           <div className="card-actions" style={{ display: 'flex', gap: '8px' }}>
-            <button className="btn btn-outline" style={{ padding: '6px 12px', background: '#64748b', color: 'white', border: 'none', borderRadius: '4px' }}>
-              <Settings size={14} />
-            </button>
             <button className="btn btn-outline" onClick={() => navigate('/crm/client-list')} style={{ padding: '6px 12px', background: '#64748b', color: 'white', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <List size={14} /> Client List
             </button>
             <button className="btn btn-outline" style={{ padding: '6px 12px', background: '#64748b', color: 'white', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => setIsGroupModalOpen(true)}>
               <Users size={14} /> Client Group
-            </button>
-            <button className="btn btn-outline" style={{ padding: '6px 12px', background: 'white', color: '#ef4444', border: '1px solid #e2e8f0', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>
-              <PlaySquare size={14} style={{ fill: '#ef4444', color: 'white' }} /> YouTube
             </button>
           </div>
         </div>

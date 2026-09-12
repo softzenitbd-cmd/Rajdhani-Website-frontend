@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, List, Layers, Play, Plus, X, FileText } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { List, Layers, Plus, X, FileText } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
 import AddOptionModal from '../../components/AddOptionModal';
 import { accountingService } from '../../services/accountingService';
@@ -8,6 +8,7 @@ import { crmService } from '../../services/crmService';
 
 const ReceiveCreate = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [clients, setClients] = useState([]);
   const [accounts, setAccounts] = useState([]);
@@ -15,7 +16,7 @@ const ReceiveCreate = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
-    clientId: '',
+    clientId: location.state?.clientId || '',
     category: '',
     date: new Date().toISOString().split('T')[0],
     description: '',
@@ -112,15 +113,11 @@ const ReceiveCreate = () => {
 
           <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>Add New Receive</h2>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button style={{ background: '#818cf8', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer' }}><Settings size={16} /></button>
             <button onClick={() => navigate('/account/receive-list')} style={{ background: '#818cf8', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
               <List size={14} /> Receive List
             </button>
             <button onClick={() => navigate('/settings/income-category')} style={{ background: '#818cf8', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
               <Layers size={14} /> Receive Category
-            </button>
-            <button style={{ background: 'white', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}>
-              <Play size={16} fill="#ef4444" /> YouTube
             </button>
           </div>
         </div>

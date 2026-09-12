@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { Printer, RefreshCcw, Edit, Trash2, Plus, Search, X } from 'lucide-react';
+import { Printer, RefreshCcw, Trash2, Plus, Search, X } from 'lucide-react';
 import { accountingService } from '../../services/accountingService';
+import { exportVisibleTable } from '../../utils/tableExport';
+import { printPage } from '../../utils/printUtils';
 
 const IncomeCategory = () => {
   const { t } = useTranslation();
@@ -113,9 +115,9 @@ const IncomeCategory = () => {
             </form>
 
             <div style={{ display: 'flex', gap: '6px' }}>
-              <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Excel</button>
-              <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>CSV</button>
-              <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>PDF</button>
+              <button onClick={() => exportVisibleTable('xlsx')} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Excel</button>
+              <button onClick={() => exportVisibleTable('csv')} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>CSV</button>
+              <button onClick={() => printPage()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>PDF</button>
               <button onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
                 <Printer size={14} /> Print
               </button>

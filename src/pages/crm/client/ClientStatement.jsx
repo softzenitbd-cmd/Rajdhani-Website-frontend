@@ -1,86 +1,174 @@
-import React from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 import PrintHeader from '../../../components/PrintHeader';
-import { ArrowLeft, Printer, RotateCcw } from 'lucide-react';
+import TableToolbar from '../../../components/TableToolbar';
+import { crmService } from '../../../services/crmService';
+import { accountingService } from '../../../services/accountingService';
+import { useToast } from '../../../context/ToastContext';
+import { toList, fmtDate, money } from '../../../utils/apiHelpers';
 
+/**
+ * Client statement / ledger → /api/accounting/reports/client-ledger/?client_id=&from_date=&to_date=
+ */
 const ClientStatement = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const toast = useToast();
+
+  const [clients, setClients] = useState([]);
+  const [rows, setRows] = useState([]);
+  const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [entries, setEntries] = useState(100);
+  const [filters, setFilters] = useState({
+    client: location.state?.clientId || new URLSearchParams(location.search).get('client') || '',
+    from_date: '',
+    to_date: '',
+  });
+
+  useEffect(() => {
+    crmService.getClients().then((r) => setClients(toList(r))).catch(() => {});
+  }, []);
+
+  const load = async (f = filters) => {
+    try {
+      setLoading(true);
+      const params = {};
+      if (f.from_date) { params.from_date = f.from_date; params.start_date = f.from_date; }
+      if (f.to_date) { params.to_date = f.to_date; params.end_date = f.to_date; }
+      const res = await accountingService.getClientLedger(f.client || undefined, params);
+      const list = toList(res.ledger || res.transactions || res.statement || res);
+      setRows(list);
+      setSummary(Array.isArray(res) ? null : res);
+    } catch (e) {
+      toast.error(e.message || 'Failed to load client statement');
+      setRows([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, [filters.client]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const set = (k, v) => setFilters((p) => ({ ...p, [k]: v }));
+  const clear = () => {
+    const f = { client: '', from_date: '', to_date: '' };
+    setFilters(f);
+    load(f);
+  };
+
+  const selectedClient = clients.find((c) => String(c.id || c.uuid) === String(filters.client));
+
+  // running balance if the backend does not send one
+  let running = Number(summary?.opening_balance || summary?.previous_due || selectedClient?.previous_due || 0);
+  const computed = rows.slice(0, entries).map((r) => {
+    const bill = Number(r.bill ?? r.grand_total ?? r.total ?? 0);
+    const salesReturn = Number(r.sales_return ?? r.return ?? 0);
+    const receive = Number(r.receive ?? r.payment ?? r.amount_received ?? 0);
+    const moneyReturn = Number(r.money_return ?? 0);
+    if (r.balance === undefined) running = running + bill - salesReturn - receive + moneyReturn;
+    return { ...r, _bill: bill, _salesReturn: salesReturn, _receive: receive, _moneyReturn: moneyReturn, _balance: r.balance !== undefined ? Number(r.balance) : running };
+  });
+
+  const totals = computed.reduce((a, r) => ({ bill: a.bill + r._bill, sr: a.sr + r._salesReturn, rec: a.rec + r._receive, mr: a.mr + r._moneyReturn }), { bill: 0, sr: 0, rec: 0, mr: 0 });
+  const closing = computed.length ? computed[computed.length - 1]._balance : Number(summary?.closing_balance || summary?.due || 0);
+
+  const excelData = computed.map((r, i) => ({
+    SL: i + 1, Date: fmtDate(r.date), Product: r.product || r.product_name || r.description || '', Qty: r.quantity ?? r.qty ?? '', Unit: r.unit || '', Price: r.price ?? '',
+    Description: r.description || r.note || '', Bill: r._bill, 'Sales Return': r._salesReturn, Receive: r._receive, 'Money Return': r._moneyReturn, Balance: r._balance,
+  }));
+
+  const th = { padding: '10px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)', whiteSpace: 'nowrap' };
+  const td = { textAlign: 'center', borderRight: '1px solid #e2e8f0', padding: '8px' };
+
   return (
-    <div className="dashboard-content">
+    <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <PrintHeader />
       <div className="chart-card">
+        <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 500, color: 'var(--text-main)', margin: 0 }}>Client Statement</h2>
+          <button onClick={() => navigate('/account/receive-create', { state: { clientId: filters.client } })} style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', borderRadius: '4px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Plus size={16} /> Receive
+          </button>
+        </div>
 
-        {/* Filters */}
-        <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr auto', marginBottom: '24px', alignItems: 'flex-end', gap: '16px' }}>
+        <form className="form-grid no-print" onSubmit={(e) => { e.preventDefault(); load(); }} style={{ gridTemplateColumns: '1fr 1fr auto auto', marginBottom: '24px', alignItems: 'flex-end', gap: '16px' }}>
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>Search By Client</label>
+            <label style={{ fontSize: '12px', fontWeight: 600, marginBottom: '8px' }}>Search By Client</label>
             <div className="form-input floating-label">
-              <select>
-                <option>Select Client</option>
+              <select value={filters.client} onChange={(e) => set('client', e.target.value)}>
+                <option value="">All Clients</option>
+                {clients.map((c) => <option key={c.id || c.uuid} value={c.id || c.uuid}>{c.name}{c.phone ? ` (${c.phone})` : ''}</option>)}
               </select>
             </div>
           </div>
-
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>Search By Date</label>
+            <label style={{ fontSize: '12px', fontWeight: 600, marginBottom: '8px' }}>Search By Date</label>
             <div style={{ display: 'flex', gap: '12px' }}>
-              <div className="form-input floating-label" style={{ flex: 1 }}>
-                <input type="date" />
-              </div>
-              <div className="form-input floating-label" style={{ flex: 1 }}>
-                <input type="date" />
-              </div>
+              <div className="form-input floating-label" style={{ flex: 1 }}><input type="date" value={filters.from_date} onChange={(e) => set('from_date', e.target.value)} /></div>
+              <div className="form-input floating-label" style={{ flex: 1 }}><input type="date" value={filters.to_date} onChange={(e) => set('to_date', e.target.value)} /></div>
             </div>
           </div>
+          <button type="submit" style={{ height: '48px', padding: '0 28px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}>Search</button>
+          <button type="button" onClick={clear} style={{ height: '48px', padding: '0 28px', background: '#718096', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Clear Filter</button>
+        </form>
 
-          <div className="form-group">
-            <button className="btn btn-outline" style={{ height: '48px', padding: '0 32px', background: '#718096', color: 'white', border: 'none' }}>
-              Clear Filter
-            </button>
+        {selectedClient && (
+          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', marginBottom: '16px', padding: '12px 16px', background: '#f8fafc', borderRadius: '6px', fontSize: '13px' }}>
+            <div><b>Client:</b> {selectedClient.name}</div>
+            {selectedClient.phone && <div><b>Phone:</b> {selectedClient.phone}</div>}
+            {selectedClient.address && <div><b>Address:</b> {selectedClient.address}</div>}
+            <div style={{ marginLeft: 'auto' }}><b>Current Due:</b> <span style={{ color: '#dc2626', fontWeight: 700 }}>৳ {money(selectedClient.due ?? selectedClient.current_balance ?? closing)}</span></div>
           </div>
-        </div>
+        )}
 
-        {/* Table Controls */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
-            Show 
-            <select style={{ margin: '0 8px', padding: '4px', border: '1px solid var(--secondary)', borderRadius: '4px' }}>
-              <option>100</option>
-            </select>
-            entries
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="btn" onClick={() => window.print()} style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}><Printer size={16} style={{ marginRight: '6px' }}/> Print</button>
-            <button className="btn" style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}><RotateCcw size={16} style={{ marginRight: '6px' }}/> Reset</button>
-          </div>
-        </div>
+        <TableToolbar entries={entries} setEntries={setEntries} total={rows.length} excelData={excelData} excelName={`Client_Statement_${selectedClient?.name || 'All'}`} onReload={() => load()} onReset={clear} />
 
-        {/* Table */}
         <div style={{ overflowX: 'auto', border: '1px solid var(--secondary)', borderRadius: '4px', marginBottom: '16px' }}>
-          <table className="custom-table" style={{ borderCollapse: 'collapse', width: '100%', minWidth: '1200px' }}>
+          <table className="custom-table" style={{ borderCollapse: 'collapse', width: '100%', minWidth: '1100px' }}>
             <thead>
-              <tr>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>SL ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>DATE ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>PRODUCT ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>QTY ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>UNIT ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>PRICE ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>DESCRIPTION ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>LABOUR COST ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>BILL ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>SALES RETURN ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>RECEIVE ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>MONEY RETURN ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center' }}>BALANCE ↕</th>
+              <tr style={{ background: '#718096', color: 'white' }}>
+                <th style={th}>SL</th><th style={th}>DATE</th><th style={th}>PRODUCT / DETAILS</th><th style={th}>QTY</th><th style={th}>UNIT</th><th style={th}>PRICE</th>
+                <th style={th}>DESCRIPTION</th><th style={th}>BILL</th><th style={th}>SALES RETURN</th><th style={th}>RECEIVE</th><th style={th}>MONEY RETURN</th><th style={{ ...th, borderRight: 'none' }}>BALANCE</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td colSpan="13" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
-                  Processing...
-                </td>
-              </tr>
+              {loading ? (
+                <tr><td colSpan="12" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>Loading statement...</td></tr>
+              ) : computed.length === 0 ? (
+                <tr><td colSpan="12" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No transactions found</td></tr>
+              ) : (
+                computed.map((r, i) => (
+                  <tr key={r.id || i}>
+                    <td style={td}>{i + 1}</td>
+                    <td style={td}>{fmtDate(r.date)}</td>
+                    <td style={{ ...td, textAlign: 'left' }}>{r.product || r.product_name || r.invoice_id || r.type || r.transaction_type || '-'}</td>
+                    <td style={td}>{r.quantity ?? r.qty ?? '-'}</td>
+                    <td style={td}>{r.unit || '-'}</td>
+                    <td style={td}>{r.price !== undefined ? money(r.price) : '-'}</td>
+                    <td style={{ ...td, textAlign: 'left', color: '#475569' }}>{r.description || r.note || '-'}</td>
+                    <td style={td}>{money(r._bill)}</td>
+                    <td style={td}>{money(r._salesReturn)}</td>
+                    <td style={{ ...td, color: '#059669' }}>{money(r._receive)}</td>
+                    <td style={td}>{money(r._moneyReturn)}</td>
+                    <td style={{ ...td, borderRight: 'none', fontWeight: 700, color: r._balance > 0 ? '#dc2626' : '#059669' }}>{money(r._balance)}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
+            {computed.length > 0 && (
+              <tfoot>
+                <tr style={{ background: '#f1f5f9', fontWeight: 700 }}>
+                  <td colSpan="7" style={{ ...td, textAlign: 'right' }}>TOTAL</td>
+                  <td style={td}>{money(totals.bill)}</td>
+                  <td style={td}>{money(totals.sr)}</td>
+                  <td style={td}>{money(totals.rec)}</td>
+                  <td style={td}>{money(totals.mr)}</td>
+                  <td style={{ ...td, borderRight: 'none', color: '#dc2626' }}>{money(closing)}</td>
+                </tr>
+              </tfoot>
+            )}
           </table>
         </div>
       </div>

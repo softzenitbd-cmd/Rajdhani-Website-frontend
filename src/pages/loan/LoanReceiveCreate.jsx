@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { List, Plus, Calendar, DollarSign, FileText, MessageSquare } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { loanService } from '../../services/loanService';
 import { accountingService } from '../../services/accountingService';
 import PrintHeader from '../../components/PrintHeader';
@@ -10,9 +10,10 @@ import AddOptionModal from '../../components/AddOptionModal';
 const LoanReceiveCreate = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [formData, setFormData] = useState({
-    clientId: '',
+    clientId: location.state?.clientId || '',
     accountId: '',
     date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
     amount: '',
@@ -91,11 +92,6 @@ const LoanReceiveCreate = () => {
           <div className="header-actions">
             <button className="btn-gray-outline" onClick={() => navigate('/loan/receive')}>
               <List size={16} /> List
-            </button>
-            <button className="btn-youtube" style={{ border: '1px solid #e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', background: 'white', color: 'black', padding: '6px 12px', fontSize: '14px', fontWeight: 'bold' }}>
-                <span style={{ backgroundColor: 'red', color: 'white', borderRadius: '4px', padding: '0 4px', fontSize: '10px', marginRight: '6px' }}>▶</span> YouTube
-              </div>
             </button>
           </div>
         </div>

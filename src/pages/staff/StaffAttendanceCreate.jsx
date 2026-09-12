@@ -1,114 +1,181 @@
-import React from 'react';
-import { useTranslation } from 'react-i18next';
-import PrintHeader from '../../components/PrintHeader';
-import { Calendar, Clock, AlertCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Calendar, Save } from 'lucide-react';
+import staffApi from '../../api/staffApi';
+import { useToast } from '../../context/ToastContext';
+import { toList, today } from '../../utils/apiHelpers';
+
+const STATUS = [
+  { value: 'present', label: 'Present' },
+  { value: 'absent', label: 'Absent' },
+  { value: 'late', label: 'Late' },
+  { value: 'leave', label: 'Leave' },
+];
+
+const nowTime = () => {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+};
 
 const StaffAttendanceCreate = () => {
-  const { t } = useTranslation();
+  const toast = useToast();
+  const [date, setDate] = useState(today());
+  const [staff, setStaff] = useState([]);
+  const [rows, setRows] = useState({}); // staffId -> {status, in_time, out_time}
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const staffList = [
-    { id: 1, name: 'Admin', phone: '0171691235001727902498' },
-    { id: 2, name: 'RAJDHANI 2', phone: '' },
-    { id: 3, name: 'RAJDHANI 3', phone: '' },
-    { id: 4, name: 'RAJDHANI 4', phone: '' },
-    { id: 5, name: 'RAJDHANI 1', phone: '' },
-    { id: 6, name: 'ROFCY // NORANDO PUR', phone: '01608474079' },
-    { id: 7, name: '0', phone: '01912897719' },
-    { id: 8, name: 'FAIJUR', phone: '01763773919' },
-    { id: 9, name: 'HUCAYEN FOYLA', phone: '01920902351' },
-    { id: 10, name: 'NOYON // BOLIDAPARA', phone: '' },
-    { id: 11, name: 'SHOHAG // BOLIDAPARA', phone: '' },
-    { id: 12, name: '0', phone: '' },
-    { id: 13, name: 'SHAIB // KEYABAGAN', phone: '' },
-    { id: 14, name: 'TOSLIM VIPO', phone: '' },
-    { id: 15, name: 'RAJOYAN', phone: '' },
-    { id: 16, name: 'SUZON // SUNDORPUR', phone: '' },
-    { id: 17, name: '0', phone: '' },
-    { id: 18, name: '0', phone: '' },
-    { id: 19, name: 'SABBIR // HELAI', phone: '' }
-  ];
+  useEffect(() => {
+    (async () => {
+      try {
+        const list = toList(await staffApi.getStaffList());
+        setStaff(list);
+        const init = {};
+        list.forEach((s) => {
+          init[s.id || s.uuid] = { status: 'present', in_time: nowTime(), out_time: '' };
+        });
+        setRows(init);
+      } catch (e) {
+        toast.error(e.message || 'Failed to load staff');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Preload existing attendance for the chosen date so the sheet can be corrected
+  useEffect(() => {
+    if (!date || staff.length === 0) return;
+    staffApi
+      .getStaffAttendance({ date, from_date: date, to_date: date })
+      .then((r) => {
+        const existing = toList(r);
+        if (!existing.length) return;
+        setRows((prev) => {
+          const next = { ...prev };
+          existing.forEach((a) => {
+            const sid = a.staff?.id || a.staff_id || a.staff;
+            if (next[sid]) {
+              next[sid] = {
+                status: (a.status || a.attendance || 'present').toString().toLowerCase(),
+                in_time: a.in_time ? String(a.in_time).slice(0, 5) : '',
+                out_time: a.out_time ? String(a.out_time).slice(0, 5) : '',
+              };
+            }
+          });
+          return next;
+        });
+      })
+      .catch(() => {});
+  }, [date, staff]);
+
+  const update = (sid, k, v) => setRows((p) => ({ ...p, [sid]: { ...p[sid], [k]: v } }));
+
+  const markAll = (status) => {
+    setRows((p) => {
+      const n = {};
+      Object.keys(p).forEach((k) => { n[k] = { ...p[k], status }; });
+      return n;
+    });
+  };
+
+  const save = async () => {
+    if (!date) return toast.error('Select a date');
+    const payload = staff.map((s) => {
+      const sid = s.id || s.uuid;
+      const r = rows[sid] || {};
+      return {
+        staff: sid,
+        date,
+        status: r.status || 'present',
+        in_time: r.in_time || null,
+        out_time: r.out_time || null,
+      };
+    });
+    try {
+      setSaving(true);
+      // Try bulk first; fall back to one request per staff if the backend only accepts single objects
+      try {
+        await staffApi.createStaffAttendance(payload);
+      } catch (bulkErr) {
+        if (bulkErr.status && bulkErr.status !== 400) throw bulkErr;
+        await Promise.all(payload.map((p) => staffApi.createStaffAttendance(p)));
+      }
+      toast.success('Attendance saved');
+    } catch (e) {
+      toast.error(e.message || 'Failed to save attendance');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const cell = { padding: '10px 14px', borderRight: '1px solid #e2e8f0', fontSize: '13px', color: 'var(--label-color)' };
+  const timeInput = { border: '1px solid #e2e8f0', borderRadius: '4px', padding: '6px', width: '100%' };
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
-      
       <div className="premium-card">
-        {/* Header */}
-        <div className="premium-header" style={{ padding: '16px 24px', background: 'white', borderBottom: '1px solid #e2e8f0' }}>
+        <div className="premium-header" style={{ padding: '16px 24px', background: 'white', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
           <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold', textTransform: 'uppercase' }}>Add Attendance</h2>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <button type="button" onClick={() => markAll('present')} style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>All Present</button>
+            <button type="button" onClick={() => markAll('absent')} style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>All Absent</button>
+          </div>
         </div>
 
-        {/* Body */}
         <div className="premium-body" style={{ background: 'white', padding: '24px' }}>
-        <PrintHeader />
-          
-          {/* Top Filter */}
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
             <div style={{ position: 'relative', width: '300px' }}>
               <div style={{ position: 'absolute', top: '-10px', left: '16px', background: 'var(--info)', color: 'white', fontSize: '11px', padding: '2px 8px', borderRadius: '4px', zIndex: 1, display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <Calendar size={12} /> Date
               </div>
-              <input 
-                type="text" 
-                defaultValue="25/08/2026"
-                style={{ width: '100%', padding: '12px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none', color: '#000', textAlign: 'center' }} 
-              />
+              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ width: '100%', padding: '12px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none', textAlign: 'center' }} />
             </div>
           </div>
 
-          {/* Attendance Table */}
-          <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e2e8f0' }}>
-            <thead>
-              <tr style={{ background: '#94a3b8', color: 'white', textAlign: 'left', textTransform: 'uppercase', fontSize: '12px' }}>
-                <th style={{ padding: '12px 16px', borderRight: '1px solid #e2e8f0' }}>STAFF NAME</th>
-                <th style={{ padding: '12px 16px', borderRight: '1px solid #e2e8f0' }}>PHONE NUMBER</th>
-                <th style={{ padding: '12px 16px', borderRight: '1px solid #e2e8f0' }}>IN TIME</th>
-                <th style={{ padding: '12px 16px', borderRight: '1px solid #e2e8f0' }}>OUT TIME</th>
-                <th style={{ padding: '12px 16px' }}>ATTENDANCE</th>
-              </tr>
-            </thead>
-            <tbody>
-              {staffList.map((staff, index) => (
-                <tr key={staff.id} style={{ borderBottom: '1px solid #e2e8f0', background: index % 2 === 0 ? 'var(--card-header-bg)' : 'white' }}>
-                  <td style={{ padding: '12px 16px', borderRight: '1px solid #e2e8f0', fontSize: '13px', color: 'var(--label-color)' }}>
-                    {staff.name}
-                  </td>
-                  <td style={{ padding: '12px 16px', borderRight: '1px solid #e2e8f0', fontSize: '13px', color: 'var(--label-color)' }}>
-                    {staff.phone}
-                  </td>
-                  <td style={{ padding: '12px 16px', borderRight: '1px solid #e2e8f0', fontSize: '13px', color: 'var(--label-color)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span>12:25:29 PM</span>
-                      <Clock size={14} color="#94a3b8" />
-                    </div>
-                  </td>
-                  <td style={{ padding: '12px 16px', borderRight: '1px solid #e2e8f0', fontSize: '13px', color: 'var(--label-color)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span>12:25:29 PM</span>
-                      <Clock size={14} color="#94a3b8" />
-                    </div>
-                  </td>
-                  <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--label-color)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <AlertCircle size={14} color="#94a3b8" />
-                      <select style={{ border: 'none', background: 'transparent', outline: 'none', color: 'var(--label-color)', cursor: 'pointer', appearance: 'none', width: '100%' }}>
-                        <option>Absence</option>
-                        <option>Present</option>
-                        <option>Late</option>
-                      </select>
-                    </div>
-                  </td>
+          <div className="table-responsive">
+            <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e2e8f0' }}>
+              <thead>
+                <tr style={{ background: '#94a3b8', color: 'white', textAlign: 'left', textTransform: 'uppercase', fontSize: '12px' }}>
+                  <th style={cell}>STAFF NAME</th>
+                  <th style={cell}>PHONE</th>
+                  <th style={{ ...cell, width: '140px' }}>IN TIME</th>
+                  <th style={{ ...cell, width: '140px' }}>OUT TIME</th>
+                  <th style={{ ...cell, width: '150px', borderRight: 'none' }}>ATTENDANCE</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Save Button */}
-          <div style={{ textAlign: 'center', marginTop: '24px' }}>
-            <button className="btn-primary" style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', border: 'none', borderRadius: '4px', fontSize: '14px', cursor: 'pointer' }}>
-              Save Attendance
-            </button>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>Loading staff...</td></tr>
+                ) : staff.length === 0 ? (
+                  <tr><td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>No staff found. Add staff first.</td></tr>
+                ) : (
+                  staff.map((s, index) => {
+                    const sid = s.id || s.uuid;
+                    const r = rows[sid] || {};
+                    return (
+                      <tr key={sid} style={{ borderBottom: '1px solid #e2e8f0', background: index % 2 === 0 ? 'var(--card-header-bg)' : 'white' }}>
+                        <td style={cell}>{s.name || s.full_name}</td>
+                        <td style={cell}>{s.phone || '-'}</td>
+                        <td style={cell}><input type="time" value={r.in_time || ''} onChange={(e) => update(sid, 'in_time', e.target.value)} style={timeInput} /></td>
+                        <td style={cell}><input type="time" value={r.out_time || ''} onChange={(e) => update(sid, 'out_time', e.target.value)} style={timeInput} /></td>
+                        <td style={{ ...cell, borderRight: 'none' }}>
+                          <select value={r.status || 'present'} onChange={(e) => update(sid, 'status', e.target.value)} style={{ ...timeInput, fontWeight: 600, color: r.status === 'absent' ? '#b91c1c' : r.status === 'late' ? '#b45309' : '#166534' }}>
+                            {STATUS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                          </select>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
 
+          <div style={{ textAlign: 'center', marginTop: '24px' }}>
+            <button onClick={save} disabled={saving || staff.length === 0} style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', border: 'none', borderRadius: '4px', fontSize: '14px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', opacity: saving ? 0.7 : 1 }}>
+              <Save size={16} /> {saving ? 'Saving...' : 'Save Attendance'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

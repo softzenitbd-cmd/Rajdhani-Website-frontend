@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import PrintHeader from '../../../components/PrintHeader';
 import { Printer, RotateCcw, Plus } from 'lucide-react';
 import { useApi } from '../../../hooks/useApi';
@@ -9,13 +9,14 @@ import { ENDPOINTS } from '../../../api/endpoints';
 const SupplierStatement = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { get, loading } = useApi();
 
   const [statementData, setStatementData] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
 
   const [filters, setFilters] = useState({
-    supplier: '',
+    supplier: location.state?.supplierId || '',
     startDate: '',
     endDate: ''
   });

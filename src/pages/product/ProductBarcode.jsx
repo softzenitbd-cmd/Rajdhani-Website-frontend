@@ -50,22 +50,8 @@ const BarcodeSticker = ({ barcodeValue, name, price }) => {
 const ProductBarcode = () => {
   const { t } = useTranslation();
 
-  const defaultProducts = [
-    { id: '1', name: 'BATIK PRINT ORNA 380', barcode: '18647', sales_price: '380' },
-    { id: '2', name: 'BR ORNA 380', barcode: '18646', sales_price: '380' },
-    { id: '3', name: 'BR ORNA 500', barcode: '18645', sales_price: '500' },
-    { id: '4', name: 'SAB INDIA KANI SOFT', barcode: '18644', sales_price: '2580' },
-    { id: '5', name: 'SAB INDIA KANI SHAREE', barcode: '18643', sales_price: '2380' },
-    { id: '6', name: 'NS INDIA KANI SHAREE', barcode: '18642', sales_price: '2450' },
-    { id: '7', name: 'DP HEZAB RIMON', barcode: '18641', sales_price: '550' },
-    { id: '8', name: 'FABRIC T-SHIRT 2026', barcode: 'TS-101', sales_price: '450' },
-    { id: '9', name: 'PREMIUM DENIM JEANS', barcode: 'DJ-202', sales_price: '1200' },
-    { id: '10', name: 'COTTON CASUAL SHIRT', barcode: 'CS-303', sales_price: '850' },
-    { id: '11', name: 'LADIES THREE PIECE', barcode: 'TP-404', sales_price: '1650' },
-    { id: '12', name: 'GENTS PANJABI', barcode: 'PJ-505', sales_price: '1450' }
-  ];
 
-  const [products, setProducts] = useState(defaultProducts);
+  const [products, setProducts] = useState([]);
   const [selectedProductId, setSelectedProductId] = useState('');
   const [quantity, setQuantity] = useState(10);
   const [generatedStickers, setGeneratedStickers] = useState([]);
@@ -75,9 +61,7 @@ const ProductBarcode = () => {
       try {
         const res = await productService.getProducts().catch(() => null);
         const list = Array.isArray(res) ? res : (res?.results || []);
-        const localProducts = JSON.parse(localStorage.getItem('rajdhani_custom_products') || '[]');
-        
-        const combined = [...localProducts, ...(list.length > 0 ? list : []), ...defaultProducts];
+        const combined = list;
 
         // Deduplicate items by ID / Name
         const unique = [];
@@ -93,8 +77,7 @@ const ProductBarcode = () => {
         setProducts(unique);
       } catch (err) {
         console.error("Error fetching products for barcode:", err);
-        const localProducts = JSON.parse(localStorage.getItem('rajdhani_custom_products') || '[]');
-        setProducts([...localProducts, ...defaultProducts]);
+        setProducts([]);
       }
     };
     fetchProducts();

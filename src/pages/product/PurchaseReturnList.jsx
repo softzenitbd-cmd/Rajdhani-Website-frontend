@@ -5,25 +5,14 @@ import { RotateCcw, Edit, Trash2, Eye, Plus, RefreshCw, Download, X } from 'luci
 import { useNavigate } from 'react-router-dom';
 import { purchaseService } from '../../services/purchaseService';
 import { crmService } from '../../services/crmService';
+import { exportToExcel } from '../../utils/excelExporter';
 
 const PurchaseReturnList = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const defaultReturns = [
-    { id: 1, date: '25 Aug 2026', invoice: 'RET-1001', supplier: 'SHAJATPUR HAT', total: '1370.00' },
-    { id: 2, date: '18 Aug 2026', invoice: 'RET-1002', supplier: 'MOKKA TOLY', total: '35490.00' },
-    { id: 3, date: '09 Aug 2026', invoice: 'RET-1003', supplier: 'LEG FASHION', total: '1650.00' },
-    { id: 4, date: '09 Aug 2026', invoice: 'RET-1004', supplier: 'POD SHATI SHOES', total: '550.00' },
-    { id: 5, date: '09 Aug 2026', invoice: 'RET-1005', supplier: 'JUBILEE GALLERY SHOES', total: '950.00' },
-    { id: 6, date: '27 Jul 2026', invoice: 'RET-1006', supplier: 'NEW DUBAI BORKA HOUSE 25', total: '4800.00' },
-    { id: 7, date: '27 Jul 2026', invoice: 'RET-1007', supplier: 'POLLAMA FASHION 3PCES', total: '13700.00' },
-    { id: 8, date: '27 Jul 2026', invoice: 'RET-1008', supplier: 'MASUD THREE PEACE', total: '27650.00' },
-    { id: 9, date: '27 Jul 2026', invoice: 'RET-1009', supplier: 'DIPA ORANA', total: '780.00' },
-    { id: 10, date: '25 Jul 2026', invoice: 'RET-1010', supplier: 'FASHION PLUS/FOYSAL', total: '1630.00' }
-  ];
 
-  const [returns, setReturns] = useState(defaultReturns);
+  const [returns, setReturns] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedReturn, setSelectedReturn] = useState(null);
@@ -51,13 +40,12 @@ const PurchaseReturnList = () => {
         setSuppliers(sList);
       }
 
-      const localReturns = JSON.parse(localStorage.getItem('rajdhani_purchase_returns') || '[]');
-      let apiList = [];
+       let apiList = [];
       if (returnsRes) {
         apiList = Array.isArray(returnsRes) ? returnsRes : (returnsRes?.results || []);
       }
 
-      const combined = [...localReturns, ...apiList];
+      const combined = apiList;
       if (combined.length > 0) {
         setReturns(combined.map(item => ({
           id: item.id,
@@ -68,11 +56,11 @@ const PurchaseReturnList = () => {
           items: item.items || []
         })));
       } else {
-        setReturns(defaultReturns);
+        setReturns([]);
       }
     } catch (err) {
       console.error(err);
-      setReturns(defaultReturns);
+      setReturns([]);
     } finally {
       setLoading(false);
     }
@@ -100,29 +88,24 @@ const PurchaseReturnList = () => {
   const handleDelete = async (id) => {
     if (!window.confirm(`Are you sure you want to delete return #${id}?`)) return;
     try {
-      await purchaseService.deletePurchaseReturn(id).catch(() => null);
+      await purchaseService.deletePurchaseReturn(id);
+      setReturns(prev => prev.filter(r => String(r.id) !== String(id)));
+      alert(`Return #${id} deleted successfully.`);
     } catch (err) {
-      console.warn("API delete error:", err);
+      console.error("API delete error:", err);
+      alert(err?.message || 'Failed to delete return.');
     }
-    // Update local state and localStorage
-    setReturns(prev => prev.filter(r => String(r.id) !== String(id)));
-    const localReturns = JSON.parse(localStorage.getItem('rajdhani_purchase_returns') || '[]');
-    const updatedLocal = localReturns.filter(r => String(r.id) !== String(id));
-    localStorage.setItem('rajdhani_purchase_returns', JSON.stringify(updatedLocal));
-    alert(`Return #${id} deleted successfully.`);
   };
 
   const handleExportExcel = () => {
-    const headers = ['ID NO,DATE,INVOICE,SUPPLIER,TOTAL'];
-    const rows = filteredReturns.map(r => `${r.id},"${r.date}","${r.invoice}","${r.supplier}",${r.total}`);
-    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `purchase_returns_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const dataToExport = filteredReturns.map((r, index) => ({
+      'SL': index + 1,
+      'Date': r.date,
+      'Invoice No': r.invoice,
+      'Supplier Name': r.supplier,
+      'Total Amount (BDT)': r.total
+    }));
+    exportToExcel(dataToExport, 'Purchase_Return_List');
   };
 
   const filteredReturns = returns.filter(r => {
@@ -314,42 +297,81 @@ const PurchaseReturnList = () => {
 
       {/* View Detail Modal */}
       {showViewModal && selectedReturn && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'white', width: '600px', borderRadius: '8px', padding: '24px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>Purchase Return Invoice #{selectedReturn.invoice}</h3>
-              <button onClick={() => setShowViewModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}><X size={20} /></button>
+        <div className="printable-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="printable-modal-content" style={{ background: 'white', width: '700px', maxWidth: '95vw', borderRadius: '12px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', maxHeight: '90vh', overflowY: 'auto' }}>
+            
+            {/* Header / Brand Banner for Print & View */}
+            <PrintHeader />
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '2px solid #0ea5e9', paddingBottom: '12px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#0f172a' }}>Purchase Return Voucher</h3>
+                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '600' }}>Invoice #{selectedReturn.invoice}</span>
+              </div>
+              <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#f1f5f9', padding: '6px', borderRadius: '50%', cursor: 'pointer', color: '#64748b' }}><X size={20} /></button>
             </div>
-            <div style={{ fontSize: '14px', lineHeight: '1.6', marginBottom: '16px' }}>
-              <p><strong>Supplier:</strong> {selectedReturn.supplier}</p>
-              <p><strong>Date:</strong> {selectedReturn.date}</p>
-              <p><strong>Total Amount:</strong> ৳ {selectedReturn.total}</p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px', marginBottom: '20px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <div><strong>Supplier Name:</strong> {selectedReturn.supplier}</div>
+              <div><strong>Return Date:</strong> {selectedReturn.date}</div>
+              <div><strong>Invoice Number:</strong> {selectedReturn.invoice}</div>
+              <div><strong>Grand Total:</strong> <span style={{ color: '#ef4444', fontWeight: 'bold' }}>৳ {selectedReturn.total}</span></div>
             </div>
-            {selectedReturn.items && selectedReturn.items.length > 0 && (
-              <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '16px', fontSize: '13px' }}>
+
+            {selectedReturn.items && selectedReturn.items.length > 0 ? (
+              <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px', fontSize: '13px' }}>
                 <thead>
-                  <tr style={{ background: '#f1f5f9' }}>
-                    <th style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'left' }}>Product</th>
-                    <th style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>Qty</th>
-                    <th style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right' }}>Price</th>
+                  <tr style={{ background: '#1e293b', color: 'white' }}>
+                    <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', width: '40px' }}>SL</th>
+                    <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'left' }}>Product Name</th>
+                    <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', width: '60px' }}>Qty</th>
+                    <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'right', width: '100px' }}>Rate</th>
+                    <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'right', width: '110px' }}>Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {selectedReturn.items.map((item, idx) => (
-                    <tr key={idx}>
-                      <td style={{ padding: '8px', border: '1px solid #e2e8f0' }}>{item.name}</td>
+                    <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>{idx + 1}</td>
+                      <td style={{ padding: '8px', border: '1px solid #e2e8f0', fontWeight: '500' }}>{item.name}</td>
                       <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>{item.quantity}</td>
-                      <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right' }}>৳ {item.buyingPrice || item.buying_price}</td>
+                      <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right' }}>৳ {(Number(item.buyingPrice || item.buying_price) || 0).toFixed(2)}</td>
+                      <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 'bold' }}>৳ {((Number(item.quantity) || 1) * (Number(item.buyingPrice || item.buying_price) || 0)).toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>
+                <tfoot>
+                  <tr style={{ background: '#f1f5f9', fontWeight: 'bold' }}>
+                    <td colSpan="2" style={{ padding: '10px', textAlign: 'right', border: '1px solid #cbd5e1' }}>Total Amount</td>
+                    <td style={{ padding: '10px', textAlign: 'center', border: '1px solid #cbd5e1' }}>
+                      {selectedReturn.items.reduce((s, i) => s + (Number(i.quantity) || 0), 0)}
+                    </td>
+                    <td style={{ border: '1px solid #cbd5e1' }}></td>
+                    <td style={{ padding: '10px', textAlign: 'right', border: '1px solid #cbd5e1', color: '#059669', fontSize: '14px' }}>৳ {selectedReturn.total}</td>
+                  </tr>
+                </tfoot>
               </table>
+            ) : (
+              <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px', marginBottom: '24px', textAlign: 'center', color: '#64748b' }}>
+                Total Return Value: <strong>৳ {selectedReturn.total}</strong>
+              </div>
             )}
-            <div style={{ textAlign: 'right' }}>
-              <button onClick={() => window.print()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '8px 16px', borderRadius: '4px', marginRight: '8px' }}>
-                Print
+
+            {/* Signature Footer for Print */}
+            <div className="print-only" style={{ display: 'none', justifyContent: 'space-between', marginTop: '60px', paddingTop: '20px' }}>
+              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: '12px' }}>
+                Supplier / Receiver Signature
+              </div>
+              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: '12px' }}>
+                Authorized Signature
+              </div>
+            </div>
+
+            <div className="no-print" style={{ textAlign: 'right', marginTop: '16px' }}>
+              <button onClick={() => window.print()} className="btn" style={{ background: 'var(--success)', color: 'white', padding: '10px 24px', borderRadius: '6px', marginRight: '8px', fontWeight: '600' }}>
+                🖨️ Print Memo
               </button>
-              <button onClick={() => setShowViewModal(false)} className="btn" style={{ background: 'var(--text-muted)', color: 'white', padding: '8px 16px', borderRadius: '4px' }}>
+              <button onClick={() => setShowViewModal(false)} className="btn" style={{ background: '#64748b', color: 'white', padding: '10px 20px', borderRadius: '6px' }}>
                 Close
               </button>
             </div>

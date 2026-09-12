@@ -209,10 +209,6 @@ export const accountingService = {
   updateStaffPaymentStatus: async (expenseId, status = true) => {
     return await apiClient.patch(`${ENDPOINTS.ACCOUNTING_EXPENSES}${expenseId}/`, { status });
   },
-
-  bulkGeneratePayroll: async (data) => {
-    return await apiClient.post(ENDPOINTS.ACCOUNTING_STAFF_PAYMENTS_GENERATE, data);
-  }
 };
 
 export default accountingService;

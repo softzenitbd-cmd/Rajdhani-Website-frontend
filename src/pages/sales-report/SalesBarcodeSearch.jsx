@@ -23,11 +23,6 @@ const SalesBarcodeSearch = () => {
     to_date: ''
   });
 
-  const dummyData = [
-    { sl: 1, date: '25 Apr 2024', voucher: '25', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'S VOIL 70', barcode: '12', unit: 'GOZ', qty: 5, price: 68.00, total: 340, receive: 314.50, due: 0, profit: 70.00 },
-    { sl: 2, date: '25 Apr 2024', voucher: '26', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'THREE PIECE', barcode: '355', unit: 'PEACE', qty: 1, price: 1590.00, total: 1590, receive: 1590, due: 0, profit: 340.00 },
-    { sl: 3, date: '25 Apr 2024', voucher: '27', client: 'RANIG CUSTOMER 2024 | 01 | ALL', product: 'BORKA', barcode: '254', unit: 'PEACE', qty: 1, price: 1250.00, total: 1250, receive: 1250, due: 0, profit: 250.00 }
-  ];
 
   const fetchPrerequisites = async () => {
     try {
@@ -47,10 +42,10 @@ const SalesBarcodeSearch = () => {
       setLoading(true);
       const res = await saleService.getSalesReport(filters);
       const data = Array.isArray(res) ? res : (res?.results || []);
-      setReports(data.length > 0 ? data : dummyData);
+      setReports(data);
     } catch (err) {
       console.error("Error fetching sales barcode search report:", err);
-      setReports(dummyData);
+      setReports([]);
     } finally {
       setLoading(false);
     }
@@ -97,11 +92,6 @@ const SalesBarcodeSearch = () => {
       <div className="premium-card">
         {/* Banner */}
         <div style={{ padding: '0', background: 'white', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>
-          <img 
-            src="https://via.placeholder.com/1200x150?text=Rajdhani+Garments+Banner" 
-            alt="Rajdhani Garments" 
-            style={{ width: '100%', height: 'auto', maxHeight: '150px', objectFit: 'cover' }}
-          />
           <h2 style={{ fontSize: '18px', fontWeight: 'bold', padding: '16px 0', margin: '0' }}>Sales Report</h2>
         </div>
 

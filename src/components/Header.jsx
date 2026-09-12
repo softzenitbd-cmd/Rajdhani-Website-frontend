@@ -1,18 +1,96 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Menu, Calculator, PlusCircle, User, Lock, Shield, UserPlus, Settings, Pin, Building, Server, LogOut } from 'lucide-react';
+import { Menu, Calculator, PlusCircle, User, Lock, Shield, UserPlus, Settings, Pin, Building, Server, LogOut, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { forceLogout } from '../api/apiClient';
+import { settingService } from '../services/settingService';
+import { readShortcuts, SHORTCUT_EVENT } from '../utils/shortcuts';
+
+// Small pop-up calculator used from the header
+const CalculatorPopup = ({ onClose }) => {
+  const [expr, setExpr] = useState('');
+  const [result, setResult] = useState('');
+
+  const evaluate = () => {
+    try {
+      if (!/^[\d+\-*/().%\s]+$/.test(expr)) throw new Error('bad');
+      // eslint-disable-next-line no-new-func
+      const val = Function(`"use strict"; return (${expr.replace(/%/g, '/100')})`)();
+      setResult(Number.isFinite(val) ? String(+val.toFixed(4)) : 'Error');
+    } catch {
+      setResult('Error');
+    }
+  };
+
+  const keys = ['7', '8', '9', '/', '4', '5', '6', '*', '1', '2', '3', '-', '0', '.', '%', '+'];
+
+  return (
+    <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '12px', width: '240px', background: 'white', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.15)', padding: '12px', zIndex: 100, color: '#1e293b' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <strong style={{ fontSize: '13px' }}>Calculator</strong>
+        <X size={16} style={{ cursor: 'pointer' }} onClick={onClose} />
+      </div>
+      <input
+        value={expr}
+        onChange={(e) => setExpr(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && evaluate()}
+        placeholder="0"
+        style={{ width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '4px', textAlign: 'right', fontSize: '16px', marginBottom: '4px' }}
+      />
+      <div style={{ textAlign: 'right', fontSize: '18px', fontWeight: 'bold', minHeight: '24px', marginBottom: '8px', color: '#4f46e5' }}>{result}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
+        {keys.map((k) => (
+          <button key={k} onClick={() => setExpr((p) => p + k)} style={{ padding: '8px 0', border: '1px solid #e2e8f0', background: '#f8fafc', borderRadius: '4px', cursor: 'pointer' }}>{k}</button>
+        ))}
+        <button onClick={() => { setExpr(''); setResult(''); }} style={{ gridColumn: 'span 2', padding: '8px 0', border: 'none', background: '#ef4444', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>C</button>
+        <button onClick={evaluate} style={{ gridColumn: 'span 2', padding: '8px 0', border: 'none', background: '#4f46e5', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>=</button>
+      </div>
+    </div>
+  );
+};
 
 const Header = ({ toggleSidebar }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [calcOpen, setCalcOpen] = useState(false);
   const profileRef = useRef(null);
+  const calcRef = useRef(null);
+
+  const username = localStorage.getItem('username') || 'User';
+  const fullName = localStorage.getItem('full_name') || username;
+  const role = (localStorage.getItem('role') || '').toUpperCase();
+  const [avatar, setAvatar] = useState(() => localStorage.getItem('profile_image') || '');
+  const [companyName, setCompanyName] = useState(() => {
+    try {
+      const info = JSON.parse(localStorage.getItem('companyInfoData') || 'null');
+      return info?.company_name || '';
+    } catch {
+      return '';
+    }
+  });
+
+  useEffect(() => {
+    const sync = () => setAvatar(localStorage.getItem('profile_image') || '');
+    window.addEventListener('profileUpdated', sync);
+    window.addEventListener('storage', sync);
+    settingService.getCompanyInfo().then((res) => {
+      const data = res?.data || res || {};
+      if (data.company_name) setCompanyName(data.company_name);
+    }).catch(() => {});
+    return () => {
+      window.removeEventListener('profileUpdated', sync);
+      window.removeEventListener('storage', sync);
+    };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setProfileOpen(false);
+      }
+      if (calcRef.current && !calcRef.current.contains(event.target)) {
+        setCalcOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -26,27 +104,45 @@ const Header = ({ toggleSidebar }) => {
     i18n.changeLanguage(newLang);
   };
 
-  const navButtons = [
-    { label: t('header.new_invoice'), icon: <PlusCircle size={14} />, path: '/invoice/add-new' },
-    { label: t('header.receive'), icon: <PlusCircle size={14} />, path: '/account/receive-create' },
-    { label: t('header.expense'), icon: <PlusCircle size={14} />, path: '/account/expense-create' },
-    { label: t('header.staff_payment'), icon: <PlusCircle size={14} />, path: '/staff/payment/create' },
-    { label: t('header.sales_return'), icon: <PlusCircle size={14} />, path: '/invoice/sales-return/add-new' },
-    { label: t('header.purchase_return'), icon: <PlusCircle size={14} />, path: '/product/purchase-return/add-new' },
-    { label: t('header.supplier_payment'), icon: <PlusCircle size={14} />, path: '/account/supplier-payment' },
-  ];
+  // Quick buttons are user configurable from Settings → Shortcut Menu
+  const [shortcuts, setShortcuts] = useState(readShortcuts);
+  useEffect(() => {
+    const sync = () => setShortcuts(readShortcuts());
+    window.addEventListener(SHORTCUT_EVENT, sync);
+    return () => window.removeEventListener(SHORTCUT_EVENT, sync);
+  }, []);
+  const navButtons = shortcuts.map((s) => ({ label: s.labelKey ? t(s.labelKey) : s.title, icon: <PlusCircle size={14} />, path: s.path }));
 
   const profileMenu = [
     { label: t('header.my_profile'), icon: <User size={16} />, path: '/profile' },
     { label: t('header.change_password'), icon: <Lock size={16} />, path: '/profile', state: { tab: 'password' } },
-    { label: t('header.role'), icon: <Shield size={16} /> },
-    { label: t('header.add_user'), icon: <UserPlus size={16} /> },
-    { label: t('header.settings'), icon: <Settings size={16} /> },
-    { label: t('header.shortcut_menu'), icon: <Pin size={16} /> },
+    { label: t('header.role'), icon: <Shield size={16} />, path: '/settings/users', state: { tab: 'permissions' } },
+    { label: t('header.add_user'), icon: <UserPlus size={16} />, path: '/settings/users', state: { openCreate: true } },
+    { label: t('header.settings'), icon: <Settings size={16} />, path: '/settings/settings' },
+    { label: t('header.shortcut_menu'), icon: <Pin size={16} />, path: '/settings/shortcut-menu' },
     { label: t('header.company_info'), icon: <Building size={16} />, path: '/settings/company-information' },
-    { label: t('header.server_info'), icon: <Server size={16} /> },
-    { label: t('menu.sign_out'), icon: <LogOut size={16} />, path: '/login' }
+    { label: t('header.server_info'), icon: <Server size={16} />, path: '/support' },
+    { label: t('menu.sign_out'), icon: <LogOut size={16} />, action: 'logout' }
   ];
+
+  const handleMenuClick = (item) => {
+    setProfileOpen(false);
+    if (item.action === 'logout') {
+      forceLogout();
+      return;
+    }
+    if (item.path) navigate(item.path, { state: item.state });
+  };
+
+  const avatarNode = (size) => (
+    avatar ? (
+      <img src={avatar} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+    ) : (
+      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e0e7ff', color: '#4338ca', fontWeight: 'bold', fontSize: size }}>
+        {(fullName || 'U').charAt(0).toUpperCase()}
+      </div>
+    )
+  );
 
   return (
     <header 
@@ -68,7 +164,7 @@ const Header = ({ toggleSidebar }) => {
     >
       <div className="header-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
         <Menu className="mobile-menu-btn" size={24} style={{ cursor: 'pointer' }} onClick={toggleSidebar} />
-        <span style={{ fontSize: '18px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{t('app_name')}</span>
+        <span style={{ fontSize: '18px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{companyName || t('app_name')}</span>
       </div>
       
       <div className="header-nav-scroll" style={{ 
@@ -129,8 +225,9 @@ const Header = ({ toggleSidebar }) => {
           </div>
           {t('header.switch_lang')}
         </button>
-        
+        <div style={{ position: 'relative' }} ref={calcRef}>
         <button 
+          onClick={() => setCalcOpen(!calcOpen)}
           style={{ 
             background: 'transparent',
             border: '1px solid rgba(255,255,255,0.5)',
@@ -146,6 +243,8 @@ const Header = ({ toggleSidebar }) => {
         >
           <Calculator size={16} />
         </button>
+        {calcOpen && <CalculatorPopup onClose={() => setCalcOpen(false)} />}
+        </div>
         
         <div style={{ position: 'relative' }} ref={profileRef}>
           <div 
@@ -162,7 +261,7 @@ const Header = ({ toggleSidebar }) => {
               border: '2px solid rgba(255,255,255,0.3)',
               cursor: 'pointer'
             }}>
-            <img src="https://i.pravatar.cc/100?img=11" alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            {avatarNode('16px')}
           </div>
 
           {profileOpen && (
@@ -209,10 +308,10 @@ const Header = ({ toggleSidebar }) => {
                   border: '3px solid rgba(255,255,255,0.8)',
                   marginBottom: '10px'
                 }}>
-                  <img src="https://i.pravatar.cc/100?img=11" alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  {avatarNode('16px')}
                 </div>
-                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>admin 2</h3>
-                <p style={{ margin: 0, fontSize: '12px', opacity: 0.8 }}>ADMIN 2</p>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>{fullName}</h3>
+                <p style={{ margin: 0, fontSize: '12px', opacity: 0.8 }}>{role || username.toUpperCase()}</p>
                 
                 {/* Status Dot */}
                 <div style={{
@@ -241,12 +340,7 @@ const Header = ({ toggleSidebar }) => {
                     fontSize: '14px',
                     fontWeight: 500
                   }}
-                  onClick={() => {
-                    if (item.path) {
-                      navigate(item.path, { state: item.state });
-                      setProfileOpen(false);
-                    }
-                  }}
+                  onClick={() => handleMenuClick(item)}
                   onMouseOver={(e) => {
                     e.currentTarget.style.backgroundColor = '#f8fafc';
                     e.currentTarget.style.color = '#4f46e5';

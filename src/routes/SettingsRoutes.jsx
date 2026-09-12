@@ -9,6 +9,7 @@ import PaymentMethod from '../pages/settings/PaymentMethod';
 import CompanyInformation from '../pages/settings/CompanyInformation';
 import BankList from '../pages/settings/BankList';
 import GeneralSettings from '../pages/settings/GeneralSettings';
+import UserManagement from '../pages/settings/UserManagement';
 
 const SettingsRoutes = () => {
   return (
@@ -22,6 +23,7 @@ const SettingsRoutes = () => {
       <Route path="company-information" element={<CompanyInformation />} />
       <Route path="bank" element={<BankList />} />
       <Route path="settings" element={<GeneralSettings />} />
+      <Route path="users" element={<UserManagement />} />
     </Routes>
   );
 };

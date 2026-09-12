@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { ArrowLeft, Play, Printer, RotateCcw, Trash2, Search } from 'lucide-react';
+import { ArrowLeft, Printer, RotateCcw, Trash2, Search } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { accountingService } from '../../services/accountingService';
+import { exportVisibleTable } from '../../utils/tableExport';
+import { printPage } from '../../utils/printUtils';
 
 const AccountList = () => {
   const { t } = useTranslation();
@@ -13,22 +15,16 @@ const AccountList = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const fallbackAccounts = [
-    { id: '1', name: 'Cash Account', account_number: 'CASH-001', balance: '25000.00', status: 1 },
-    { id: '2', name: 'Dutch Bangla Bank (DBBL)', account_number: '120.105.45678', balance: '185000.00', status: 1 },
-    { id: '3', name: 'Islami Bank Bangladesh', account_number: '2050.189.7766', balance: '94000.00', status: 1 },
-    { id: '4', name: 'bKash Merchant', account_number: '01711223344', balance: '12500.00', status: 1 },
-  ];
 
   const fetchAccounts = async (query = '') => {
     try {
       setLoading(true);
       const res = await accountingService.getAccounts(query);
       const data = Array.isArray(res) ? res : (res?.results || []);
-      setAccounts(data.length > 0 ? data : fallbackAccounts);
+      setAccounts(data);
     } catch (error) {
       console.error('Error fetching accounts:', error);
-      setAccounts(fallbackAccounts);
+      setAccounts([]);
     } finally {
       setLoading(false);
     }
@@ -63,11 +59,6 @@ const AccountList = () => {
           <Link to="/account/account-create" style={{ textDecoration: 'none' }}>
             <button className="btn-green">Add New Account</button>
           </Link>
-          <button className="btn-youtube">
-            <div style={{ display: 'flex', alignItems: 'center', background: '#ff0000', color: 'white', padding: '6px 12px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold' }}>
-              <Play size={16} fill="white" style={{ marginRight: '6px' }} /> YouTube
-            </div>
-          </button>
         </div>
       </div>
 
@@ -93,9 +84,9 @@ const AccountList = () => {
           </form>
 
           <div className="table-controls-right" style={{ display: 'flex', gap: '4px' }}>
-            <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>Excel</button>
-            <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>CSV</button>
-            <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>PDF</button>
+            <button className="btn-blue" onClick={() => exportVisibleTable('xlsx', 'Account_List')} style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold', background: '#059669', cursor: 'pointer' }}>Excel</button>
+            <button onClick={() => exportVisibleTable('csv')} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>CSV</button>
+            <button onClick={() => printPage()} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>PDF</button>
             <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }} onClick={() => window.print()}><Printer size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.print')}</button>
             <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }} onClick={() => { setSearchTerm(''); fetchAccounts(''); }}><RotateCcw size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.reset')}</button>
           </div>

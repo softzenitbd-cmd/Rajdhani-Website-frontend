@@ -38,6 +38,10 @@ export const loanService = {
     return await apiClient.patch(`${ENDPOINTS.LOAN_RECEIVES}${id}/`, data);
   },
 
+  deleteLoanReceive: async (id) => {
+    return await apiClient.delete(`${ENDPOINTS.LOAN_RECEIVES}${id}/`);
+  },
+
   // 3. Loan Payments API
   getLoanPayments: async (filters = {}) => {
     const params = {};
@@ -54,6 +58,10 @@ export const loanService = {
 
   updateLoanPayment: async (id, data) => {
     return await apiClient.patch(`${ENDPOINTS.LOAN_PAYMENTS}${id}/`, data);
+  },
+
+  deleteLoanPayment: async (id) => {
+    return await apiClient.delete(`${ENDPOINTS.LOAN_PAYMENTS}${id}/`);
   },
 
   // 4. Loan Statement API

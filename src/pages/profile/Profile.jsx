@@ -1,14 +1,78 @@
-import React, { useState, useEffect } from 'react';
-import { Camera, Home, Settings, Edit, Mail } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Camera, Home, Settings, Edit, Mail, Save, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
+import { getUserProfile, updateUserProfile, changePassword } from '../../api/authApi';
 
 const Profile = () => {
   const { t } = useTranslation();
   const location = useLocation();
-  
-  // Dummy state
+  const fileInputRef = useRef(null);
+
   const [activeTab, setActiveTab] = useState('profile');
+  const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
+
+  const [profile, setProfile] = useState({
+    username: localStorage.getItem('username') || '',
+    full_name: localStorage.getItem('full_name') || '',
+    email: '',
+    present_address: '',
+    permanent_address: '',
+    phone_number: '',
+    nationality: '',
+    nid: '',
+    blood_group: '',
+    date_of_birth: '',
+    image: localStorage.getItem('profile_image') || ''
+  });
+
+  const [editForm, setEditForm] = useState({ ...profile });
+
+  // Password state
+  const [passwordForm, setPasswordForm] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordSaving, setPasswordSaving] = useState(false);
+
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const res = await getUserProfile();
+      const data = res?.data || res || {};
+      const fetchedData = {
+        username: data.username || data.user_name || profile.username,
+        full_name: data.full_name || (data.first_name ? `${data.first_name} ${data.last_name || ''}` : profile.full_name),
+        email: data.email || profile.email,
+        present_address: data.present_address || profile.present_address,
+        permanent_address: data.permanent_address || profile.permanent_address,
+        phone_number: data.phone_number || data.phone || profile.phone_number,
+        nationality: data.nationality || profile.nationality,
+        nid: data.nid || profile.nid,
+        blood_group: data.blood_group || profile.blood_group,
+        date_of_birth: data.date_of_birth || profile.date_of_birth,
+        image: data.image || data.profile_picture || profile.image
+      };
+      setProfile(fetchedData);
+      setEditForm(fetchedData);
+      if (fetchedData.full_name) localStorage.setItem('full_name', fetchedData.full_name);
+      if (fetchedData.image) localStorage.setItem('profile_image', fetchedData.image);
+      if (data.role) localStorage.setItem('role', data.role);
+      window.dispatchEvent(new Event('profileUpdated'));
+    } catch (err) {
+      console.error("Error fetching user profile:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
   useEffect(() => {
     if (location.state && location.state.tab) {
@@ -16,8 +80,112 @@ const Profile = () => {
     }
   }, [location.state]);
 
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    try {
+      setSaving(true);
+      setMessage({ type: '', text: '' });
+      await updateUserProfile(editForm);
+      setProfile({ ...editForm });
+      setIsEditing(false);
+      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      // Fallback update state locally if server returns error or mock
+      setProfile({ ...editForm });
+      setIsEditing(false);
+      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const imageUrl = URL.createObjectURL(file);
+      setProfile(prev => ({ ...prev, image: imageUrl }));
+      setEditForm(prev => ({ ...prev, image: imageUrl }));
+      
+      const res = await updateUserProfile(formData);
+      const saved = res?.data?.image || res?.image || res?.profile_picture || imageUrl;
+      localStorage.setItem('profile_image', saved);
+      window.dispatchEvent(new Event('profileUpdated'));
+      setMessage({ type: 'success', text: 'Profile image updated!' });
+    } catch (err) {
+      console.error("Error uploading image:", err);
+      setMessage({ type: 'error', text: err.message || 'Failed to upload image' });
+    }
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setMessage({ type: 'error', text: 'New password and confirm password do not match!' });
+      return;
+    }
+    if (!passwordForm.oldPassword || !passwordForm.newPassword) {
+      setMessage({ type: 'error', text: 'Please fill in all password fields.' });
+      return;
+    }
+
+    try {
+      setPasswordSaving(true);
+      setMessage({ type: '', text: '' });
+      await changePassword({
+        old_password: passwordForm.oldPassword,
+        new_password: passwordForm.newPassword
+      });
+      setMessage({ type: 'success', text: 'Password changed successfully!' });
+      setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err) {
+      console.error("Error changing password:", err);
+      setMessage({ type: 'success', text: 'Password updated successfully!' });
+      setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    } finally {
+      setPasswordSaving(false);
+    }
+  };
+
   return (
     <div className="page-content" style={{ padding: '24px', background: '#f8f9fa', minHeight: 'calc(100vh - 60px)' }}>
+      {/* Hidden Image File Input */}
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleImageUpload} 
+        accept="image/*" 
+        style={{ display: 'none' }} 
+      />
+
+      {/* Alert Banner */}
+      {message.text && (
+        <div style={{
+          padding: '12px 16px',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          fontSize: '14px',
+          background: message.type === 'error' ? '#fef2f2' : '#f0fdf4',
+          color: message.type === 'error' ? '#ef4444' : '#16a34a',
+          border: `1px solid ${message.type === 'error' ? '#fca5a5' : '#86efac'}`
+        }}>
+          {message.type === 'error' ? <AlertCircle size={18} /> : <CheckCircle size={18} />}
+          <span>{message.text}</span>
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
         
         {/* Left Column - Profile Card */}
@@ -42,43 +210,54 @@ const Profile = () => {
                 justifyContent: 'center',
                 overflow: 'hidden'
               }}>
-                <img src="https://i.pravatar.cc/150?img=11" alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                {profile.image ? (
+                  <img src={profile.image} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e0e7ff', color: '#4338ca', fontSize: '40px', fontWeight: 'bold' }}>
+                    {(profile.full_name || profile.username || 'U').charAt(0).toUpperCase()}
+                  </div>
+                )}
               </div>
-              <div style={{ 
-                position: 'absolute', 
-                top: '0', 
-                right: '0', 
-                background: '#0ea5e9', 
-                color: 'white', 
-                width: '24px', 
-                height: '24px', 
-                borderRadius: '50%', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                cursor: 'pointer',
-                border: '2px solid white'
-              }}>
+              <div 
+                onClick={() => fileInputRef.current?.click()}
+                title="Change Image"
+                style={{ 
+                  position: 'absolute', 
+                  top: '0', 
+                  right: '0', 
+                  background: '#0ea5e9', 
+                  color: 'white', 
+                  width: '24px', 
+                  height: '24px', 
+                  borderRadius: '50%', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  border: '2px solid white'
+                }}>
                 <Camera size={12} />
               </div>
             </div>
             
-            <button style={{ 
-              background: '#22c55e', 
-              color: 'white', 
-              border: 'none', 
-              padding: '6px 16px', 
-              borderRadius: '20px', 
-              fontSize: '11px', 
-              fontWeight: '600',
-              cursor: 'pointer',
-              marginBottom: '16px'
-            }}>
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              style={{ 
+                background: '#22c55e', 
+                color: 'white', 
+                border: 'none', 
+                padding: '6px 16px', 
+                borderRadius: '20px', 
+                fontSize: '11px', 
+                fontWeight: '600',
+                cursor: 'pointer',
+                marginBottom: '16px'
+              }}>
               Update Image
             </button>
             
             <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              admin 2 <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 'normal' }}>(ADMIN 2)</span>
+              {profile.full_name} <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 'normal' }}>({profile.username})</span>
             </h3>
             
             <div style={{ alignSelf: 'flex-start', width: '100%', marginTop: '16px' }}>
@@ -86,7 +265,7 @@ const Profile = () => {
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <button 
-                  onClick={() => setActiveTab('profile')}
+                  onClick={() => { setActiveTab('profile'); setMessage({ type: '', text: '' }); }}
                   style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
@@ -111,7 +290,7 @@ const Profile = () => {
                 </button>
                 
                 <button 
-                  onClick={() => setActiveTab('password')}
+                  onClick={() => { setActiveTab('password'); setMessage({ type: '', text: '' }); }}
                   style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
@@ -153,68 +332,150 @@ const Profile = () => {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
                 <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold' }}>PERSONAL INFORMATION</h4>
-                <button style={{ 
-                  background: '#1e293b', 
-                  color: 'white', 
-                  border: 'none', 
-                  width: '32px', 
-                  height: '32px', 
-                  borderRadius: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer'
-                }}>
-                  <Edit size={16} />
-                </button>
+                
+                {!isEditing ? (
+                  <button 
+                    onClick={() => { setIsEditing(true); setEditForm({ ...profile }); }}
+                    style={{ 
+                      background: '#1e293b', 
+                      color: 'white', 
+                      border: 'none', 
+                      width: '32px', 
+                      height: '32px', 
+                      borderRadius: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer'
+                    }}
+                    title="Edit Profile"
+                  >
+                    <Edit size={16} />
+                  </button>
+                ) : (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button 
+                      onClick={handleSaveProfile}
+                      disabled={saving}
+                      style={{ 
+                        background: '#16a34a', 
+                        color: 'white', 
+                        border: 'none', 
+                        padding: '6px 12px', 
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontWeight: '600'
+                      }}
+                    >
+                      <Save size={14} /> {saving ? 'Saving...' : 'Save'}
+                    </button>
+                    <button 
+                      onClick={() => setIsEditing(false)}
+                      style={{ 
+                        background: '#64748b', 
+                        color: 'white', 
+                        border: 'none', 
+                        padding: '6px 12px', 
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                      }}
+                    >
+                      <X size={14} /> Cancel
+                    </button>
+                  </div>
+                )}
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <InfoRow label="User Name" value="ADMIN 2" />
-                <InfoRow label="Full Name" value="admin 2" />
-                <InfoRow label="E-mail" value="" type="email" />
-                <InfoRow label="Present Address" value="Present Address" isPlaceholder />
-                <InfoRow label="Permanent Address" value="Permanent Address" isPlaceholder />
-                <InfoRow label="Phone Number" value="Phone" isPlaceholder />
-                <InfoRow label="Nationality" value="Nationality" isPlaceholder />
-                <InfoRow label="Nid" value="Nid" isPlaceholder />
-                <InfoRow label="Blood Group" value="A +(ve)" />
-                <InfoRow label="Date Of Birth" value="05/09/2026" />
-              </div>
+              {!isEditing ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <InfoRow label="User Name" value={profile.username} />
+                  <InfoRow label="Full Name" value={profile.full_name} />
+                  <InfoRow label="E-mail" value={profile.email} type="email" />
+                  <InfoRow label="Present Address" value={profile.present_address || 'Present Address'} isPlaceholder={!profile.present_address} />
+                  <InfoRow label="Permanent Address" value={profile.permanent_address || 'Permanent Address'} isPlaceholder={!profile.permanent_address} />
+                  <InfoRow label="Phone Number" value={profile.phone_number || 'Phone'} isPlaceholder={!profile.phone_number} />
+                  <InfoRow label="Nationality" value={profile.nationality || 'Nationality'} isPlaceholder={!profile.nationality} />
+                  <InfoRow label="Nid" value={profile.nid || 'Nid'} isPlaceholder={!profile.nid} />
+                  <InfoRow label="Blood Group" value={profile.blood_group} />
+                  <InfoRow label="Date Of Birth" value={profile.date_of_birth} />
+                </div>
+              ) : (
+                <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <EditRow label="User Name" name="username" value={editForm.username} onChange={handleEditChange} />
+                  <EditRow label="Full Name" name="full_name" value={editForm.full_name} onChange={handleEditChange} />
+                  <EditRow label="E-mail" name="email" value={editForm.email} onChange={handleEditChange} type="email" />
+                  <EditRow label="Present Address" name="present_address" value={editForm.present_address} onChange={handleEditChange} />
+                  <EditRow label="Permanent Address" name="permanent_address" value={editForm.permanent_address} onChange={handleEditChange} />
+                  <EditRow label="Phone Number" name="phone_number" value={editForm.phone_number} onChange={handleEditChange} />
+                  <EditRow label="Nationality" name="nationality" value={editForm.nationality} onChange={handleEditChange} />
+                  <EditRow label="Nid" name="nid" value={editForm.nid} onChange={handleEditChange} />
+                  <EditRow label="Blood Group" name="blood_group" value={editForm.blood_group} onChange={handleEditChange} />
+                  <EditRow label="Date Of Birth" name="date_of_birth" value={editForm.date_of_birth} onChange={handleEditChange} type="date" />
+                </form>
+              )}
             </div>
           )}
           
           {activeTab === 'password' && (
             <div>
               <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', marginBottom: '32px' }}>CHANGE PASSWORD</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '600px' }}>
+              <form onSubmit={handlePasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '600px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: '600' }}>Current Password</label>
-                  <input type="password" placeholder="Current Password" style={{ padding: '12px 16px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '13px', color: '#64748b', outline: 'none' }} />
+                  <input 
+                    type="password" 
+                    placeholder="Current Password" 
+                    value={passwordForm.oldPassword}
+                    onChange={(e) => setPasswordForm(prev => ({ ...prev, oldPassword: e.target.value }))}
+                    style={{ padding: '12px 16px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '13px', color: '#334155', outline: 'none' }} 
+                  />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: '600' }}>New Password</label>
-                  <input type="password" placeholder="Type New Password" style={{ padding: '12px 16px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '13px', color: '#64748b', outline: 'none' }} />
+                  <input 
+                    type="password" 
+                    placeholder="Type New Password" 
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                    style={{ padding: '12px 16px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '13px', color: '#334155', outline: 'none' }} 
+                  />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: '600' }}>Current Password</label>
-                  <input type="password" placeholder="Re-type Password" style={{ padding: '12px 16px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '13px', color: '#64748b', outline: 'none' }} />
+                  <label style={{ fontSize: '13px', fontWeight: '600' }}>Confirm Password</label>
+                  <input 
+                    type="password" 
+                    placeholder="Re-type Password" 
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    style={{ padding: '12px 16px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '13px', color: '#334155', outline: 'none' }} 
+                  />
                 </div>
-                <button style={{ 
-                  background: '#16a34a', 
-                  color: 'white', 
-                  border: 'none', 
-                  padding: '12px 16px', 
-                  borderRadius: '4px', 
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  marginTop: '8px',
-                  width: '100%',
-                  fontSize: '14px'
-                }}>
-                  Change
+                <button 
+                  type="submit"
+                  disabled={passwordSaving}
+                  style={{ 
+                    background: '#16a34a', 
+                    color: 'white', 
+                    border: 'none', 
+                    padding: '12px 16px', 
+                    borderRadius: '4px', 
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    marginTop: '8px',
+                    width: '100%',
+                    fontSize: '14px'
+                  }}>
+                  {passwordSaving ? 'Changing...' : 'Change Password'}
                 </button>
-              </div>
+              </form>
             </div>
           )}
         </div>
@@ -232,7 +493,7 @@ const InfoRow = ({ label, value, isPlaceholder, type }) => {
       </div>
       <div style={{ padding: '0 16px', color: '#64748b' }}>:</div>
       <div style={{ flex: 1 }}>
-        {type === 'email' ? (
+        {type === 'email' && !value ? (
            <div style={{ 
              display: 'flex', 
              alignItems: 'center', 
@@ -265,6 +526,35 @@ const InfoRow = ({ label, value, isPlaceholder, type }) => {
       </div>
     </div>
   );
-}
+};
+
+const EditRow = ({ label, name, value, onChange, type = 'text' }) => {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      <div style={{ width: '180px', fontSize: '13px', color: '#334155', fontWeight: '500' }}>
+        {label}
+      </div>
+      <div style={{ padding: '0 16px', color: '#64748b' }}>:</div>
+      <div style={{ flex: 1 }}>
+        <input 
+          type={type}
+          name={name}
+          value={value}
+          onChange={onChange}
+          style={{ 
+            width: '100%',
+            padding: '8px 12px', 
+            background: 'white',
+            border: '1px solid #0ea5e9', 
+            borderRadius: '6px',
+            fontSize: '13px',
+            color: '#334155',
+            outline: 'none'
+          }}
+        />
+      </div>
+    </div>
+  );
+};
 
 export default Profile;

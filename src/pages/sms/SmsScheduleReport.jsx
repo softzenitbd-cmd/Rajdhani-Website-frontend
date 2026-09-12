@@ -1,107 +1,152 @@
-import React from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useEffect, useState } from 'react';
+import { Plus, XCircle, Search } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
-import { RefreshCcw } from 'lucide-react';
+import TableToolbar from '../../components/TableToolbar';
+import { communicationService } from '../../services/communicationService';
+import { useToast } from '../../context/ToastContext';
+import { toList } from '../../utils/apiHelpers';
+
+const statusStyle = (s) => {
+  const v = String(s || '').toLowerCase();
+  if (v.includes('sent') || v.includes('success') || v.includes('deliver')) return { background: '#dcfce7', color: '#166534' };
+  if (v.includes('cancel') || v.includes('fail')) return { background: '#fee2e2', color: '#991b1b' };
+  return { background: '#fef3c7', color: '#92400e' }; // pending
+};
+
+const fmtDateTime = (v) => {
+  if (!v) return '-';
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return String(v);
+  return d.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
+
+const sentTo = (r) => {
+  if (r.sent_to) return r.sent_to;
+  if (Array.isArray(r.phone_numbers)) return r.phone_numbers.length > 3 ? `${r.phone_numbers.slice(0, 3).join(', ')} +${r.phone_numbers.length - 3} more` : r.phone_numbers.join(', ');
+  if (Array.isArray(r.recipients)) return `${r.recipients.length} recipient(s)`;
+  return r.phone || r.recipient || r.client_name || r.supplier_name || '-';
+};
 
 const SmsScheduleReport = () => {
-  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const toast = useToast();
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState('');
+  const [search, setSearch] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [entries, setEntries] = useState(50);
+
+  const load = async (f = { status, search, fromDate, toDate }) => {
+    try {
+      setLoading(true);
+      const filters = {};
+      if (f.status) filters.status = f.status;
+      if (f.search) filters.search = f.search;
+      if (f.fromDate) filters.from_date = f.fromDate;
+      if (f.toDate) filters.to_date = f.toDate;
+      setRows(toList(await communicationService.getSmsSchedules(filters)));
+    } catch (e) {
+      toast.error(e.message || 'Failed to load SMS schedules');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const cancel = async (r) => {
+    if (!window.confirm('Cancel this scheduled SMS?')) return;
+    try {
+      await communicationService.cancelSmsSchedule(r.id || r.uuid);
+      toast.success('SMS schedule cancelled');
+      load();
+    } catch (e) {
+      toast.error(e.message || 'Failed to cancel');
+    }
+  };
+
+  const reset = () => {
+    setStatus(''); setSearch(''); setFromDate(''); setToDate('');
+    load({ status: '', search: '', fromDate: '', toDate: '' });
+  };
+
+  const visible = rows.slice(0, entries);
+  const excelData = visible.map((r, i) => ({ SL: i + 1, 'Sent To': sentTo(r), Message: r.message, 'Schedule At': fmtDateTime(r.schedule_at || r.scheduled_at), Status: r.status }));
+  const input = { padding: '10px', border: '1px solid #38bdf8', borderRadius: '6px', outline: 'none' };
+  const isPending = (r) => /pend|sched|queue/i.test(String(r.status || 'pending'));
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
-      
       <div className="premium-card">
-        {/* Large Header Banner */}
-        <div style={{ padding: '0', background: 'white', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>
-          <img 
-            src="https://via.placeholder.com/1200x200?text=Rajdhani+Garments+Banner" 
-            alt="Rajdhani Garments" 
-            style={{ width: '100%', height: 'auto', maxHeight: '250px', objectFit: 'cover' }}
-          />
-        </div>
-        
-        {/* Report Title */}
-        <div style={{ padding: '24px 24px 0', textAlign: 'center', background: 'white' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 'bold' }}>Schedule SMS Report</h2>
+        <div className="premium-header no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'white' }}>
+          <h2 className="premium-title" style={{ fontSize: '18px', fontWeight: 'bold' }}>SMS Schedule Report</h2>
+          <button onClick={() => navigate('/sms/schedule')} style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+            <Plus size={16} /> Schedule SMS
+          </button>
         </div>
 
-        {/* Filters */}
         <div className="premium-body" style={{ background: 'white', padding: '24px' }}>
-        <PrintHeader />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr 1fr', gap: '16px', alignItems: 'end', marginBottom: '24px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', color: 'var(--text-muted)' }}>{t('common.search_by_client')}</label>
-              <select style={{ width: '100%', padding: '10px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none', appearance: 'none', background: 'white', color: 'var(--text-muted)' }}>
-                <option value="" disabled selected hidden>{t('common.select_client')}</option>
-              </select>
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', color: 'var(--text-muted)' }}>Search By Supplier</label>
-              <select style={{ width: '100%', padding: '10px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none', appearance: 'none', background: 'white', color: 'var(--text-muted)' }}>
-                <option value="" disabled selected hidden>Select Suppliers</option>
-              </select>
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', color: 'var(--text-muted)' }}>{t('common.search_by_date')}</label>
-              <div style={{ display: 'flex' }}>
-                <input type="date" style={{ flex: 1, padding: '10px', border: '1px solid #0ea5e9', borderRight: 'none', borderRadius: '4px 0 0 4px', outline: 'none', color: 'var(--text-muted)' }} />
-                <input type="date" style={{ flex: 1, padding: '10px', border: '1px solid #0ea5e9', borderRadius: '0 4px 4px 0', outline: 'none', color: 'var(--text-muted)' }} />
-              </div>
-            </div>
-            <div>
-              <button style={{ width: '100%', background: 'var(--text-muted)', color: 'white', padding: '11px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }}>
-                Clear Filter
-              </button>
-            </div>
-          </div>
+          <PrintHeader />
 
-          {/* Table Controls */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-              Show 
-              <select style={{ margin: '0 8px', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }}>
-                <option>100</option>
-              </select> 
-              entries
-            </div>
-            <button style={{ background: 'var(--primary)', color: 'white', padding: '6px 16px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}>
-              <RefreshCcw size={14} /> Reset
-            </button>
-          </div>
+          <form className="no-print" onSubmit={(e) => { e.preventDefault(); load(); }} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr auto', gap: '10px', marginBottom: '16px', alignItems: 'end' }}>
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search message / number" style={input} />
+            <select value={status} onChange={(e) => setStatus(e.target.value)} style={input}>
+              <option value="">All status</option>
+              <option value="pending">Pending</option>
+              <option value="sent">Sent</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="failed">Failed</option>
+            </select>
+            <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={input} />
+            <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={input} />
+            <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '10px 16px', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Search size={14} /> Filter</button>
+          </form>
 
-          {/* Table */}
+          <TableToolbar entries={entries} setEntries={setEntries} total={rows.length} excelData={excelData} excelName="SMS_Schedule_Report" onReload={() => load()} onReset={reset} />
+
           <div className="table-responsive">
-            <table className="custom-table">
+            <table className="custom-table" style={{ width: '100%', fontSize: '12px' }}>
               <thead>
                 <tr>
-                  <th style={{ width: '60px' }}>ID NO</th>
+                  <th style={{ width: '50px', textAlign: 'center' }}>SL</th>
                   <th>SENT TO</th>
-                  <th style={{ width: '35%' }}>MESSAGES.MESSAGE_BODY</th>
+                  <th style={{ width: '35%' }}>MESSAGE</th>
                   <th>SCHEDULE AT</th>
-                  <th>{t('common.status')}</th>
-                  <th style={{ textAlign: 'right' }}>ACTION</th>
+                  <th style={{ textAlign: 'center' }}>STATUS</th>
+                  <th className="action-column" style={{ textAlign: 'center' }}>ACTION</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
-                    No data available in table
-                  </td>
-                </tr>
+                {loading ? (
+                  <tr><td colSpan="6" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>Loading...</td></tr>
+                ) : visible.length === 0 ? (
+                  <tr><td colSpan="6" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>No scheduled SMS found</td></tr>
+                ) : (
+                  visible.map((r, i) => (
+                    <tr key={r.id || i}>
+                      <td style={{ textAlign: 'center', padding: '10px' }}>{i + 1}</td>
+                      <td style={{ padding: '10px' }}>{sentTo(r)}</td>
+                      <td style={{ padding: '10px', whiteSpace: 'pre-wrap' }}>{r.message}</td>
+                      <td style={{ padding: '10px' }}>{fmtDateTime(r.schedule_at || r.scheduled_at || r.send_at)}</td>
+                      <td style={{ padding: '10px', textAlign: 'center' }}>
+                        <span style={{ padding: '2px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', textTransform: 'capitalize', ...statusStyle(r.status) }}>{r.status || 'pending'}</span>
+                      </td>
+                      <td className="action-column" style={{ padding: '10px', textAlign: 'center' }}>
+                        {isPending(r) ? (
+                          <button onClick={() => cancel(r)} style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px' }}>
+                            <XCircle size={12} /> Cancel
+                          </button>
+                        ) : <span style={{ color: '#94a3b8' }}>—</span>}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
-
-          {/* Pagination */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
-            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-              Showing 0 to 0 of 0 entries
-            </div>
-            <div style={{ display: 'flex' }}>
-              <button style={{ padding: '6px 12px', border: '1px solid #e2e8f0', background: 'var(--card-header-bg)', color: 'var(--text-muted)', borderRadius: '4px 0 0 4px', cursor: 'not-allowed' }}>Previous</button>
-              <button style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderLeft: 'none', background: 'var(--card-header-bg)', color: 'var(--text-muted)', borderRadius: '0 4px 4px 0', cursor: 'not-allowed' }}>Next</button>
-            </div>
-          </div>
-
         </div>
       </div>
     </div>

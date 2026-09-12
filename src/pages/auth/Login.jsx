@@ -1,29 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Mail, Lock, ArrowRight, Eye, EyeOff, 
-  ShieldCheck, Sparkles, Layers, Activity, CheckCircle2 
+  ShieldCheck, Sparkles, Layers, Activity 
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Login = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('admin@rajdhanigarments.com');
-  const [password, setPassword] = useState('••••••••••••');
+  const location = useLocation();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [focusedInput, setFocusedInput] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    // Clear any existing expired/invalid tokens when visiting login page
+    localStorage.removeItem('token');
+    localStorage.removeItem('refresh_token');
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMessage('');
     try {
       // Import apiClient and ENDPOINTS at the top of the file
       const { default: apiClient } = await import('../../api/apiClient');
       const { ENDPOINTS } = await import('../../api/endpoints');
       
       const response = await apiClient.post(ENDPOINTS.AUTH_LOGIN, {
-        username: email, // The UI has an email field, but we send it as username based on API doc
+        username: email, // The UI has an email/username field, sending as username to backend
         password: password
       });
       
@@ -41,22 +50,18 @@ const Login = () => {
         if (response.username) localStorage.setItem('username', response.username);
         if (response.full_name) localStorage.setItem('full_name', response.full_name);
         
-        navigate('/dashboard');
+        navigate(location.state?.from || '/dashboard', { replace: true });
       } else {
-        alert("Login failed, no token received");
+        setErrorMessage("Login failed, no token received");
       }
     } catch (err) {
       console.error("Login Error:", err);
-      alert("Invalid credentials or server error");
+      setErrorMessage(err?.message || "Invalid credentials or server error");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleQuickDemoFill = () => {
-    setEmail('admin@rajdhanigarments.com');
-    setPassword('Rajdhani@2026');
-  };
 
   return (
     <div className="rg-login-container">
@@ -164,14 +169,21 @@ const Login = () => {
             </p>
           </div>
 
-          {/* Quick Demo Pill */}
-          <div className="rg-demo-pill" onClick={handleQuickDemoFill} title="Click to fill credentials">
-            <div className="rg-demo-tag">
-              <CheckCircle2 size={15} color="#059669" />
-              <span>1-Click Demo Fill</span>
+
+          {errorMessage && (
+            <div style={{
+              backgroundColor: '#fef2f2',
+              color: '#991b1b',
+              border: '1px solid #fecaca',
+              borderRadius: '12px',
+              padding: '12px 16px',
+              fontSize: '13px',
+              fontWeight: 500,
+              marginBottom: '20px'
+            }}>
+              ⚠️ {errorMessage}
             </div>
-            <span className="rg-demo-text">admin@rajdhanigarments.com</span>
-          </div>
+          )}
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="rg-form">

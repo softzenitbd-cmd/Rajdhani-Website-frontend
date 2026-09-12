@@ -2,32 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { RotateCcw, Plus, Printer, RefreshCw } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { purchaseService } from '../../services/purchaseService';
 import { crmService } from '../../services/crmService';
 
 const PurchaseReport = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const defaultReports = [
-    { id: 1, date: '24 Aug 2026', supplier: 'ROKSANA TOPS BONGO', product: 'ROK XL HAF 150 | 7511', group: 'LADIS GERMENTS', buy: '90.00', sell: '150.00', qty: '25', total: '2250.00', desc: '-' },
-    { id: 2, date: '24 Aug 2026', supplier: 'ROKSANA TOPS BONGO', product: 'ROK XXL HAF 170 | 7512', group: 'LADIS GERMENTS', buy: '110.00', sell: '170.00', qty: '25', total: '2750.00', desc: '-' },
-    { id: 3, date: '24 Aug 2026', supplier: 'ROKSANA TOPS BONGO', product: 'ROK HAF 3XL | 16546', group: 'LADIS GERMENTS', buy: '140.00', sell: '220.00', qty: '25', total: '3500.00', desc: '-' },
-    { id: 4, date: '24 Aug 2026', supplier: 'ROKSANA TOPS BONGO', product: 'ROK 5XL HAF 250 | 9087', group: 'LADIS GERMENTS', buy: '160.00', sell: '250.00', qty: '25', total: '4000.00', desc: '-' }
-  ];
 
-  const defaultSuppliers = [
-    { id: '1', name: 'ROKSANA TOPS BONGO' },
-    { id: '2', name: 'BROTHERS TRADERS 23' }
-  ];
 
-  const [reports, setReports] = useState(defaultReports);
-  const [suppliers, setSuppliers] = useState(defaultSuppliers);
+  const [reports, setReports] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const [filters, setFilters] = useState({
-    supplier_id: '',
+    supplier_id: location.state?.supplierId || '',
     productName: '',
     invoiceNo: '',
     barcode: '',
@@ -59,17 +50,17 @@ const PurchaseReport = () => {
             desc: item.description || '-'
           })));
         } else {
-          setReports(defaultReports);
+          setReports([]);
         }
       }
 
       if (supRes) {
         const sList = Array.isArray(supRes) ? supRes : (supRes?.results || []);
-        setSuppliers(sList.length > 0 ? sList : defaultSuppliers);
+        setSuppliers(sList);
       }
     } catch (err) {
       console.error("Error fetching purchase report:", err);
-      setReports(defaultReports);
+      setReports([]);
     } finally {
       setLoading(false);
     }

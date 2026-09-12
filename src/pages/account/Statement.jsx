@@ -16,52 +16,6 @@ const Statement = () => {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
 
-  const fallbackData = [
-    {
-      id: '1',
-      type: 'DEPOSIT',
-      transaction_type: 'Invoice',
-      date: '25 Aug 2026',
-      account_name: 'Cash Account',
-      description: 'Payment for INV-0001',
-      credit: '6050.00',
-      debit: '--',
-      source: 'Client: RASHED'
-    },
-    {
-      id: '2',
-      type: 'COST',
-      transaction_type: 'Transfer',
-      date: '26 Aug 2026',
-      account_name: 'Cash Account',
-      description: 'Send money to DBBL',
-      credit: '--',
-      debit: '1000.00',
-      source: 'Transfer to DBBL'
-    },
-    {
-      id: '3',
-      type: 'DEPOSIT',
-      transaction_type: 'Direct Deposit',
-      date: '28 Aug 2026',
-      account_name: 'Dutch Bangla Bank (DBBL)',
-      description: 'Wholesale client collection',
-      credit: '15000.00',
-      debit: '--',
-      source: 'Client: JAKIR MAMA'
-    },
-    {
-      id: '4',
-      type: 'COST',
-      transaction_type: 'Expense',
-      date: '30 Aug 2026',
-      account_name: 'Cash Account',
-      description: 'Monthly electricity bill',
-      credit: '--',
-      debit: '3500.00',
-      source: 'DOKAN KOROJ'
-    }
-  ];
 
   useEffect(() => {
     loadAccounts();
@@ -89,10 +43,10 @@ const Statement = () => {
 
       const res = await accountingService.getStatement(filters);
       const data = Array.isArray(res) ? res : (res?.results || []);
-      setStatements(data.length > 0 ? data : fallbackData);
+      setStatements(data);
     } catch (error) {
       console.error('Error fetching statement:', error);
-      setStatements(fallbackData);
+      setStatements([]);
     } finally {
       setLoading(false);
     }

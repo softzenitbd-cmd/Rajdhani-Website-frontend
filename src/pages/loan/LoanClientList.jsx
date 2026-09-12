@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { RotateCcw, Printer, Play, Plus, ArrowLeft, Layers, ChevronDown, Eye, Edit, Trash2, DollarSign, FileText } from 'lucide-react';
+import { RotateCcw, Printer, Plus, ArrowLeft, Layers, ChevronDown, Eye, Edit, Trash2, DollarSign, FileText } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { loanService } from '../../services/loanService';
+import QuickEditModal from '../../components/QuickEditModal';
+import { useToast } from '../../context/ToastContext';
+import { exportVisibleTable } from '../../utils/tableExport';
 
 const LoanClientList = () => {
   const { t } = useTranslation();
@@ -12,6 +15,30 @@ const LoanClientList = () => {
   const [loanClients, setLoanClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeAction, setActiveAction] = useState(null);
+  const [editing, setEditing] = useState(null);
+  const [viewing, setViewing] = useState(null);
+  const toast = useToast();
+
+  const handleDelete = async (client) => {
+    if (!window.confirm(`Delete loan client "${client.name}"?`)) return;
+    try {
+      await loanService.deleteLoanAccount(client.id || client.uuid);
+      toast.success('Loan client deleted');
+      fetchLoanClients();
+    } catch (e) {
+      toast.error(e.message || 'Delete failed');
+    }
+  };
+  const [search, setSearch] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [entries, setEntries] = useState(25);
+
+  const visibleClients = (loanClients || [])
+    .filter((c) => !search || `${c.name || ''} ${c.phone || ''} ${c.address || ''}`.toLowerCase().includes(search.toLowerCase()))
+    .filter((c) => !fromDate || String(c.created_at || '').split('T')[0] >= fromDate)
+    .filter((c) => !toDate || String(c.created_at || '').split('T')[0] <= toDate)
+    .slice(0, entries);
 
   const fetchLoanClients = async () => {
     try {
@@ -47,7 +74,7 @@ const LoanClientList = () => {
           <button className="btn-gray-outline" onClick={() => navigate(-1)}>
             <ArrowLeft size={16} /> Go Back
           </button>
-          <button className="btn-gray-outline">
+          <button className="btn-gray-outline" onClick={() => navigate('/crm/client-group')}>
             <Layers size={16} /> Client Group
           </button>
           <Link to="/loan/client-create" style={{ textDecoration: 'none' }}>
@@ -55,11 +82,6 @@ const LoanClientList = () => {
               <Plus size={16} /> Add New
             </button>
           </Link>
-          <button className="btn-youtube">
-            <div style={{ display: 'flex', alignItems: 'center', background: '#ff0000', color: 'white', padding: '6px 12px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold' }}>
-              <Play size={16} fill="white" style={{ marginRight: '6px' }} /> YouTube
-            </div>
-          </button>
         </div>
       </div>
 
@@ -67,26 +89,20 @@ const LoanClientList = () => {
         <PrintHeader />
         
         {/* Filters */}
-        <div className="filter-section" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.5fr 1fr', gap: '16px', marginBottom: '24px' }}>
+        <div className="filter-section" style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1fr', gap: '16px', marginBottom: '24px' }}>
           <div className="input-badge-top" style={{ marginTop: '22px' }}>
             <span className="badge-top-label">Search All</span>
-            <input type="text" className="input-outline" placeholder="Search All" style={{ width: '100%', height: '40px', padding: '0 12px', border: '1px solid #0ea5e9', borderRadius: '4px' }} />
-          </div>
-          <div>
-            <label className="filter-label" style={{ display: 'block', marginBottom: '8px' }}>Search By Client Group</label>
-            <select className="input-outline" style={{ width: '100%', height: '40px', padding: '0 12px', border: '1px solid #0ea5e9', borderRadius: '4px', backgroundColor: 'transparent', color: '#000' }}>
-              <option value="">Select client group</option>
-            </select>
+            <input type="text" className="input-outline" placeholder="Search All" value={search} onChange={(e) => setSearch(e.target.value)} style={{ width: '100%', height: '40px', padding: '0 12px', border: '1px solid #0ea5e9', borderRadius: '4px' }} />
           </div>
           <div>
             <label className="filter-label" style={{ display: 'block', marginBottom: '8px' }}>{t('common.search_by_date')}</label>
             <div style={{ display: 'flex' }}>
-              <input type="date" className="input-outline" style={{ borderRight: 'none', borderRadius: '4px 0 0 4px', width: '50%', height: '40px', padding: '0 12px', border: '1px solid #d1d5db' }} />
-              <input type="date" className="input-outline" style={{ borderRadius: '0 4px 4px 0', width: '50%', height: '40px', padding: '0 12px', border: '1px solid #d1d5db' }} />
+              <input type="date" className="input-outline" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ borderRight: 'none', borderRadius: '4px 0 0 4px', width: '50%', height: '40px', padding: '0 12px', border: '1px solid #d1d5db' }} />
+              <input type="date" className="input-outline" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ borderRadius: '0 4px 4px 0', width: '50%', height: '40px', padding: '0 12px', border: '1px solid #d1d5db' }} />
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-            <button className="btn-gray-outline" style={{ height: '40px', width: '100%', justifyContent: 'center', background: 'var(--text-muted)', fontSize: '16px', color: 'white' }}>
+            <button className="btn-gray-outline" onClick={() => { setSearch(''); setFromDate(''); setToDate(''); }} style={{ height: '40px', width: '100%', justifyContent: 'center', background: 'var(--text-muted)', fontSize: '16px', color: 'white' }}>
               Clear Filter
             </button>
           </div>
@@ -96,15 +112,15 @@ const LoanClientList = () => {
         <div className="table-controls" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div className="table-controls-left" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#000' }}>
             Show 
-            <select className="input-outline" style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #d1d5db' }}>
-              <option value="25">25</option>
+            <select className="input-outline" value={entries} onChange={(e) => setEntries(Number(e.target.value))} style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #d1d5db' }}>
+              {[10, 25, 50, 100, 500].map((n) => <option key={n} value={n}>{n}</option>)}
             </select> 
             entries
           </div>
           <div className="table-controls-right" style={{ display: 'flex', gap: '4px' }}>
-            <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>Excel</button>
+            <button onClick={() => exportVisibleTable('xlsx')} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>Excel</button>
             <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }} onClick={() => window.print()}><Printer size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.print')}</button>
-            <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}><RotateCcw size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.reset')}</button>
+            <button onClick={() => window.location.reload()} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}><RotateCcw size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.reset')}</button>
           </div>
         </div>
 
@@ -120,7 +136,7 @@ const LoanClientList = () => {
               </tr>
             </thead>
             <tbody>
-              {(loanClients || []).map((client, index) => (
+              {visibleClients.map((client, index) => (
                 <tr key={client.id || index} style={{ borderBottom: '1px solid #d1d5db' }}>
                   
                   {/* ID Column */}
@@ -177,11 +193,11 @@ const LoanClientList = () => {
                         zIndex: 100,
                         textAlign: 'left'
                       }}>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}><Eye size={14} /> View</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}><Edit size={14} /> Edit</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}><Trash2 size={14} /> Delete</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => navigate('/loan/payment-create')}><DollarSign size={14} /> Payment</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}><FileText size={14} /> Statement</div>
+                        <div className="action-item" onClick={() => { setViewing(client); setActiveAction(null); }} style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}><Eye size={14} /> View</div>
+                        <div className="action-item" onClick={() => { setEditing(client); setActiveAction(null); }} style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}><Edit size={14} /> Edit</div>
+                        <div className="action-item" onClick={() => { handleDelete(client); setActiveAction(null); }} style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}><Trash2 size={14} /> Delete</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => navigate('/loan/payment-create', { state: { clientId: client.id || client.uuid } })}><DollarSign size={14} /> Payment</div>
+                        <div className="action-item" onClick={() => { navigate('/loan/statement', { state: { clientId: client.id || client.uuid } }); setActiveAction(null); }} style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}><FileText size={14} /> Statement</div>
                       </div>
                     )}
                   </td>
@@ -203,6 +219,28 @@ const LoanClientList = () => {
         </div>
 
       </div>
+      {editing && (
+        <QuickEditModal
+          title="Edit Loan Client"
+          record={editing}
+          fields={[{ name: 'name', label: 'Name' }, { name: 'phone', label: 'Phone' }, { name: 'address', label: 'Address' }, { name: 'previous_due', label: 'Previous Due', type: 'number' }, { name: 'max_due_limit', label: 'Max Due Limit', type: 'number' }, { name: 'status', label: 'Status', type: 'select', options: [{ value: 1, label: 'Activated' }, { value: 0, label: 'Deactivated' }] }]}
+          onSave={(data) => loanService.updateLoanAccount(editing.id || editing.uuid, data)}
+          onClose={(saved) => { setEditing(null); if (saved) fetchLoanClients(); }}
+        />
+      )}
+      {viewing && (
+        <div onClick={() => setViewing(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: 'white', borderRadius: '8px', width: '420px', maxWidth: '95vw', padding: '24px' }}>
+            <h3 style={{ marginTop: 0 }}>{viewing.name}</h3>
+            <table style={{ width: '100%', fontSize: '13px' }}><tbody>
+              {[['Phone', viewing.phone], ['Address', viewing.address], ['Previous Due', viewing.previous_due], ['Max Due Limit', viewing.max_due_limit], ['Current Due', viewing.due ?? viewing.current_due ?? viewing.balance], ['Status', viewing.status === 1 ? 'Activated' : 'Deactivated']].map(([k, v]) => (
+                <tr key={k}><td style={{ padding: '6px 0', fontWeight: 600, width: '40%' }}>{k}</td><td style={{ padding: '6px 0' }}>{v ?? '-'}</td></tr>
+              ))}
+            </tbody></table>
+            <div style={{ textAlign: 'right', marginTop: '16px' }}><button onClick={() => setViewing(null)} style={{ padding: '8px 16px', background: '#f1f5f9', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Close</button></div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

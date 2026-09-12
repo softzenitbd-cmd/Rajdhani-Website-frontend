@@ -4,12 +4,27 @@ import PrintHeader from '../../components/PrintHeader';
 import { Plus, Printer, RotateCcw, Edit, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { loanService } from '../../services/loanService';
+import QuickEditModal from '../../components/QuickEditModal';
+import { useToast } from '../../context/ToastContext';
 
 const LoanPaymentList = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [loans, setLoans] = useState([]);
+  const [editing, setEditing] = useState(null);
+  const toast = useToast();
+
+  const handleDelete = async (loan) => {
+    if (!window.confirm('Delete this record?')) return;
+    try {
+      await loanService.deleteLoanPayment(loan.id || loan.uuid);
+      toast.success('Deleted');
+      fetchLoans();
+    } catch (e) {
+      toast.error(e.message || 'Delete failed');
+    }
+  };
   const [clients, setClients] = useState([]);
   const [selectedClient, setSelectedClient] = useState('');
   const [fromDate, setFromDate] = useState('');
@@ -72,9 +87,6 @@ const LoanPaymentList = () => {
         <div className="card-actions" style={{ display: 'flex', gap: '8px' }}>
           <button className="btn btn-primary" onClick={() => navigate('/loan/payment-create')} style={{ background: 'var(--success)', padding: '6px 12px', fontSize: '14px', borderRadius: '4px' }}>
             <Plus size={14} /> Add Loan Payment
-          </button>
-          <button className="btn btn-outline" style={{ background: 'white', border: '1px solid #e2e8f0', color: 'red', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '4px' }}>
-            <span style={{ backgroundColor: 'red', color: 'white', borderRadius: '4px', padding: '0 4px', fontSize: '10px' }}>▶</span> <span style={{ color: 'black', fontWeight: 'bold' }}>YouTube</span>
           </button>
         </div>
       </div>
@@ -165,10 +177,10 @@ const LoanPaymentList = () => {
                     <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0', fontWeight: 'bold' }}>{displayAmt} ৳</td>
                     <td style={{ textAlign: 'center', padding: '12px' }}>
                       <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
-                        <button className="action-btn-sm edit" style={{ background: 'var(--info)', border: 'none', borderRadius: '4px', padding: '4px', color: 'white', cursor: 'pointer' }}>
+                        <button className="action-btn-sm edit" onClick={() => setEditing(loan)} style={{ background: 'var(--info)', border: 'none', borderRadius: '4px', padding: '4px', color: 'white', cursor: 'pointer' }}>
                           <Edit size={14} />
                         </button>
-                        <button className="action-btn-sm delete" style={{ background: 'var(--danger)', border: 'none', borderRadius: '4px', padding: '4px', color: 'white', cursor: 'pointer' }}>
+                        <button className="action-btn-sm delete" onClick={() => handleDelete(loan)} style={{ background: 'var(--danger)', border: 'none', borderRadius: '4px', padding: '4px', color: 'white', cursor: 'pointer' }}>
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -190,6 +202,15 @@ const LoanPaymentList = () => {
           </table>
         </div>
       </div>
+      {editing && (
+        <QuickEditModal
+          title="Edit Loan Payment"
+          record={editing}
+          fields={[{ name: 'date', label: 'Date', type: 'date' }, { name: 'amount', label: 'Amount', type: 'number' }, { name: 'description', label: 'Description', type: 'textarea' }]}
+          onSave={(data) => loanService.updateLoanPayment(editing.id || editing.uuid, data)}
+          onClose={(saved) => { setEditing(null); if (saved) fetchLoans(); }}
+        />
+      )}
     </div>
   );
 };

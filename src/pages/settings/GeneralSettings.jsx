@@ -1,13 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
+import { useToast } from '../../context/ToastContext';
+import { useLocalSettings } from '../../hooks/useLocalSettings';
+import { settingService } from '../../services/settingService';
 import PrintHeader from '../../components/PrintHeader';
 
+const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '_');
 
+// Toggle persisted in localStorage under settings[slug(label)]
 const ToggleItem = ({ label, defaultChecked = false, hasInput = false, inputValue = "" }) => {
-  const { t } = useTranslation();
-
-  const [checked, setChecked] = useState(defaultChecked);
+  const { settings, setSetting } = useLocalSettings();
+  const key = slug(label);
+  const checked = settings[key] === undefined ? defaultChecked : !!settings[key];
+  const value = settings[key] === undefined ? inputValue : settings[key];
+  const setChecked = (v) => setSetting(key, v);
 
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '8px', background: 'white' }}>
@@ -16,7 +24,7 @@ const ToggleItem = ({ label, defaultChecked = false, hasInput = false, inputValu
           <label style={{ fontSize: '11px', color: 'white', background: 'var(--primary)', padding: '2px 8px', borderRadius: '4px', width: 'fit-content' }}>
             {label}
           </label>
-          <input type="text" defaultValue={inputValue} style={{ border: 'none', borderBottom: '1px solid #e2e8f0', outline: 'none', padding: '4px 0', fontSize: '14px' }} />
+          <input type="text" value={value} onChange={(e) => setSetting(key, e.target.value)} style={{ border: 'none', borderBottom: '1px solid #e2e8f0', outline: 'none', padding: '4px 0', fontSize: '14px' }} />
         </div>
       ) : (
         <>
@@ -54,16 +62,52 @@ const ToggleItem = ({ label, defaultChecked = false, hasInput = false, inputValu
   );
 };
 
+const DEFAULT_RECEIVE_SMS = `Dear {client_name},\nThank you for the payment of {receive_amount} TK\nDue : {due_amount} for {description}.\nRAJDHANI FABRICS & GARMENTS\nHELPLINE: {company_mobile}`;
+const DEFAULT_INVOICE_SMS = `Dear {client_name},\nThank you for purchasing our products.\nTotal bill: {total_bill} TK\nPayment: {total_payment}\nDue : {invoice_due}\nTotal Due: {client_total_due}.\nRAJDHANI FABRICS & GARMENTS\nHELPLINE: {company_mobile}`;
+
 const GeneralSettings = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const toast = useToast();
   const { state, updateTheme, resetTheme } = useAppContext();
+  const { settings, setSetting } = useLocalSettings();
   const theme = state?.theme || {};
   const [activeTab, setActiveTab] = useState('General');
   const [localTheme, setLocalTheme] = useState(theme);
 
+  // SMS template settings (backend: /api/erpsetting/sms-settings/)
+  const [smsSettings, setSmsSettings] = useState({ receive_sms: DEFAULT_RECEIVE_SMS, invoice_sms: DEFAULT_INVOICE_SMS });
+  const [smsSaving, setSmsSaving] = useState(false);
+
   useEffect(() => {
     setLocalTheme(theme);
   }, [theme]);
+
+  useEffect(() => {
+    settingService.getSmsSettings().then((res) => {
+      const data = res?.data || res || {};
+      if (data && typeof data === 'object') {
+        setSmsSettings((prev) => ({
+          ...prev,
+          ...data,
+          receive_sms: data.receive_sms || data.receive_template || data.receive_sms_template || prev.receive_sms,
+          invoice_sms: data.invoice_sms || data.invoice_template || data.invoice_sms_template || prev.invoice_sms,
+        }));
+      }
+    }).catch(() => {});
+  }, []);
+
+  const saveSms = async () => {
+    try {
+      setSmsSaving(true);
+      await settingService.updateSmsSettings(smsSettings);
+      toast.success('SMS settings saved');
+    } catch (e) {
+      toast.error(e.message || 'Failed to save SMS settings');
+    } finally {
+      setSmsSaving(false);
+    }
+  };
 
   const handleColorChange = (key, value) => {
     setLocalTheme(prev => ({ ...prev, [key]: value }));
@@ -71,6 +115,7 @@ const GeneralSettings = () => {
 
   const handleUpdate = () => {
     updateTheme(localTheme);
+    toast.success('Theme updated');
   };
 
   const tabs = [
@@ -121,15 +166,15 @@ const GeneralSettings = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '600px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px' }}>Language</label>
-                  <select style={{ width: '100%', padding: '12px', border: '1px solid #93c5fd', borderRadius: '8px', outline: 'none' }}>
-                    <option>English</option>
-                    <option>Bengali</option>
+                  <select value={i18n.language === 'bn' ? 'bn' : 'en'} onChange={(e) => i18n.changeLanguage(e.target.value)} style={{ width: '100%', padding: '12px', border: '1px solid #93c5fd', borderRadius: '8px', outline: 'none' }}>
+                    <option value="en">English</option>
+                    <option value="bn">Bengali</option>
                   </select>
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px' }}>Menu Size</label>
-                  <select style={{ width: '100%', padding: '12px', border: '1px solid #93c5fd', borderRadius: '8px', outline: 'none' }}>
+                  <select value={settings.menu_size || 'Medium'} onChange={(e) => setSetting('menu_size', e.target.value)} style={{ width: '100%', padding: '12px', border: '1px solid #93c5fd', borderRadius: '8px', outline: 'none' }}>
                     <option>Large</option>
                     <option>Medium</option>
                     <option>Small</option>
@@ -252,28 +297,24 @@ const GeneralSettings = () => {
             
             {activeTab === 'SMS' && (
               <div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '16px', marginBottom: '16px' }}>
-                  <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#1f2937' }}>Balance: 381.69 TK</div>
-                  <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#1f2937', cursor: 'pointer' }}>Recharge Now</div>
-                </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', fontWeight: '500' }}>Receive SMS</label>
                     <textarea 
                       style={{ width: '100%', height: '200px', padding: '16px', border: '1px solid #10b981', borderRadius: '4px', outline: 'none', resize: 'none', fontSize: '14px', color: 'var(--text-main)' }}
-                      defaultValue={`Dear {client_name},\nThank you for the payment of {receive_amount} TK\nDue : {due_amount} for {description}.\nRAJDHANI FABRICS & GARMENTS\nHELPLINE: {company_mobile}`}
+                      value={smsSettings.receive_sms} onChange={(e) => setSmsSettings((p) => ({ ...p, receive_sms: e.target.value }))}
                     />
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', fontWeight: '500' }}>Invoice SMS</label>
                     <textarea 
                       style={{ width: '100%', height: '200px', padding: '16px', border: '1px solid #10b981', borderRadius: '4px', outline: 'none', resize: 'none', fontSize: '14px', color: 'var(--text-main)' }}
-                      defaultValue={`Dear {client_name},\nThank you for purchasing our products.\nTotal bill: {total_bill} TK\nPayment: {total_payment}\nDue : {invoice_due}\nTotal Due: {client_total_due}.\nRAJDHANI FABRICS & GARMENTS\nHELPLINE: {company_mobile}`}
+                      value={smsSettings.invoice_sms} onChange={(e) => setSmsSettings((p) => ({ ...p, invoice_sms: e.target.value }))}
                     />
                   </div>
                 </div>
-                <button style={{ width: '100%', background: 'var(--success)', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
-                  Save
+                <button onClick={saveSms} disabled={smsSaving} style={{ width: '100%', background: 'var(--success)', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
+                  {smsSaving ? 'Saving...' : 'Save'}
                 </button>
               </div>
             )}

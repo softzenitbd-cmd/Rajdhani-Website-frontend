@@ -1,5 +1,9 @@
 import React from 'react';
-import { CreditCard, User, Bookmark, FileText, CheckCircle, Clock, Check, Ticket, ChevronRight, MessageSquare, Briefcase, HelpCircle, Monitor } from 'lucide-react';
+import { CreditCard, User, Bookmark, FileText, CheckCircle, Ticket, MessageSquare, Briefcase, HelpCircle, Monitor } from 'lucide-react';
+
+// Vendor support portal (no API in this project – opens the Softzen IT support site)
+const SUPPORT_URL = 'https://softzenit.com';
+const openSupport = () => window.open(SUPPORT_URL, '_blank', 'noopener');
 
 const SupportDashboard = () => {
   return (
@@ -17,7 +21,7 @@ const SupportDashboard = () => {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '28px', fontWeight: 'bold' }}>0</span>
-              <button style={{ border: '1px solid #10b981', background: 'transparent', color: '#10b981', padding: '6px 12px', borderRadius: '20px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+              <button onClick={openSupport} style={{ border: '1px solid #10b981', background: 'transparent', color: '#10b981', padding: '6px 12px', borderRadius: '20px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
                 + Add
               </button>
             </div>
@@ -117,7 +121,7 @@ const SupportDashboard = () => {
                 <Ticket size={20} />
                 <span>Latest Ticket</span>
               </div>
-              <button style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '20px', fontWeight: '500', fontSize: '13px', cursor: 'pointer' }}>
+              <button onClick={openSupport} style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '20px', fontWeight: '500', fontSize: '13px', cursor: 'pointer' }}>
                 + Ticket List
               </button>
             </div>
@@ -219,7 +223,7 @@ const SupportDashboard = () => {
                         <span style={{ background: inv.color, color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '10px' }}>{inv.status}</span>
                       </td>
                       <td style={{ padding: '16px 0' }}>
-                        <button style={{ background: '#facc15', color: '#422006', border: 'none', padding: '4px 12px', borderRadius: '4px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500', cursor: 'pointer' }}>
+                        <button onClick={openSupport} style={{ background: '#facc15', color: '#422006', border: 'none', padding: '4px 12px', borderRadius: '4px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500', cursor: 'pointer' }}>
                           <FileText size={12} /> View
                         </button>
                       </td>
@@ -236,7 +240,7 @@ const SupportDashboard = () => {
       
       {/* Floating Action Button */}
       <div style={{ position: 'fixed', bottom: '24px', right: '24px' }}>
-        <button style={{ background: '#10b981', color: 'white', border: 'none', padding: '12px 20px', borderRadius: '30px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '500', boxShadow: '0 4px 6px rgba(16, 185, 129, 0.3)', cursor: 'pointer' }}>
+        <button onClick={openSupport} style={{ background: '#10b981', color: 'white', border: 'none', padding: '12px 20px', borderRadius: '30px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '500', boxShadow: '0 4px 6px rgba(16, 185, 129, 0.3)', cursor: 'pointer' }}>
           <HelpCircle size={18} /> Online Help & sup
         </button>
       </div>
