@@ -61,9 +61,19 @@ const refreshAccessToken = async () => {
 };
 
 // Flatten DRF style validation errors ({field: ["msg"]}) into one readable line
-const extractErrorMessage = (data, fallback) => {
+const extractErrorMessage = (data, fallback, status) => {
   if (!data) return fallback;
-  if (typeof data === 'string') return data;
+  if (typeof data === 'string') {
+    // Django debug / HTML error pages: show a short message, log the details
+    if (/<!DOCTYPE|<html/i.test(data)) {
+      const title = data.match(/<title>([^<]*)<\/title>/i)?.[1]?.trim();
+      const exc = data.match(/<pre class="exception_value">([^<]*)<\/pre>/i)?.[1]?.trim();
+      console.error('Server error:', title, exc);
+      const detail = exc ? exc.replace(/&#x27;/g, "'").replace(/&quot;/g, '"') : title;
+      return `Server error (${status || 500})${detail ? `: ${detail}` : ''}`.slice(0, 200);
+    }
+    return data.slice(0, 300);
+  }
   if (data.error) return typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
   if (data.detail) return typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail);
   if (data.message) return data.message;
@@ -96,7 +106,8 @@ apiClient.interceptors.response.use(
     const customError = {
       message: extractErrorMessage(
         error.response?.data,
-        error.code === 'ECONNABORTED' ? 'Request timed out. Please try again.' : error.message || 'Something went wrong'
+        error.code === 'ECONNABORTED' ? 'Request timed out. Please try again.' : error.message || 'Something went wrong',
+        status
       ),
       status,
       data: error.response?.data,

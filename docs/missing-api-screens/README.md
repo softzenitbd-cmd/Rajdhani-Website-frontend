@@ -50,3 +50,9 @@ Audit date: 2026-09-12
 ## 4. Backend test login
 
 `admin / 123456` (pre-filled in the login form) was rejected by the server during this audit, so nothing above could be verified against live data. Please share a working test user so the assumed payloads in section 2 can be confirmed.
+
+## 5. Backend bugs found while testing (backend দেভ কে দিতে হবে)
+
+| Endpoint | Error | Where |
+|---|---|---|
+| `GET /api/accounting/reports/deposits/` | **500 AttributeError**: `'IncomeCategory' object has no attribute 'created_by'` | `accounting/views.py` → `DepositReportAPIView` (the view/serializer reads `category.created_by`, but the `IncomeCategory` model has no such field). Affects: Deposit Report → All / Category wise / Customer wise. |

@@ -23,15 +23,8 @@ export const useApi = () => {
       if (err.response && err.response.data) {
         console.error('API Error Response Data:', err.response.data);
       }
-      let errorMessage = err.message || 'An unexpected error occurred';
-      
-      if (err.response && err.response.data) {
-        if (typeof err.response.data === 'object') {
-          errorMessage = Object.entries(err.response.data).map(([k, v]) => `${k}: ${v}`).join(', ');
-        } else if (typeof err.response.data === 'string') {
-          errorMessage = err.response.data;
-        }
-      }
+      // apiClient already flattens DRF errors and shortens HTML error pages
+      const errorMessage = (err.message || 'An unexpected error occurred').slice(0, 300);
 
       setError(errorMessage);
       toast.error(errorMessage);
