@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { toast } from '../context/ToastContext';
 
 /**
  * Export data to a real Excel (.xlsx) file and trigger browser download
@@ -8,7 +9,7 @@ import * as XLSX from 'xlsx';
  */
 export const exportToExcel = (data, fileName = 'export', sheetName = 'Report') => {
   if (!data || data.length === 0) {
-    alert("No data available to export to Excel.");
+    toast.error("No data available to export to Excel.");
     return;
   }
 
@@ -35,7 +36,7 @@ export const exportToExcel = (data, fileName = 'export', sheetName = 'Report') =
     XLSX.writeFile(workbook, cleanFileName);
   } catch (error) {
     console.error("Excel Export Error:", error);
-    alert("Failed to export Excel file. Please try again.");
+    toast.error("Failed to export Excel file. Please try again.");
   }
 };
 

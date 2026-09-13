@@ -8,8 +8,10 @@ import { useApi } from '../../../hooks/useApi';
 import { ENDPOINTS } from '../../../api/endpoints';
 import { exportVisibleTable } from '../../../utils/tableExport';
 import { printPage } from '../../../utils/printUtils';
+import { useToast } from '../../../context/ToastContext';
 
 const ClientGroup = () => {
+  const toast = useToast();
   const { t } = useTranslation();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -118,7 +120,7 @@ const ClientGroup = () => {
                     <button style={{ background: 'var(--info)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', marginRight: '4px' }} onClick={() => handleEditClick(group)}>
                       <Edit size={14} />
                     </button>
-                    <button style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer' }} onClick={() => alert("Delete group feature coming soon!")}>
+                    <button style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer' }} onClick={() => toast.info("Delete group feature coming soon!")}>
                       <Trash2 size={14} />
                     </button>
                   </td>

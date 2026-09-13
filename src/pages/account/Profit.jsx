@@ -4,8 +4,10 @@ import PrintHeader from '../../components/PrintHeader';
 import { Printer } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { accountingService } from '../../services/accountingService';
+import { useToast } from '../../context/ToastContext';
 
 const Profit = () => {
+  const toast = useToast();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -26,7 +28,7 @@ const Profit = () => {
       const data = (res && typeof res === 'object') ? res : {};
       setProfitData(data);
     } catch (error) {
-      alert(error?.message || 'Failed to load profit report');
+      toast.error(error?.message || 'Failed to load profit report');
       setProfitData({});
     } finally {
       setLoading(false);

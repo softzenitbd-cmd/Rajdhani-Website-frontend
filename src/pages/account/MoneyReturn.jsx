@@ -64,7 +64,7 @@ const MoneyReturn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.accountId || !formData.amount) {
-      alert("Please select an Account and enter an Amount.");
+      toast.error("Please select an Account and enter an Amount.");
       return;
     }
 
@@ -83,12 +83,12 @@ const MoneyReturn = () => {
       if (formData.description) payload.reference = formData.description;
 
       await accountingService.createExpense(payload);
-      alert("Money Return recorded successfully!");
+      toast.success("Money Return recorded successfully!");
       navigate('/account/expense-list');
     } catch (error) {
       console.error("Error submitting money return:", error);
       const errorDetail = error.response?.data ? JSON.stringify(error.response.data, null, 2) : error.message;
-      alert(`Failed to submit Money Return:\n${errorDetail}`);
+      toast.error(`Failed to submit Money Return:\n${errorDetail}`);
     } finally {
       setSubmitting(false);
     }

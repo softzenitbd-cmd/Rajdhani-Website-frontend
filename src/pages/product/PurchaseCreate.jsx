@@ -7,8 +7,10 @@ import AddOptionModal from '../../components/AddOptionModal';
 import { crmService } from '../../services/crmService';
 import { productService } from '../../services/productService';
 import { purchaseService } from '../../services/purchaseService';
+import { useToast } from '../../context/ToastContext';
 
 const PurchaseCreate = () => {
+  const toast = useToast();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -102,7 +104,7 @@ const PurchaseCreate = () => {
         handleSelectProduct(prod.id);
         setFormData(prev => ({ ...prev, barcode: '' }));
       } else {
-        alert(`Product with barcode "${code}" not found.`);
+        toast.error(`Product with barcode "${code}" not found.`);
       }
     }
   };
@@ -129,7 +131,7 @@ const PurchaseCreate = () => {
       setFormData(prev => ({ ...prev, supplier: newSup.id }));
       setIsSupplierModalOpen(false);
     } catch (err) {
-      alert(`Failed to create supplier: ${err?.message || 'server error'}`);
+      toast.error(`Failed to create supplier: ${err?.message || 'server error'}`);
     }
   };
 
@@ -143,17 +145,17 @@ const PurchaseCreate = () => {
       handleSelectProduct(newProd.id);
       setIsProductModalOpen(false);
     } catch (err) {
-      alert(`Failed to create product: ${err?.message || 'server error'}`);
+      toast.error(`Failed to create product: ${err?.message || 'server error'}`);
     }
   };
 
   const handleSubmitPurchase = async () => {
     if (!formData.supplier) {
-      alert("Please select a supplier.");
+      toast.error("Please select a supplier.");
       return;
     }
     if (items.length === 0) {
-      alert("Please add at least one product to purchase list.");
+      toast.error("Please add at least one product to purchase list.");
       return;
     }
 
@@ -186,11 +188,11 @@ const PurchaseCreate = () => {
       };
 
       const created = await purchaseService.createPurchaseInvoice(payload);
-      alert(`Purchase invoice ${created?.invoice_id ? created.invoice_id + ' ' : ''}created successfully!`);
+      toast.success(`Purchase invoice ${created?.invoice_id ? created.invoice_id + ' ' : ''}created successfully!`);
       navigate('/product/purchase/list');
     } catch (err) {
       console.error("Error creating purchase:", err);
-      alert(`Failed to create purchase: ${err?.message || 'server error'}`);
+      toast.error(`Failed to create purchase: ${err?.message || 'server error'}`);
     } finally {
       setSubmitting(false);
     }

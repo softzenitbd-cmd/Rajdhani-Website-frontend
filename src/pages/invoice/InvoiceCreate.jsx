@@ -8,8 +8,10 @@ import { crmService } from '../../services/crmService';
 import { productService } from '../../services/productService';
 import { accountingService } from '../../services/accountingService';
 import { saleService } from '../../services/saleService';
+import { useToast } from '../../context/ToastContext';
 
 const InvoiceCreate = () => {
+  const toast = useToast();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams();
@@ -187,7 +189,7 @@ const InvoiceCreate = () => {
         handleSelectProduct(prod.id);
         setFormData(prev => ({ ...prev, barcode: '' }));
       } else {
-        alert(`Product with barcode "${code}" not found.`);
+        toast.error(`Product with barcode "${code}" not found.`);
       }
     }
   };
@@ -222,11 +224,11 @@ const InvoiceCreate = () => {
 
   const handleSaveInvoice = async (status = 1, shouldPrint = false) => {
     if (!formData.clientId) {
-      alert("Please select a customer / client.");
+      toast.error("Please select a customer / client.");
       return;
     }
     if (items.length === 0) {
-      alert("Please add at least one product item.");
+      toast.error("Please add at least one product item.");
       return;
     }
 
@@ -275,16 +277,16 @@ const InvoiceCreate = () => {
       };
 
       if (status === 0) {
-        alert(isEditMode ? "Draft Invoice Updated Successfully!" : "Draft Invoice Saved Successfully!");
+        toast.success(isEditMode ? "Draft Invoice Updated Successfully!" : "Draft Invoice Saved Successfully!");
         navigate('/invoice/draft');
       } else {
-        alert(isEditMode ? "Sales Invoice Updated Successfully!" : "Sales Invoice Created Successfully!");
+        toast.success(isEditMode ? "Sales Invoice Updated Successfully!" : "Sales Invoice Created Successfully!");
         navigate('/invoice/list', { state: { printInvoice: savedInvoiceObj, shouldPrint } });
       }
     } catch (err) {
       console.error("Error saving sales invoice:", err);
       const errMsg = err?.response?.data?.detail || err?.response?.data?.message || err?.message || "Failed to save invoice via API.";
-      alert(`API Error: ${errMsg}`);
+      toast.error(`API Error: ${errMsg}`);
     }
   };
 

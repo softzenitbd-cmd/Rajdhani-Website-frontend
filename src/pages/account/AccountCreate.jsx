@@ -3,8 +3,10 @@ import { User, List, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
 import { accountingService } from '../../services/accountingService';
+import { useToast } from '../../context/ToastContext';
 
 const AccountCreate = () => {
+  const toast = useToast();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -24,7 +26,7 @@ const AccountCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.balance) {
-      alert("Account Title and Initial Balance are required!");
+      toast.error("Account Title and Initial Balance are required!");
       return;
     }
 
@@ -38,11 +40,11 @@ const AccountCreate = () => {
         phone: formData.phone,
         description: formData.description
       });
-      alert("Account added successfully!");
+      toast.success("Account added successfully!");
       navigate('/account/account-list');
     } catch (error) {
       console.error("Error creating account:", error);
-      alert("Failed to create account. Please check your network and try again.");
+      toast.error("Failed to create account. Please check your network and try again.");
     } finally {
       setSubmitting(false);
     }

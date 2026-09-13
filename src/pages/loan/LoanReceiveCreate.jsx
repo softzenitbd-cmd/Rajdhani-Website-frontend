@@ -86,7 +86,7 @@ const LoanReceiveCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.clientId || !formData.accountId || !formData.amount) {
-      alert("Please select Loan Account, Receiving Account, and enter Amount.");
+      toast.error("Please select Loan Account, Receiving Account, and enter Amount.");
       return;
     }
 
@@ -100,11 +100,11 @@ const LoanReceiveCreate = () => {
         ...(formData.categoryId ? { category: formData.categoryId } : {}),
         date: formData.date,
       });
-      alert("Loan Receive added successfully!");
+      toast.success("Loan Receive added successfully!");
       navigate('/loan/receive');
     } catch (error) {
       console.error("Error creating loan receive:", error);
-      alert(`Failed to create loan receive: ${error?.message || 'server error'}`);
+      toast.error(`Failed to create loan receive: ${error?.message || 'server error'}`);
     } finally {
       setLoading(false);
     }

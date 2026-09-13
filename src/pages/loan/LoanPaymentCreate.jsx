@@ -86,7 +86,7 @@ const LoanPaymentCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.clientId || !formData.accountId || !formData.amount) {
-      alert("Please select Loan Account, Payment Account, and enter Amount.");
+      toast.error("Please select Loan Account, Payment Account, and enter Amount.");
       return;
     }
 
@@ -100,11 +100,11 @@ const LoanPaymentCreate = () => {
         ...(formData.categoryId ? { category: formData.categoryId } : {}),
         date: formData.date,
       });
-      alert("Loan Payment added successfully!");
+      toast.success("Loan Payment added successfully!");
       navigate('/loan/payment');
     } catch (error) {
       console.error("Error creating loan payment:", error);
-      alert(`Failed to create loan payment: ${error?.message || 'server error'}`);
+      toast.error(`Failed to create loan payment: ${error?.message || 'server error'}`);
     } finally {
       setLoading(false);
     }

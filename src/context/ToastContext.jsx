@@ -1,8 +1,17 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { CheckCircle, XCircle, Info, X } from 'lucide-react';
 import '../components/Toast.css';
 
 const ToastContext = createContext();
+
+// Hook-free bridge so plain JS modules (utils/services) can show toasts.
+// The provider registers its addToast here on mount.
+let externalAddToast = null;
+export const toast = {
+  success: (message, duration) => externalAddToast?.(message, 'success', duration),
+  error: (message, duration) => externalAddToast?.(message, 'error', duration),
+  info: (message, duration) => externalAddToast?.(message, 'info', duration),
+};
 
 export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
@@ -28,6 +37,11 @@ export const ToastProvider = ({ children }) => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 400); // 400ms matches slideOutRight animation
   }, []);
+
+  useEffect(() => {
+    externalAddToast = addToast;
+    return () => { externalAddToast = null; };
+  }, [addToast]);
 
   const toast = {
     success: (message, duration) => addToast(message, 'success', duration),

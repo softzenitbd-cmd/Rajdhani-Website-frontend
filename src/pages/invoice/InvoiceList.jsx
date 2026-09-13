@@ -6,8 +6,10 @@ import { RotateCcw, Edit, Trash2 } from 'lucide-react';
 import { saleService } from '../../services/saleService';
 import { crmService } from '../../services/crmService';
 import { accountingService } from '../../services/accountingService';
+import { useToast } from '../../context/ToastContext';
 
 const InvoiceList = () => {
+  const toast = useToast();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -103,11 +105,11 @@ const InvoiceList = () => {
     if (!window.confirm(`Are you sure you want to delete invoice #${id}?`)) return;
     try {
       await saleService.deleteSalesInvoice(id);
-      alert("Invoice deleted successfully!");
+      toast.success("Invoice deleted successfully!");
       setInvoices(prev => prev.filter(inv => inv.id !== id));
     } catch (err) {
       console.error("Error deleting invoice:", err);
-      alert("Invoice deleted!");
+      toast.success("Invoice deleted!");
       setInvoices(prev => prev.filter(inv => inv.id !== id));
     }
   };

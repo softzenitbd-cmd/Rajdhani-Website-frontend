@@ -3,8 +3,10 @@ import { User, MapPin, Phone, Wallet, Settings, List, ShieldAlert } from 'lucide
 import { useNavigate } from 'react-router-dom';
 import { loanService } from '../../services/loanService';
 import PrintHeader from '../../components/PrintHeader';
+import { useToast } from '../../context/ToastContext';
 
 const LoanClientCreate = () => {
+  const toast = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
@@ -23,7 +25,7 @@ const LoanClientCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.phone) {
-      alert("Loan Account Name and Phone Number are required.");
+      toast.error("Loan Account Name and Phone Number are required.");
       return;
     }
 
@@ -36,11 +38,11 @@ const LoanClientCreate = () => {
         previous_due: formData.previous_due || '0.00',
         max_due_limit: formData.max_due_limit || '0.00'
       });
-      alert("Loan Account created successfully!");
+      toast.success("Loan Account created successfully!");
       navigate('/loan/client-list');
     } catch (error) {
       console.error("Error creating loan account:", error);
-      alert("Failed to create loan account. Please verify input and try again.");
+      toast.error("Failed to create loan account. Please verify input and try again.");
     } finally {
       setLoading(false);
     }

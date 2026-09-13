@@ -4,6 +4,7 @@ import { Printer } from 'lucide-react';
 import PrintHeader from '../../components/PrintHeader';
 import { productService } from '../../services/productService';
 import JsBarcode from 'jsbarcode';
+import { useToast } from '../../context/ToastContext';
 
 const BarcodeSticker = ({ barcodeValue, name, price }) => {
   const svgRef = useRef(null);
@@ -48,6 +49,7 @@ const BarcodeSticker = ({ barcodeValue, name, price }) => {
 };
 
 const ProductBarcode = () => {
+  const toast = useToast();
   const { t } = useTranslation();
 
 
@@ -86,7 +88,7 @@ const ProductBarcode = () => {
   const handleCreate = () => {
     const p = products.find(prod => String(prod.id) === String(selectedProductId));
     if (!p) {
-      alert("Please select a product first.");
+      toast.error("Please select a product first.");
       return;
     }
     const count = parseInt(quantity) || 1;

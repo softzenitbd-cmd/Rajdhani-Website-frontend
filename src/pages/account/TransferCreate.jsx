@@ -47,11 +47,11 @@ const TransferCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.fromAccountId || !formData.toAccountId || !formData.amount) {
-      alert("Please select both accounts and enter an amount.");
+      toast.error("Please select both accounts and enter an amount.");
       return;
     }
     if (formData.fromAccountId === formData.toAccountId) {
-      alert("Source and Destination accounts cannot be the same.");
+      toast.error("Source and Destination accounts cannot be the same.");
       return;
     }
 
@@ -66,11 +66,11 @@ const TransferCreate = () => {
       };
 
       await accountingService.createTransfer(payload);
-      alert("Fund transferred successfully! Both accounts and statement updated.");
+      toast.success("Fund transferred successfully! Both accounts and statement updated.");
       navigate('/account/transfer-list');
     } catch (error) {
       console.error("Error creating transfer:", error);
-      alert("Transfer request failed. Please check balance and try again.");
+      toast.error("Transfer request failed. Please check balance and try again.");
     } finally {
       setSubmitting(false);
     }

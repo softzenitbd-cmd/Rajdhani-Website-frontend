@@ -5,8 +5,10 @@ import PrintHeader from '../../../components/PrintHeader';
 import { useApi } from '../../../hooks/useApi';
 import { ENDPOINTS } from '../../../api/endpoints';
 import { exportToExcel } from '../../../utils/excelExporter';
+import { useToast } from '../../../context/ToastContext';
 
 const SupplierList = () => {
+  const toast = useToast();
   const navigate = useNavigate();
   const [activeAction, setActiveAction] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -276,8 +278,8 @@ const SupplierList = () => {
                         textAlign: 'left'
                       }}>
                         <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => navigate('/crm/supplier-statement', { state: { supplierId: supplier.id || supplier.uuid } })}><Eye size={14} /> View</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => alert("Edit supplier feature coming soon!")}><Edit size={14} /> Edit</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => alert("Delete supplier feature coming soon!")}><Trash2 size={14} /> Delete</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => toast.info("Edit supplier feature coming soon!")}><Edit size={14} /> Edit</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => toast.info("Delete supplier feature coming soon!")}><Trash2 size={14} /> Delete</div>
                         <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => navigate('/account/supplier-payment')}><DollarSign size={14} /> Payment</div>
                         <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => navigate('/expense-report/supplier-purchase')}><FileText size={14} /> Payment Report</div>
                         <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}onClick={() => { navigate("/product/purchase/report", { state: { supplierId: supplier.id || supplier.uuid } }); setActiveAction(null); }}><FileBarChart size={14} /> Purchase Report</div>

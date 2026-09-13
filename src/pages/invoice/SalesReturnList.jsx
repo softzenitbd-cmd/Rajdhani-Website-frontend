@@ -6,8 +6,10 @@ import { RotateCcw, CheckCircle } from 'lucide-react';
 import { saleService } from '../../services/saleService';
 import { crmService } from '../../services/crmService';
 import { accountingService } from '../../services/accountingService';
+import { useToast } from '../../context/ToastContext';
 
 const SalesReturnList = () => {
+  const toast = useToast();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -89,11 +91,11 @@ const SalesReturnList = () => {
     if (!window.confirm("Are you sure you want to convert this Draft Return to Final Sales Return? Product stock will increase and client due will decrease automatically.")) return;
     try {
       await saleService.updateSalesReturn(id, { status: 1 });
-      alert("Sales Return converted to Final successfully!");
+      toast.success("Sales Return converted to Final successfully!");
       fetchReturns();
     } catch (err) {
       console.error("Error converting sales return:", err);
-      alert("Converted Sales Return to Final!");
+      toast.success("Converted Sales Return to Final!");
       fetchReturns();
     }
   };

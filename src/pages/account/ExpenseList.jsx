@@ -4,8 +4,10 @@ import PrintHeader from '../../components/PrintHeader';
 import { Plus, Printer, RotateCcw, Edit, X, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { accountingService } from '../../services/accountingService';
+import { useToast } from '../../context/ToastContext';
 
 const ExpenseList = () => {
+  const toast = useToast();
   const { t } = useTranslation();
 
   const [expenses, setExpenses] = useState([]);
@@ -71,12 +73,12 @@ const ExpenseList = () => {
         amount: String(editAmount),
         description: editDesc
       });
-      alert('Expense updated successfully! Balances and ledgers have been auto-adjusted.');
+      toast.success('Expense updated successfully! Balances and ledgers have been auto-adjusted.');
       setEditingExpense(null);
       fetchExpenses();
     } catch (error) {
       console.error('Error updating expense:', error);
-      alert('Update failed. Please try again.');
+      toast.error('Update failed. Please try again.');
     } finally {
       setSavingEdit(false);
     }

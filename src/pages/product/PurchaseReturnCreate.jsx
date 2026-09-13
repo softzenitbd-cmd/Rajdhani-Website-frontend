@@ -104,7 +104,7 @@ const PurchaseReturnCreate = () => {
         handleSelectProduct(prod.id);
         setFormData(prev => ({ ...prev, barcode: '' }));
       } else {
-        alert(`Product with barcode "${code}" not found.`);
+        toast.error(`Product with barcode "${code}" not found.`);
       }
     }
   };
@@ -140,11 +140,11 @@ const PurchaseReturnCreate = () => {
     if (e) e.preventDefault();
 
     if (!formData.supplier) {
-      alert('Please select a supplier.');
+      toast.error('Please select a supplier.');
       return;
     }
     if (items.length === 0) {
-      alert('Please add at least one item to return.');
+      toast.error('Please add at least one item to return.');
       return;
     }
 
@@ -170,11 +170,11 @@ const PurchaseReturnCreate = () => {
 
     try {
       await purchaseService.createPurchaseReturn(payload);
-      alert('Purchase Return created successfully!');
+      toast.success('Purchase Return created successfully!');
       navigate('/product/purchase-return/list');
     } catch (err) {
       console.error("Error creating purchase return:", err);
-      alert(err?.message || 'Failed to create purchase return.');
+      toast.error(err?.message || 'Failed to create purchase return.');
     } finally {
       setSubmitting(false);
     }

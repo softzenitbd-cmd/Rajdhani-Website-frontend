@@ -8,8 +8,10 @@ import { crmService } from '../../services/crmService';
 import { productService } from '../../services/productService';
 import { accountingService } from '../../services/accountingService';
 import { saleService } from '../../services/saleService';
+import { useToast } from '../../context/ToastContext';
 
 const SalesReturnCreate = () => {
+  const toast = useToast();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -117,7 +119,7 @@ const SalesReturnCreate = () => {
         handleSelectProduct(prod.id);
         setFormData(prev => ({ ...prev, barcode: '' }));
       } else {
-        alert(`Product with barcode "${code}" not found.`);
+        toast.error(`Product with barcode "${code}" not found.`);
       }
     }
   };
@@ -148,11 +150,11 @@ const SalesReturnCreate = () => {
 
   const handleSaveReturn = async (status = 1, shouldPrint = false) => {
     if (!formData.clientId) {
-      alert("Please select a customer / client.");
+      toast.error("Please select a customer / client.");
       return;
     }
     if (items.length === 0) {
-      alert("Please add at least one return product item.");
+      toast.error("Please add at least one return product item.");
       return;
     }
 
@@ -177,10 +179,10 @@ const SalesReturnCreate = () => {
     try {
       await saleService.createSalesReturn(payload);
       if (status === 0) {
-        alert("Draft Return Invoice Saved Successfully!");
+        toast.success("Draft Return Invoice Saved Successfully!");
         navigate('/invoice/sales-return/list');
       } else {
-        alert("Sales Return Created Successfully!");
+        toast.success("Sales Return Created Successfully!");
         if (shouldPrint) {
           window.print();
         }
@@ -189,7 +191,7 @@ const SalesReturnCreate = () => {
     } catch (err) {
       console.error("Error creating sales return:", err);
       const errMsg = err?.response?.data?.detail || err?.response?.data?.message || err?.message || "Failed to save sales return via API.";
-      alert(`API Error: ${errMsg}`);
+      toast.error(`API Error: ${errMsg}`);
     }
   };
 

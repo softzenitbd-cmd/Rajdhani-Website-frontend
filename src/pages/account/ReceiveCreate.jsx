@@ -70,7 +70,7 @@ const ReceiveCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.accountId || !formData.amount) {
-      alert("Please enter an amount and select an account.");
+      toast.error("Please enter an amount and select an account.");
       return;
     }
 
@@ -91,12 +91,12 @@ const ReceiveCreate = () => {
       if (formData.description) payload.reference = formData.description;
 
       await accountingService.createReceive(payload);
-      alert("Receive recorded successfully!");
+      toast.success("Receive recorded successfully!");
       navigate('/account/receive-list');
     } catch (error) {
       console.error("Error creating receive:", error);
       const errorDetail = error.response?.data ? JSON.stringify(error.response.data, null, 2) : error.message;
-      alert(`Failed to submit receive:\n${errorDetail}`);
+      toast.error(`Failed to submit receive:\n${errorDetail}`);
     } finally {
       setSubmitting(false);
     }

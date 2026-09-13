@@ -5,8 +5,10 @@ import { RotateCcw, Edit, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { productService } from '../../services/productService';
 import { exportToExcel } from '../../utils/excelExporter';
+import { useToast } from '../../context/ToastContext';
 
 const ProductList = () => {
+  const toast = useToast();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -101,7 +103,7 @@ const ProductList = () => {
       await productService.deleteProduct(id);
       
       setProducts(prev => prev.filter(p => p.id !== id));
-      alert("Product deleted successfully!");
+      toast.success("Product deleted successfully!");
     } catch (err) {
       console.error("Error deleting product:", err);
       setProducts(prev => prev.filter(p => p.id !== id));

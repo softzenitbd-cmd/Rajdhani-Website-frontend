@@ -55,7 +55,7 @@ const ExpenseCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.accountId || !formData.amount || !formData.category) {
-      alert("Please select account, category, and enter an amount.");
+      toast.error("Please select account, category, and enter an amount.");
       return;
     }
 
@@ -73,11 +73,11 @@ const ExpenseCreate = () => {
       };
 
       await accountingService.createExpense(payload);
-      alert("Expense created and account balance updated successfully!");
+      toast.success("Expense created and account balance updated successfully!");
       navigate('/account/expense-list');
     } catch (error) {
       console.error("Error creating expense:", error);
-      alert("Failed to save expense. Please check your network connection.");
+      toast.error("Failed to save expense. Please check your network connection.");
     } finally {
       setSubmitting(false);
     }

@@ -5,8 +5,10 @@ import { RotateCcw, Trash2, Eye, Plus, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { purchaseService } from '../../services/purchaseService';
 import { crmService } from '../../services/crmService';
+import { useToast } from '../../context/ToastContext';
 
 const PurchaseList = () => {
+  const toast = useToast();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -82,7 +84,7 @@ const PurchaseList = () => {
     try {
       await purchaseService.deletePurchaseInvoice(id).catch(() => null);
       setPurchases(prev => prev.filter(p => p.id !== id));
-      alert("Purchase invoice deleted successfully!");
+      toast.success("Purchase invoice deleted successfully!");
     } catch (err) {
       console.error("Error deleting purchase:", err);
       setPurchases(prev => prev.filter(p => p.id !== id));

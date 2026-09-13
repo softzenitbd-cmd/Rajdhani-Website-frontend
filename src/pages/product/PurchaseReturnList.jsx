@@ -6,8 +6,10 @@ import { useNavigate } from 'react-router-dom';
 import { purchaseService } from '../../services/purchaseService';
 import { crmService } from '../../services/crmService';
 import { exportToExcel } from '../../utils/excelExporter';
+import { useToast } from '../../context/ToastContext';
 
 const PurchaseReturnList = () => {
+  const toast = useToast();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -90,10 +92,10 @@ const PurchaseReturnList = () => {
     try {
       await purchaseService.deletePurchaseReturn(id);
       setReturns(prev => prev.filter(r => String(r.id) !== String(id)));
-      alert(`Return #${id} deleted successfully.`);
+      toast.success(`Return #${id} deleted successfully.`);
     } catch (err) {
       console.error("API delete error:", err);
-      alert(err?.message || 'Failed to delete return.');
+      toast.error(err?.message || 'Failed to delete return.');
     }
   };
 

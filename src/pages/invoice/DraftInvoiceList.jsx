@@ -6,8 +6,10 @@ import { RotateCcw, CheckCircle } from 'lucide-react';
 import { saleService } from '../../services/saleService';
 import { crmService } from '../../services/crmService';
 import { accountingService } from '../../services/accountingService';
+import { useToast } from '../../context/ToastContext';
 
 const DraftInvoiceList = () => {
+  const toast = useToast();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -89,11 +91,11 @@ const DraftInvoiceList = () => {
     if (!window.confirm("Are you sure you want to convert this Draft Invoice to Final General Invoice? Stock and client due will be updated automatically.")) return;
     try {
       await saleService.updateSalesInvoice(id, { status: 1 });
-      alert("Invoice converted to Final successfully!");
+      toast.success("Invoice converted to Final successfully!");
       fetchDrafts();
     } catch (err) {
       console.error("Error converting draft invoice:", err);
-      alert("Converted Draft Invoice to Final General Invoice!");
+      toast.success("Converted Draft Invoice to Final General Invoice!");
       setInvoices(prev => prev.filter(i => i.id !== id));
     }
   };

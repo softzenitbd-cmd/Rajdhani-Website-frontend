@@ -5,8 +5,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
 import AddOptionModal from '../../components/AddOptionModal';
 import { productService } from '../../services/productService';
+import { useToast } from '../../context/ToastContext';
 
 const ProductCreate = () => {
+  const toast = useToast();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -85,7 +87,7 @@ const ProductCreate = () => {
       setSizes(list(sizesRes));
       setWarehouses(list(whRes));
     } catch (err) {
-      alert(err?.message || 'Failed to load units / groups');
+      toast.error(err?.message || 'Failed to load units / groups');
     }
   };
 
@@ -100,7 +102,7 @@ const ProductCreate = () => {
   const handleSubmit = async (e) => {
     e?.preventDefault();
     if (!formData.name?.trim()) {
-      alert("Please enter a product name");
+      toast.error("Please enter a product name");
       return;
     }
     try {
@@ -130,21 +132,21 @@ const ProductCreate = () => {
       try {
         if (isEditMode && editingProduct?.id) {
           await productService.updateProduct(editingProduct.id, payload);
-          alert("Product updated successfully via API!");
+          toast.success("Product updated successfully via API!");
         } else {
           await productService.createProduct(payload);
-          alert("Product created successfully via API!");
+          toast.success("Product created successfully via API!");
         }
       } catch (apiErr) {
         console.error("Error saving product:", apiErr);
-        alert(apiErr?.message || "Failed to save product. Please check the form and try again.");
+        toast.error(apiErr?.message || "Failed to save product. Please check the form and try again.");
         return;
       }
 
       navigate('/product/list');
     } catch (err) {
       console.error("Error saving product:", err);
-      alert("An unexpected error occurred while saving product.");
+      toast.error("An unexpected error occurred while saving product.");
     } finally {
       setSubmitting(false);
     }
