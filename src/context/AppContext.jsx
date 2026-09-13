@@ -1,6 +1,7 @@
-import React, { createContext, useReducer, useEffect, useContext } from 'react';
+import React, { createContext, useReducer, useEffect, useContext, useCallback } from 'react';
+import { appSettingsService } from '../services/appSettingsService';
 
-const defaultTheme = {
+export const defaultTheme = {
   '--bg-app': '#f4f7fe',
   '--bg-sidebar': '#ffffff',
   '--sidebar-hover': '#f1f5f9',
@@ -25,55 +26,49 @@ const defaultTheme = {
   '--dark': '#1e293b'
 };
 
-// Initial state loaded from localStorage or fallback to defaults
-const loadInitialState = () => {
-  const savedState = localStorage.getItem('rajdhane_app_state');
-  if (savedState) {
-    try {
-      const parsed = JSON.parse(savedState);
-      let theme = parsed.theme || defaultTheme;
-      if (theme['--primary'] === 'var(--primary)' || String(theme['--primary']).includes('var(')) {
-        theme = defaultTheme;
-      }
-      return { theme };
-    } catch (e) {
-      console.error("Failed to parse saved state", e);
-    }
-  }
-  
-  return {
-    theme: defaultTheme
-  };
+// Only keep known CSS variables with real colour values
+const sanitiseTheme = (theme) => {
+  const out = { ...defaultTheme };
+  if (!theme || typeof theme !== 'object') return out;
+  Object.keys(defaultTheme).forEach((k) => {
+    const v = theme[k];
+    if (typeof v === 'string' && v && !v.includes('var(')) out[k] = v;
+  });
+  return out;
 };
-
-const initialState = loadInitialState();
 
 export const AppContext = createContext();
 
 const appReducer = (state, action) => {
   switch (action.type) {
+    case 'SET_THEME':
+      return { ...state, theme: sanitiseTheme(action.payload) };
     case 'UPDATE_THEME':
-      return {
-        ...state,
-        theme: { ...state.theme, ...action.payload }
-      };
+      return { ...state, theme: { ...state.theme, ...action.payload } };
     case 'RESET_THEME':
-      return {
-        ...state,
-        theme: defaultTheme
-      };
+      return { ...state, theme: defaultTheme };
     default:
       return state;
   }
 };
 
+/**
+ * Theme colours are saved on the server under the `theme` key of the general
+ * settings (/api/erpsetting/general-settings/) so every device shows the same look.
+ */
 export const AppProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(appReducer, initialState);
+  const [state, dispatch] = useReducer(appReducer, { theme: defaultTheme });
 
-  // Save to localStorage whenever state changes
+  // Load the theme from the server (only when logged in) and follow later changes
   useEffect(() => {
-    localStorage.setItem('rajdhane_app_state', JSON.stringify(state));
-  }, [state]);
+    const sync = () => {
+      const theme = appSettingsService.get('theme');
+      if (theme) dispatch({ type: 'SET_THEME', payload: theme });
+    };
+    window.addEventListener(appSettingsService.EVENT, sync);
+    if (localStorage.getItem('token')) appSettingsService.load().then(sync);
+    return () => window.removeEventListener(appSettingsService.EVENT, sync);
+  }, []);
 
   // Inject CSS variables into :root
   useEffect(() => {
@@ -85,13 +80,21 @@ export const AppProvider = ({ children }) => {
     }
   }, [state.theme]);
 
-  // Helper actions
-  const updateTheme = (themeUpdates) => dispatch({ type: 'UPDATE_THEME', payload: themeUpdates });
-  const resetTheme = () => dispatch({ type: 'RESET_THEME' });
+  // Helper actions – the server copy is updated together with the local state
+  const updateTheme = useCallback((themeUpdates) => {
+    dispatch({ type: 'UPDATE_THEME', payload: themeUpdates });
+    const next = sanitiseTheme({ ...(appSettingsService.get('theme') || state.theme), ...themeUpdates });
+    return appSettingsService.set('theme', next);
+  }, [state.theme]);
+
+  const resetTheme = useCallback(() => {
+    dispatch({ type: 'RESET_THEME' });
+    return appSettingsService.set('theme', defaultTheme);
+  }, []);
 
   return (
-    <AppContext.Provider value={{ 
-      state, dispatch, 
+    <AppContext.Provider value={{
+      state, dispatch,
       updateTheme, resetTheme
     }}>
       {children}

@@ -3,8 +3,10 @@ import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { RotateCcw, RefreshCw } from 'lucide-react';
 import { productService } from '../../services/productService';
+import { useToast } from '../../context/ToastContext';
 
 const ProductStockList = () => {
+  const toast = useToast();
   const { t } = useTranslation();
 
 
@@ -27,33 +29,39 @@ const ProductStockList = () => {
   const fetchStockData = async () => {
     try {
       setLoading(true);
+      // GET /api/product/reports/stock/?group_id=&brand_id=&barcode=
       const [stockRes, groupsRes, prodsRes] = await Promise.all([
-        productService.getStockReport(filters).catch(() => null),
+        productService.getStockReport({ group_id: filters.group, barcode: filters.barcode }),
         productService.groups.getAll().catch(() => null),
         productService.getProducts().catch(() => null)
       ]);
 
-      if (stockRes) {
-        const list = Array.isArray(stockRes) ? stockRes : (stockRes?.results || []);
-        if (list.length > 0) {
-          setStocks(list.map((item, idx) => ({
-            id: item.id || idx + 1,
-            date: item.date || '24 Aug 2026',
-            product: `${item.product_name || item.name || 'Product'} ${item.barcode ? '| ' + item.barcode : ''}`,
-            buyPrice: parseFloat(item.purchase_price || item.buy_price || 0).toFixed(2),
-            sellPrice: parseFloat(item.sales_price || item.sell_price || 0).toFixed(2),
-            group: item.group_name || item.group || 'GENERAL',
-            opening: parseFloat(item.opening_stock || 0).toFixed(2),
-            buyQty: parseFloat(item.buy_qty || item.purchased_qty || 0).toFixed(2),
-            saleQty: parseFloat(item.sale_qty || item.sold_qty || 0).toFixed(2),
-            stock: parseFloat(item.current_stock || item.stock || 0).toFixed(2),
-            totalBuy: (parseFloat(item.purchase_price || 0) * parseFloat(item.current_stock || item.stock || 0)).toFixed(2),
-            totalSell: (parseFloat(item.sales_price || 0) * parseFloat(item.current_stock || item.stock || 0)).toFixed(2)
-          })));
-        } else {
-          setStocks([]);
-        }
-      }
+      const list = Array.isArray(stockRes) ? stockRes : (stockRes?.results || []);
+      // stock rows: product_id, name, barcode, group_name, brand_name, unit_name, buying_price,
+      //             selling_price, current_stock, total_buying_value, total_selling_value
+      setStocks(list.map((item, idx) => {
+        const stock = parseFloat(item.current_stock ?? item.stock ?? 0);
+        const buy = parseFloat(item.buying_price ?? item.purchase_price ?? 0);
+        const sell = parseFloat(item.selling_price ?? item.sales_price ?? 0);
+        return {
+          id: item.product_id || item.id || idx + 1,
+          productId: item.product_id || item.id,
+          date: item.updated_at || item.created_at || item.date || '',
+          product: `${item.name || item.product_name || ''} ${item.barcode ? '| ' + item.barcode : ''}`.trim(),
+          barcode: item.barcode || '',
+          unit: item.unit_name || '',
+          brand: item.brand_name || '',
+          buyPrice: buy.toFixed(2),
+          sellPrice: sell.toFixed(2),
+          group: item.group_name || '',
+          opening: parseFloat(item.opening_stock || 0).toFixed(2),
+          buyQty: parseFloat(item.buy_qty || item.purchased_qty || 0).toFixed(2),
+          saleQty: parseFloat(item.sale_qty || item.sold_qty || 0).toFixed(2),
+          stock: stock.toFixed(2),
+          totalBuy: parseFloat(item.total_buying_value ?? buy * stock).toFixed(2),
+          totalSell: parseFloat(item.total_selling_value ?? sell * stock).toFixed(2)
+        };
+      }));
 
       if (groupsRes) {
         const gList = Array.isArray(groupsRes) ? groupsRes : (groupsRes?.results || []);
@@ -65,10 +73,8 @@ const ProductStockList = () => {
         setProductsList(pList);
       }
     } catch (err) {
-      console.error("Error fetching stock data:", err);
+      toast.error(err?.message || 'Failed to load stock report');
       setStocks([]);
-      setGroups([]);
-      setProductsList([]);
     } finally {
       setLoading(false);
     }

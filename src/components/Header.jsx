@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Menu, Calculator, PlusCircle, User, Lock, Shield, UserPlus, Settings, Pin, Building, Server, LogOut, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { forceLogout } from '../api/apiClient';
-import { settingService } from '../services/settingService';
-import { readShortcuts, SHORTCUT_EVENT } from '../utils/shortcuts';
+import { readShortcuts, loadShortcuts, SHORTCUT_EVENT } from '../utils/shortcuts';
+import { companyStore } from '../services/companyStore';
 
 // Small pop-up calculator used from the header
 const CalculatorPopup = ({ onClose }) => {
@@ -61,26 +61,19 @@ const Header = ({ toggleSidebar }) => {
   const fullName = localStorage.getItem('full_name') || username;
   const role = (localStorage.getItem('role') || '').toUpperCase();
   const [avatar, setAvatar] = useState(() => localStorage.getItem('profile_image') || '');
-  const [companyName, setCompanyName] = useState(() => {
-    try {
-      const info = JSON.parse(localStorage.getItem('companyInfoData') || 'null');
-      return info?.company_name || '';
-    } catch {
-      return '';
-    }
-  });
+  const [companyName, setCompanyName] = useState(() => companyStore.getCached().company_name || '');
 
   useEffect(() => {
     const sync = () => setAvatar(localStorage.getItem('profile_image') || '');
     window.addEventListener('profileUpdated', sync);
     window.addEventListener('storage', sync);
-    settingService.getCompanyInfo().then((res) => {
-      const data = res?.data || res || {};
-      if (data.company_name) setCompanyName(data.company_name);
-    }).catch(() => {});
+    const syncCompany = () => setCompanyName(companyStore.getCached().company_name || '');
+    window.addEventListener(companyStore.EVENT, syncCompany);
+    companyStore.load().then(syncCompany);
     return () => {
       window.removeEventListener('profileUpdated', sync);
       window.removeEventListener('storage', sync);
+      window.removeEventListener(companyStore.EVENT, syncCompany);
     };
   }, []);
 
@@ -109,6 +102,7 @@ const Header = ({ toggleSidebar }) => {
   useEffect(() => {
     const sync = () => setShortcuts(readShortcuts());
     window.addEventListener(SHORTCUT_EVENT, sync);
+    loadShortcuts().then(setShortcuts);
     return () => window.removeEventListener(SHORTCUT_EVENT, sync);
   }, []);
   const navButtons = shortcuts.map((s) => ({ label: s.labelKey ? t(s.labelKey) : s.title, icon: <PlusCircle size={14} />, path: s.path }));

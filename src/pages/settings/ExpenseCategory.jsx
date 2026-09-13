@@ -3,11 +3,13 @@ import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { Printer, RefreshCcw, Trash2, Plus, Search, X } from 'lucide-react';
 import { accountingService } from '../../services/accountingService';
+import { useToast } from '../../context/ToastContext';
 import { exportVisibleTable } from '../../utils/tableExport';
 import { printPage } from '../../utils/printUtils';
 
 const ExpenseCategory = () => {
   const { t } = useTranslation();
+  const toast = useToast();
 
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,28 +18,15 @@ const ExpenseCategory = () => {
   const [categoryName, setCategoryName] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const fallbackData = [
-    { id: '1', name: 'FOYLA MARET', created_at: '2026-08-15' },
-    { id: '2', name: 'MALL FEROT', created_at: '2025-02-02' },
-    { id: '3', name: 'DOKAN KOROJ', created_at: '2024-05-01' },
-    { id: '4', name: 'JAKAT FAND', created_at: '2024-04-22' },
-    { id: '5', name: 'HAULAD', created_at: '2024-04-22' },
-    { id: '6', name: 'KURAY PEMANT', created_at: '2024-04-22' },
-    { id: '7', name: 'LOON PAID', created_at: '2024-04-22' },
-    { id: '8', name: 'ROFIQ', created_at: '2024-04-22' },
-    { id: '9', name: 'SELIM', created_at: '2024-04-22' },
-    { id: '10', name: 'UPDETED DOKAN', created_at: '2024-04-22' },
-  ];
-
   const fetchCategories = async (query = '') => {
     try {
       setLoading(true);
       const res = await accountingService.getExpenseCategories(query);
       const data = Array.isArray(res) ? res : (res?.results || []);
-      setCategories(data.length > 0 ? data : fallbackData);
+      setCategories(data);
     } catch (error) {
-      console.error('Error fetching expense categories:', error);
-      setCategories(fallbackData);
+      toast.error(error?.message || 'Failed to load categories');
+      setCategories([]);
     } finally {
       setLoading(false);
     }
@@ -63,7 +52,7 @@ const ExpenseCategory = () => {
       fetchCategories();
     } catch (error) {
       console.error('Error creating expense category:', error);
-      alert('Failed to save category. Please try again.');
+      toast.error(error?.message || 'Failed to save category');
     } finally {
       setSubmitting(false);
     }

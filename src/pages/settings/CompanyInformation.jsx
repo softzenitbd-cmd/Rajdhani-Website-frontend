@@ -5,51 +5,50 @@ import {
   MessageSquare, User, Phone, Map, ShoppingCart, Save, CheckCircle, Upload, Image as Layout, Check
 } from 'lucide-react';
 import PrintHeader from '../../components/PrintHeader';
-import { settingService } from '../../services/settingService';
+import { companyStore, companyHeaderImage } from '../../services/companyStore';
+import { useAppSettings } from '../../hooks/useAppSettings';
+import { useToast } from '../../context/ToastContext';
 
+// Fields of GET/PUT /api/erpsetting/company-info/
+const EMPTY_INFO = {
+  company_name: '',
+  proprietor: '',
+  company_type: '',
+  country: '',
+  present_address: '',
+  address: '',
+  email: '',
+  phone_number: '',
+  city: '',
+  state: '',
+  zip_code: '',
+  stock_warning: '',
+  currency_symbol: '',
+  invoice_greetings: '',
+  invoice_footer: '',
+  sms_api_key: '',
+  sms_secret_key: '',
+  sms_sender_id: '',
+  sms_base_url: '',
+  status: true,
+};
+
+/**
+ * Company profile + print header selection.
+ *  - fields            → PUT /api/erpsetting/company-info/
+ *  - banner image      → PUT (multipart) /api/erpsetting/company-info/  field `memo_header_image`
+ *  - logo              → PUT (multipart) /api/erpsetting/company-info/  field `logo`
+ *  - header card/mode  → general settings keys print_header_card / print_header_mode
+ */
 const CompanyInformation = () => {
   const { t } = useTranslation();
+  const toast = useToast();
+  const { settings, updateSettings } = useAppSettings();
 
-  const [headerMode, setHeaderMode] = useState(() => {
-    return localStorage.getItem('companyHeaderMode') || 'card';
-  });
+  const headerMode = settings.print_header_mode || 'card';
+  const activeCard = settings.print_header_card || 'card2';
 
-  const [activeCard, setActiveCard] = useState(() => {
-    return localStorage.getItem('companyActiveCard') || 'card2';
-  });
-
-  const [companyInfo, setCompanyInfo] = useState(() => {
-    try {
-      const saved = localStorage.getItem('companyInfoData');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-
-    return {
-      company_name: 'রাজধানী গার্মেন্টস',
-      shortname: 'RAJDHANI',
-      company_type: 'Cloth Store',
-      country: 'Bangladesh',
-      present_address: 'নেহা শপিংমল এর দ্বিতীয় তলা, কালিগঞ্জ, ঝিনাইদহ',
-      address: 'নেহা শপিংমল এর দ্বিতীয় তলা, কালিগঞ্জ, ঝিনাইদহ',
-      email: '',
-      phone_number: '01716912350, 01727902498',
-      city: 'Jhenaidah',
-      state: 'Bangladesh',
-      zip_code: '9000',
-      task_warning: '10',
-      currency_symbol: '৳',
-      invoice_greetings: 'বিসমিল্লাহির রাহমানির রাহিম',
-      invoice_footer: 'Invoice Footer',
-      sms_api_code: 'SMS Api Code: smsapibd.com',
-      sms_api_sender: 'SMS Sender id : smsapibd.com',
-      status: 'Active'
-    };
-  });
-
-  const [headerBanner, setHeaderBanner] = useState(() => {
-    return localStorage.getItem('companyHeaderImage') || '';
-  });
-
+  const [companyInfo, setCompanyInfo] = useState(() => ({ ...EMPTY_INFO, ...companyStore.getCached() }));
   const [rightLogoPreview, setRightLogoPreview] = useState(null);
   const [logo1Preview, setLogo1Preview] = useState(null);
   const [logo2Preview, setLogo2Preview] = useState(null);
@@ -59,34 +58,13 @@ const CompanyInformation = () => {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  const syncDataToStorage = (updatedInfo, mode = headerMode, card = activeCard) => {
-    localStorage.setItem('companyInfoData', JSON.stringify(updatedInfo));
-    localStorage.setItem('companyHeaderMode', mode);
-    localStorage.setItem('companyActiveCard', card);
-    window.dispatchEvent(new Event('companyHeaderUpdated'));
-  };
-
   const fetchCompanyInfo = async () => {
     try {
       setLoading(true);
-      const res = await settingService.getCompanyInfo();
-      const data = res?.data || res || {};
-      if (data && Object.keys(data).length > 0) {
-        setCompanyInfo(prev => {
-          const merged = { ...prev, ...data };
-          syncDataToStorage(merged);
-          return merged;
-        });
-
-        if (data.header_image || data.logo || data.print_header) {
-          const imgUrl = data.header_image || data.logo || data.print_header;
-          setHeaderBanner(imgUrl);
-          localStorage.setItem('companyHeaderImage', imgUrl);
-          window.dispatchEvent(new Event('companyHeaderUpdated'));
-        }
-      }
+      const data = await companyStore.load(true);
+      setCompanyInfo((prev) => ({ ...prev, ...data }));
     } catch (err) {
-      console.error("Error fetching company info:", err);
+      setMessage({ type: 'error', text: err?.message || 'Failed to load company information' });
     } finally {
       setLoading(false);
     }
@@ -98,63 +76,70 @@ const CompanyInformation = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setCompanyInfo(prev => {
-      const updated = { ...prev, [name]: value };
-      syncDataToStorage(updated);
-      return updated;
-    });
+    setCompanyInfo((prev) => ({ ...prev, [name]: value }));
   };
 
-  const selectCardAsHeader = (cardKey, previewObj) => {
-    setActiveCard(cardKey);
-    localStorage.setItem('companyActiveCard', cardKey);
-
-    if (previewObj && previewObj.url) {
-      setHeaderBanner(previewObj.url);
-      localStorage.setItem('companyHeaderImage', previewObj.url);
-      localStorage.setItem('companyHeaderMode', 'image');
-      setHeaderMode('image');
-    } else {
-      localStorage.setItem('companyHeaderMode', 'card');
-      setHeaderMode('card');
+  // Persist the chosen header style on the server
+  const selectCardAsHeader = async (cardKey, previewObj) => {
+    try {
+      await updateSettings({ print_header_card: cardKey, print_header_mode: previewObj?.url ? 'image' : 'card' });
+      setMessage({ type: 'success', text: `Header updated to ${cardKey.toUpperCase()} across full project!` });
+    } catch (err) {
+      setMessage({ type: 'error', text: err?.message || 'Failed to save header selection' });
     }
-
-    window.dispatchEvent(new Event('companyHeaderUpdated'));
-    setMessage({ type: 'success', text: `Header updated to ${cardKey.toUpperCase()} across full project!` });
   };
 
-  const handleFileChange = (e, setPreview, cardKey) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result;
-      const prevObj = { url: dataUrl, name: file.name };
-      setPreview(prevObj);
-      selectCardAsHeader(cardKey, prevObj);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleCustomBannerChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result;
-      setHeaderBanner(dataUrl);
-      localStorage.setItem('companyHeaderImage', dataUrl);
-      localStorage.setItem('companyHeaderMode', 'image');
-      setHeaderMode('image');
-      window.dispatchEvent(new Event('companyHeaderUpdated'));
-      setMessage({ type: 'success', text: 'Custom header banner uploaded and activated!' });
-    };
-    reader.readAsDataURL(file);
-
+  // Upload an image and make it the print header (stored on the company row)
+  const uploadHeaderImage = async (file) => {
     const formData = new FormData();
-    formData.append('header_image', file);
-    settingService.updateCompanyInfo(formData, true).catch(() => {});
+    formData.append('memo_header_image', file);
+    const saved = await companyStore.save(formData, true);
+    if (!companyHeaderImage(saved)) {
+      // backend did not echo the file url back – re-read the row
+      await companyStore.load(true);
+    }
+    setCompanyInfo((prev) => ({ ...prev, ...companyStore.getCached() }));
+    await updateSettings({ print_header_mode: 'image' });
+  };
+
+  const handleFileChange = async (e, setPreview, cardKey) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const prevObj = { url: URL.createObjectURL(file), name: file.name };
+    setPreview(prevObj);
+    try {
+      await uploadHeaderImage(file);
+      await updateSettings({ print_header_card: cardKey });
+      setMessage({ type: 'success', text: 'Header image uploaded and activated!' });
+    } catch (err) {
+      setMessage({ type: 'error', text: err?.message || 'Failed to upload header image' });
+    }
+  };
+
+  const handleLogoChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setRightLogoPreview({ url: URL.createObjectURL(file), name: file.name });
+    try {
+      const formData = new FormData();
+      formData.append('logo', file);
+      const saved = await companyStore.save(formData, true);
+      setCompanyInfo((prev) => ({ ...prev, ...saved }));
+      setMessage({ type: 'success', text: 'Company logo uploaded!' });
+    } catch (err) {
+      setMessage({ type: 'error', text: err?.message || 'Failed to upload logo' });
+    }
+  };
+
+  const handleCustomBannerChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      await uploadHeaderImage(file);
+      setMessage({ type: 'success', text: 'Custom header banner uploaded and activated!' });
+    } catch (err) {
+      setMessage({ type: 'error', text: err?.message || 'Failed to upload banner' });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -162,12 +147,16 @@ const CompanyInformation = () => {
     try {
       setSaving(true);
       setMessage({ type: '', text: '' });
-      syncDataToStorage(companyInfo);
-      await settingService.updateCompanyInfo(companyInfo);
+      // never send file/url fields back as text
+      const { memo_header_image, logo, id, created_at, updated_at, ...payload } = companyInfo;
+      if (payload.stock_warning === '' || payload.stock_warning === null) delete payload.stock_warning;
+      const saved = await companyStore.save(payload);
+      setCompanyInfo((prev) => ({ ...prev, ...saved }));
       setMessage({ type: 'success', text: 'Company Information updated & synced across full project!' });
+      toast.success('Company information saved');
     } catch (err) {
       console.error("Error saving company info:", err);
-      setMessage({ type: 'success', text: 'Company Information updated & synced across full project!' });
+      setMessage({ type: 'error', text: err?.message || 'Failed to save company information' });
     } finally {
       setSaving(false);
     }
@@ -222,10 +211,10 @@ const CompanyInformation = () => {
           <button 
             type="button" 
             onClick={handleSubmit} 
-            disabled={saving}
+            disabled={saving || loading}
             style={{ background: '#16a34a', color: 'white', border: 'none', padding: '6px 16px', borderRadius: '4px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
           >
-            <Save size={14} /> {saving ? 'Saving...' : 'Update Company'}
+            <Save size={14} /> {saving ? 'Saving...' : loading ? 'Loading...' : 'Update Company'}
           </button>
         </div>
 
@@ -241,32 +230,27 @@ const CompanyInformation = () => {
               <InputField icon={MapPin} label="Zip Code" name="zip_code" value={companyInfo.zip_code} onChange={handleInputChange} />
               <InputField icon={DollarSign} label="Currency Symbol" name="currency_symbol" value={companyInfo.currency_symbol} onChange={handleInputChange} />
               <InputField icon={FileText} label="Invoice Footer" name="invoice_footer" value={companyInfo.invoice_footer} onChange={handleInputChange} />
-              <InputField icon={MessageSquare} label="SMS Api Sender" name="sms_api_sender" value={companyInfo.sms_api_sender} onChange={handleInputChange} />
-              
+              <InputField icon={MessageSquare} label="SMS Sender ID" name="sms_sender_id" value={companyInfo.sms_sender_id} onChange={handleInputChange} />
+              <InputField icon={MessageSquare} label="SMS Base URL" name="sms_base_url" value={companyInfo.sms_base_url} onChange={handleInputChange} />
+
               <div style={{ position: 'relative', marginTop: '12px' }}>
-                <input 
-                  type="text" 
+                <label style={{ position: 'absolute', top: '-12px', left: '12px', background: '#0ea5e9', color: 'white', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', zIndex: 1 }}>Status</label>
+                <select
                   name="status"
-                  value={companyInfo.status || ''} 
-                  onChange={handleInputChange}
-                  style={{ 
-                    padding: '16px 16px 12px 16px', 
-                    border: '1px solid #cbd5e1', 
-                    borderRadius: '4px', 
-                    outline: 'none', 
-                    width: '100%',
-                    fontSize: '13px',
-                    color: 'var(--text-main)',
-                    background: 'white'
-                  }} 
-                />
+                  value={companyInfo.status === false || companyInfo.status === 'false' || companyInfo.status === 0 ? 'false' : 'true'}
+                  onChange={(e) => setCompanyInfo((prev) => ({ ...prev, status: e.target.value === 'true' }))}
+                  style={{ padding: '16px 16px 12px 16px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', width: '100%', fontSize: '13px', color: 'var(--text-main)', background: 'white' }}
+                >
+                  <option value="true">Active</option>
+                  <option value="false">Inactive</option>
+                </select>
               </div>
             </div>
 
             {/* Right Column */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <InputField icon={User} label="Shortname" name="shortname" value={companyInfo.shortname} onChange={handleInputChange} />
-              
+              <InputField icon={User} label="Proprietor" name="proprietor" value={companyInfo.proprietor} onChange={handleInputChange} />
+
               <div style={{ position: 'relative', marginTop: '12px' }}>
                 <label style={{ position: 'absolute', top: '-12px', left: '12px', background: '#0284c7', color: 'white', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
                   <MapPin size={10} color="white" /> Country
@@ -277,22 +261,23 @@ const CompanyInformation = () => {
               <InputField icon={MapPin} label="Address" name="address" value={companyInfo.address} onChange={handleInputChange} />
               <InputField icon={Phone} label="Phone Number" name="phone_number" value={companyInfo.phone_number} onChange={handleInputChange} />
               <InputField icon={Map} label="State" name="state" value={companyInfo.state} onChange={handleInputChange} />
-              <InputField icon={ShoppingCart} label="Task Waring" name="task_warning" value={companyInfo.task_warning} onChange={handleInputChange} />
+              <InputField icon={ShoppingCart} label="Stock Warning (qty)" name="stock_warning" value={companyInfo.stock_warning} onChange={handleInputChange} type="number" />
               <InputField icon={FileText} label="Invoice Greetings" name="invoice_greetings" value={companyInfo.invoice_greetings} onChange={handleInputChange} />
-              <InputField icon={MessageSquare} label="SMS Api Code" name="sms_api_code" value={companyInfo.sms_api_code} onChange={handleInputChange} />
-              
-              <div style={{ position: 'relative', marginTop: '12px' }}>
-                <input type="text" name="sms_api_code" value={companyInfo.sms_api_code || ''} onChange={handleInputChange} style={{ padding: '16px 16px 12px 16px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', width: '100%', fontSize: '13px', background: 'white' }} />
-              </div>
+              <InputField icon={MessageSquare} label="SMS API Key" name="sms_api_key" value={companyInfo.sms_api_key} onChange={handleInputChange} />
+              <InputField icon={MessageSquare} label="SMS Secret Key" name="sms_secret_key" value={companyInfo.sms_secret_key} onChange={handleInputChange} type="password" />
 
-              <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #0ea5e9', borderRadius: '4px', overflow: 'hidden', marginTop: '12px', maxWidth: '300px' }}>
-                <label style={{ background: '#0ea5e9', color: 'white', padding: '8px 16px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', margin: 0, whiteSpace: 'nowrap' }}>
-                  Choose a file
-                  <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => handleFileChange(e, setRightLogoPreview, 'custom')} />
-                </label>
-                <span style={{ padding: '8px 16px', fontSize: '12px', color: '#64748b', flex: 1, background: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {rightLogoPreview ? rightLogoPreview.name : 'No file chosen'}
-                </span>
+              {/* Company logo (multipart field: logo) */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '12px' }}>
+                {companyInfo.logo && <img src={companyInfo.logo} alt="Logo" style={{ height: '40px', width: '40px', objectFit: 'contain', border: '1px solid #e2e8f0', borderRadius: '4px' }} />}
+                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #0ea5e9', borderRadius: '4px', overflow: 'hidden', maxWidth: '300px', flex: 1 }}>
+                  <label style={{ background: '#0ea5e9', color: 'white', padding: '8px 16px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', margin: 0, whiteSpace: 'nowrap' }}>
+                    Company Logo
+                    <input type="file" style={{ display: 'none' }} accept="image/*" onChange={handleLogoChange} />
+                  </label>
+                  <span style={{ padding: '8px 16px', fontSize: '12px', color: '#64748b', flex: 1, background: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {rightLogoPreview ? rightLogoPreview.name : (companyInfo.logo ? 'Uploaded' : 'No file chosen')}
+                  </span>
+                </div>
               </div>
             </div>
           </form>
@@ -505,42 +490,23 @@ const InputField = ({ icon: Icon, label, name, value, onChange, type = "text", p
     }}>
       <Icon size={10} color="white" /> {label}
     </label>
-    {type === 'email' ? (
-      <div style={{ 
-        padding: '16px 16px 12px 16px', 
-        border: '1px solid #cbd5e1', 
-        borderRadius: '4px', 
+    <input
+      type={type}
+      name={name}
+      value={value || ''}
+      onChange={onChange}
+      placeholder={placeholder}
+      style={{
+        padding: '16px 16px 12px 16px',
+        border: '1px solid #cbd5e1',
+        borderRadius: '4px',
+        outline: 'none',
         width: '100%',
-        background: 'white',
-        display: 'flex',
-        gap: '4px',
-        overflow: 'hidden'
-      }}>
-        {Array(10).fill(0).map((_, i) => (
-          <div key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', background: '#dcfce7', color: '#16a34a', padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 'bold' }}>
-            <Mail size={10} /> TEMP MAIL
-          </div>
-        ))}
-      </div>
-    ) : (
-      <input 
-        type={type} 
-        name={name}
-        value={value || ''} 
-        onChange={onChange}
-        placeholder={placeholder}
-        style={{ 
-          padding: '16px 16px 12px 16px', 
-          border: '1px solid #cbd5e1', 
-          borderRadius: '4px', 
-          outline: 'none', 
-          width: '100%',
-          fontSize: '13px',
-          color: 'var(--text-main)',
-          background: 'white'
-        }} 
-      />
-    )}
+        fontSize: '13px',
+        color: 'var(--text-main)',
+        background: 'white'
+      }}
+    />
   </div>
 );
 

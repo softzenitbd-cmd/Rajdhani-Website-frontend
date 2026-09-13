@@ -44,7 +44,7 @@ const StaffSalaryCreate = () => {
         if (salaryCat) setCategory(salaryCat.id || salaryCat.uuid);
         const init = {};
         list.forEach((st) => {
-          init[st.id || st.uuid] = { checked: Number(st.salary || 0) > 0, amount: st.salary || '', note: '' };
+          init[st.id || st.uuid] = { checked: Number(st.basic_salary ?? st.salary ?? 0) > 0, amount: st.basic_salary ?? st.salary ?? '', note: '' };
         });
         setSheet(init);
       } catch (e) {
@@ -76,12 +76,12 @@ const StaffSalaryCreate = () => {
           const r = sheet[sid];
           return accountingService.createExpense({
             type: 'cost',
-            transaction_type: 'Staff Salary',
+            transaction_type: 'Staff Payment',
             staff: sid,
             account,
             category,
             amount: String(r.amount),
-            description: r.note ? `${label} - ${r.note}` : `${s.name || s.full_name} ${label}`,
+            description: r.note ? `${label} - ${r.note}` : `${s.full_name || s.name} ${label}`,
             date,
             month,
             year,
@@ -174,7 +174,7 @@ const StaffSalaryCreate = () => {
                     return (
                       <tr key={sid} style={{ borderBottom: '1px solid #e2e8f0', background: i % 2 === 0 ? 'var(--card-header-bg)' : 'white', opacity: r.checked ? 1 : 0.6 }}>
                         <td style={{ ...cell, textAlign: 'center' }}><input type="checkbox" checked={!!r.checked} onChange={(e) => update(sid, 'checked', e.target.checked)} /></td>
-                        <td style={cell}><div style={{ fontWeight: 600 }}>{s.name || s.full_name}</div><div style={{ fontSize: '11px', color: '#64748b' }}>{s.phone}</div></td>
+                        <td style={cell}><div style={{ fontWeight: 600 }}>{s.full_name || s.name}</div><div style={{ fontSize: '11px', color: '#64748b' }}>{s.phone_number || s.phone}</div></td>
                         <td style={cell}>{s.designation_name || s.designation?.name || '-'}</td>
                         <td style={cell}><input type="number" min="0" step="0.01" value={r.amount} onChange={(e) => update(sid, 'amount', e.target.value)} style={{ ...inputStyle, padding: '6px 8px', borderColor: '#e2e8f0' }} /></td>
                         <td style={{ ...cell, borderRight: 'none' }}><input value={r.note} onChange={(e) => update(sid, 'note', e.target.value)} placeholder="optional" style={{ ...inputStyle, padding: '6px 8px', borderColor: '#e2e8f0' }} /></td>

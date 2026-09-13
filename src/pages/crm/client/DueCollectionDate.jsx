@@ -5,30 +5,31 @@ import PrintHeader from '../../../components/PrintHeader';
 import { ArrowLeft, Users, Plus, FileSpreadsheet, Printer, RotateCcw } from 'lucide-react';
 import { crmService } from '../../../services/crmService';
 import { exportToExcel } from '../../../utils/excelExporter';
+import { useToast } from '../../../context/ToastContext';
 
 const DueCollectionDate = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  // Collection dates: PATCHed to the client record and mirrored locally because the
-  // backend has no dedicated collection-date endpoint (see docs/missing-api-screens).
-  const LOCAL_KEY = 'rajdhane_due_collection_dates';
-  const [localDates, setLocalDates] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || '{}'); } catch { return {}; }
-  });
-  const dateOf = (c) => localDates[c.id || c.uuid] || (c.collection_date ? String(c.collection_date).split('T')[0] : '') || (c.due_date ? String(c.due_date).split('T')[0] : '');
+  const [clients, setClients] = useState([]);
+  const toast = useToast();
+  // Collection date lives on the client record: PATCH /api/crm/clients/{id}/ { collection_date }
+  const dateOf = (c) => (c.collection_date ? String(c.collection_date).split('T')[0] : '') || (c.due_date ? String(c.due_date).split('T')[0] : '');
   const saveDate = async (c, value) => {
     const id = c.id || c.uuid;
-    const next = { ...localDates, [id]: value };
-    setLocalDates(next);
-    localStorage.setItem(LOCAL_KEY, JSON.stringify(next));
+    const previous = c.collection_date;
+    setClients((prev) => prev.map((row) => ((row.id || row.uuid) === id ? { ...row, collection_date: value } : row)));
     try {
-      await crmService.updateClient(id, { collection_date: value || null });
+      const saved = await crmService.updateClient(id, { collection_date: value || null });
+      if (saved && typeof saved === 'object') {
+        setClients((prev) => prev.map((row) => ((row.id || row.uuid) === id ? { ...row, ...saved } : row)));
+      }
+      toast.success('Collection date saved');
     } catch (e) {
-      console.warn('collection_date not accepted by backend, kept locally', e?.message);
+      setClients((prev) => prev.map((row) => ((row.id || row.uuid) === id ? { ...row, collection_date: previous } : row)));
+      toast.error(e?.message || 'Failed to save collection date');
     }
   };
 
-  const [clients, setClients] = useState([]);
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -49,11 +50,11 @@ const DueCollectionDate = () => {
 
   const fetchGroups = async () => {
     try {
-      const res = await crmService.getClientGroups().catch(() => []);
+      const res = await crmService.getClientGroups();
       const data = Array.isArray(res) ? res : (res?.results || []);
       setGroups(data);
     } catch (err) {
-      console.error("Error fetching client groups:", err);
+      toast.error(err?.message || 'Failed to load client groups');
     }
   };
 
@@ -64,11 +65,11 @@ const DueCollectionDate = () => {
       if (filters.searchAll) params.search = filters.searchAll;
       if (filters.clientGroup) params.group = filters.clientGroup;
       
-      const res = await crmService.getClients(params).catch(() => []);
+      const res = await crmService.getClients(params);
       const data = Array.isArray(res) ? res : (res?.results || []);
       setClients(data);
     } catch (err) {
-      console.error("Error fetching clients:", err);
+      toast.error(err?.message || 'Failed to load clients');
       setClients([]);
     } finally {
       setLoading(false);

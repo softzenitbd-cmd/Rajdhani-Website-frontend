@@ -74,12 +74,16 @@ const StaffMonthlyAttendanceReport = () => {
   const short = (s) => (s.startsWith('pres') ? 'P' : s.startsWith('abs') ? 'A' : s.startsWith('late') ? 'L' : s.startsWith('leave') ? 'LV' : s ? s[0].toUpperCase() : '');
   const color = (s) => (s.startsWith('pres') ? '#16a34a' : s.startsWith('abs') ? '#dc2626' : s.startsWith('late') ? '#d97706' : '#64748b');
 
+  // GET /api/staff/attendance-report/?month=&year= → staff_id, staff_name, designation, department,
+  // present_count, absence_count, late_count, leave_count
   const summaryColumns = [
     { key: 'name', label: 'Staff', render: (r) => nameOf(r.staff_name || r.name || r.staff) },
-    { key: 'present', label: 'Present', align: 'center', render: (r) => r.present ?? r.present_days ?? r.total_present ?? '-' },
-    { key: 'absent', label: 'Absent', align: 'center', render: (r) => r.absent ?? r.absent_days ?? r.total_absent ?? '-' },
-    { key: 'late', label: 'Late', align: 'center', render: (r) => r.late ?? r.late_days ?? r.total_late ?? '-' },
-    { key: 'leave', label: 'Leave', align: 'center', render: (r) => r.leave ?? r.leave_days ?? r.total_leave ?? '-' },
+    { key: 'department', label: 'Department', render: (r) => nameOf(r.department, '-') },
+    { key: 'designation', label: 'Designation', render: (r) => nameOf(r.designation, '-') },
+    { key: 'present', label: 'Present', align: 'center', render: (r) => r.present_count ?? r.present ?? r.present_days ?? '-' },
+    { key: 'absent', label: 'Absent', align: 'center', render: (r) => r.absence_count ?? r.absent_count ?? r.absent ?? r.absent_days ?? '-' },
+    { key: 'late', label: 'Late', align: 'center', render: (r) => r.late_count ?? r.late ?? r.late_days ?? '-' },
+    { key: 'leave', label: 'Leave', align: 'center', render: (r) => r.leave_count ?? r.leave ?? r.leave_days ?? '-' },
   ];
 
   const excelData = rows.map((r, i) => {
@@ -97,7 +101,7 @@ const StaffMonthlyAttendanceReport = () => {
         <div style={{ background: 'white', padding: '16px', borderRadius: '30px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', display: 'flex', gap: '16px', alignItems: 'center', width: '90%', maxWidth: '900px', flexWrap: 'wrap' }}>
           <select value={staffId} onChange={(e) => setStaffId(e.target.value)} style={selectStyle}>
             <option value="">All Staff</option>
-            {staff.map((s) => <option key={s.id || s.uuid} value={s.id || s.uuid}>{s.name || s.full_name}</option>)}
+            {staff.map((s) => <option key={s.id || s.uuid} value={s.id || s.uuid}>{s.full_name || s.name}</option>)}
           </select>
           <select value={month} onChange={(e) => setMonth(Number(e.target.value))} style={selectStyle}>
             {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}

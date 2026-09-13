@@ -82,23 +82,23 @@ const SmsComposer = ({ title, recipientType, contacts = [], groups = null, loadi
     if (mode === 'schedule' && !scheduleAt) return toast.error('Choose the schedule date & time');
     if (!window.confirm(`${mode === 'now' ? 'Send' : 'Schedule'} SMS to ${withPhone.length} recipient(s)?`)) return;
 
-    const payload = buildSmsPayload({
-      message: message.trim(),
-      recipients: withPhone,
-      recipientType,
-      groupId: groups ? groupId : undefined,
-      scheduleAt: mode === 'schedule' ? new Date(scheduleAt).toISOString() : undefined,
-    });
-
     try {
       setSending(true);
       if (mode === 'now') {
-        await communicationService.sendInstantSms(payload);
-        toast.success(`SMS sent to ${withPhone.length} recipient(s)`);
+        const payload = buildSmsPayload({ message: message.trim(), recipients: withPhone, recipientType, groupId: groups ? groupId : undefined });
+        const res = await communicationService.sendInstantSms(payload);
+        toast.success(res?.message || `SMS sent to ${withPhone.length} recipient(s)`);
       } else {
-        await communicationService.scheduleSms(payload);
-        toast.success('SMS scheduled successfully');
-        navigate('/sms/schedule-report');
+        const { ok, failed, errors } = await communicationService.scheduleSmsBulk({
+          message: message.trim(),
+          scheduledDate: new Date(scheduleAt).toISOString(),
+          recipientType,
+          recipientIds: withPhone.map((r) => r.id),
+          groupId: groups ? groupId : undefined,
+        });
+        if (failed) toast.error(`${failed} schedule(s) failed: ${errors[0]}`);
+        if (ok) toast.success(`SMS scheduled for ${ok} recipient(s)`);
+        if (ok) navigate('/sms/schedule-report');
       }
       setMessage('');
       setSelected(new Set());

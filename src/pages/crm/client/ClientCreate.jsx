@@ -62,12 +62,18 @@ const ClientCreate = () => {
 
   const handleAddGroup = async (groupName) => {
     if (!groupName || !groupName.trim()) return;
+    const trimmed = groupName.trim();
     try {
-      await post(ENDPOINTS.CRM_CLIENT_GROUPS, { name: groupName.toUpperCase() }, "Client Group Added");
+      const created = await post(ENDPOINTS.CRM_CLIENT_GROUPS, { name: trimmed }, "Client Group Added");
       setIsGroupModalOpen(false);
-      fetchGroups();
+      await fetchGroups();
+      if (created?.id) {
+        setFormData(prev => ({ ...prev, group: created.id }));
+      }
     } catch (err) {
-      console.error(err);
+      // useApi.post already showed the error toast; keep the modal open so the user can retry
+      console.error("Error creating client group via API:", err);
+      throw err;
     }
   };
 

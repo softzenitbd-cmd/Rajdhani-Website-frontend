@@ -5,8 +5,10 @@ import PrintHeader from '../../components/PrintHeader';
 import AddOptionModal from '../../components/AddOptionModal';
 import { accountingService } from '../../services/accountingService';
 import { crmService } from '../../services/crmService';
+import { useToast } from '../../context/ToastContext';
 
 const MoneyReturn = () => {
+  const toast = useToast();
   const navigate = useNavigate();
 
   const [clients, setClients] = useState([]);
@@ -28,28 +30,22 @@ const MoneyReturn = () => {
   const loadPrerequisites = async () => {
     try {
       const [accRes, catRes, clientRes] = await Promise.all([
-        accountingService.getAccounts().catch(() => []),
-        accountingService.getExpenseCategories().catch(() => []),
-        crmService.getClients().catch(() => [])
+        accountingService.getAccounts(),
+        accountingService.getExpenseCategories(),
+        crmService.getClients()
       ]);
 
       const accData = Array.isArray(accRes) ? accRes : (accRes?.results || []);
       const catData = Array.isArray(catRes) ? catRes : (catRes?.results || []);
       const clientData = Array.isArray(clientRes) ? clientRes : (clientRes?.results || []);
 
-      setAccounts(accData.length > 0 ? accData : [
-        { id: '1', name: 'TOTAL BALENCE' }
-      ]);
+      setAccounts(accData);
 
-      setCategories(catData.length > 0 ? catData : [
-        { id: '1', name: 'UPDETED DOKAN' }
-      ]);
+      setCategories(catData);
 
-      setClients(clientData.length > 0 ? clientData : [
-        { id: '1', name: 'RANIG CUSTOMER 2024' }
-      ]);
+      setClients(clientData);
     } catch (err) {
-      console.error('Failed to load prerequisites:', err);
+      toast.error(err?.message || 'Failed to load form data');
     }
   };
 

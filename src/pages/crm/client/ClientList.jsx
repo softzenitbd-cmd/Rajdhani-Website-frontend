@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users, Plus, Search, Calendar, FileSpreadsheet, Printer, RotateCcw, ChevronDown } from 'lucide-react';
 import PrintHeader from '../../../components/PrintHeader';
 import { useApi } from '../../../hooks/useApi';
+import { useConfirm } from '../../../context/ConfirmContext';
 import { ENDPOINTS } from '../../../api/endpoints';
 import { exportToExcel } from '../../../utils/excelExporter';
 
 const ClientList = () => {
   const navigate = useNavigate();
+  const confirm = useConfirm();
   
   const [activeAction, setActiveAction] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -27,7 +29,13 @@ const ClientList = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this client?')) {
+    const isConfirmed = await confirm({
+      title: 'Delete Client',
+      message: 'Are you sure you want to delete this client?',
+      confirmText: 'Delete',
+      variant: 'danger'
+    });
+    if (isConfirmed) {
       try {
         await del(`${ENDPOINTS.CRM_CLIENTS}${id}/`, 'Client deleted successfully');
         fetchClients();
@@ -43,7 +51,14 @@ const ClientList = () => {
     const newStatusBool = !isCurrentlyActive;
     const actionLabel = newStatusBool ? 'activate' : 'deactivate';
 
-    if (window.confirm(`Are you sure you want to ${actionLabel} this client?`)) {
+    const isConfirmed = await confirm({
+      title: `${newStatusBool ? 'Activate' : 'Deactivate'} Client`,
+      message: `Are you sure you want to ${actionLabel} this client?`,
+      confirmText: newStatusBool ? 'Activate' : 'Deactivate',
+      variant: newStatusBool ? 'warning' : 'danger'
+    });
+
+    if (isConfirmed) {
       try {
         await patch(`${ENDPOINTS.CRM_CLIENTS}${id}/`, { status: newStatusBool }, `Client ${newStatusBool ? 'activated' : 'deactivated'} successfully`);
         fetchClients();

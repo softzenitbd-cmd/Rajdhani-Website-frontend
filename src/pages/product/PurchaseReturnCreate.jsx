@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { Settings, Barcode, Calendar, Trash2, Plus, List } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../context/ToastContext';
 import AddOptionModal from '../../components/AddOptionModal';
 import { useApi } from '../../hooks/useApi';
 import { ENDPOINTS } from '../../api/endpoints';
@@ -31,12 +32,13 @@ const PurchaseReturnCreate = () => {
 
 
   const { get, post } = useApi();
+  const toast = useToast();
 
   const fetchPrerequisites = async () => {
     try {
       const [supRes, prodRes] = await Promise.all([
-        crmService.getSuppliers().catch(() => null),
-        productService.getProducts().catch(() => null)
+        crmService.getSuppliers(),
+        productService.getProducts()
       ]);
 
       const supData = Array.isArray(supRes) ? supRes : (supRes?.results || []);
@@ -45,7 +47,7 @@ const PurchaseReturnCreate = () => {
       setSuppliers(supData);
       setProducts(prodData);
     } catch (err) {
-      console.error("Error fetching purchase return prerequisites:", err);
+      toast.error(err?.message || 'Failed to load suppliers / products');
       setSuppliers([]);
       setProducts([]);
     }
@@ -121,19 +123,12 @@ const PurchaseReturnCreate = () => {
 
   const handleAddSupplier = async (name) => {
     if (!name?.trim()) return;
-    try {
-      const res = await post(ENDPOINTS.CRM_SUPPLIERS, { name: name.trim() }, "Supplier Added").catch(() => null);
-      const newSup = { id: res?.id || `sup-${Date.now()}`, name: name.trim() };
-      setSuppliers(prev => [newSup, ...prev]);
-      setFormData(prev => ({ ...prev, supplier: newSup.id }));
-      setIsSupplierModalOpen(false);
-    } catch (err) {
-      console.error(err);
-      const fallback = { id: `sup-${Date.now()}`, name: name.trim() };
-      setSuppliers(prev => [fallback, ...prev]);
-      setFormData(prev => ({ ...prev, supplier: fallback.id }));
-      setIsSupplierModalOpen(false);
-    }
+    // useApi.post already shows a toast on failure; rethrow so the modal stays open
+    const res = await post(ENDPOINTS.CRM_SUPPLIERS, { name: name.trim() }, "Supplier Added");
+    const newSup = { ...(res && typeof res === 'object' ? res : {}), id: res?.id || res?.uuid, name: res?.name || name.trim() };
+    setSuppliers(prev => [newSup, ...prev]);
+    setFormData(prev => ({ ...prev, supplier: newSup.id }));
+    setIsSupplierModalOpen(false);
   };
 
   // Summary Totals safely calculated before render & submit
@@ -155,19 +150,22 @@ const PurchaseReturnCreate = () => {
 
     setSubmitting(true);
 
+    // POST /api/purchase/returns/ – total_due is deducted from the supplier's previous due
     const payload = {
       supplier: formData.supplier,
       date: formData.date,
+      discount: '0.00',
+      grand_total: Number(totalBuying).toFixed(2),
+      total_due: Number(totalBuying).toFixed(2),
+      status: 1,
       items: items.map(i => ({
-        product_id: i.id,
-        name: i.name,
-        quantity: i.quantity,
-        buying_price: i.buyingPrice,
-        sale_price: i.salePrice,
-        barcode: i.barcode
+        product: i.id,
+        quantity: String(i.quantity),
+        buying_price: Number(i.buyingPrice).toFixed(2),
+        selling_price: Number(i.salePrice).toFixed(2),
+        total_buying_price: (Number(i.quantity) * Number(i.buyingPrice)).toFixed(2),
+        total_selling_price: (Number(i.quantity) * Number(i.salePrice)).toFixed(2),
       })),
-      total_amount: totalBuying,
-      total_sale_amount: totalSale
     };
 
     try {

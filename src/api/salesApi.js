@@ -1,5 +1,6 @@
 import apiClient from './apiClient';
 import { ENDPOINTS } from './endpoints';
+import { saleService } from '../services/saleService';
 
 // ==========================================
 // 1. Sales Invoice API
@@ -44,25 +45,15 @@ export const convertDraftToFinalInvoice = async (id) => {
 };
 
 // ==========================================
-// 2. Sales Report API
+// 2. Sales Report (built from invoices + items, see saleService)
 // ==========================================
 
 /**
- * Get detailed item-wise sales report
- * 
- * Dynamic Filters:
- * - from_date, to_date (YYYY-MM-DD)
- * - barcode
- * - client_id
- * - client_group_id
- * - product_id
- * - product_group_id
- * 
- * @param {Object} params - Query parameters for filtering
- * @returns {Promise<Array>} Array of report objects (Nested JSON)
+ * Item-wise sales rows. Filters: from_date, to_date, barcode, client_id,
+ * client_group_id, product_id, product_group_id
  */
 export const getSalesReports = async (params = {}) => {
-  return await apiClient.get(ENDPOINTS.SALE_REPORT, { params });
+  return await saleService.getSalesReport(params);
 };
 
 // ==========================================

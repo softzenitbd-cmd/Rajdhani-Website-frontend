@@ -13,6 +13,7 @@ const SupplierStatement = () => {
   const { get, loading } = useApi();
 
   const [statementData, setStatementData] = useState([]);
+  const [summary, setSummary] = useState(null); // { supplier: {...} } from the ledger API
   const [suppliers, setSuppliers] = useState([]);
 
   const [filters, setFilters] = useState({
@@ -33,21 +34,26 @@ const SupplierStatement = () => {
     }
   };
 
-  // Fetch Statement Data
+  // GET /api/accounting/reports/supplier-ledger/?supplier_id=&from_date=&to_date=
+  // → { supplier: {id, name, phone, current_due}, ledger: [{date, type, reference, debit, credit, balance}] }
   const fetchStatement = async () => {
-    // We only fetch if a supplier is selected, or you can fetch all
-    try {
-      let url = `${ENDPOINTS.ACCOUNTING_REPORT_SUPPLIER_LEDGER}?`;
-      if (filters.supplier) url += `supplier_id=${filters.supplier}&`;
-      if (filters.startDate) url += `start_date=${filters.startDate}&`;
-      if (filters.endDate) url += `end_date=${filters.endDate}&`;
-      
-      const res = await get(url);
-      setStatementData(res.results || res.data || res || []);
-    } catch (err) {
-      console.error(err);
-      // Fallback empty if API fails or doesn't exist
+    if (!filters.supplier) {
       setStatementData([]);
+      setSummary(null);
+      return;
+    }
+    try {
+      const params = new URLSearchParams({ supplier_id: filters.supplier });
+      if (filters.startDate) params.set('from_date', filters.startDate);
+      if (filters.endDate) params.set('to_date', filters.endDate);
+      const res = await get(`${ENDPOINTS.ACCOUNTING_REPORT_SUPPLIER_LEDGER}?${params.toString()}`);
+      const rows = Array.isArray(res) ? res : (res?.ledger || res?.results || res?.data || []);
+      setStatementData(rows);
+      setSummary(Array.isArray(res) ? null : res);
+    } catch (err) {
+      // useApi already toasts the error
+      setStatementData([]);
+      setSummary(null);
     }
   };
 
@@ -96,8 +102,8 @@ const SupplierStatement = () => {
         {/* Title and Action */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: '500', color: 'var(--text-main)' }}>Supplier Statement</h2>
-          <button 
-            className="btn btn-primary" 
+          <button
+            className="btn btn-primary"
             onClick={() => navigate('/product/purchase/add-new')}
             style={{ background: 'var(--success)', padding: '8px 16px', borderRadius: '4px' }}
           >
@@ -123,29 +129,29 @@ const SupplierStatement = () => {
             <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>Search By Date</label>
             <div style={{ display: 'flex', gap: '12px' }}>
               <div className="form-input floating-label" style={{ flex: 1 }}>
-                <input 
-                  type="date" 
+                <input
+                  type="date"
                   name="startDate"
                   value={filters.startDate}
                   onChange={handleInputChange}
-                  style={{ color: 'var(--primary)' }} 
+                  style={{ color: 'var(--primary)' }}
                 />
               </div>
               <div className="form-input floating-label" style={{ flex: 1 }}>
-                <input 
-                  type="date" 
+                <input
+                  type="date"
                   name="endDate"
                   value={filters.endDate}
                   onChange={handleInputChange}
-                  style={{ color: 'var(--primary)' }} 
+                  style={{ color: 'var(--primary)' }}
                 />
               </div>
             </div>
           </div>
 
           <div className="form-group">
-            <button 
-              className="btn btn-outline" 
+            <button
+              className="btn btn-outline"
               onClick={handleClearFilter}
               style={{ height: '48px', padding: '0 32px', background: '#718096', color: 'white', border: 'none' }}
             >
@@ -154,11 +160,19 @@ const SupplierStatement = () => {
           </div>
         </div>
 
+        {summary?.supplier && (
+          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', padding: '12px 16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', marginBottom: '16px', fontSize: '13px' }}>
+            <div><b>Supplier:</b> {summary.supplier.name}</div>
+            {summary.supplier.phone && <div><b>Phone:</b> {summary.supplier.phone}</div>}
+            <div style={{ marginLeft: 'auto' }}><b>Current Due:</b> <span style={{ color: '#dc2626', fontWeight: 700 }}>৳ {Number(summary.supplier.current_due || 0).toFixed(2)}</span></div>
+          </div>
+        )}
+
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
-            Show 
-            <select 
+            Show
+            <select
               value={entries}
               onChange={(e) => setEntries(Number(e.target.value))}
               style={{ margin: '0 8px', padding: '4px', border: '1px solid var(--secondary)', borderRadius: '4px' }}
@@ -183,21 +197,16 @@ const SupplierStatement = () => {
 
         {/* Table */}
         <div style={{ overflowX: 'auto', border: '1px solid var(--secondary)', borderRadius: '4px', marginBottom: '16px' }}>
-          <table className="custom-table" style={{ borderCollapse: 'collapse', width: '100%', minWidth: '1200px' }}>
+          <table className="custom-table" style={{ borderCollapse: 'collapse', width: '100%', minWidth: '900px' }}>
             <thead>
               <tr style={{ background: '#718096', color: 'white' }}>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>SL ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>DATE ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>PRODUCT ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>UNIT ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>QUANTITY ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>PRICE ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>BUY PRICE ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>DISCOUNT ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>GRAND TOTAL ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>PURCHASE RETURN ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>RECEIVE ↕</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center' }}>DUE ↕</th>
+                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>SL</th>
+                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>DATE</th>
+                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>TYPE</th>
+                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>REFERENCE</th>
+                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'right', borderRight: '1px solid rgba(255,255,255,0.2)' }}>PURCHASE (DEBIT)</th>
+                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'right', borderRight: '1px solid rgba(255,255,255,0.2)' }}>PAYMENT / RETURN (CREDIT)</th>
+                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'right' }}>BALANCE</th>
               </tr>
             </thead>
             <tbody>
@@ -205,22 +214,25 @@ const SupplierStatement = () => {
                 <tr key={row.id || index} style={{ background: 'white' }}>
                   <td style={{ textAlign: 'center', borderRight: '1px solid #e2e8f0', padding: '8px' }}>{index + 1}</td>
                   <td style={{ textAlign: 'center', borderRight: '1px solid #e2e8f0', padding: '8px' }}>{formatDate(row.date)}</td>
-                  <td style={{ borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.product || row.product_name || '-'}</td>
-                  <td style={{ borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.unit || '-'}</td>
-                  <td style={{ borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.quantity || row.qty || '0'}</td>
-                  <td style={{ borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.price || '0.00'}</td>
-                  <td style={{ borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.buy_price || row.buyPrice || '0.00'}</td>
-                  <td style={{ borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.discount || '0.00'}</td>
-                  <td style={{ textAlign: 'center', borderRight: '1px solid #e2e8f0', padding: '8px', fontWeight: '500' }}>{row.grand_total || row.grandTotal || '0.00'}</td>
-                  <td style={{ textAlign: 'center', borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.purchase_return || row.return || '0.00'}</td>
-                  <td style={{ textAlign: 'center', borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.receive || row.payment || '0.00'}</td>
-                  <td style={{ textAlign: 'center', padding: '8px', fontWeight: '600' }}>{row.due || '0.00'}</td>
+                  <td style={{ borderRight: '1px solid #e2e8f0', padding: '8px' }}>{row.type || row.transaction_type || '-'}</td>
+                  <td style={{ borderRight: '1px solid #e2e8f0', padding: '8px', color: '#475569' }}>{row.reference || row.description || '-'}</td>
+                  <td style={{ textAlign: 'right', borderRight: '1px solid #e2e8f0', padding: '8px' }}>{Number(row.debit || 0).toFixed(2)}</td>
+                  <td style={{ textAlign: 'right', borderRight: '1px solid #e2e8f0', padding: '8px', color: '#059669' }}>{Number(row.credit || 0).toFixed(2)}</td>
+                  <td style={{ textAlign: 'right', padding: '8px', fontWeight: '600', color: Number(row.balance) > 0 ? '#dc2626' : '#059669' }}>{Number(row.balance || 0).toFixed(2)}</td>
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan="12" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
-                    {loading ? 'Loading statement...' : 'No data found'}
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
+                    {loading ? 'Loading statement...' : filters.supplier ? 'No transactions found' : 'Select a supplier to view the statement'}
                   </td>
+                </tr>
+              )}
+              {displayedData.length > 0 && (
+                <tr style={{ background: '#f8fafc', fontWeight: 'bold' }}>
+                  <td colSpan="4" style={{ padding: '10px', textAlign: 'right' }}>TOTAL</td>
+                  <td style={{ padding: '10px', textAlign: 'right' }}>{displayedData.reduce((a, r) => a + Number(r.debit || 0), 0).toFixed(2)}</td>
+                  <td style={{ padding: '10px', textAlign: 'right', color: '#059669' }}>{displayedData.reduce((a, r) => a + Number(r.credit || 0), 0).toFixed(2)}</td>
+                  <td style={{ padding: '10px', textAlign: 'right', color: '#dc2626' }}>{Number(summary?.supplier?.current_due ?? displayedData[displayedData.length - 1]?.balance ?? 0).toFixed(2)}</td>
                 </tr>
               )}
             </tbody>

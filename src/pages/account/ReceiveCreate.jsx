@@ -5,8 +5,10 @@ import PrintHeader from '../../components/PrintHeader';
 import AddOptionModal from '../../components/AddOptionModal';
 import { accountingService } from '../../services/accountingService';
 import { crmService } from '../../services/crmService';
+import { useToast } from '../../context/ToastContext';
 
 const ReceiveCreate = () => {
+  const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -30,28 +32,22 @@ const ReceiveCreate = () => {
   const loadPrerequisites = async () => {
     try {
       const [accRes, catRes, clientRes] = await Promise.all([
-        accountingService.getAccounts().catch(() => []),
-        accountingService.getIncomeCategories().catch(() => []),
-        crmService.getClients().catch(() => [])
+        accountingService.getAccounts(),
+        accountingService.getIncomeCategories(),
+        crmService.getClients()
       ]);
 
       const accData = Array.isArray(accRes) ? accRes : (accRes?.results || []);
       const catData = Array.isArray(catRes) ? catRes : (catRes?.results || []);
       const clientData = Array.isArray(clientRes) ? clientRes : (clientRes?.results || []);
 
-      setAccounts(accData.length > 0 ? accData : [
-        { id: '1', name: 'TOTAL BALENCE', balance: '25000.00' }
-      ]);
+      setAccounts(accData);
 
-      setCategories(catData.length > 0 ? catData : [
-        { id: '1', name: 'CASH SELL' }
-      ]);
+      setCategories(catData);
 
-      setClients(clientData.length > 0 ? clientData : [
-        { id: '1', name: 'RANIG CUSTOMER 2024', due: 0 }
-      ]);
+      setClients(clientData);
     } catch (err) {
-      console.error('Failed to load prerequisites:', err);
+      toast.error(err?.message || 'Failed to load form data');
     }
   };
 
@@ -80,11 +76,14 @@ const ReceiveCreate = () => {
 
     try {
       setSubmitting(true);
+      // POST /api/accounting/receives/ – account balance (+), client due (-)
       const payload = {
         type: "deposit",
+        transaction_type: formData.clientId ? "Invoice" : "Receive",
         account: formData.accountId,
-        amount: String(formData.amount),
-        date: formData.date
+        amount: Number(formData.amount).toFixed(2),
+        date: formData.date,
+        status: 1
       };
 
       if (formData.clientId) payload.client = formData.clientId;

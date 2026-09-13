@@ -6,7 +6,7 @@ import { toList, today } from '../../utils/apiHelpers';
 
 const STATUS = [
   { value: 'present', label: 'Present' },
-  { value: 'absent', label: 'Absent' },
+  { value: 'absence', label: 'Absent' },
   { value: 'late', label: 'Late' },
   { value: 'leave', label: 'Leave' },
 ];
@@ -56,7 +56,7 @@ const StaffAttendanceCreate = () => {
             const sid = a.staff?.id || a.staff_id || a.staff;
             if (next[sid]) {
               next[sid] = {
-                status: (a.status || a.attendance || 'present').toString().toLowerCase(),
+                status: String(a.status || 'present').toLowerCase() === 'absent' ? 'absence' : String(a.status || 'present').toLowerCase(),
                 in_time: a.in_time ? String(a.in_time).slice(0, 5) : '',
                 out_time: a.out_time ? String(a.out_time).slice(0, 5) : '',
               };
@@ -87,20 +87,21 @@ const StaffAttendanceCreate = () => {
         staff: sid,
         date,
         status: r.status || 'present',
-        in_time: r.in_time || null,
-        out_time: r.out_time || null,
+        // API expects HH:MM:SS
+        in_time: r.in_time ? `${r.in_time}:00`.slice(0, 8) : null,
+        out_time: r.out_time ? `${r.out_time}:00`.slice(0, 8) : null,
       };
     });
     try {
       setSaving(true);
-      // Try bulk first; fall back to one request per staff if the backend only accepts single objects
-      try {
-        await staffApi.createStaffAttendance(payload);
-      } catch (bulkErr) {
-        if (bulkErr.status && bulkErr.status !== 400) throw bulkErr;
-        await Promise.all(payload.map((p) => staffApi.createStaffAttendance(p)));
+      // POST /api/staff/attendance/ accepts one record per request
+      const results = await Promise.allSettled(payload.map((p) => staffApi.createStaffAttendance(p)));
+      const failed = results.filter((r) => r.status === 'rejected');
+      if (failed.length) {
+        toast.error(`${failed.length} of ${payload.length} failed: ${failed[0].reason?.message || ''}`);
+      } else {
+        toast.success(`Attendance saved for ${payload.length} staff`);
       }
-      toast.success('Attendance saved');
     } catch (e) {
       toast.error(e.message || 'Failed to save attendance');
     } finally {
@@ -118,7 +119,7 @@ const StaffAttendanceCreate = () => {
           <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold', textTransform: 'uppercase' }}>Add Attendance</h2>
           <div style={{ display: 'flex', gap: '6px' }}>
             <button type="button" onClick={() => markAll('present')} style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>All Present</button>
-            <button type="button" onClick={() => markAll('absent')} style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>All Absent</button>
+            <button type="button" onClick={() => markAll('absence')} style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>All Absent</button>
           </div>
         </div>
 
@@ -154,12 +155,12 @@ const StaffAttendanceCreate = () => {
                     const r = rows[sid] || {};
                     return (
                       <tr key={sid} style={{ borderBottom: '1px solid #e2e8f0', background: index % 2 === 0 ? 'var(--card-header-bg)' : 'white' }}>
-                        <td style={cell}>{s.name || s.full_name}</td>
+                        <td style={cell}>{s.full_name || s.name}</td>
                         <td style={cell}>{s.phone || '-'}</td>
                         <td style={cell}><input type="time" value={r.in_time || ''} onChange={(e) => update(sid, 'in_time', e.target.value)} style={timeInput} /></td>
                         <td style={cell}><input type="time" value={r.out_time || ''} onChange={(e) => update(sid, 'out_time', e.target.value)} style={timeInput} /></td>
                         <td style={{ ...cell, borderRight: 'none' }}>
-                          <select value={r.status || 'present'} onChange={(e) => update(sid, 'status', e.target.value)} style={{ ...timeInput, fontWeight: 600, color: r.status === 'absent' ? '#b91c1c' : r.status === 'late' ? '#b45309' : '#166534' }}>
+                          <select value={r.status || 'present'} onChange={(e) => update(sid, 'status', e.target.value)} style={{ ...timeInput, fontWeight: 600, color: r.status === 'absence' ? '#b91c1c' : r.status === 'late' ? '#b45309' : '#166534' }}>
                             {STATUS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                           </select>
                         </td>

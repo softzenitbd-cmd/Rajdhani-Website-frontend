@@ -1,15 +1,10 @@
 import React from 'react';
 import SimpleCrudPage from '../../components/SimpleCrudPage';
-import { createLocalService } from '../../utils/localStore';
+import { settingService } from '../../services/settingService';
 
-// NOTE: no backend endpoint exists for payment methods yet – stored locally.
-// See docs/missing-api-screens/README.md
-const service = createLocalService('rajdhane_payment_methods', [
-  { name: 'Cash' }, { name: 'Bank' }, { name: 'bKash' }, { name: 'Nagad' }, { name: 'Cheque' },
-]);
-
+// Backend: GET/POST/PATCH/DELETE /api/erpsetting/payment-methods/  (fields: name)
 const PaymentMethod = () => (
-  <SimpleCrudPage title="Payment Method List" itemLabel="Payment Method" service={service} excelName="Payment_Methods" />
+  <SimpleCrudPage title="Payment Method List" itemLabel="Payment Method" service={settingService.paymentMethods} excelName="Payment_Methods" />
 );
 
 export default PaymentMethod;

@@ -4,8 +4,10 @@ import { List, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
 import { accountingService } from '../../services/accountingService';
+import { useToast } from '../../context/ToastContext';
 
 const ExpenseCreate = () => {
+  const toast = useToast();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -36,19 +38,11 @@ const ExpenseCreate = () => {
       const accData = Array.isArray(accRes) ? accRes : (accRes?.results || []);
       const catData = Array.isArray(catRes) ? catRes : (catRes?.results || []);
 
-      setAccounts(accData.length > 0 ? accData : [
-        { id: '1', name: 'Cash Account', balance: '25000.00' },
-        { id: '2', name: 'Dutch Bangla Bank (DBBL)', balance: '185000.00' }
-      ]);
+      setAccounts(accData);
 
-      setCategories(catData.length > 0 ? catData : [
-        { id: '1', name: 'DOKAN KOROJ' },
-        { id: '2', name: 'PRODUCT KROY' },
-        { id: '3', name: 'STAFF SALARY' },
-        { id: '4', name: 'FOYLA MARET' },
-      ]);
+      setCategories(catData);
     } catch (err) {
-      console.error('Failed to load accounts or expense categories:', err);
+      toast.error(err?.message || 'Failed to load form data');
     }
   };
 

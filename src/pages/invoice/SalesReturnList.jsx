@@ -150,7 +150,7 @@ const SalesReturnList = () => {
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
             Showing {returns.length} entries
           </div>
@@ -175,7 +175,7 @@ const SalesReturnList = () => {
                 <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>CATEGORY</th>
                 <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>TOTAL DUE</th>
                 <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>STATUS</th>
-                <th style={{ textAlign: 'center', padding: '12px', fontSize: '11px' }}>ACTION</th>
+                <th className="action-column" style={{ textAlign: 'center', padding: '12px', fontSize: '11px' }}>ACTION</th>
               </tr>
             </thead>
             <tbody>
@@ -194,7 +194,7 @@ const SalesReturnList = () => {
                       {Number(ret.status) === 0 ? 'Draft (0)' : 'Final (1)'}
                     </span>
                   </td>
-                  <td style={{ textAlign: 'center', padding: '8px' }}>
+                  <td className="action-column" style={{ textAlign: 'center', padding: '8px' }}>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
                       {Number(ret.status) === 0 && (
                         <button 

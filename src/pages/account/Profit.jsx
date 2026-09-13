@@ -21,11 +21,12 @@ const Profit = () => {
       if (fromDate) filters.from_date = fromDate;
       if (toDate) filters.to_date = toDate;
 
-      const res = await accountingService.getProfit(filters).catch(() => ({}));
+      // GET /api/accounting/profit/ → { "Total Sales": "৳ 123.00", ... }
+      const res = await accountingService.getProfit(filters);
       const data = (res && typeof res === 'object') ? res : {};
       setProfitData(data);
     } catch (error) {
-      console.error('Error fetching profit report:', error);
+      alert(error?.message || 'Failed to load profit report');
       setProfitData({});
     } finally {
       setLoading(false);

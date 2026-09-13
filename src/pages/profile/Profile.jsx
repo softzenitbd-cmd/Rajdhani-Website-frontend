@@ -90,16 +90,18 @@ const Profile = () => {
     try {
       setSaving(true);
       setMessage({ type: '', text: '' });
-      await updateUserProfile(editForm);
-      setProfile({ ...editForm });
+      const res = await updateUserProfile(editForm);
+      const saved = res?.data && typeof res.data === 'object' ? res.data : (res && typeof res === 'object' ? res : {});
+      const next = { ...editForm, ...saved };
+      setProfile(next);
+      setEditForm(next);
       setIsEditing(false);
+      if (next.full_name) localStorage.setItem('full_name', next.full_name);
+      window.dispatchEvent(new Event('profileUpdated'));
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
     } catch (err) {
       console.error("Error updating profile:", err);
-      // Fallback update state locally if server returns error or mock
-      setProfile({ ...editForm });
-      setIsEditing(false);
-      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      setMessage({ type: 'error', text: err?.message || 'Failed to update profile' });
     } finally {
       setSaving(false);
     }

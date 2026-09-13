@@ -1,15 +1,25 @@
 import axios from 'axios';
 
-// 1. Create an Axios instance with base configuration
+// 1. Determine base URL
+// In development, if VITE_API_BASE_URL is empty, use empty string '' so relative calls (/api/...) get routed through Vite proxy (vite.config.js), avoiding CORS net::ERR_FAILED errors.
+const getBaseURL = () => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  if (envUrl !== undefined && envUrl !== '') {
+    return envUrl;
+  }
+  return import.meta.env.DEV ? '' : 'https://server-rajdhaniserver-dbitqs-9932f2-62-84-177-235.sslip.io';
+};
+
+// Create an Axios instance with base configuration
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '',
+  baseURL: getBaseURL(),
   headers: {
     'Content-Type': 'application/json',
   },
   timeout: 30000, // 30 seconds timeout (reports can be heavy)
 });
 
-const PUBLIC_AUTH_PATHS = ['/api/auth/login', '/api/auth/register', '/api/auth/token/refresh'];
+const PUBLIC_AUTH_PATHS = ['/api/auth/login', '/api/auth/token/refresh'];
 const isPublicAuthEndpoint = (url = '') => PUBLIC_AUTH_PATHS.some((p) => url.includes(p));
 
 // Clears every auth related key and sends the user to the login page.
@@ -44,8 +54,9 @@ const refreshAccessToken = async () => {
   if (!refreshPromise) {
     const refresh = localStorage.getItem('refresh_token');
     if (!refresh) return Promise.reject(new Error('No refresh token'));
+    const base = apiClient.defaults.baseURL || '';
     refreshPromise = axios
-      .post(`${apiClient.defaults.baseURL}/api/auth/token/refresh/`, { refresh })
+      .post(`${base}/api/auth/token/refresh/`, { refresh })
       .then((res) => {
         const { access, refresh: newRefresh } = res.data || {};
         if (!access) throw new Error('No access token in refresh response');
@@ -76,9 +87,32 @@ const extractErrorMessage = (data, fallback, status) => {
   }
   if (data.error) return typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
   if (data.detail) return typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail);
-  if (data.message) return data.message;
+  if (data.message) return typeof data.message === 'string' ? data.message : JSON.stringify(data.message);
   if (typeof data === 'object') {
-    const parts = Object.entries(data).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : typeof v === 'object' ? JSON.stringify(v) : v}`);
+    const formatVal = (v) => {
+      if (v === null || v === undefined) return '';
+      if (typeof v === 'string') return v;
+      if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+      if (Array.isArray(v)) {
+        return v.map(formatVal).filter(Boolean).join(', ');
+      }
+      if (typeof v === 'object') {
+        return Object.entries(v)
+          .map(([subKey, subVal]) => {
+            const formatted = formatVal(subVal);
+            return formatted ? `${subKey}: ${formatted}` : null;
+          })
+          .filter(Boolean)
+          .join(', ');
+      }
+      return String(v);
+    };
+
+    const parts = Object.entries(data).map(([k, v]) => {
+      const formatted = formatVal(v);
+      return formatted ? `${k}: ${formatted}` : null;
+    }).filter(Boolean);
+
     if (parts.length) return parts.join(' | ');
   }
   return fallback;

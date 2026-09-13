@@ -12,6 +12,7 @@ const InvoiceRoutes = () => {
       <Routes>
         <Route path="/" element={<Navigate to="list" replace />} />
         <Route path="add-new" element={<InvoiceCreate />} />
+        <Route path="edit/:id" element={<InvoiceCreate />} />
         <Route path="list" element={<InvoiceList />} />
         <Route path="draft" element={<DraftInvoiceList />} />
         

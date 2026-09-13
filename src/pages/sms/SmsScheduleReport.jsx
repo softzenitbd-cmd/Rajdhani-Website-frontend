@@ -21,12 +21,15 @@ const fmtDateTime = (v) => {
   return d.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
 
-const sentTo = (r) => {
-  if (r.sent_to) return r.sent_to;
-  if (Array.isArray(r.phone_numbers)) return r.phone_numbers.length > 3 ? `${r.phone_numbers.slice(0, 3).join(', ')} +${r.phone_numbers.length - 3} more` : r.phone_numbers.join(', ');
-  if (Array.isArray(r.recipients)) return `${r.recipients.length} recipient(s)`;
-  return r.phone || r.recipient || r.client_name || r.supplier_name || '-';
-};
+// API row: { body, scheduled_date, status, client_name | supplier_name | client_group_name | supplier_group_name }
+const sentTo = (r) =>
+  r.client_name || r.supplier_name || r.client_group_name || r.supplier_group_name ||
+  (r.client ? `Client: ${typeof r.client === 'object' ? r.client.name : r.client}` : '') ||
+  (r.supplier ? `Supplier: ${typeof r.supplier === 'object' ? r.supplier.name : r.supplier}` : '') ||
+  r.phone || '-';
+
+const bodyOf = (r) => r.body ?? r.message ?? '';
+const scheduledAt = (r) => r.scheduled_date || r.schedule_at || r.scheduled_at;
 
 const SmsScheduleReport = () => {
   const navigate = useNavigate();
@@ -74,7 +77,7 @@ const SmsScheduleReport = () => {
   };
 
   const visible = rows.slice(0, entries);
-  const excelData = visible.map((r, i) => ({ SL: i + 1, 'Sent To': sentTo(r), Message: r.message, 'Schedule At': fmtDateTime(r.schedule_at || r.scheduled_at), Status: r.status }));
+  const excelData = visible.map((r, i) => ({ SL: i + 1, 'Sent To': sentTo(r), Message: bodyOf(r), 'Schedule At': fmtDateTime(scheduledAt(r)), Status: r.status }));
   const input = { padding: '10px', border: '1px solid #38bdf8', borderRadius: '6px', outline: 'none' };
   const isPending = (r) => /pend|sched|queue/i.test(String(r.status || 'pending'));
 
@@ -129,8 +132,8 @@ const SmsScheduleReport = () => {
                     <tr key={r.id || i}>
                       <td style={{ textAlign: 'center', padding: '10px' }}>{i + 1}</td>
                       <td style={{ padding: '10px' }}>{sentTo(r)}</td>
-                      <td style={{ padding: '10px', whiteSpace: 'pre-wrap' }}>{r.message}</td>
-                      <td style={{ padding: '10px' }}>{fmtDateTime(r.schedule_at || r.scheduled_at || r.send_at)}</td>
+                      <td style={{ padding: '10px', whiteSpace: 'pre-wrap' }}>{bodyOf(r)}</td>
+                      <td style={{ padding: '10px' }}>{fmtDateTime(scheduledAt(r))}</td>
                       <td style={{ padding: '10px', textAlign: 'center' }}>
                         <span style={{ padding: '2px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', textTransform: 'capitalize', ...statusStyle(r.status) }}>{r.status || 'pending'}</span>
                       </td>

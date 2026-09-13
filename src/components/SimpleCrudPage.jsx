@@ -3,6 +3,7 @@ import { X, Pencil, Trash2, Plus } from 'lucide-react';
 import PrintHeader from './PrintHeader';
 import TableToolbar from './TableToolbar';
 import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 import { toList, fmtDate } from '../utils/apiHelpers';
 
 /**
@@ -18,6 +19,7 @@ const inputStyle = { width: '100%', padding: '10px', border: '1px solid #e2e8f0'
 
 const SimpleCrudPage = ({ title, itemLabel = 'Item', service, extraFields = [], columns = [], excelName }) => {
   const toast = useToast();
+  const confirm = useConfirm();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -47,7 +49,11 @@ const SimpleCrudPage = ({ title, itemLabel = 'Item', service, extraFields = [], 
 
   const openEdit = (row) => {
     const base = { id: row.id || row.uuid, name: row.name || '', _original: row };
-    extraFields.forEach((f) => { base[f.name] = row[f.name] ?? ''; });
+    extraFields.forEach((f) => {
+      const v = row[f.name];
+      // relations may come back nested ({id, name}) – edit with the id
+      base[f.name] = v && typeof v === 'object' ? (v.id ?? v.uuid ?? '') : (v ?? '');
+    });
     setModal(base);
   };
 
@@ -60,7 +66,9 @@ const SimpleCrudPage = ({ title, itemLabel = 'Item', service, extraFields = [], 
     // on edit only send the fields that actually changed
     if (id && _original) {
       Object.keys(payload).forEach((k) => {
-        if (String(payload[k] ?? '') === String(_original[k] ?? '')) delete payload[k];
+        const orig = _original[k];
+        const origVal = orig && typeof orig === 'object' ? (orig.id ?? orig.uuid ?? '') : orig;
+        if (String(payload[k] ?? '') === String(origVal ?? '')) delete payload[k];
       });
       if (Object.keys(payload).length === 0) { setModal(null); return; }
     }
@@ -83,7 +91,13 @@ const SimpleCrudPage = ({ title, itemLabel = 'Item', service, extraFields = [], 
   };
 
   const remove = async (row) => {
-    if (!window.confirm(`Delete "${row.name}"?`)) return;
+    const isOk = await confirm({
+      title: `Delete ${itemLabel}`,
+      message: `Are you sure you want to delete "${row.name}"?`,
+      confirmText: 'Delete',
+      variant: 'danger',
+    });
+    if (!isOk) return;
     try {
       await service.remove(row.id || row.uuid);
       toast.success(`${itemLabel} deleted`);
@@ -99,7 +113,7 @@ const SimpleCrudPage = ({ title, itemLabel = 'Item', service, extraFields = [], 
 
   const excelData = filtered.map((r, i) => {
     const o = { SL: i + 1, Name: r.name };
-    columns.forEach((c) => { o[c.label] = r[c.key]; });
+    columns.forEach((c) => { o[c.label] = c.render ? c.render(r) : r[c.key]; });
     o['Created At'] = fmtDate(r.created_at);
     return o;
   });

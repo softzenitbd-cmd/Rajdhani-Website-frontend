@@ -1,6 +1,92 @@
 import apiClient from '../api/apiClient';
 import { ENDPOINTS } from '../api/endpoints';
 
+const createSubcategoryService = (endpoint, storageKey) => {
+  const getLocal = () => {
+    try {
+      return JSON.parse(localStorage.getItem(storageKey) || '[]');
+    } catch {
+      return [];
+    }
+  };
+
+  const saveLocal = (items) => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(items));
+    } catch {}
+  };
+
+  const is404 = (err) => {
+    const status = err?.status || err?.response?.status;
+    const msg = String(err?.message || '');
+    return status === 404 || msg.includes('404') || msg.includes('Page not found') || msg.includes('Not Found');
+  };
+
+  return {
+    list: async (params = {}) => {
+      try {
+        const res = await apiClient.get(endpoint, { params });
+        return res;
+      } catch (err) {
+        if (is404(err)) {
+          let items = getLocal();
+          if (params.search) {
+            const q = params.search.toLowerCase();
+            items = items.filter(i => (i.name || '').toLowerCase().includes(q));
+          }
+          return items;
+        }
+        throw err;
+      }
+    },
+    create: async (data) => {
+      try {
+        return await apiClient.post(endpoint, data);
+      } catch (err) {
+        if (is404(err)) {
+          const items = getLocal();
+          const newItem = {
+            id: 'sub_' + Date.now(),
+            name: data.name || '',
+            category: data.category || '',
+            created_at: new Date().toISOString()
+          };
+          items.push(newItem);
+          saveLocal(items);
+          return newItem;
+        }
+        throw err;
+      }
+    },
+    update: async (id, data) => {
+      try {
+        return await apiClient.patch(`${endpoint}${id}/`, data);
+      } catch (err) {
+        if (is404(err)) {
+          let items = getLocal();
+          items = items.map(item => (item.id === id ? { ...item, ...data } : item));
+          saveLocal(items);
+          return { id, ...data };
+        }
+        throw err;
+      }
+    },
+    remove: async (id) => {
+      try {
+        return await apiClient.delete(`${endpoint}${id}/`);
+      } catch (err) {
+        if (is404(err)) {
+          let items = getLocal();
+          items = items.filter(item => item.id !== id);
+          saveLocal(items);
+          return { success: true };
+        }
+        throw err;
+      }
+    }
+  };
+};
+
 export const accountingService = {
   // ==========================================
   // 1. Income Categories API
@@ -41,6 +127,13 @@ export const accountingService = {
   deleteExpenseCategory: async (id) => {
     return await apiClient.delete(`${ENDPOINTS.ACCOUNTING_EXPENSE_CATEGORIES}${id}/`);
   },
+
+  // ==========================================
+  // 1b. Sub-categories (fields: name, category)
+  // Seamless 404 fallback to local storage if backend endpoint is not installed
+  // ==========================================
+  incomeSubcategories: createSubcategoryService(ENDPOINTS.ACCOUNTING_INCOME_SUBCATEGORIES, 'rg_income_subcategories'),
+  expenseSubcategories: createSubcategoryService(ENDPOINTS.ACCOUNTING_EXPENSE_SUBCATEGORIES, 'rg_expense_subcategories'),
 
   // ==========================================
   // 2. Account API (Cash/Bank)
@@ -197,17 +290,42 @@ export const accountingService = {
   // 11. Ledger & Payroll Special APIs
   // ==========================================
   getClientLedger: async (clientId, filters = {}) => {
-    const params = { client_id: clientId, ...filters };
+    const params = { ...filters };
+    if (clientId) params.client_id = clientId;
+    if (!params.client_id) {
+      return await apiClient.get(ENDPOINTS.ACCOUNTING_REPORT_DEPOSITS, { params });
+    }
     return await apiClient.get(ENDPOINTS.ACCOUNTING_REPORT_CLIENT_LEDGER, { params });
   },
 
   getSupplierLedger: async (supplierId, filters = {}) => {
-    const params = { supplier_id: supplierId, ...filters };
+    const params = { ...filters };
+    if (supplierId) params.supplier_id = supplierId;
+    if (!params.supplier_id) {
+      return await apiClient.get(ENDPOINTS.ACCOUNTING_REPORT_EXPENSES, { params });
+    }
     return await apiClient.get(ENDPOINTS.ACCOUNTING_REPORT_SUPPLIER_LEDGER, { params });
   },
 
   updateStaffPaymentStatus: async (expenseId, status = true) => {
     return await apiClient.patch(`${ENDPOINTS.ACCOUNTING_EXPENSES}${expenseId}/`, { status });
+  },
+
+  deleteExpense: async (id) => {
+    return await apiClient.delete(`${ENDPOINTS.ACCOUNTING_EXPENSES}${id}/`);
+  },
+
+  deleteReceive: async (id) => {
+    return await apiClient.delete(`${ENDPOINTS.ACCOUNTING_RECEIVES}${id}/`);
+  },
+
+  /**
+   * Payroll generation (POST /api/accounting/staff-payments/generate/).
+   * Creates one "Staff Salary" expense per active staff for the given month.
+   * @param {{month:number, year:number, date?:string, account?:string, category?:string}} data
+   */
+  generateStaffPayroll: async (data) => {
+    return await apiClient.post(ENDPOINTS.ACCOUNTING_STAFF_PAYMENTS_GENERATE, data);
   },
 };
 

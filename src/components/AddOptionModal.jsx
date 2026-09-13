@@ -4,6 +4,7 @@ import { X, Check, Plus } from 'lucide-react';
 
 const AddOptionModal = ({ isOpen, onClose, onSave, title, label, placeholder, initialValue = '' }) => {
   const [inputValue, setInputValue] = useState('');
+  const [saving, setSaving] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -14,21 +15,23 @@ const AddOptionModal = ({ isOpen, onClose, onSave, title, label, placeholder, in
 
   if (!isOpen) return null;
 
-  const handleSave = () => {
+  // onSave may be async and may throw (API failure) – only close on success
+  const handleSave = async () => {
     if (!inputValue.trim()) {
-      if (toast && toast.error) {
-        toast.error(`Please enter ${label ? label.toLowerCase() : 'a value'}`);
-      } else {
-        alert(`Please enter ${label ? label.toLowerCase() : 'a value'}`);
-      }
+      toast.error(`Please enter ${label ? label.toLowerCase() : 'a value'}`);
       return;
     }
-    onSave(inputValue.trim());
-    if (toast && toast.success) {
+    try {
+      setSaving(true);
+      await onSave(inputValue.trim());
       toast.success("Saved successfully!");
+      setInputValue('');
+      onClose();
+    } catch (err) {
+      toast.error(err?.message || 'Save failed');
+    } finally {
+      setSaving(false);
     }
-    setInputValue('');
-    onClose();
   };
 
   const handleClose = () => {
@@ -170,10 +173,11 @@ const AddOptionModal = ({ isOpen, onClose, onSave, title, label, placeholder, in
           </button>
           <button 
             type="button" 
-            onClick={handleSave} 
+            onClick={handleSave}
+            disabled={saving}
             style={{
               padding: '10px 22px',
-              background: '#2563eb',
+              background: saving ? '#93c5fd' : '#2563eb',
               color: '#ffffff',
               border: 'none',
               borderRadius: '6px',
@@ -186,7 +190,7 @@ const AddOptionModal = ({ isOpen, onClose, onSave, title, label, placeholder, in
               boxShadow: '0 2px 4px rgba(37, 99, 235, 0.2)'
             }}
           >
-            <Check size={16} /> Save Option
+            <Check size={16} /> {saving ? 'Saving...' : 'Save Option'}
           </button>
         </div>
       </div>

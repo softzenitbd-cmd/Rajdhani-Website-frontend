@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useApi } from '../../../hooks/useApi';
+import { useConfirm } from '../../../context/ConfirmContext';
 import { ENDPOINTS } from '../../../api/endpoints';
 
 const ClientChequeSchedule = () => {
   const { t } = useTranslation();
+  const confirm = useConfirm();
   const [cheques, setCheques] = useState([]);
   const [clients, setClients] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -98,7 +100,7 @@ const ClientChequeSchedule = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this cheque?")) {
+    if (await confirm("Are you sure you want to delete this cheque?")) {
       try {
         await del(`${ENDPOINTS.CRM_CLIENT_CHEQUES}${id}/`, "Cheque deleted");
         fetchCheques();

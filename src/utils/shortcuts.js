@@ -1,7 +1,10 @@
 // Header quick-access buttons. Users manage them from Settings → Shortcut Menu.
-// Stored locally (no backend endpoint yet).
-export const SHORTCUT_KEY = 'rajdhane_shortcuts';
-export const SHORTCUT_EVENT = 'shortcutsChanged';
+// Persisted on the server under the `shortcuts` key of the general settings
+// (/api/erpsetting/general-settings/) via appSettingsService.
+import { appSettingsService } from '../services/appSettingsService';
+
+export const SHORTCUT_KEY = 'shortcuts';
+export const SHORTCUT_EVENT = appSettingsService.EVENT;
 
 export const DEFAULT_SHORTCUTS = [
   { id: 'new-invoice', title: 'New Invoice', path: '/invoice/add-new', labelKey: 'header.new_invoice' },
@@ -13,22 +16,22 @@ export const DEFAULT_SHORTCUTS = [
   { id: 'supplier-payment', title: 'Supplier Payment', path: '/account/supplier-payment', labelKey: 'header.supplier_payment' },
 ];
 
+/** Shortcuts from the settings cache (defaults until the server copy is loaded). */
 export const readShortcuts = () => {
-  try {
-    const raw = localStorage.getItem(SHORTCUT_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
-    }
-  } catch {
-    /* ignore */
-  }
-  return DEFAULT_SHORTCUTS;
+  const list = appSettingsService.get(SHORTCUT_KEY);
+  return Array.isArray(list) ? list : DEFAULT_SHORTCUTS;
 };
 
-export const writeShortcuts = (list) => {
-  localStorage.setItem(SHORTCUT_KEY, JSON.stringify(list));
-  window.dispatchEvent(new Event(SHORTCUT_EVENT));
+/** Make sure the settings are loaded, then return the shortcuts. */
+export const loadShortcuts = async () => {
+  await appSettingsService.load();
+  return readShortcuts();
+};
+
+/** Save the list on the server (resolves with the saved list). */
+export const writeShortcuts = async (list) => {
+  await appSettingsService.set(SHORTCUT_KEY, list);
+  return list;
 };
 
 // Every navigable screen a shortcut can point to

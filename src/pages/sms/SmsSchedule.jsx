@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Clock, List } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { communicationService, buildSmsPayload } from '../../services/communicationService';
+import { communicationService } from '../../services/communicationService';
 import { crmService } from '../../services/crmService';
 import { useToast } from '../../context/ToastContext';
 import { toList } from '../../utils/apiHelpers';
@@ -19,29 +19,20 @@ const SmsSchedule = () => {
 
   const [message, setMessage] = useState('');
   const [scheduleAt, setScheduleAt] = useState('');
-  const [source, setSource] = useState('client'); // client | supplier | custom
+  const [source, setSource] = useState('client'); // client | supplier (the API schedules per contact)
   const [contacts, setContacts] = useState([]);
   const [contactId, setContactId] = useState('');
-  const [customNumbers, setCustomNumbers] = useState('');
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    if (source === 'custom') return;
     const fetcher = source === 'client' ? crmService.getClients : crmService.getSuppliers;
     fetcher()
       .then((r) => setContacts(toList(r).map((c) => ({ id: c.id || c.uuid, name: c.name, phone: c.phone || c.mobile }))))
-      .catch(() => setContacts([]));
+      .catch((e) => { toast.error(e?.message || `Failed to load ${source}s`); setContacts([]); });
     setContactId('');
-  }, [source]);
+  }, [source]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const resolveRecipients = () => {
-    if (source === 'custom') {
-      return customNumbers
-        .split(/[\n,;]+/)
-        .map((n) => n.trim())
-        .filter(Boolean)
-        .map((phone) => ({ phone, name: phone }));
-    }
     if (contactId === 'all') return contacts.filter((c) => c.phone);
     const c = contacts.find((x) => String(x.id) === String(contactId));
     return c ? [c] : [];
@@ -54,17 +45,19 @@ const SmsSchedule = () => {
     const recipients = resolveRecipients();
     if (recipients.length === 0) return toast.error('Select at least one recipient');
 
-    const payload = buildSmsPayload({
-      message: message.trim(),
-      recipients,
-      recipientType: source,
-      scheduleAt: new Date(scheduleAt).toISOString(),
-    });
     try {
       setSending(true);
-      await communicationService.scheduleSms(payload);
-      toast.success(`SMS scheduled for ${recipients.length} recipient(s)`);
-      navigate('/sms/schedule-report');
+      const { ok, failed, errors } = await communicationService.scheduleSmsBulk({
+        message: message.trim(),
+        scheduledDate: new Date(scheduleAt).toISOString(),
+        recipientType: source,
+        recipientIds: recipients.map((r) => r.id).filter(Boolean),
+      });
+      if (failed) toast.error(`${failed} schedule(s) failed: ${errors[0]}`);
+      if (ok) {
+        toast.success(`SMS scheduled for ${ok} recipient(s)`);
+        navigate('/sms/schedule-report');
+      }
     } catch (err) {
       toast.error(err.message || 'Failed to schedule SMS');
     } finally {
@@ -99,27 +92,17 @@ const SmsSchedule = () => {
               <select value={source} onChange={(e) => setSource(e.target.value)} style={box}>
                 <option value="client">Client</option>
                 <option value="supplier">Supplier</option>
-                <option value="custom">Custom numbers</option>
               </select>
             </div>
           </div>
 
           <div style={{ marginBottom: '32px' }}>
-            {source === 'custom' ? (
-              <>
-                <label style={label}>Phone Numbers (comma or new-line separated)</label>
-                <textarea value={customNumbers} onChange={(e) => setCustomNumbers(e.target.value)} placeholder="01711111111, 01822222222" style={{ ...box, height: '90px' }} />
-              </>
-            ) : (
-              <>
-                <label style={label}>{source === 'client' ? 'Client' : 'Supplier'}</label>
-                <select value={contactId} onChange={(e) => setContactId(e.target.value)} style={box}>
-                  <option value="">Select {source}</option>
-                  <option value="all">— All {source}s with phone ({contacts.filter((c) => c.phone).length}) —</option>
-                  {contacts.map((c) => <option key={c.id} value={c.id}>{c.name}{c.phone ? ` (${c.phone})` : ''}</option>)}
-                </select>
-              </>
-            )}
+            <label style={label}>{source === 'client' ? 'Client' : 'Supplier'}</label>
+            <select value={contactId} onChange={(e) => setContactId(e.target.value)} style={box}>
+              <option value="">Select {source}</option>
+              <option value="all">— All {source}s with phone ({contacts.filter((c) => c.phone).length}) —</option>
+              {contacts.map((c) => <option key={c.id} value={c.id}>{c.name}{c.phone ? ` (${c.phone})` : ''}</option>)}
+            </select>
           </div>
 
           <div style={{ textAlign: 'center' }}>

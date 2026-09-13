@@ -5,23 +5,19 @@
  *                            and keep the <PrintHeader/> + table).
  * - printElement(target)   → prints ONLY one element (invoice, receipt, barcode sheet …) in a
  *                            hidden iframe with the app stylesheets and the company header.
- * - getCompanyInfo()       → cached company information used on printed documents.
+ * - getCompanyInfo()       → company information (from the company-info API cache) used on printed documents.
  */
 
-export const getCompanyInfo = () => {
-  try {
-    const saved = JSON.parse(localStorage.getItem('companyInfoData') || 'null');
-    return {
-      company_name: 'রাজধানী গার্মেন্টস',
-      address: '',
-      phone_number: '',
-      invoice_greetings: '',
-      ...(saved || {}),
-    };
-  } catch {
-    return { company_name: 'রাজধানী গার্মেন্টস', address: '', phone_number: '', invoice_greetings: '' };
-  }
-};
+import { companyStore, companyHeaderImage } from '../services/companyStore';
+import { appSettingsService } from '../services/appSettingsService';
+
+export const getCompanyInfo = () => ({
+  company_name: '',
+  address: '',
+  phone_number: '',
+  invoice_greetings: '',
+  ...companyStore.getCached(),
+});
 
 export const printPage = () => {
   window.print();
@@ -34,8 +30,8 @@ const collectStyles = () =>
 
 const companyHeaderHtml = (title) => {
   const info = getCompanyInfo();
-  const img = localStorage.getItem('companyHeaderImage');
-  const mode = localStorage.getItem('companyHeaderMode') || 'card';
+  const img = companyHeaderImage(info);
+  const mode = appSettingsService.get('print_header_mode', 'card');
   if (mode === 'image' && img) {
     return `<div style="text-align:center;margin-bottom:12px"><img src="${img}" style="max-width:100%;max-height:140px;object-fit:contain"/></div>
       ${title ? `<h3 style="text-align:center;margin:6px 0 12px;font-size:15px">${title}</h3>` : ''}`;

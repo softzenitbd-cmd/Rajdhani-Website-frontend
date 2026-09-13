@@ -196,13 +196,22 @@ const DraftInvoiceList = () => {
                     <span style={{ background: '#64748b', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>Draft (0)</span>
                   </td>
                   <td style={{ textAlign: 'center', padding: '8px' }}>
-                    <button 
-                      onClick={() => handleConvertToFinal(inv.id)} 
-                      style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                      title="Convert Draft to Final General Invoice"
-                    >
-                      <CheckCircle size={14} /> Make Final (Status 1)
-                    </button>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
+                      <button 
+                        onClick={() => navigate(`/invoice/edit/${inv.id}`, { state: { invoice: inv } })} 
+                        style={{ background: 'var(--info)', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        title="Edit Draft Invoice"
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleConvertToFinal(inv.id)} 
+                        style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        title="Convert Draft to Final General Invoice"
+                      >
+                        <CheckCircle size={14} /> Make Final
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

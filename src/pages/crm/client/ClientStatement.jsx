@@ -35,12 +35,14 @@ const ClientStatement = () => {
     try {
       setLoading(true);
       const params = {};
-      if (f.from_date) { params.from_date = f.from_date; params.start_date = f.from_date; }
-      if (f.to_date) { params.to_date = f.to_date; params.end_date = f.to_date; }
-      const res = await accountingService.getClientLedger(f.client || undefined, params);
-      const list = toList(res.ledger || res.transactions || res.statement || res);
+      if (f.from_date) params.from_date = f.from_date;
+      if (f.to_date) params.to_date = f.to_date;
+      const res = f.client
+        ? await accountingService.getClientLedger(f.client, params)
+        : await accountingService.getDepositReport(params);
+      const list = toList(res?.ledger || res?.transactions || res?.statement || res?.results || res);
       setRows(list);
-      setSummary(Array.isArray(res) ? null : res);
+      setSummary(f.client && !Array.isArray(res) ? res : null);
     } catch (e) {
       toast.error(e.message || 'Failed to load client statement');
       setRows([]);
@@ -62,11 +64,18 @@ const ClientStatement = () => {
 
   // running balance if the backend does not send one
   let running = Number(summary?.opening_balance || summary?.previous_due || selectedClient?.previous_due || 0);
+  // API ledger rows: { date, type, reference, debit, credit, balance } – debit = bill, credit = payment.
+  // "type" tells which column a debit/credit belongs to (Sale Invoice / Sales Return / Receive / Money Return).
   const computed = rows.slice(0, entries).map((r) => {
-    const bill = Number(r.bill ?? r.grand_total ?? r.total ?? 0);
-    const salesReturn = Number(r.sales_return ?? r.return ?? 0);
-    const receive = Number(r.receive ?? r.payment ?? r.amount_received ?? 0);
-    const moneyReturn = Number(r.money_return ?? 0);
+    const t = String(r.type || r.transaction_type || '').toLowerCase();
+    const debit = Number(r.debit ?? 0);
+    const credit = Number(r.credit ?? 0);
+    const isReturn = /return/.test(t) && !/money/.test(t);
+    const isMoneyReturn = /money|refund/.test(t);
+    const bill = Number(r.bill ?? r.grand_total ?? r.total ?? (r.debit !== undefined && !isMoneyReturn ? debit : 0));
+    const salesReturn = Number(r.sales_return ?? r.return_amount ?? (r.credit !== undefined && isReturn ? credit : 0));
+    const receive = Number(r.receive ?? r.payment ?? r.amount_received ?? (r.credit !== undefined && !isReturn ? credit : 0));
+    const moneyReturn = Number(r.money_return ?? (r.debit !== undefined && isMoneyReturn ? debit : 0));
     if (r.balance === undefined) running = running + bill - salesReturn - receive + moneyReturn;
     return { ...r, _bill: bill, _salesReturn: salesReturn, _receive: receive, _moneyReturn: moneyReturn, _balance: r.balance !== undefined ? Number(r.balance) : running };
   });
@@ -76,7 +85,7 @@ const ClientStatement = () => {
 
   const excelData = computed.map((r, i) => ({
     SL: i + 1, Date: fmtDate(r.date), Product: r.product || r.product_name || r.description || '', Qty: r.quantity ?? r.qty ?? '', Unit: r.unit || '', Price: r.price ?? '',
-    Description: r.description || r.note || '', Bill: r._bill, 'Sales Return': r._salesReturn, Receive: r._receive, 'Money Return': r._moneyReturn, Balance: r._balance,
+    Description: r.description || r.reference || r.note || '', Bill: r._bill, 'Sales Return': r._salesReturn, Receive: r._receive, 'Money Return': r._moneyReturn, Balance: r._balance,
   }));
 
   const th = { padding: '10px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)', whiteSpace: 'nowrap' };
@@ -147,7 +156,7 @@ const ClientStatement = () => {
                     <td style={td}>{r.quantity ?? r.qty ?? '-'}</td>
                     <td style={td}>{r.unit || '-'}</td>
                     <td style={td}>{r.price !== undefined ? money(r.price) : '-'}</td>
-                    <td style={{ ...td, textAlign: 'left', color: '#475569' }}>{r.description || r.note || '-'}</td>
+                    <td style={{ ...td, textAlign: 'left', color: '#475569' }}>{r.description || r.reference || r.note || '-'}</td>
                     <td style={td}>{money(r._bill)}</td>
                     <td style={td}>{money(r._salesReturn)}</td>
                     <td style={{ ...td, color: '#059669' }}>{money(r._receive)}</td>

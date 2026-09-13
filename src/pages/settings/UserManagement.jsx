@@ -5,6 +5,7 @@ import PrintHeader from '../../components/PrintHeader';
 import TableToolbar from '../../components/TableToolbar';
 import authApi from '../../api/authApi';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 import { toList, fmtDate } from '../../utils/apiHelpers';
 
 /**
@@ -36,6 +37,7 @@ const emptyUser = { username: '', password: '', full_name: '', email: '', phone:
 
 const UserManagement = () => {
   const toast = useToast();
+  const confirm = useConfirm();
   const location = useLocation();
   const myRole = (localStorage.getItem('role') || '').toLowerCase();
   const isSuper = myRole === 'superadmin';
@@ -88,7 +90,13 @@ const UserManagement = () => {
   };
 
   const deleteUser = async (u) => {
-    if (!window.confirm(`Delete user "${u.username}"?`)) return;
+    const isOk = await confirm({
+      title: 'Delete User',
+      message: `Are you sure you want to delete user "${u.username}"?`,
+      confirmText: 'Delete',
+      variant: 'danger',
+    });
+    if (!isOk) return;
     try {
       await authApi.deleteUser(u.id || u.uuid);
       toast.success('User deleted');

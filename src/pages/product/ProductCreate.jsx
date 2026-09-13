@@ -13,17 +13,31 @@ const ProductCreate = () => {
   const editingProduct = location.state?.product || null;
   const isEditMode = !!editingProduct;
 
-  const [formData, setFormData] = useState({
+  // Fields of POST/PATCH /api/product/list/
+  const EMPTY = {
     name: '',
-    purchase_price: '',
-    sales_price: '',
+    custom_barcode_no: '',
+    buying_price: '',
+    selling_price: '',
+    wholesale_price: '',
+    opening_stock: '',
+    stock_warning: '',
     unit: '',
-    stock: '',
-    group: ''
-  });
-  
+    group: '',
+    brand: '',
+    color: '',
+    size: '',
+    warehouse: '',
+    status: 1,
+  };
+  const [formData, setFormData] = useState(EMPTY);
+
   const [units, setUnits] = useState([]);
   const [groups, setGroups] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [colors, setColors] = useState([]);
+  const [sizes, setSizes] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
   const [submitting, setSubmitting] = useState(false);
 
   const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
@@ -33,33 +47,45 @@ const ProductCreate = () => {
 
   useEffect(() => {
     if (editingProduct) {
+      const idOf = (v) => (v && typeof v === 'object' ? v.id ?? v.uuid ?? '' : v ?? '');
       setFormData({
         name: editingProduct.name || '',
-        purchase_price: editingProduct.purchase_price || editingProduct.buy || '',
-        sales_price: editingProduct.sales_price || editingProduct.sell || '',
-        unit: editingProduct.unit || editingProduct.unit_id || '',
-        stock: editingProduct.stock || editingProduct.openingStock || '',
-        group: editingProduct.group || editingProduct.group_id || ''
+        custom_barcode_no: editingProduct.custom_barcode_no || editingProduct.barcode || '',
+        buying_price: editingProduct.buying_price ?? editingProduct.purchase_price ?? '',
+        selling_price: editingProduct.selling_price ?? editingProduct.sales_price ?? '',
+        wholesale_price: editingProduct.wholesale_price ?? '',
+        opening_stock: editingProduct.opening_stock ?? editingProduct.stock ?? '',
+        stock_warning: editingProduct.stock_warning ?? '',
+        unit: idOf(editingProduct.unit),
+        group: idOf(editingProduct.group),
+        brand: idOf(editingProduct.brand),
+        color: idOf(editingProduct.color),
+        size: idOf(editingProduct.size),
+        warehouse: idOf(editingProduct.warehouse),
+        status: editingProduct.status ?? 1,
       });
     }
   }, [editingProduct]);
 
   const fetchPrerequisites = async () => {
     try {
-      const [unitsRes, groupsRes] = await Promise.all([
-        productService.units.getAll().catch(() => []),
-        productService.groups.getAll().catch(() => [])
+      const list = (r) => (Array.isArray(r) ? r : (r?.results || []));
+      const [unitsRes, groupsRes, brandsRes, colorsRes, sizesRes, whRes] = await Promise.all([
+        productService.units.getAll(),
+        productService.groups.getAll(),
+        productService.brands.getAll().catch(() => []),
+        productService.colors.getAll().catch(() => []),
+        productService.sizes.getAll().catch(() => []),
+        productService.warehouses.getAll().catch(() => []),
       ]);
-
-      const unitList = Array.isArray(unitsRes) ? unitsRes : (unitsRes?.results || []);
-      const groupList = Array.isArray(groupsRes) ? groupsRes : (groupsRes?.results || []);
-
-      setUnits(unitList);
-      setGroups(groupList);
+      setUnits(list(unitsRes));
+      setGroups(list(groupsRes));
+      setBrands(list(brandsRes));
+      setColors(list(colorsRes));
+      setSizes(list(sizesRes));
+      setWarehouses(list(whRes));
     } catch (err) {
-      console.error("Error fetching units/groups:", err);
-      setUnits([]);
-      setGroups([]);
+      alert(err?.message || 'Failed to load units / groups');
     }
   };
 
@@ -70,7 +96,7 @@ const ProductCreate = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-  
+
   const handleSubmit = async (e) => {
     e?.preventDefault();
     if (!formData.name?.trim()) {
@@ -79,14 +105,27 @@ const ProductCreate = () => {
     }
     try {
       setSubmitting(true);
+      const money = (v) => Number(v || 0).toFixed(2);
       const payload = {
         name: formData.name.trim(),
-        purchase_price: formData.purchase_price ? Number(formData.purchase_price) : 0,
-        sales_price: formData.sales_price ? Number(formData.sales_price) : 0,
-        stock: formData.stock ? Number(formData.stock) : 0,
+        buying_price: money(formData.buying_price),
+        selling_price: money(formData.selling_price),
+        wholesale_price: money(formData.wholesale_price),
+        stock_warning: formData.stock_warning === '' ? 0 : Number(formData.stock_warning),
         unit: formData.unit || null,
-        group: formData.group || null
+        group: formData.group || null,
+        brand: formData.brand || null,
+        color: formData.color || null,
+        size: formData.size || null,
+        warehouse: formData.warehouse || null,
+        status: Number(formData.status ?? 1),
       };
+      if (formData.custom_barcode_no) payload.custom_barcode_no = String(formData.custom_barcode_no).trim();
+      if (!isEditMode) {
+        // opening stock is only meaningful on create – purchases / sales move stock afterwards
+        payload.opening_stock = money(formData.opening_stock);
+        payload.stock = money(formData.opening_stock);
+      }
 
       try {
         if (isEditMode && editingProduct?.id) {
@@ -114,37 +153,21 @@ const ProductCreate = () => {
   const handleAddUnit = async (name) => {
     if (!name?.trim()) return;
     const unitName = name.trim();
-    try {
-      const res = await productService.units.create({ name: unitName }).catch(() => null);
-      const newUnit = { id: res?.id || `unit-${Date.now()}`, name: unitName };
+    const res = await productService.units.create({ name: unitName });
+    const newUnit = { ...(res && typeof res === 'object' ? res : {}), id: res?.id || res?.uuid, name: res?.name || unitName };
       setUnits(prev => [...prev, newUnit]);
       setFormData(prev => ({ ...prev, unit: newUnit.id }));
       setIsUnitModalOpen(false);
-    } catch (err) {
-      console.error("Error adding unit:", err);
-      const fallbackUnit = { id: `unit-${Date.now()}`, name: unitName };
-      setUnits(prev => [...prev, fallbackUnit]);
-      setFormData(prev => ({ ...prev, unit: fallbackUnit.id }));
-      setIsUnitModalOpen(false);
-    }
   };
-  
+
   const handleAddGroup = async (name) => {
     if (!name?.trim()) return;
     const groupName = name.trim();
-    try {
-      const res = await productService.groups.create({ name: groupName }).catch(() => null);
-      const newGroup = { id: res?.id || `group-${Date.now()}`, name: groupName };
+    const res = await productService.groups.create({ name: groupName });
+    const newGroup = { ...(res && typeof res === 'object' ? res : {}), id: res?.id || res?.uuid, name: res?.name || groupName };
       setGroups(prev => [...prev, newGroup]);
       setFormData(prev => ({ ...prev, group: newGroup.id }));
       setIsGroupModalOpen(false);
-    } catch (err) {
-      console.error("Error adding group:", err);
-      const fallbackGroup = { id: `group-${Date.now()}`, name: groupName };
-      setGroups(prev => [...prev, fallbackGroup]);
-      setFormData(prev => ({ ...prev, group: fallbackGroup.id }));
-      setIsGroupModalOpen(false);
-    }
   };
 
   return (
@@ -168,7 +191,7 @@ const ProductCreate = () => {
         <div className="premium-body" style={{ background: 'white', padding: '24px' }}>
           <form onSubmit={handleSubmit}>
             <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-              
+
               {/* Product Name */}
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
@@ -185,7 +208,7 @@ const ProductCreate = () => {
                   <div style={{ padding: '12px', color: 'var(--text-muted)', fontWeight: 'bold' }}>
                     ৳
                   </div>
-                  <input type="number" step="0.01" name="purchase_price" value={formData.purchase_price} onChange={handleChange} placeholder="Buying Price" style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
+                  <input type="number" step="0.01" name="buying_price" value={formData.buying_price} onChange={handleChange} placeholder="Buying Price" style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
                 </div>
               </div>
 
@@ -195,7 +218,7 @@ const ProductCreate = () => {
                   <div style={{ padding: '12px', color: 'var(--text-muted)', fontWeight: 'bold' }}>
                     ৳
                   </div>
-                  <input type="number" step="0.01" name="sales_price" value={formData.sales_price} onChange={handleChange} placeholder="Selling Price" style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
+                  <input type="number" step="0.01" name="selling_price" value={formData.selling_price} onChange={handleChange} placeholder="Selling Price" style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
                 </div>
               </div>
 
@@ -218,7 +241,7 @@ const ProductCreate = () => {
                   <div style={{ padding: '12px', color: 'var(--text-muted)' }}>
                     <Scale size={18} />
                   </div>
-                  <input type="number" name="stock" value={formData.stock} onChange={handleChange} placeholder="Opening Stock" style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
+                  <input type="number" step="0.01" name="opening_stock" value={formData.opening_stock} onChange={handleChange} placeholder="Opening Stock" disabled={isEditMode} style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
                 </div>
               </div>
 
@@ -234,6 +257,62 @@ const ProductCreate = () => {
                   <button type="button" onClick={() => setIsGroupModalOpen(true)} className="append-btn" style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '0 16px', borderRadius: '0 4px 4px 0' }}><Plus size={20} /></button>
                 </div>
               </div>
+
+              {/* Barcode */}
+              <div className="form-group" style={{ marginBottom: '0' }}>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
+                  <div style={{ padding: '12px', color: 'var(--text-muted)', fontSize: '12px', fontWeight: 'bold' }}>BC</div>
+                  <input type="text" name="custom_barcode_no" value={formData.custom_barcode_no} onChange={handleChange} placeholder="Custom Barcode No (optional – auto generated when empty)" style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
+                </div>
+              </div>
+
+              {/* Wholesale Price */}
+              <div className="form-group" style={{ marginBottom: '0' }}>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
+                  <div style={{ padding: '12px', color: 'var(--text-muted)', fontWeight: 'bold' }}>৳</div>
+                  <input type="number" step="0.01" name="wholesale_price" value={formData.wholesale_price} onChange={handleChange} placeholder="Wholesale Price" style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
+                </div>
+              </div>
+
+              {/* Stock warning */}
+              <div className="form-group" style={{ marginBottom: '0' }}>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
+                  <div style={{ padding: '12px', color: 'var(--text-muted)' }}><Scale size={18} /></div>
+                  <input type="number" name="stock_warning" value={formData.stock_warning} onChange={handleChange} placeholder="Stock Warning Qty" style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
+                </div>
+              </div>
+
+              {/* Brand / Color / Size / Warehouse / Status */}
+              <div className="form-group" style={{ marginBottom: '0' }}>
+                <select name="brand" value={formData.brand} onChange={handleChange} style={{ padding: '14px', flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', background: 'white' }}>
+                  <option value="">Select Brand (optional)</option>
+                  {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                </select>
+              </div>
+              <div className="form-group" style={{ marginBottom: '0' }}>
+                <select name="color" value={formData.color} onChange={handleChange} style={{ padding: '14px', flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', background: 'white' }}>
+                  <option value="">Select Color (optional)</option>
+                  {colors.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+              <div className="form-group" style={{ marginBottom: '0' }}>
+                <select name="size" value={formData.size} onChange={handleChange} style={{ padding: '14px', flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', background: 'white' }}>
+                  <option value="">Select Size (optional)</option>
+                  {sizes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+              <div className="form-group" style={{ marginBottom: '0' }}>
+                <select name="warehouse" value={formData.warehouse} onChange={handleChange} style={{ padding: '14px', flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', background: 'white' }}>
+                  <option value="">Select Warehouse (optional)</option>
+                  {warehouses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+              <div className="form-group" style={{ marginBottom: '0' }}>
+                <select name="status" value={String(formData.status)} onChange={handleChange} style={{ padding: '14px', flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', background: 'white' }}>
+                  <option value="1">Active</option>
+                  <option value="0">Inactive</option>
+                </select>
+              </div>
             </div>
 
             <button type="submit" disabled={submitting} className="btn-primary" style={{ width: '100%', padding: '16px', background: 'var(--success)', border: 'none', borderRadius: '4px', fontSize: '16px', cursor: 'pointer' }}>
@@ -242,16 +321,16 @@ const ProductCreate = () => {
           </form>
         </div>
       </div>
-      
-      <AddOptionModal 
+
+      <AddOptionModal
         isOpen={isUnitModalOpen}
         onClose={() => setIsUnitModalOpen(false)}
         onSave={handleAddUnit}
         title="Add Unit"
         label="Unit Name"
       />
-      
-      <AddOptionModal 
+
+      <AddOptionModal
         isOpen={isGroupModalOpen}
         onClose={() => setIsGroupModalOpen(false)}
         onSave={handleAddGroup}

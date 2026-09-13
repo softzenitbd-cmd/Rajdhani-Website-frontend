@@ -16,9 +16,12 @@ const PurchaseCreate = () => {
     supplier: '',
     date: new Date().toISOString().split('T')[0],
     barcode: '',
-    product: ''
+    product: '',
+    discount: '0',
+    transport_fare: '0',
+    receive_amount: '0',
   });
-  
+
   const [suppliers, setSuppliers] = useState([]);
   const [products, setProducts] = useState([]);
   const [items, setItems] = useState([]);
@@ -48,7 +51,7 @@ const PurchaseCreate = () => {
   useEffect(() => {
     fetchPrerequisites();
   }, []);
-  
+
   const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 
@@ -115,40 +118,32 @@ const PurchaseCreate = () => {
   const removeItem = (index) => {
     setItems(prev => prev.filter((_, i) => i !== index));
   };
-  
+
   const handleAddSupplier = async (name) => {
     if (!name?.trim()) return;
     const supName = name.trim();
     try {
-      const created = await crmService.createSupplier({ name: supName, phone: '', address: '' }).catch(() => null);
-      const newSup = { id: created?.id || `sup-${Date.now()}`, name: supName };
+      const created = await crmService.createSupplier({ name: supName, phone: '', address: '' });
+      const newSup = { ...created, id: created?.id || created?.uuid, name: created?.name || supName };
       setSuppliers(prev => [...prev, newSup]);
       setFormData(prev => ({ ...prev, supplier: newSup.id }));
       setIsSupplierModalOpen(false);
     } catch (err) {
-      console.error(err);
-      const fallback = { id: `sup-${Date.now()}`, name: supName };
-      setSuppliers(prev => [...prev, fallback]);
-      setFormData(prev => ({ ...prev, supplier: fallback.id }));
-      setIsSupplierModalOpen(false);
+      alert(`Failed to create supplier: ${err?.message || 'server error'}`);
     }
   };
-  
+
   const handleAddProduct = async (name) => {
     if (!name?.trim()) return;
     const prodName = name.trim();
     try {
-      const created = await productService.createProduct({ name: prodName, purchase_price: 0, sales_price: 0 }).catch(() => null);
-      const newProd = { id: created?.id || `prod-${Date.now()}`, name: prodName, purchase_price: 0, sales_price: 0 };
+      const created = await productService.createProduct({ name: prodName, purchase_price: 0, sales_price: 0 });
+      const newProd = { purchase_price: 0, sales_price: 0, ...created, id: created?.id || created?.uuid, name: created?.name || prodName };
       setProducts(prev => [...prev, newProd]);
       handleSelectProduct(newProd.id);
       setIsProductModalOpen(false);
     } catch (err) {
-      console.error(err);
-      const fallback = { id: `prod-${Date.now()}`, name: prodName, purchase_price: 0, sales_price: 0 };
-      setProducts(prev => [...prev, fallback]);
-      handleSelectProduct(fallback.id);
-      setIsProductModalOpen(false);
+      alert(`Failed to create product: ${err?.message || 'server error'}`);
     }
   };
 
@@ -164,30 +159,38 @@ const PurchaseCreate = () => {
 
     try {
       setSubmitting(true);
+      // POST /api/purchase/invoices/ (see purchase-api-instructions.md)
       const payload = {
         supplier: formData.supplier,
         date: formData.date,
-        total_amount: totalBuying.toFixed(2),
+        discount: discountAmt.toFixed(2),
+        discount_type: 'flat',
+        transport_fare: transportAmt.toFixed(2),
+        vat: '0.00',
+        vat_type: 'percentage',
+        purchase_bill: totalBuying.toFixed(2),
+        total_vat: '0.00',
+        total_discount: discountAmt.toFixed(2),
+        grand_total: grandTotal.toFixed(2),
+        receive_amount: paidAmt.toFixed(2),
+        total_due: totalDue.toFixed(2),
+        status: 1,
         items: items.map(i => ({
           product: i.id,
-          quantity: i.quantity,
-          purchase_price: i.buyingPrice,
-          sales_price: i.salePrice
+          quantity: String(i.quantity),
+          buying_price: Number(i.buyingPrice).toFixed(2),
+          selling_price: Number(i.salePrice).toFixed(2),
+          total_buying_price: (Number(i.quantity) * Number(i.buyingPrice)).toFixed(2),
+          total_selling_price: (Number(i.quantity) * Number(i.salePrice)).toFixed(2),
         }))
       };
 
-      try {
-        await purchaseService.createPurchaseInvoice(payload);
-        alert("Purchase invoice created successfully via API!");
-      } catch (apiErr) {
-        console.warn("Backend API error, storing purchase locally:", apiErr);
-        alert("Purchase invoice created successfully!");
-      }
-
+      const created = await purchaseService.createPurchaseInvoice(payload);
+      alert(`Purchase invoice ${created?.invoice_id ? created.invoice_id + ' ' : ''}created successfully!`);
       navigate('/product/purchase/list');
     } catch (err) {
       console.error("Error creating purchase:", err);
-      alert("An unexpected error occurred while creating purchase.");
+      alert(`Failed to create purchase: ${err?.message || 'server error'}`);
     } finally {
       setSubmitting(false);
     }
@@ -197,6 +200,11 @@ const PurchaseCreate = () => {
   const totalQty = items.reduce((sum, i) => sum + Number(i.quantity || 0), 0);
   const totalBuying = items.reduce((sum, i) => sum + (Number(i.quantity || 0) * Number(i.buyingPrice || 0)), 0);
   const totalSale = items.reduce((sum, i) => sum + (Number(i.quantity || 0) * Number(i.salePrice || 0)), 0);
+  const discountAmt = Math.max(0, Number(formData.discount || 0));
+  const transportAmt = Math.max(0, Number(formData.transport_fare || 0));
+  const grandTotal = Math.max(0, totalBuying - discountAmt + transportAmt);
+  const paidAmt = Math.max(0, Number(formData.receive_amount || 0));
+  const totalDue = Math.max(0, grandTotal - paidAmt);
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
@@ -213,7 +221,7 @@ const PurchaseCreate = () => {
           <PrintHeader />
           <form onSubmit={(e) => e.preventDefault()}>
             <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-              
+
               {/* Select Suppliers */}
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <div className="input-with-append">
@@ -243,14 +251,14 @@ const PurchaseCreate = () => {
                   <div style={{ padding: '12px', color: 'var(--text-muted)' }}>
                     <Barcode size={24} />
                   </div>
-                  <input 
-                    type="text" 
-                    name="barcode" 
-                    value={formData.barcode} 
-                    onChange={handleChange} 
+                  <input
+                    type="text"
+                    name="barcode"
+                    value={formData.barcode}
+                    onChange={handleChange}
                     onKeyDown={handleBarcodeKeyDown}
-                    placeholder="Scan Barcode & Press Enter" 
-                    style={{ flex: 1, padding: '12px', border: 'none', outline: 'none', color: '#334155' }} 
+                    placeholder="Scan Barcode & Press Enter"
+                    style={{ flex: 1, padding: '12px', border: 'none', outline: 'none', color: '#334155' }}
                   />
                 </div>
               </div>
@@ -356,12 +364,41 @@ const PurchaseCreate = () => {
               </table>
             </div>
 
+            {/* Bill summary */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '24px', maxWidth: '900px', marginLeft: 'auto' }}>
+              {[
+                { label: 'Purchase Bill', value: `৳ ${totalBuying.toFixed(2)}` },
+              ].map((r) => (
+                <div key={r.label} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '10px 12px' }}>
+                  <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>{r.label}</div>
+                  <div style={{ fontWeight: 'bold', fontSize: '15px' }}>{r.value}</div>
+                </div>
+              ))}
+              <label style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>Discount
+                <input type="number" step="0.01" name="discount" value={formData.discount} onChange={handleChange} style={{ padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '14px', textTransform: 'none' }} />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>Transport Fare
+                <input type="number" step="0.01" name="transport_fare" value={formData.transport_fare} onChange={handleChange} style={{ padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '14px' }} />
+              </label>
+              <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '6px', padding: '10px 12px' }}>
+                <div style={{ fontSize: '11px', color: '#047857', textTransform: 'uppercase' }}>Grand Total</div>
+                <div style={{ fontWeight: 'bold', fontSize: '15px' }}>৳ {grandTotal.toFixed(2)}</div>
+              </div>
+              <label style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>Paid Amount
+                <input type="number" step="0.01" name="receive_amount" value={formData.receive_amount} onChange={handleChange} style={{ padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '14px' }} />
+              </label>
+              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', padding: '10px 12px' }}>
+                <div style={{ fontSize: '11px', color: '#b91c1c', textTransform: 'uppercase' }}>Due</div>
+                <div style={{ fontWeight: 'bold', fontSize: '15px' }}>৳ {totalDue.toFixed(2)}</div>
+              </div>
+            </div>
+
             <div style={{ textAlign: 'center' }}>
-              <button 
-                type="button" 
-                disabled={submitting} 
-                onClick={handleSubmitPurchase} 
-                className="btn-primary" 
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={handleSubmitPurchase}
+                className="btn-primary"
                 style={{ padding: '12px 32px', background: 'var(--success)', border: 'none', borderRadius: '4px', fontSize: '14px', cursor: 'pointer' }}
               >
                 {submitting ? 'Processing...' : 'Buy Product'}
@@ -370,8 +407,8 @@ const PurchaseCreate = () => {
           </form>
         </div>
       </div>
-      
-      <AddOptionModal 
+
+      <AddOptionModal
         isOpen={isSupplierModalOpen}
         onClose={() => setIsSupplierModalOpen(false)}
         onSave={handleAddSupplier}
@@ -379,7 +416,7 @@ const PurchaseCreate = () => {
         label="Supplier Name"
       />
 
-      <AddOptionModal 
+      <AddOptionModal
         isOpen={isProductModalOpen}
         onClose={() => setIsProductModalOpen(false)}
         onSave={handleAddProduct}

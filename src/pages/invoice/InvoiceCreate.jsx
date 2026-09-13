@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { Plus, X, Calendar, Clock, Barcode, MessageSquare, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import AddOptionModal from '../../components/AddOptionModal';
 import { crmService } from '../../services/crmService';
 import { productService } from '../../services/productService';
@@ -12,6 +12,9 @@ import { saleService } from '../../services/saleService';
 const InvoiceCreate = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { id } = useParams();
+  const location = useLocation();
+  const isEditMode = Boolean(id);
 
   const [clients, setClients] = useState([]);
   const [products, setProducts] = useState([]);
@@ -27,6 +30,7 @@ const InvoiceCreate = () => {
     productId: '',
     totalBalanceAcc: '',
     cashSellAcc: '',
+    discountAmount: '0',
     receiveAmount: '0',
     sms: false
   });
@@ -36,8 +40,60 @@ const InvoiceCreate = () => {
   const [isTotalBalanceAccModalOpen, setIsTotalBalanceAccModalOpen] = useState(false);
   const [isCashSellAccModalOpen, setIsCashSellAccModalOpen] = useState(false);
 
+  const populateInvoiceData = (invData, currentProducts = products) => {
+    if (!invData) return;
+    setFormData(prev => ({
+      ...prev,
+      clientId: invData.client || invData.client_id || invData.clientName || prev.clientId,
+      date: invData.date || (invData.created_at ? invData.created_at.split('T')[0] : prev.date),
+      totalBalanceAcc: invData.account_id || invData.account || prev.totalBalanceAcc,
+      cashSellAcc: invData.category_id || invData.category || prev.cashSellAcc,
+      discountAmount: String(invData.discount || invData.total_discount || '0'),
+      receiveAmount: String(invData.receive_amount || invData.receiveAmount || invData.paid || '0')
+    }));
 
+    const rawItems = invData.items || invData.invoice_items || invData.sale_items || [];
+    if (Array.isArray(rawItems) && rawItems.length > 0) {
+      const mappedItems = rawItems.map(item => {
+        const prodId = typeof item.product === 'object' ? item.product?.id : (item.product || item.product_id || item.id);
+        const matchingProd = (currentProducts || []).find(p => String(p.id) === String(prodId));
 
+        const qty = Number(item.quantity || item.qty || 1);
+        const price = Number(
+          item.selling_price ||
+          item.price ||
+          item.sales_price ||
+          item.rate ||
+          matchingProd?.sales_price ||
+          matchingProd?.price ||
+          (item.total_selling_price ? Number(item.total_selling_price) / qty : 0) ||
+          0
+        );
+
+        const name = (
+          item.name ||
+          item.product_name ||
+          (typeof item.product === 'object' ? (item.product?.name || item.product?.title) : null) ||
+          matchingProd?.name ||
+          matchingProd?.title ||
+          `Product #${prodId}`
+        );
+
+        const stock = Number(item.stock ?? matchingProd?.stock ?? 0);
+        const unit = item.unit || matchingProd?.unit_name || matchingProd?.unit || 'Pcs';
+
+        return {
+          id: prodId || `item-${Date.now()}-${Math.random()}`,
+          name: name,
+          stock: stock,
+          price: price,
+          quantity: qty,
+          unit: unit
+        };
+      });
+      setItems(mappedItems);
+    }
+  };
 
   const fetchPrerequisites = async () => {
     try {
@@ -55,6 +111,21 @@ const InvoiceCreate = () => {
       setClients(clientData);
       setProducts(prodData);
       setAccounts(accData);
+
+      if (isEditMode) {
+        if (location.state?.invoice) {
+          populateInvoiceData(location.state.invoice, prodData);
+        } else {
+          try {
+            const invRes = await saleService.getSalesInvoiceById(id);
+            if (invRes) {
+              populateInvoiceData(invRes, prodData);
+            }
+          } catch (err) {
+            console.error("Error fetching invoice for edit:", err);
+          }
+        }
+      }
     } catch (err) {
       console.error("Error loading prerequisites for invoice:", err);
       setClients([]);
@@ -67,7 +138,7 @@ const InvoiceCreate = () => {
 
   useEffect(() => {
     fetchPrerequisites();
-  }, []);
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -95,7 +166,7 @@ const InvoiceCreate = () => {
         return [...prevItems, {
           id: prod.id,
           name: prod.name || prod.title || 'Product',
-          stock: prod.stock || prod.quantity || 100,
+          stock: Number(prod.stock ?? 0),
           price: Number(prod.sales_price || prod.price || 0),
           quantity: 1,
           unit: prod.unit_name || prod.unit || 'Pcs'
@@ -143,7 +214,9 @@ const InvoiceCreate = () => {
   // Calculations
   const totalQuantity = items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
   const invoiceBill = items.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 0)), 0);
-  const totalBill = invoiceBill + dueAmount;
+  const discountAmt = Math.max(0, Number(formData.discountAmount || 0));
+  const netInvoiceBill = Math.max(0, invoiceBill - discountAmt);
+  const totalBill = netInvoiceBill + dueAmount;
   const paymentAmt = Number(formData.receiveAmount || 0);
   const totalDue = Math.max(0, totalBill - paymentAmt);
 
@@ -157,18 +230,22 @@ const InvoiceCreate = () => {
       return;
     }
 
+    // POST /api/sale/invoices/ (see sale-api-instructions.md)
     const payload = {
       client: formData.clientId,
-      discount: "0.00",
-      discount_type: "percentage",
+      date: formData.date,
+      discount: discountAmt.toFixed(2),
+      discount_type: "flat",
       transport_fare: "0.00",
       labour_cost: "0.00",
       vat: "0.00",
       vat_type: "percentage",
       invoice_bill: invoiceBill.toFixed(2),
       total_vat: "0.00",
-      total_discount: "0.00",
-      grand_total: invoiceBill.toFixed(2),
+      total_discount: discountAmt.toFixed(2),
+      grand_total: netInvoiceBill.toFixed(2),
+      previous_due: dueAmount.toFixed(2),
+      total_bill: totalBill.toFixed(2),
       receive_amount: paymentAmt.toFixed(2),
       total_due: totalDue.toFixed(2),
       account_id: formData.totalBalanceAcc || "TOTAL BALENCE",
@@ -183,17 +260,29 @@ const InvoiceCreate = () => {
     };
 
     try {
-      const created = await saleService.createSalesInvoice(payload);
+      let result;
+      if (isEditMode) {
+        result = await saleService.updateSalesInvoice(id, payload);
+      } else {
+        result = await saleService.createSalesInvoice(payload);
+      }
+
+      const savedInvoiceObj = {
+        ...payload,
+        id: result?.id || result?.data?.id || id || `INV-${Date.now()}`,
+        invoice_id: result?.invoice_id || result?.data?.invoice_id || `INV-${id || Date.now()}`,
+        date: formData.date
+      };
+
       if (status === 0) {
-        alert("Draft Invoice Saved Successfully!");
+        alert(isEditMode ? "Draft Invoice Updated Successfully!" : "Draft Invoice Saved Successfully!");
         navigate('/invoice/draft');
       } else {
-        alert("Sales Invoice Created Successfully!");
-        // hand the created invoice to the list page which opens the printable receipt
-        navigate('/invoice/list', { state: shouldPrint ? { printInvoice: created?.data || created } : undefined });
+        alert(isEditMode ? "Sales Invoice Updated Successfully!" : "Sales Invoice Created Successfully!");
+        navigate('/invoice/list', { state: { printInvoice: savedInvoiceObj, shouldPrint } });
       }
     } catch (err) {
-      console.error("Error creating sales invoice:", err);
+      console.error("Error saving sales invoice:", err);
       const errMsg = err?.response?.data?.detail || err?.response?.data?.message || err?.message || "Failed to save invoice via API.";
       alert(`API Error: ${errMsg}`);
     }
@@ -383,6 +472,20 @@ const InvoiceCreate = () => {
                 </div>
 
                 <div style={{ position: 'relative' }}>
+                  <div className="badge-date" style={{ background: '#dc2626' }}>Discount Amount</div>
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    name="discountAmount" 
+                    className="input-date" 
+                    value={formData.discountAmount} 
+                    onChange={handleChange} 
+                    placeholder="0.00"
+                    style={{ fontWeight: 'bold', fontSize: '15px', color: '#dc2626' }} 
+                  />
+                </div>
+
+                <div style={{ position: 'relative' }}>
                   <div className="badge-date" style={{ background: 'var(--info)' }}> Receive Amount</div>
                   <input type="number" step="0.01" name="receiveAmount" className="input-date" value={formData.receiveAmount} onChange={handleChange} style={{ fontWeight: 'bold', fontSize: '15px' }} />
                 </div>
@@ -395,6 +498,12 @@ const InvoiceCreate = () => {
                     <span>Invoice Bill</span>
                     <span style={{ fontWeight: 'bold' }}>: ৳ {invoiceBill.toFixed(2)}</span>
                   </div>
+                  {discountAmt > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px', color: '#dc2626', fontWeight: 'bold' }}>
+                      <span>Discount (-)</span>
+                      <span>: ৳ {discountAmt.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px' }}>
                     <span>Previous Due</span>
                     <span>: ৳ {dueAmount.toFixed(2)}</span>
@@ -450,17 +559,10 @@ const InvoiceCreate = () => {
         onClose={() => setIsClientModalOpen(false)}
         onSave={async (val) => { 
           if (val?.trim()) {
-            try {
-              const created = await crmService.createClient({ name: val.trim(), phone: '', address: '' }).catch(() => null);
-              const newObj = { id: created?.id || `client-${Date.now()}`, name: val.trim() };
+            const created = await crmService.createClient({ name: val.trim(), phone: '', address: '' });
+            const newObj = { ...(created && typeof created === 'object' ? created : {}), id: created?.id || created?.uuid, name: created?.name || val.trim() };
               setClients(prev => [...prev, newObj]);
               setFormData(prev => ({ ...prev, clientId: newObj.id }));
-            } catch (err) {
-              console.error("Error creating client:", err);
-              const fallback = { id: `client-${Date.now()}`, name: val.trim() };
-              setClients(prev => [...prev, fallback]);
-              setFormData(prev => ({ ...prev, clientId: fallback.id }));
-            }
           }
           setIsClientModalOpen(false); 
         }}
@@ -472,17 +574,10 @@ const InvoiceCreate = () => {
         onClose={() => setIsProductModalOpen(false)}
         onSave={async (val) => { 
           if (val?.trim()) {
-            try {
-              const created = await productService.createProduct({ name: val.trim(), sales_price: 0, stock: 100 }).catch(() => null);
-              const newProd = { id: created?.id || `prod-${Date.now()}`, name: val.trim(), sales_price: 0, stock: 100, unit: 'Pcs' };
+            const created = await productService.createProduct({ name: val.trim(), selling_price: 0, buying_price: 0, opening_stock: 0, stock: 0 });
+            const newProd = { selling_price: 0, sales_price: 0, stock: 0, ...(created && typeof created === 'object' ? created : {}), id: created?.id || created?.uuid, name: created?.name || val.trim() };
               setProducts(prev => [...prev, newProd]);
               handleSelectProduct(newProd.id);
-            } catch (err) {
-              console.error("Error creating product:", err);
-              const fallbackProd = { id: `prod-${Date.now()}`, name: val.trim(), sales_price: 0, stock: 100, unit: 'Pcs' };
-              setProducts(prev => [...prev, fallbackProd]);
-              handleSelectProduct(fallbackProd.id);
-            }
           }
           setIsProductModalOpen(false); 
         }}
@@ -494,17 +589,10 @@ const InvoiceCreate = () => {
         onClose={() => setIsTotalBalanceAccModalOpen(false)}
         onSave={async (val) => { 
           if (val?.trim()) {
-            try {
-              const created = await accountingService.createAccount({ name: val.trim() }).catch(() => null);
-              const newAcc = { id: created?.id || val.trim(), name: val.trim() };
+            const created = await accountingService.createAccount({ name: val.trim() });
+            const newAcc = { ...(created && typeof created === 'object' ? created : {}), id: created?.id || created?.uuid, name: created?.name || val.trim() };
               setAccounts(prev => [...prev, newAcc]);
               setFormData(prev => ({ ...prev, totalBalanceAcc: newAcc.id }));
-            } catch (err) {
-              console.error("Error creating account:", err);
-              const fallbackAcc = { id: val.trim(), name: val.trim() };
-              setAccounts(prev => [...prev, fallbackAcc]);
-              setFormData(prev => ({ ...prev, totalBalanceAcc: fallbackAcc.id }));
-            }
           }
           setIsTotalBalanceAccModalOpen(false); 
         }}
@@ -516,17 +604,10 @@ const InvoiceCreate = () => {
         onClose={() => setIsCashSellAccModalOpen(false)}
         onSave={async (val) => { 
           if (val?.trim()) {
-            try {
-              const created = await accountingService.createAccount({ name: val.trim() }).catch(() => null);
-              const newAcc = { id: created?.id || val.trim(), name: val.trim() };
+            const created = await accountingService.createAccount({ name: val.trim() });
+            const newAcc = { ...(created && typeof created === 'object' ? created : {}), id: created?.id || created?.uuid, name: created?.name || val.trim() };
               setAccounts(prev => [...prev, newAcc]);
               setFormData(prev => ({ ...prev, cashSellAcc: newAcc.id }));
-            } catch (err) {
-              console.error("Error creating account:", err);
-              const fallbackAcc = { id: val.trim(), name: val.trim() };
-              setAccounts(prev => [...prev, fallbackAcc]);
-              setFormData(prev => ({ ...prev, cashSellAcc: fallbackAcc.id }));
-            }
           }
           setIsCashSellAccModalOpen(false); 
         }}

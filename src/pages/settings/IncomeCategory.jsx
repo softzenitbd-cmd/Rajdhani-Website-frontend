@@ -3,11 +3,13 @@ import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { Printer, RefreshCcw, Trash2, Plus, Search, X } from 'lucide-react';
 import { accountingService } from '../../services/accountingService';
+import { useToast } from '../../context/ToastContext';
 import { exportVisibleTable } from '../../utils/tableExport';
 import { printPage } from '../../utils/printUtils';
 
 const IncomeCategory = () => {
   const { t } = useTranslation();
+  const toast = useToast();
 
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,24 +18,15 @@ const IncomeCategory = () => {
   const [categoryName, setCategoryName] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const fallbackData = [
-    { id: '1', name: 'LOON PAID', created_at: '2026-04-30' },
-    { id: '2', name: 'TAGADA', created_at: '2026-04-22' },
-    { id: '3', name: 'LOON NEYA', created_at: '2026-04-22' },
-    { id: '4', name: 'HALKHATA', created_at: '2026-04-22' },
-    { id: '5', name: 'BAKI ADAY', created_at: '2026-04-22' },
-    { id: '6', name: 'CASH SELL', created_at: '2026-02-17' },
-  ];
-
   const fetchCategories = async (query = '') => {
     try {
       setLoading(true);
       const res = await accountingService.getIncomeCategories(query);
       const data = Array.isArray(res) ? res : (res?.results || []);
-      setCategories(data.length > 0 ? data : fallbackData);
+      setCategories(data);
     } catch (error) {
-      console.error('Error fetching income categories:', error);
-      setCategories(fallbackData);
+      toast.error(error?.message || 'Failed to load categories');
+      setCategories([]);
     } finally {
       setLoading(false);
     }
@@ -59,7 +52,7 @@ const IncomeCategory = () => {
       fetchCategories();
     } catch (error) {
       console.error('Error creating income category:', error);
-      alert('Failed to save category. Please try again.');
+      toast.error(error?.message || 'Failed to save category');
     } finally {
       setSubmitting(false);
     }
@@ -71,9 +64,7 @@ const IncomeCategory = () => {
       await accountingService.deleteIncomeCategory(id);
       fetchCategories();
     } catch (error) {
-      console.error('Error deleting income category:', error);
-      // Remove locally if API fails
-      setCategories(prev => prev.filter(c => c.id !== id));
+      toast.error(error?.message || 'Failed to delete category');
     }
   };
 

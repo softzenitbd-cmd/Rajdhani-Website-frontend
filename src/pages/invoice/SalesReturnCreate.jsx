@@ -96,7 +96,7 @@ const SalesReturnCreate = () => {
         return [...prevItems, {
           id: prod.id,
           name: prod.name || prod.title || 'Product',
-          stock: prod.stock || prod.quantity || 100,
+          stock: Number(prod.stock ?? 0),
           price: Number(prod.sales_price || prod.price || 0),
           quantity: 1,
           unit: prod.unit_name || prod.unit || 'Pcs'
@@ -156,14 +156,21 @@ const SalesReturnCreate = () => {
       return;
     }
 
+    // POST /api/sale/returns/ – total_due (return value minus cash refunded) is deducted from the client's due
+    const returnCredit = Math.max(0, returnBill - receiveAmt);
     const payload = {
       client: formData.clientId,
+      date: formData.date,
       discount: "0.00",
-      total_due: upcomingDue.toFixed(2),
+      grand_total: returnBill.toFixed(2),
+      receive_amount: receiveAmt.toFixed(2),
+      total_due: returnCredit.toFixed(2),
       status: status,
       items: items.map(item => ({
         product: item.id,
-        quantity: String(item.quantity)
+        quantity: String(item.quantity),
+        selling_price: Number(item.price).toFixed(2),
+        total_selling_price: (Number(item.price) * Number(item.quantity)).toFixed(2),
       }))
     };
 
@@ -440,17 +447,10 @@ const SalesReturnCreate = () => {
         onClose={() => setIsClientModalOpen(false)}
         onSave={async (val) => { 
           if (val?.trim()) {
-            try {
-              const created = await crmService.createClient({ name: val.trim(), phone: '', address: '' }).catch(() => null);
-              const newObj = { id: created?.id || `client-${Date.now()}`, name: val.trim() };
+            const created = await crmService.createClient({ name: val.trim(), phone: '', address: '' });
+            const newObj = { ...(created && typeof created === 'object' ? created : {}), id: created?.id || created?.uuid, name: created?.name || val.trim() };
               setClients(prev => [...prev, newObj]);
               setFormData(prev => ({ ...prev, clientId: newObj.id }));
-            } catch (err) {
-              console.error("Error creating client:", err);
-              const fallback = { id: `client-${Date.now()}`, name: val.trim() };
-              setClients(prev => [...prev, fallback]);
-              setFormData(prev => ({ ...prev, clientId: fallback.id }));
-            }
           }
           setIsClientModalOpen(false); 
         }}
@@ -462,17 +462,10 @@ const SalesReturnCreate = () => {
         onClose={() => setIsProductModalOpen(false)}
         onSave={async (val) => { 
           if (val?.trim()) {
-            try {
-              const created = await productService.createProduct({ name: val.trim(), sales_price: 0, stock: 100 }).catch(() => null);
-              const newProd = { id: created?.id || `prod-${Date.now()}`, name: val.trim(), sales_price: 0, stock: 100, unit: 'Pcs' };
+            const created = await productService.createProduct({ name: val.trim(), selling_price: 0, buying_price: 0, opening_stock: 0, stock: 0 });
+            const newProd = { selling_price: 0, sales_price: 0, stock: 0, ...(created && typeof created === 'object' ? created : {}), id: created?.id || created?.uuid, name: created?.name || val.trim() };
               setProducts(prev => [...prev, newProd]);
               handleSelectProduct(newProd.id);
-            } catch (err) {
-              console.error("Error creating product:", err);
-              const fallbackProd = { id: `prod-${Date.now()}`, name: val.trim(), sales_price: 0, stock: 100, unit: 'Pcs' };
-              setProducts(prev => [...prev, fallbackProd]);
-              handleSelectProduct(fallbackProd.id);
-            }
           }
           setIsProductModalOpen(false); 
         }}
@@ -484,17 +477,10 @@ const SalesReturnCreate = () => {
         onClose={() => setIsTotalBalanceAccModalOpen(false)}
         onSave={async (val) => { 
           if (val?.trim()) {
-            try {
-              const created = await accountingService.createAccount({ name: val.trim() }).catch(() => null);
-              const newAcc = { id: created?.id || val.trim(), name: val.trim() };
+            const created = await accountingService.createAccount({ name: val.trim() });
+            const newAcc = { ...(created && typeof created === 'object' ? created : {}), id: created?.id || created?.uuid, name: created?.name || val.trim() };
               setAccounts(prev => [...prev, newAcc]);
               setFormData(prev => ({ ...prev, totalBalanceAcc: newAcc.id }));
-            } catch (err) {
-              console.error("Error creating account:", err);
-              const fallbackAcc = { id: val.trim(), name: val.trim() };
-              setAccounts(prev => [...prev, fallbackAcc]);
-              setFormData(prev => ({ ...prev, totalBalanceAcc: fallbackAcc.id }));
-            }
           }
           setIsTotalBalanceAccModalOpen(false); 
         }}
@@ -506,17 +492,10 @@ const SalesReturnCreate = () => {
         onClose={() => setIsMallFerotAccModalOpen(false)}
         onSave={async (val) => { 
           if (val?.trim()) {
-            try {
-              const created = await accountingService.createAccount({ name: val.trim() }).catch(() => null);
-              const newAcc = { id: created?.id || val.trim(), name: val.trim() };
+            const created = await accountingService.createAccount({ name: val.trim() });
+            const newAcc = { ...(created && typeof created === 'object' ? created : {}), id: created?.id || created?.uuid, name: created?.name || val.trim() };
               setAccounts(prev => [...prev, newAcc]);
               setFormData(prev => ({ ...prev, mallFerotAcc: newAcc.id }));
-            } catch (err) {
-              console.error("Error creating account:", err);
-              const fallbackAcc = { id: val.trim(), name: val.trim() };
-              setAccounts(prev => [...prev, fallbackAcc]);
-              setFormData(prev => ({ ...prev, mallFerotAcc: fallbackAcc.id }));
-            }
           }
           setIsMallFerotAccModalOpen(false); 
         }}

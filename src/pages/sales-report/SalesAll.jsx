@@ -5,6 +5,7 @@ import { RefreshCcw, Printer, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { saleService } from '../../services/saleService';
 import { crmService } from '../../services/crmService';
+import { fmtDate } from '../../utils/apiHelpers';
 
 const SalesAll = () => {
   const { t } = useTranslation();
@@ -25,10 +26,10 @@ const SalesAll = () => {
 
   const fetchPrerequisites = async () => {
     try {
-      const res = await crmService.getClients().catch(() => []);
+      const res = await crmService.getClients();
       setClients(Array.isArray(res) ? res : (res?.results || []));
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load clients:', err?.message);
     }
   };
 
@@ -79,7 +80,7 @@ const SalesAll = () => {
           
           {/* Header row with Title and Go Back */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: 'bold', margin: '0' }}>SALES REPORT (GET /api/sale/reports/sales/)</h3>
+            <h3 style={{ fontSize: '14px', fontWeight: 'bold', margin: '0' }}>SALES REPORT</h3>
             <button onClick={() => navigate(-1)} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--text-muted)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: '13px' }}>
               <ArrowLeft size={14} /> Go Back
             </button>
@@ -158,11 +159,11 @@ const SalesAll = () => {
                 {reports.map((row, idx) => (
                   <tr key={row.id || idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
                     <td style={{ padding: '8px', textAlign: 'center' }}>{idx + 1}</td>
-                    <td style={{ padding: '8px', textAlign: 'center' }}>{row.date || row.issued_date || '25 Apr 2024'}</td>
-                    <td style={{ padding: '8px', textAlign: 'center' }}>{row.client?.client_name || row.client_id || row.client || 'Client'}</td>
-                    <td style={{ padding: '8px', textAlign: 'center', fontWeight: '500' }}>{row.products || row.product || 'Product'}</td>
-                    <td style={{ padding: '8px', textAlign: 'center', color: '#64748b' }}>{row.barcode || 'N/A'}</td>
-                    <td style={{ padding: '8px', textAlign: 'center' }}>{row.product_qty || row.qty || 1}</td>
+                    <td style={{ padding: '8px', textAlign: 'center' }}>{fmtDate(row.date || row.issued_date)}</td>
+                    <td style={{ padding: '8px', textAlign: 'center' }}>{row.client_name || row.client?.client_name || '-'}</td>
+                    <td style={{ padding: '8px', textAlign: 'center', fontWeight: '500' }}>{row.products || row.product || '-'}</td>
+                    <td style={{ padding: '8px', textAlign: 'center', color: '#64748b' }}>{row.barcode || '-'}</td>
+                    <td style={{ padding: '8px', textAlign: 'center' }}>{row.product_qty ?? row.qty ?? 0}</td>
                     <td style={{ padding: '8px', textAlign: 'right' }}>৳ {Number(row.product_sale_price || row.price || 0).toFixed(2)}</td>
                     <td style={{ padding: '8px', textAlign: 'right', fontWeight: 'bold' }}>৳ {Number(row.amount || row.total || 0).toFixed(2)}</td>
                     <td style={{ padding: '8px', textAlign: 'right', color: '#059669' }}>৳ {Number(row.invoice?.receive_amount || row.receive || 0).toFixed(2)}</td>

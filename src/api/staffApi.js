@@ -54,6 +54,10 @@ export const getStaffList = async (params = {}) => {
   return await apiClient.get(ENDPOINTS.STAFF_LIST, { params });
 };
 
+export const getStaff = async (id) => {
+  return await apiClient.get(`${ENDPOINTS.STAFF_LIST}${id}/`);
+};
+
 export const createStaff = async (staffData) => {
   return await apiClient.post(ENDPOINTS.STAFF_LIST, staffData);
 };
@@ -74,8 +78,17 @@ export const getStaffAttendance = async (params = {}) => {
   return await apiClient.get(ENDPOINTS.STAFF_ATTENDANCE, { params });
 };
 
+/** { staff, date, in_time, out_time, status: present|absence|late|leave } */
 export const createStaffAttendance = async (attendanceData) => {
   return await apiClient.post(ENDPOINTS.STAFF_ATTENDANCE, attendanceData);
+};
+
+export const updateStaffAttendance = async (id, attendanceData) => {
+  return await apiClient.patch(`${ENDPOINTS.STAFF_ATTENDANCE}${id}/`, attendanceData);
+};
+
+export const deleteStaffAttendance = async (id) => {
+  return await apiClient.delete(`${ENDPOINTS.STAFF_ATTENDANCE}${id}/`);
 };
 
 // ==========================================
@@ -100,10 +113,13 @@ export default {
   updateDesignation,
   deleteDesignation,
   getStaffList,
+  getStaff,
   createStaff,
   updateStaff,
   deleteStaff,
   getStaffAttendance,
   createStaffAttendance,
+  updateStaffAttendance,
+  deleteStaffAttendance,
   getStaffAttendanceReport,
 };

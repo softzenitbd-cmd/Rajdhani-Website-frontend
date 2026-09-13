@@ -4,8 +4,10 @@ import { List, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
 import { accountingService } from '../../services/accountingService';
+import { useToast } from '../../context/ToastContext';
 
 const TransferCreate = () => {
+  const toast = useToast();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -30,13 +32,9 @@ const TransferCreate = () => {
       setLoadingAccounts(true);
       const res = await accountingService.getAccounts();
       const data = Array.isArray(res) ? res : (res?.results || []);
-      setAccounts(data.length > 0 ? data : [
-        { id: '1', name: 'Cash Account', balance: '25000.00' },
-        { id: '2', name: 'Dutch Bangla Bank (DBBL)', balance: '185000.00' },
-        { id: '3', name: 'Islami Bank Bangladesh', balance: '94000.00' }
-      ]);
+      setAccounts(data);
     } catch (error) {
-      console.error('Error loading accounts:', error);
+      toast.error(error?.message || 'Failed to load form data');
     } finally {
       setLoadingAccounts(false);
     }

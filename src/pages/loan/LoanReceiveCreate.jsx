@@ -6,8 +6,10 @@ import { loanService } from '../../services/loanService';
 import { accountingService } from '../../services/accountingService';
 import PrintHeader from '../../components/PrintHeader';
 import AddOptionModal from '../../components/AddOptionModal';
+import { useToast } from '../../context/ToastContext';
 
 const LoanReceiveCreate = () => {
+  const toast = useToast();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,24 +30,25 @@ const LoanReceiveCreate = () => {
   
   const [loanAccounts, setLoanAccounts] = useState([]);
   const [bankAccounts, setBankAccounts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const fetchPrerequisites = async () => {
     try {
-      const [loanRes, accRes] = await Promise.all([
-        loanService.getLoanAccounts().catch(() => []),
-        accountingService.getAccounts().catch(() => [])
+      const [loanRes, accRes, catRes] = await Promise.all([
+        loanService.getLoanAccounts(),
+        accountingService.getAccounts(),
+        accountingService.getIncomeCategories()
       ]);
       const loanData = Array.isArray(loanRes) ? loanRes : (loanRes?.results || []);
       const accData = Array.isArray(accRes) ? accRes : (accRes?.results || []);
+      const catData = Array.isArray(catRes) ? catRes : (catRes?.results || []);
 
       setLoanAccounts(loanData);
-      setBankAccounts(accData.length > 0 ? accData : [
-        { id: '1', name: 'Cash' },
-        { id: '2', name: 'Bank' }
-      ]);
+      setBankAccounts(accData);
+      setCategories(catData);
     } catch (err) {
-      console.error("Error fetching prerequisites:", err);
+      toast.error(err?.message || 'Failed to load form data');
     }
   };
 
@@ -56,6 +59,28 @@ const LoanReceiveCreate = () => {
   const handleChange = (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setFormData({ ...formData, [e.target.name]: value });
+  };
+
+  // Quick-add helpers – every one creates the record through the API and selects it
+  const handleAddLoanClient = async (name) => {
+    const created = await loanService.createLoanAccount({ name: name.trim(), phone: '', address: '' });
+    const row = { ...(created || {}), id: created?.id || created?.uuid, name: created?.name || name.trim() };
+    setLoanAccounts(prev => [row, ...prev]);
+    setFormData(prev => ({ ...prev, clientId: row.id }));
+  };
+
+  const handleAddAccount = async (name) => {
+    const created = await accountingService.createAccount({ name: name.trim() });
+    const row = { ...(created || {}), id: created?.id || created?.uuid, name: created?.name || name.trim() };
+    setBankAccounts(prev => [row, ...prev]);
+    setFormData(prev => ({ ...prev, accountId: row.id }));
+  };
+
+  const handleAddCategory = async (name) => {
+    const created = await accountingService.createIncomeCategory({ name: name.trim() });
+    const row = { ...(created || {}), id: created?.id || created?.uuid, name: created?.name || name.trim() };
+    setCategories(prev => [row, ...prev]);
+    setFormData(prev => ({ ...prev, categoryId: row.id }));
   };
 
   const handleSubmit = async (e) => {
@@ -71,13 +96,15 @@ const LoanReceiveCreate = () => {
         loan_account: formData.clientId,
         account: formData.accountId,
         amount: String(formData.amount),
-        description: formData.note || "Loan Receive"
+        description: formData.note || "Loan Receive",
+        ...(formData.categoryId ? { category: formData.categoryId } : {}),
+        date: formData.date,
       });
       alert("Loan Receive added successfully!");
       navigate('/loan/receive');
     } catch (error) {
       console.error("Error creating loan receive:", error);
-      alert("Failed to create loan receive.");
+      alert(`Failed to create loan receive: ${error?.message || 'server error'}`);
     } finally {
       setLoading(false);
     }
@@ -156,8 +183,9 @@ const LoanReceiveCreate = () => {
                 <div style={{ display: 'flex', border: '1px solid #93c5fd', borderRadius: '6px', overflow: 'hidden', background: 'white' }}>
                   <select name="categoryId" value={formData.categoryId} onChange={handleChange} style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px', appearance: 'none', background: 'transparent' }}>
                     <option value="">Select Categories</option>
-                    <option value="1">Advance</option>
-                    <option value="2">Return</option>
+                    {categories.map(c => (
+                      <option key={c.id || c.uuid} value={c.id || c.uuid}>{c.name}</option>
+                    ))}
                   </select>
                   <button type="button" onClick={() => setIsCategoryModalOpen(true)} style={{ background: '#22c55e', color: 'white', border: 'none', padding: '0 16px', cursor: 'pointer' }}><Plus size={18} /></button>
                 </div>
@@ -198,21 +226,21 @@ const LoanReceiveCreate = () => {
       <AddOptionModal 
         isOpen={isClientModalOpen}
         onClose={() => setIsClientModalOpen(false)}
-        onSave={(val) => { console.log('Add Client', val); setIsClientModalOpen(false); }}
+        onSave={handleAddLoanClient}
         title="Add Client"
         label="Client Name"
       />
       <AddOptionModal 
         isOpen={isAccountModalOpen}
         onClose={() => setIsAccountModalOpen(false)}
-        onSave={(val) => { console.log('Add Account', val); setIsAccountModalOpen(false); }}
+        onSave={handleAddAccount}
         title="Add Account"
         label="Account Name"
       />
       <AddOptionModal 
         isOpen={isCategoryModalOpen}
         onClose={() => setIsCategoryModalOpen(false)}
-        onSave={(val) => { console.log('Add Category', val); setIsCategoryModalOpen(false); }}
+        onSave={handleAddCategory}
         title="Add Category"
         label="Category Name"
       />

@@ -255,7 +255,7 @@ const InvoiceList = () => {
                   </td>
                   <td className="no-print" style={{ textAlign: 'center', padding: '8px' }}>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
-                      <button onClick={() => navigate('/invoice/add-new')} className="action-btn-sm edit" style={{ background: 'var(--info)', border: 'none', borderRadius: '4px', padding: '4px', color: 'white', cursor: 'pointer' }} title="Edit Invoice">
+                      <button onClick={() => navigate(`/invoice/edit/${inv.id}`, { state: { invoice: inv } })} className="action-btn-sm edit" style={{ background: 'var(--info)', border: 'none', borderRadius: '4px', padding: '4px', color: 'white', cursor: 'pointer' }} title="Edit Invoice">
                         <Edit size={14} />
                       </button>
                       <button onClick={() => handleDeleteInvoice(inv.id)} className="action-btn-sm delete" style={{ background: 'var(--danger)', border: 'none', borderRadius: '4px', padding: '4px', color: 'white', cursor: 'pointer' }} title="Delete Invoice">
@@ -309,37 +309,117 @@ const InvoiceList = () => {
               </thead>
               <tbody>
                 {selectedInvoice.items && selectedInvoice.items.length > 0 ? (
-                  selectedInvoice.items.map((item, idx) => (
-                    <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                      <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>{idx + 1}</td>
-                      <td style={{ padding: '8px', border: '1px solid #e2e8f0', fontWeight: '500' }}>{item.name || item.product_name}</td>
-                      <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>{item.quantity || 1}</td>
-                      <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right' }}>৳ {Number(item.price || item.sales_price || 0).toFixed(2)}</td>
-                      <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 'bold' }}>৳ {(Number(item.quantity || 1) * Number(item.price || item.sales_price || 0)).toFixed(2)}</td>
-                    </tr>
-                  ))
+                  selectedInvoice.items.map((item, idx) => {
+                    const qty = Number(item.quantity || item.qty || 1);
+                    const rate = Number(
+                      item.selling_price ||
+                      item.price ||
+                      item.sales_price ||
+                      item.rate ||
+                      item.unit_price ||
+                      (item.total_selling_price ? Number(item.total_selling_price) / qty : 0) ||
+                      0
+                    );
+                    const itemTotal = Number(
+                      item.total_selling_price ||
+                      item.total_amount ||
+                      item.total ||
+                      (qty * rate) ||
+                      0
+                    );
+
+                    return (
+                      <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>{idx + 1}</td>
+                        <td style={{ padding: '8px', border: '1px solid #e2e8f0', fontWeight: '500' }}>
+                          {item.name || item.product_name || item.product?.name || item.product?.title || 'Garments Item'}
+                        </td>
+                        <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>{qty}</td>
+                        <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right' }}>৳ {rate.toFixed(2)}</td>
+                        <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 'bold' }}>৳ {itemTotal.toFixed(2)}</td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
                     <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>1</td>
                     <td style={{ padding: '8px', border: '1px solid #e2e8f0', fontWeight: '500' }}>GENERAL APPAREL / GARMENTS ITEM</td>
                     <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>1</td>
-                    <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right' }}>৳ {Number(selectedInvoice.grand_total || selectedInvoice.billAmount || 0).toFixed(2)}</td>
-                    <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 'bold' }}>৳ {Number(selectedInvoice.grand_total || selectedInvoice.billAmount || 0).toFixed(2)}</td>
+                    <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right' }}>৳ {Number(selectedInvoice.grand_total || selectedInvoice.billAmount || selectedInvoice.invoice_bill || 0).toFixed(2)}</td>
+                    <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 'bold' }}>৳ {Number(selectedInvoice.grand_total || selectedInvoice.billAmount || selectedInvoice.invoice_bill || 0).toFixed(2)}</td>
                   </tr>
                 )}
               </tbody>
               <tfoot>
+                {/* Invoice Bill */}
+                <tr style={{ background: '#f1f5f9' }}>
+                  <td colSpan="4" style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1', fontWeight: 'bold' }}>Invoice Bill:</td>
+                  <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1', fontWeight: 'bold' }}>
+                    ৳ {Number(
+                      selectedInvoice.invoice_bill ||
+                      selectedInvoice.invoiceBill ||
+                      (selectedInvoice.items && selectedInvoice.items.length > 0
+                        ? selectedInvoice.items.reduce((sum, item) => {
+                            const qty = Number(item.quantity || item.qty || 1);
+                            const rate = Number(item.selling_price || item.price || item.sales_price || item.rate || item.unit_price || (item.total_selling_price ? Number(item.total_selling_price) / qty : 0) || 0);
+                            return sum + (Number(item.total_selling_price || item.total_amount || (qty * rate)) || 0);
+                          }, 0)
+                        : selectedInvoice.grand_total || selectedInvoice.billAmount || 0)
+                    ).toFixed(2)}
+                  </td>
+                </tr>
+
+                {/* Discount */}
+                {Number(selectedInvoice.discount || selectedInvoice.total_discount || 0) > 0 && (
+                  <tr style={{ background: '#fff1f2', color: '#991b1b' }}>
+                    <td colSpan="4" style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1', fontWeight: 'bold' }}>Discount (-):</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1', fontWeight: 'bold' }}>
+                      ৳ {Number(selectedInvoice.discount || selectedInvoice.total_discount || 0).toFixed(2)}
+                    </td>
+                  </tr>
+                )}
+
+                {/* Previous Due */}
+                {Number(selectedInvoice.previous_due || selectedInvoice.previousDue || 0) > 0 && (
+                  <tr style={{ background: '#f1f5f9' }}>
+                    <td colSpan="4" style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>Previous Due (+):</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1', fontWeight: 'bold', color: '#475569' }}>
+                      ৳ {Number(selectedInvoice.previous_due || selectedInvoice.previousDue || 0).toFixed(2)}
+                    </td>
+                  </tr>
+                )}
+
+                {/* Total Bill */}
                 <tr style={{ background: '#f1f5f9', fontWeight: 'bold' }}>
                   <td colSpan="4" style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>Total Bill:</td>
-                  <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>৳ {Number(selectedInvoice.grand_total || selectedInvoice.billAmount || 0).toFixed(2)}</td>
+                  <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1', color: '#1d4ed8' }}>
+                    ৳ {Number(
+                      selectedInvoice.total_bill ||
+                      selectedInvoice.totalBill ||
+                      (Number(selectedInvoice.invoice_bill || selectedInvoice.grand_total || selectedInvoice.billAmount || 0) - Number(selectedInvoice.discount || selectedInvoice.total_discount || 0) + Number(selectedInvoice.previous_due || selectedInvoice.previousDue || 0))
+                    ).toFixed(2)}
+                  </td>
                 </tr>
-                <tr style={{ background: '#f1f5f9' }}>
-                  <td colSpan="4" style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>Discount:</td>
-                  <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>৳ {Number(selectedInvoice.discount || 0).toFixed(2)}</td>
-                </tr>
+
+                {/* Paid / Received Amount */}
                 <tr style={{ background: '#f1f5f9', fontWeight: 'bold', color: '#059669' }}>
                   <td colSpan="4" style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>Paid / Received Amount:</td>
-                  <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>৳ {Number(selectedInvoice.receive_amount || selectedInvoice.receiveAmount || selectedInvoice.grand_total || 0).toFixed(2)}</td>
+                  <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>
+                    ৳ {Number(selectedInvoice.receive_amount || selectedInvoice.receiveAmount || selectedInvoice.paid || 0).toFixed(2)}
+                  </td>
+                </tr>
+
+                {/* Total Due / Net Due */}
+                <tr style={{ background: '#fef2f2', fontWeight: 'bold', color: '#dc2626' }}>
+                  <td colSpan="4" style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>Total Due:</td>
+                  <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1', fontSize: '14px' }}>
+                    ৳ {Number(
+                      selectedInvoice.total_due !== undefined ? selectedInvoice.total_due :
+                      (selectedInvoice.dueAmount !== undefined ? selectedInvoice.dueAmount :
+                      (selectedInvoice.due !== undefined ? selectedInvoice.due :
+                      Math.max(0, (Number(selectedInvoice.total_bill || selectedInvoice.grand_total || 0) - Number(selectedInvoice.receive_amount || selectedInvoice.receiveAmount || 0)))))
+                    ).toFixed(2)}
+                  </td>
                 </tr>
               </tfoot>
             </table>

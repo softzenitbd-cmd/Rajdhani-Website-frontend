@@ -4,7 +4,10 @@ import PrintHeader from '../../components/PrintHeader';
 import { Printer, RefreshCcw, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { saleService } from '../../services/saleService';
+import { today } from '../../utils/apiHelpers';
 import { crmService } from '../../services/crmService';
+
+const firstOfMonth = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`; };
 
 const SalesGroupWise = () => {
   const { t } = useTranslation();
@@ -17,8 +20,8 @@ const SalesGroupWise = () => {
 
   const [filters, setFilters] = useState({
     client_group_id: '',
-    from_date: '2026-07-01',
-    to_date: '2026-08-31'
+    from_date: firstOfMonth(),
+    to_date: today()
   });
 
 

@@ -71,12 +71,14 @@ const StaffPaymentCreate = () => {
 
     const payload = {
       type: 'cost',
-      transaction_type: `Staff ${form.payment_type}`,
+      transaction_type: 'Staff Payment',
+      month: new Date(form.date || Date.now()).getMonth() + 1,
+      year: new Date(form.date || Date.now()).getFullYear(),
       staff: form.staff,
       account: form.account,
       category: form.category,
       amount: String(form.amount),
-      description: form.description || `${selectedStaff?.name || 'Staff'} ${form.payment_type}`,
+      description: form.description || `${selectedStaff?.full_name || selectedStaff?.name || 'Staff'} ${form.payment_type}`,
       date: form.date,
       status: 1,
     };
@@ -114,7 +116,7 @@ const StaffPaymentCreate = () => {
               <label style={labelStyle}>Staff *</label>
               <select value={form.staff} onChange={(e) => set('staff', e.target.value)} style={inputStyle} required>
                 <option value="">Select staff</option>
-                {staff.map((s) => <option key={s.id || s.uuid} value={s.id || s.uuid}>{s.name || s.full_name}{s.phone ? ` (${s.phone})` : ''}</option>)}
+                {staff.map((s) => <option key={s.id || s.uuid} value={s.id || s.uuid}>{s.full_name || s.name}{(s.phone_number || s.phone) ? ` (${s.phone_number || s.phone})` : ''}</option>)}
               </select>
               {selectedStaff?.salary !== undefined && selectedStaff?.salary !== null && (
                 <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>Monthly salary: ৳ {money(selectedStaff.salary)}</div>

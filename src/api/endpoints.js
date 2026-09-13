@@ -1,5 +1,6 @@
 // This file holds all your API route endpoints.
 // Keeping them here makes it easy to update endpoints in one place.
+// Every path is relative to VITE_API_BASE_URL (see src/api/apiClient.js).
 
 export const ENDPOINTS = {
   // Auth & Users
@@ -10,12 +11,7 @@ export const ENDPOINTS = {
   AUTH_ADMIN_CHANGE_PASSWORD: '/api/auth/admin-change-password/',
   AUTH_PROFILE: '/api/auth/profile/',
   AUTH_USERS: '/api/auth/users/',
-  
-  // Products (Example)
-  GET_PRODUCTS: '/products',
-  GET_PRODUCT_DETAILS: (id) => `/products/${id}`,
-  CREATE_PRODUCT: '/products',
-  
+
   // Loan Module
   LOAN_ACCOUNTS: '/api/loan/accounts/',
   LOAN_RECEIVES: '/api/loan/receives/',
@@ -24,7 +20,9 @@ export const ENDPOINTS = {
 
   // Accounting Module
   ACCOUNTING_INCOME_CATEGORIES: '/api/accounting/income-categories/',
+  ACCOUNTING_INCOME_SUBCATEGORIES: '/api/accounting/income-subcategories/',
   ACCOUNTING_EXPENSE_CATEGORIES: '/api/accounting/expense-categories/',
+  ACCOUNTING_EXPENSE_SUBCATEGORIES: '/api/accounting/expense-subcategories/',
   ACCOUNTING_ACCOUNTS: '/api/accounting/accounts/',
   ACCOUNTING_RECEIVES: '/api/accounting/receives/',
   ACCOUNTING_EXPENSES: '/api/accounting/expenses/',
@@ -34,8 +32,10 @@ export const ENDPOINTS = {
   ACCOUNTING_REPORT_DEPOSITS: '/api/accounting/reports/deposits/',
   ACCOUNTING_REPORT_EXPENSES: '/api/accounting/reports/expenses/',
   ACCOUNTING_REPORT_STAFF_PAYMENTS: '/api/accounting/reports/staff-payments/',
+  ACCOUNTING_STAFF_PAYMENTS_GENERATE: '/api/accounting/staff-payments/generate/',
   ACCOUNTING_REPORT_CLIENT_LEDGER: '/api/accounting/reports/client-ledger/',
   ACCOUNTING_REPORT_SUPPLIER_LEDGER: '/api/accounting/reports/supplier-ledger/',
+
   // Communication Module
   COMMUNICATION_SMS_INSTANT: '/api/communication/sms/instant/',
   COMMUNICATION_SMS: '/api/communication/sms/',
@@ -54,6 +54,8 @@ export const ENDPOINTS = {
   // ERP Setting & Dashboard Module
   SETTING_COMPANY_INFO: '/api/erpsetting/company-info/',
   SETTING_SMS_SETTINGS: '/api/erpsetting/sms-settings/',
+  SETTING_GENERAL_SETTINGS: '/api/erpsetting/general-settings/',
+  SETTING_PAYMENT_METHODS: '/api/erpsetting/payment-methods/',
   DASHBOARD_STATS: '/api/erpsetting/dashboard/',
 
   // Product Module
@@ -68,13 +70,17 @@ export const ENDPOINTS = {
 
   // Purchase Module
   PURCHASE_INVOICES: '/api/purchase/invoices/',
+  PURCHASE_ITEMS: '/api/purchase/items/',
   PURCHASE_REPORT: '/api/purchase/reports/purchases/',
   PURCHASE_RETURNS: '/api/purchase/returns/',
+  PURCHASE_RETURN_ITEMS: '/api/purchase/return-items/',
 
   // Sales Module
   SALE_INVOICES: '/api/sale/invoices/',
+  SALE_ITEMS: '/api/sale/items/',
   SALE_REPORT: '/api/sale/reports/sales/',
   SALE_RETURNS: '/api/sale/returns/',
+  SALE_RETURN_ITEMS: '/api/sale/return-items/',
 
   // Staff (HR & Payroll) Module
   STAFF_DEPARTMENTS: '/api/staff/departments/',

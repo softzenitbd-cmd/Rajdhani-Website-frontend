@@ -1,31 +1,49 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, ArrowUp, ArrowDown, RotateCcw, X } from 'lucide-react';
 import PrintHeader from '../../components/PrintHeader';
 import { useToast } from '../../context/ToastContext';
-import { readShortcuts, writeShortcuts, DEFAULT_SHORTCUTS, ALL_MENU_LINKS } from '../../utils/shortcuts';
+import { readShortcuts, loadShortcuts, writeShortcuts, DEFAULT_SHORTCUTS, ALL_MENU_LINKS } from '../../utils/shortcuts';
 import { fmtDate } from '../../utils/apiHelpers';
 
 /**
- * Manage the quick buttons shown in the top header. Stored locally
- * (no backend endpoint) – see docs/missing-api-screens/README.md
+ * Manage the quick buttons shown in the top header. Saved on the server under
+ * the `shortcuts` key of /api/erpsetting/general-settings/.
  */
 const ShortcutMenu = () => {
   const toast = useToast();
   const [items, setItems] = useState(readShortcuts);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [modal, setModal] = useState(false);
   const [pick, setPick] = useState('');
   const [customTitle, setCustomTitle] = useState('');
 
-  const persist = (next) => {
+  useEffect(() => {
+    loadShortcuts().then(setItems).finally(() => setLoading(false));
+  }, []);
+
+  const persist = async (next) => {
+    const prev = items;
     setItems(next);
-    writeShortcuts(next);
+    try {
+      setSaving(true);
+      await writeShortcuts(next);
+      return true;
+    } catch (e) {
+      setItems(prev);
+      toast.error(e?.message || 'Failed to save shortcuts');
+      return false;
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const add = () => {
+  const add = async () => {
     const link = ALL_MENU_LINKS.find((l) => l.path === pick);
     if (!link) return toast.error('Select a menu');
     if (items.some((i) => i.path === link.path)) return toast.error('Already added');
-    persist([...items, { id: `${Date.now()}`, title: customTitle.trim() || link.title, path: link.path, created_at: new Date().toISOString() }]);
+    const ok = await persist([...items, { id: `${Date.now()}`, title: customTitle.trim() || link.title, path: link.path, created_at: new Date().toISOString() }]);
+    if (!ok) return;
     setModal(false);
     setPick('');
     setCustomTitle('');
@@ -53,7 +71,7 @@ const ShortcutMenu = () => {
             <span style={{ fontSize: '12px', color: '#64748b' }}>These buttons appear in the top header for quick access.</span>
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={() => { persist(DEFAULT_SHORTCUTS); toast.success('Shortcuts reset'); }} style={{ background: '#64748b', color: 'white', padding: '8px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <button disabled={saving} onClick={async () => { if (await persist(DEFAULT_SHORTCUTS)) toast.success('Shortcuts reset'); }} style={{ background: '#64748b', color: 'white', padding: '8px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <RotateCcw size={14} /> Reset
             </button>
             <button onClick={() => setModal(true)} style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', borderRadius: '4px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -74,7 +92,9 @@ const ShortcutMenu = () => {
               </tr>
             </thead>
             <tbody>
-              {items.length === 0 ? (
+              {loading ? (
+                <tr><td colSpan="5" style={{ padding: '24px', color: '#64748b' }}>Loading...</td></tr>
+              ) : items.length === 0 ? (
                 <tr><td colSpan="5" style={{ padding: '24px', color: '#64748b' }}>No shortcuts. Add one.</td></tr>
               ) : items.map((row, i) => (
                 <tr key={row.id}>
@@ -113,7 +133,7 @@ const ShortcutMenu = () => {
               <input value={customTitle} onChange={(e) => setCustomTitle(e.target.value)} placeholder="Custom label" style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '4px' }} />
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
                 <button onClick={() => setModal(false)} style={{ padding: '8px 16px', background: '#f1f5f9', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
-                <button onClick={add} style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Add</button>
+                <button onClick={add} disabled={saving} style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Add</button>
               </div>
             </div>
           </div>

@@ -42,7 +42,7 @@ const Dashboard = () => {
   const [series, setSeries] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const monthName = MONTHS[new Date().getMonth()];
+  const monthName = stats?.current_month?.month_name || MONTHS[new Date().getMonth()];
 
   const load = async () => {
     try {
@@ -77,8 +77,8 @@ const Dashboard = () => {
         toList(sales).forEach((inv) => {
           const k = String(inv.date || inv.created_at || '').split('T')[0];
           if (byDay[k]) {
-            byDay[k].sales += Number(inv.grand_total || inv.total || inv.amount || 0);
-            byDay[k].due += Number(inv.due || 0);
+            byDay[k].sales += Number(inv.grand_total || 0);
+            byDay[k].due += Number(inv.total_due || 0);
           }
         });
         toList(receives).forEach((r) => {
@@ -96,27 +96,28 @@ const Dashboard = () => {
 
   useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // GET /api/erpsetting/dashboard/ → { today: {sales_total, receive_total, expense_total, due, balance}, current_month: {...} }
   const s = stats || {};
-  const todayBlock = s.today || s;
-  const monthBlock = s.month || s.this_month || s.monthly || s;
+  const todayBlock = s.today || {};
+  const monthBlock = s.current_month || s.month || {};
 
   const today = {
-    sales: pick(todayBlock, 'today_sales', 'sales', 'total_sales'),
-    receive: pick(todayBlock, 'today_receive', 'receive', 'receives', 'total_receive'),
-    expense: pick(todayBlock, 'today_expense', 'expense', 'expenses', 'total_expense'),
-    due: pick(todayBlock, 'today_due', 'due', 'total_due'),
+    sales: pick(todayBlock, 'sales_total', 'sales'),
+    receive: pick(todayBlock, 'receive_total', 'receive'),
+    expense: pick(todayBlock, 'expense_total', 'expense'),
+    due: pick(todayBlock, 'due'),
   };
-  today.balance = pick(todayBlock, 'today_balance', 'balance') || today.receive - today.expense;
+  today.balance = todayBlock.balance !== undefined ? Number(todayBlock.balance) : today.receive - today.expense;
 
   const month = {
-    sales: pick(monthBlock, 'month_sales', 'monthly_sales', 'sales', 'total_sales'),
-    receive: pick(monthBlock, 'month_receive', 'monthly_receive', 'receive', 'receives', 'total_receive'),
-    expense: pick(monthBlock, 'month_expense', 'monthly_expense', 'expense', 'expenses', 'total_expense'),
-    due: pick(monthBlock, 'month_due', 'monthly_due', 'due', 'total_due'),
+    sales: pick(monthBlock, 'sales_total', 'sales'),
+    receive: pick(monthBlock, 'receive_total', 'receive'),
+    expense: pick(monthBlock, 'expense_total', 'expense'),
+    due: pick(monthBlock, 'due'),
   };
-  month.balance = pick(monthBlock, 'month_balance', 'monthly_balance', 'balance') || month.receive - month.expense;
+  month.balance = monthBlock.balance !== undefined ? Number(monthBlock.balance) : month.receive - month.expense;
 
-  const totalDue = pick(s, 'total_due', 'client_due', 'total_client_due') || month.due;
+  const totalDue = month.due;
   const pieData = useMemo(() => [
     { name: t('dashboard.due'), value: totalDue },
     { name: t('dashboard.sales'), value: month.sales },

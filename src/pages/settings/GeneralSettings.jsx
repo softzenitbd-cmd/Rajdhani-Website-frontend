@@ -3,15 +3,15 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { useToast } from '../../context/ToastContext';
-import { useLocalSettings } from '../../hooks/useLocalSettings';
+import { useAppSettings } from '../../hooks/useAppSettings';
 import { settingService } from '../../services/settingService';
 import PrintHeader from '../../components/PrintHeader';
 
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '_');
 
-// Toggle persisted in localStorage under settings[slug(label)]
+// Toggle persisted on the server (general-settings API) under settings[slug(label)]
 const ToggleItem = ({ label, defaultChecked = false, hasInput = false, inputValue = "" }) => {
-  const { settings, setSetting } = useLocalSettings();
+  const { settings, setSetting } = useAppSettings();
   const key = slug(label);
   const checked = settings[key] === undefined ? defaultChecked : !!settings[key];
   const value = settings[key] === undefined ? inputValue : settings[key];
@@ -70,13 +70,19 @@ const GeneralSettings = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const { state, updateTheme, resetTheme } = useAppContext();
-  const { settings, setSetting } = useLocalSettings();
+  const { settings, setSetting } = useAppSettings();
   const theme = state?.theme || {};
   const [activeTab, setActiveTab] = useState('General');
   const [localTheme, setLocalTheme] = useState(theme);
 
-  // SMS template settings (backend: /api/erpsetting/sms-settings/)
-  const [smsSettings, setSmsSettings] = useState({ receive_sms: DEFAULT_RECEIVE_SMS, invoice_sms: DEFAULT_INVOICE_SMS });
+  // SMS template settings (backend: GET/PUT /api/erpsetting/sms-settings/)
+  // fields: receive_sms_status, receive_sms_body, invoice_sms_status, invoice_sms_body
+  const [smsSettings, setSmsSettings] = useState({
+    receive_sms_status: false,
+    receive_sms_body: DEFAULT_RECEIVE_SMS,
+    invoice_sms_status: false,
+    invoice_sms_body: DEFAULT_INVOICE_SMS,
+  });
   const [smsSaving, setSmsSaving] = useState(false);
 
   useEffect(() => {
@@ -85,22 +91,27 @@ const GeneralSettings = () => {
 
   useEffect(() => {
     settingService.getSmsSettings().then((res) => {
-      const data = res?.data || res || {};
+      const data = res?.data && typeof res.data === 'object' ? res.data : res;
       if (data && typeof data === 'object') {
         setSmsSettings((prev) => ({
-          ...prev,
-          ...data,
-          receive_sms: data.receive_sms || data.receive_template || data.receive_sms_template || prev.receive_sms,
-          invoice_sms: data.invoice_sms || data.invoice_template || data.invoice_sms_template || prev.invoice_sms,
+          receive_sms_status: !!data.receive_sms_status,
+          receive_sms_body: data.receive_sms_body ?? prev.receive_sms_body,
+          invoice_sms_status: !!data.invoice_sms_status,
+          invoice_sms_body: data.invoice_sms_body ?? prev.invoice_sms_body,
         }));
       }
-    }).catch(() => {});
-  }, []);
+    }).catch((e) => toast.error(e?.message || 'Failed to load SMS settings'));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const saveSms = async () => {
     try {
       setSmsSaving(true);
-      await settingService.updateSmsSettings(smsSettings);
+      await settingService.updateSmsSettings({
+        receive_sms_status: !!smsSettings.receive_sms_status,
+        receive_sms_body: smsSettings.receive_sms_body,
+        invoice_sms_status: !!smsSettings.invoice_sms_status,
+        invoice_sms_body: smsSettings.invoice_sms_body,
+      });
       toast.success('SMS settings saved');
     } catch (e) {
       toast.error(e.message || 'Failed to save SMS settings');
@@ -113,9 +124,13 @@ const GeneralSettings = () => {
     setLocalTheme(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleUpdate = () => {
-    updateTheme(localTheme);
-    toast.success('Theme updated');
+  const handleUpdate = async () => {
+    try {
+      await updateTheme(localTheme);
+      toast.success('Theme updated');
+    } catch (e) {
+      toast.error(e?.message || 'Failed to save theme');
+    }
   };
 
   const tabs = [
@@ -299,18 +314,32 @@ const GeneralSettings = () => {
               <div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', fontWeight: '500' }}>Receive SMS</label>
-                    <textarea 
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <label style={{ fontSize: '13px', color: 'var(--label-color)', fontWeight: '500' }}>Receive SMS</label>
+                      <label style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={!!smsSettings.receive_sms_status} onChange={(e) => setSmsSettings((p) => ({ ...p, receive_sms_status: e.target.checked }))} />
+                        Send automatically
+                      </label>
+                    </div>
+                    <textarea
                       style={{ width: '100%', height: '200px', padding: '16px', border: '1px solid #10b981', borderRadius: '4px', outline: 'none', resize: 'none', fontSize: '14px', color: 'var(--text-main)' }}
-                      value={smsSettings.receive_sms} onChange={(e) => setSmsSettings((p) => ({ ...p, receive_sms: e.target.value }))}
+                      value={smsSettings.receive_sms_body} onChange={(e) => setSmsSettings((p) => ({ ...p, receive_sms_body: e.target.value }))}
                     />
+                    <small style={{ color: '#64748b' }}>Variables: {'{client_name} {receive_amount} {due_amount} {description} {company_mobile}'}</small>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', fontWeight: '500' }}>Invoice SMS</label>
-                    <textarea 
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <label style={{ fontSize: '13px', color: 'var(--label-color)', fontWeight: '500' }}>Invoice SMS</label>
+                      <label style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={!!smsSettings.invoice_sms_status} onChange={(e) => setSmsSettings((p) => ({ ...p, invoice_sms_status: e.target.checked }))} />
+                        Send automatically
+                      </label>
+                    </div>
+                    <textarea
                       style={{ width: '100%', height: '200px', padding: '16px', border: '1px solid #10b981', borderRadius: '4px', outline: 'none', resize: 'none', fontSize: '14px', color: 'var(--text-main)' }}
-                      value={smsSettings.invoice_sms} onChange={(e) => setSmsSettings((p) => ({ ...p, invoice_sms: e.target.value }))}
+                      value={smsSettings.invoice_sms_body} onChange={(e) => setSmsSettings((p) => ({ ...p, invoice_sms_body: e.target.value }))}
                     />
+                    <small style={{ color: '#64748b' }}>Variables: {'{client_name} {total_bill} {total_payment} {invoice_due} {client_total_due} {company_mobile}'}</small>
                   </div>
                 </div>
                 <button onClick={saveSms} disabled={smsSaving} style={{ width: '100%', background: 'var(--success)', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
@@ -404,7 +433,7 @@ const GeneralSettings = () => {
                         <button onClick={handleUpdate} style={{ flex: 1, background: 'var(--success)', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
                           Update
                         </button>
-                        <button onClick={resetTheme} style={{ flex: 1, background: 'var(--danger)', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
+                        <button onClick={() => resetTheme().then(() => toast.success('Theme reset')).catch((e) => toast.error(e?.message || 'Failed to reset theme'))} style={{ flex: 1, background: 'var(--danger)', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
                           Reset Color
                         </button>
                       </div>
