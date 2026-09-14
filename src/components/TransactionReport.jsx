@@ -6,6 +6,7 @@ import { accountingService } from '../services/accountingService';
 import { crmService } from '../services/crmService';
 import { useToast } from '../context/ToastContext';
 import { toList, money, fmtDate, nameOf } from '../utils/apiHelpers';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Shared deposit / expense report with an optional group-by.
@@ -17,6 +18,7 @@ import { toList, money, fmtDate, nameOf } from '../utils/apiHelpers';
  *  - fixedFilters: extra params always sent (e.g. { supplier_only: true })
  */
 const TransactionReport = ({ kind, groupBy = null, title }) => {
+  const { t } = useTranslation();
   const toast = useToast();
   const isDeposit = kind === 'deposit';
 
@@ -59,7 +61,7 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
       }
       setRows(list);
     } catch (e) {
-      toast.error(e.message || 'Failed to load report');
+      toast.error(e.message || t("Failed to load report"));
     } finally {
       setLoading(false);
     }
@@ -119,7 +121,7 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
       <td style={{ padding: '8px', textAlign: 'center' }}>{accountName(r)}</td>
       <td style={{ padding: '8px', color: '#475569' }}>{r.description || '-'}</td>
       <td style={{ padding: '8px', textAlign: 'center' }}>
-        <span style={{ background: '#dbeafe', color: '#1e40af', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>{r.transaction_type || r.type || (isDeposit ? 'Deposit' : 'Cost')}</span>
+        <span style={{ background: '#dbeafe', color: '#1e40af', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>{r.transaction_type || r.type || (isDeposit ? t("Deposit") : t("Cost"))}</span>
       </td>
       <td style={{ padding: '8px', textAlign: 'right', fontWeight: 'bold', color }}>৳ {money(r.amount)}</td>
     </>
@@ -127,15 +129,15 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
 
   const header = (
     <tr style={{ background: '#718096', color: 'white', textTransform: 'uppercase' }}>
-      <th style={{ width: '50px', padding: '10px', textAlign: 'center' }}>SL</th>
-      <th style={{ padding: '10px', textAlign: 'center' }}>DATE</th>
-      <th style={{ padding: '10px', textAlign: 'center' }}>REF / INVOICE</th>
-      <th style={{ padding: '10px' }}>{isDeposit ? 'CLIENT' : 'PAID TO'}</th>
-      <th style={{ padding: '10px', textAlign: 'center' }}>CATEGORY</th>
-      <th style={{ padding: '10px', textAlign: 'center' }}>ACCOUNT</th>
-      <th style={{ padding: '10px' }}>DESCRIPTION</th>
-      <th style={{ padding: '10px', textAlign: 'center' }}>TYPE</th>
-      <th style={{ padding: '10px', textAlign: 'right' }}>AMOUNT (৳)</th>
+      <th style={{ width: '50px', padding: '10px', textAlign: 'center' }}>{t("SL")}</th>
+      <th style={{ padding: '10px', textAlign: 'center' }}>{t("DATE")}</th>
+      <th style={{ padding: '10px', textAlign: 'center' }}>{t("REF / INVOICE")}</th>
+      <th style={{ padding: '10px' }}>{isDeposit ? t("CLIENT") : t("PAID TO")}</th>
+      <th style={{ padding: '10px', textAlign: 'center' }}>{t("CATEGORY")}</th>
+      <th style={{ padding: '10px', textAlign: 'center' }}>{t("ACCOUNT")}</th>
+      <th style={{ padding: '10px' }}>{t("DESCRIPTION")}</th>
+      <th style={{ padding: '10px', textAlign: 'center' }}>{t("TYPE")}</th>
+      <th style={{ padding: '10px', textAlign: 'right' }}>{t("AMOUNT (৳)")}</th>
     </tr>
   );
 
@@ -145,7 +147,7 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
         <div style={{ padding: '24px', background: 'white', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
           <h2 style={{ fontSize: '22px', fontWeight: 'bold', margin: 0, color: 'var(--text-main)' }}>{title}</h2>
           <div style={{ textAlign: 'right' }}>
-            <span style={{ fontSize: '12px', color: '#64748b', display: 'block' }}>Total {isDeposit ? 'Deposited' : 'Expense'}</span>
+            <span style={{ fontSize: '12px', color: '#64748b', display: 'block' }}>{t("Total")} {isDeposit ? t("Deposited") : t("Expense")}</span>
             <span style={{ fontSize: '20px', fontWeight: 800, color }}>৳ {money(total)}</span>
           </div>
         </div>
@@ -155,35 +157,35 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
 
           <form className="no-print" onSubmit={(e) => { e.preventDefault(); load(); }} style={{ display: 'grid', gridTemplateColumns: groupBy && groupBy !== 'category' ? '1.2fr 1fr 1fr 1.4fr auto' : '1.5fr 1fr 1.5fr auto', gap: '16px', marginBottom: '20px', alignItems: 'end' }}>
             <div>
-              <label style={lbl}>Search</label>
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Reference / description..." style={input} />
+              <label style={lbl}>{t("Search")}</label>
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("Reference / description...")} style={input} />
             </div>
             {groupBy && groupBy !== 'category' && (
               <div>
-                <label style={lbl}>{groupBy === 'client' ? 'Client' : 'Supplier'}</label>
+                <label style={lbl}>{groupBy === 'client' ? t("Client") : t("Supplier")}</label>
                 <select value={party} onChange={(e) => setParty(e.target.value)} style={input}>
-                  <option value="">All</option>
+                  <option value="">{t("All")}</option>
                   {parties.map((p) => <option key={p.id || p.uuid} value={p.id || p.uuid}>{p.name}</option>)}
                 </select>
               </div>
             )}
             <div>
-              <label style={lbl}>Category</label>
+              <label style={lbl}>{t("Category")}</label>
               <select value={category} onChange={(e) => setCategory(e.target.value)} style={input}>
-                <option value="">All Categories</option>
+                <option value="">{t("All Categories")}</option>
                 {categories.map((c) => <option key={c.id || c.uuid} value={c.id || c.uuid}>{c.name}</option>)}
               </select>
             </div>
             <div>
-              <label style={lbl}>Date Range</label>
+              <label style={lbl}>{t("Date Range")}</label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ ...input, width: '50%' }} />
                 <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ ...input, width: '50%' }} />
               </div>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button type="submit" style={{ background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 18px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Search size={14} /> Filter</button>
-              <button type="button" onClick={reset} style={{ background: '#64748b', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 14px', cursor: 'pointer' }}>Reset</button>
+              <button type="submit" style={{ background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 18px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Search size={14} /> {t("Filter")}</button>
+              <button type="button" onClick={reset} style={{ background: '#64748b', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 14px', cursor: 'pointer' }}>{t("Reset")}</button>
             </div>
           </form>
 
@@ -191,9 +193,9 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
 
           {groups ? (
             loading ? (
-              <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>Loading report...</div>
+              <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("Loading report...")}</div>
             ) : groups.length === 0 ? (
-              <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>No records found for this period.</div>
+              <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("No records found for this period.")}</div>
             ) : (
               groups.map((g) => (
                 <div key={g.key} style={{ marginBottom: '24px' }}>
@@ -216,15 +218,15 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
                 <thead>{header}</thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan="9" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>Loading report...</td></tr>
+                    <tr><td colSpan="9" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("Loading report...")}</td></tr>
                   ) : visible.length === 0 ? (
-                    <tr><td colSpan="9" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>No records found for this period.</td></tr>
+                    <tr><td colSpan="9" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("No records found for this period.")}</td></tr>
                   ) : visible.map((r, i) => <tr key={r.id || i}>{rowCells(r, i)}</tr>)}
                 </tbody>
                 {visible.length > 0 && (
                   <tfoot>
                     <tr style={{ background: '#f1f5f9', fontWeight: 700 }}>
-                      <td colSpan="8" style={{ padding: '8px', textAlign: 'right' }}>TOTAL</td>
+                      <td colSpan="8" style={{ padding: '8px', textAlign: 'right' }}>{t("TOTAL")}</td>
                       <td style={{ padding: '8px', textAlign: 'right', color }}>৳ {money(total)}</td>
                     </tr>
                   </tfoot>

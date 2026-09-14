@@ -34,7 +34,7 @@ const TransferCreate = () => {
       const data = Array.isArray(res) ? res : (res?.results || []);
       setAccounts(data);
     } catch (error) {
-      toast.error(error?.message || 'Failed to load form data');
+      toast.error(error?.message || t("Failed to load form data"));
     } finally {
       setLoadingAccounts(false);
     }
@@ -47,11 +47,11 @@ const TransferCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.fromAccountId || !formData.toAccountId || !formData.amount) {
-      toast.error("Please select both accounts and enter an amount.");
+      toast.error(t("Please select both accounts and enter an amount."));
       return;
     }
     if (formData.fromAccountId === formData.toAccountId) {
-      toast.error("Source and Destination accounts cannot be the same.");
+      toast.error(t("Source and Destination accounts cannot be the same."));
       return;
     }
 
@@ -66,11 +66,11 @@ const TransferCreate = () => {
       };
 
       await accountingService.createTransfer(payload);
-      toast.success("Fund transferred successfully! Both accounts and statement updated.");
+      toast.success(t("Fund transferred successfully! Both accounts and statement updated."));
       navigate('/account/transfer-list');
     } catch (error) {
       console.error("Error creating transfer:", error);
-      toast.error("Transfer request failed. Please check balance and try again.");
+      toast.error(t("Transfer request failed. Please check balance and try again."));
     } finally {
       setSubmitting(false);
     }
@@ -80,10 +80,10 @@ const TransferCreate = () => {
     <div className="premium-card">
       <PrintHeader />
       <div className="premium-header">
-        <h2 className="premium-title" style={{ textTransform: 'uppercase' }}>Add New Transfer</h2>
+        <h2 className="premium-title" style={{ textTransform: 'uppercase' }}>{t("Add New Transfer")}</h2>
         <div className="header-actions">
-          <button className="btn-gray-outline" onClick={() => navigate('/account/transfer-list')}><List size={16} /> Transfer List</button>
-          <button className="btn-gray-outline" onClick={() => navigate(-1)}><ArrowLeft size={16} /> Go Back</button>
+          <button className="btn-gray-outline" onClick={() => navigate('/account/transfer-list')}><List size={16} /> {t("Transfer List")}</button>
+          <button className="btn-gray-outline" onClick={() => navigate(-1)}><ArrowLeft size={16} /> {t("Go Back")}</button>
         </div>
       </div>
 
@@ -92,13 +92,13 @@ const TransferCreate = () => {
           {/* Row 1: From & To */}
           <div className="form-row">
             <div className="form-col">
-              <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>From Account (Deducted) *</label>
+              <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>{t("From Account (Deducted) *")}</label>
               <div className="input-with-append">
                 <select name="fromAccountId" value={formData.fromAccountId} onChange={handleChange} required>
-                  <option value="">Select Source Account</option>
+                  <option value="">{t("Select Source Account")}</option>
                   {accounts.map(acc => (
                     <option key={acc.id} value={acc.id}>
-                      {acc.name} (Balance: ৳{Number(acc.balance || 0).toLocaleString()})
+                      {acc.name} {t("(Balance: ৳")}{Number(acc.balance || 0).toLocaleString()})
                     </option>
                   ))}
                 </select>
@@ -106,13 +106,13 @@ const TransferCreate = () => {
             </div>
 
             <div className="form-col">
-              <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>To Account (Credited) *</label>
+              <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>{t("To Account (Credited) *")}</label>
               <div className="input-with-append">
                 <select name="toAccountId" value={formData.toAccountId} onChange={handleChange} required>
-                  <option value="">Select Destination Account</option>
+                  <option value="">{t("Select Destination Account")}</option>
                   {accounts.map(acc => (
                     <option key={acc.id} value={acc.id}>
-                      {acc.name} (Balance: ৳{Number(acc.balance || 0).toLocaleString()})
+                      {acc.name} {t("(Balance: ৳")}{Number(acc.balance || 0).toLocaleString()})
                     </option>
                   ))}
                 </select>
@@ -123,7 +123,7 @@ const TransferCreate = () => {
           {/* Row 2: Date & Amount */}
           <div className="form-row" style={{ marginTop: '20px' }}>
             <div className="form-col">
-              <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>Transfer Date *</label>
+              <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>{t("Transfer Date *")}</label>
               <input 
                 type="date" 
                 name="date" 
@@ -134,7 +134,7 @@ const TransferCreate = () => {
               />
             </div>
             <div className="form-col">
-              <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>Transfer Amount (৳) *</label>
+              <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>{t("Transfer Amount (৳) *")}</label>
               <input 
                 type="number" 
                 step="0.01" 
@@ -151,11 +151,11 @@ const TransferCreate = () => {
 
           {/* Row 3: Description */}
           <div style={{ marginTop: '20px' }}>
-            <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>Description / Note</label>
+            <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>{t("Description / Note")}</label>
             <input 
               type="text" 
               name="description" 
-              placeholder="e.g. Sent cash to DBBL main branch" 
+              placeholder={t("e.g. Sent cash to DBBL main branch")} 
               value={formData.description} 
               onChange={handleChange} 
               className="input-outline"
@@ -171,7 +171,7 @@ const TransferCreate = () => {
               className="btn-primary" 
               style={{ width: '100%', padding: '14px', fontSize: '16px', background: 'var(--primary)', borderColor: 'var(--primary)', fontWeight: 'bold' }}
             >
-              {submitting ? 'Transferring Funds...' : 'Confirm & Execute Transfer'}
+              {submitting ? t("Transferring Funds...") : t("Confirm & Execute Transfer")}
             </button>
           </div>
         </form>

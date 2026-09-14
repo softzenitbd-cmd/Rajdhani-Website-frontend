@@ -28,7 +28,7 @@ const Profit = () => {
       const data = (res && typeof res === 'object') ? res : {};
       setProfitData(data);
     } catch (error) {
-      toast.error(error?.message || 'Failed to load profit report');
+      toast.error(error?.message || t("Failed to load profit report"));
       setProfitData({});
     } finally {
       setLoading(false);
@@ -48,11 +48,11 @@ const Profit = () => {
     <div className="premium-card">
       <div className="premium-header">
         <div>
-          <h2 className="premium-title" style={{ textTransform: 'uppercase', margin: 0 }}>Profit & Loss Ledger</h2>
-          <span style={{ fontSize: '12px', color: '#64748b' }}>Live calculation based on sales, purchases, receives & expenses</span>
+          <h2 className="premium-title" style={{ textTransform: 'uppercase', margin: 0 }}>{t("Profit & Loss Ledger")}</h2>
+          <span style={{ fontSize: '12px', color: '#64748b' }}>{t("Live calculation based on sales, purchases, receives & expenses")}</span>
         </div>
         <div className="header-actions">
-          <button onClick={() => navigate(-1)} style={{ background: '#6b7280', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>Go Back</button>
+          <button onClick={() => navigate(-1)} style={{ background: '#6b7280', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>{t("Go Back")}</button>
         </div>
       </div>
 
@@ -80,8 +80,8 @@ const Profit = () => {
                   style={{ borderRadius: '0 8px 8px 0', width: '50%', padding: '10px' }} 
                 />
               </div>
-              <button type="submit" className="btn-secondary" style={{ padding: '0 28px', fontSize: '15px', fontWeight: 'bold' }}>Search</button>
-              <button type="button" onClick={() => { setFromDate(''); setToDate(''); setTimeout(fetchProfit, 50); }} className="btn-secondary" style={{ padding: '0 16px', background: '#94a3b8' }}>Reset</button>
+              <button type="submit" className="btn-secondary" style={{ padding: '0 28px', fontSize: '15px', fontWeight: 'bold' }}>{t("Search")}</button>
+              <button type="button" onClick={() => { setFromDate(''); setToDate(''); setTimeout(fetchProfit, 50); }} className="btn-secondary" style={{ padding: '0 16px', background: '#94a3b8' }}>{t("Reset")}</button>
             </div>
           </form>
         </div>
@@ -92,18 +92,18 @@ const Profit = () => {
             {/* Table Controls */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <span style={{ fontSize: '13px', color: '#64748b' }}>
-                {loading ? 'Recalculating...' : 'Formulas: Product Profit = Sales - Cost | Net Profit = Product Profit - Expenses'}
+                {loading ? t("Recalculating...") : t("Formulas: Product Profit = Sales - Cost | Net Profit = Product Profit - Expenses")}
               </span>
               <button className="btn-blue" style={{ background: '#06b6d4', padding: '6px 14px', fontSize: '12px', fontWeight: 'bold', borderColor: '#06b6d4' }} onClick={() => window.print()}>
-                <Printer size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> Print Profit Statement
+                <Printer size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t("Print Profit Statement")}
               </button>
             </div>
 
             <table className="custom-table" style={{ border: '1px solid #cbd5e1', width: '100%', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
               <thead>
                 <tr>
-                  <th style={{ textAlign: 'left', paddingLeft: '18px', background: '#334155', color: 'white', borderRight: '1px solid #cbd5e1', width: '55%' }}>FINANCIAL METRIC</th>
-                  <th style={{ textAlign: 'right', paddingRight: '18px', background: '#334155', color: 'white', width: '45%' }}>CALCULATED AMOUNT</th>
+                  <th style={{ textAlign: 'left', paddingLeft: '18px', background: '#334155', color: 'white', borderRight: '1px solid #cbd5e1', width: '55%' }}>{t("FINANCIAL METRIC")}</th>
+                  <th style={{ textAlign: 'right', paddingRight: '18px', background: '#334155', color: 'white', width: '45%' }}>{t("CALCULATED AMOUNT")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -129,12 +129,12 @@ const Profit = () => {
                 })}
                 {loading && (
                   <tr>
-                    <td colSpan="2" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>Loading profit data...</td>
+                    <td colSpan="2" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>{t("Loading profit data...")}</td>
                   </tr>
                 )}
                 {!loading && Object.keys(profitData || {}).length === 0 && (
                   <tr>
-                    <td colSpan="2" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No profit records found for the selected period.</td>
+                    <td colSpan="2" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>{t("No profit records found for the selected period.")}</td>
                   </tr>
                 )}
               </tbody>

@@ -5,6 +5,7 @@ import AutoTable from '../../components/AutoTable';
 import staffApi from '../../api/staffApi';
 import { useToast } from '../../context/ToastContext';
 import { toList, nameOf, MONTHS, YEARS } from '../../utils/apiHelpers';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Monthly attendance summary: /api/staff/attendance-report/?month=&year=
@@ -12,6 +13,7 @@ import { toList, nameOf, MONTHS, YEARS } from '../../utils/apiHelpers';
  * per-day data, otherwise as a summary table (present / absent / late counts).
  */
 const StaffMonthlyAttendanceReport = () => {
+  const { t } = useTranslation();
   const toast = useToast();
   const now = new Date();
   const [staffId, setStaffId] = useState('');
@@ -41,7 +43,7 @@ const StaffMonthlyAttendanceReport = () => {
       if (staffId) data = data.filter((r) => !r.staff_id || String(r.staff_id) === String(staffId) || String(r.staff?.id) === String(staffId) || String(r.id) === String(staffId));
       setRows(data);
     } catch (e) {
-      toast.error(e.message || 'Failed to load report');
+      toast.error(e.message || t("Failed to load report"));
     } finally {
       setLoading(false);
     }
@@ -77,13 +79,13 @@ const StaffMonthlyAttendanceReport = () => {
   // GET /api/staff/attendance-report/?month=&year= → staff_id, staff_name, designation, department,
   // present_count, absence_count, late_count, leave_count
   const summaryColumns = [
-    { key: 'name', label: 'Staff', render: (r) => nameOf(r.staff_name || r.name || r.staff) },
-    { key: 'department', label: 'Department', render: (r) => nameOf(r.department, '-') },
-    { key: 'designation', label: 'Designation', render: (r) => nameOf(r.designation, '-') },
-    { key: 'present', label: 'Present', align: 'center', render: (r) => r.present_count ?? r.present ?? r.present_days ?? '-' },
-    { key: 'absent', label: 'Absent', align: 'center', render: (r) => r.absence_count ?? r.absent_count ?? r.absent ?? r.absent_days ?? '-' },
-    { key: 'late', label: 'Late', align: 'center', render: (r) => r.late_count ?? r.late ?? r.late_days ?? '-' },
-    { key: 'leave', label: 'Leave', align: 'center', render: (r) => r.leave_count ?? r.leave ?? r.leave_days ?? '-' },
+    { key: 'name', label: t("Staff"), render: (r) => nameOf(r.staff_name || r.name || r.staff) },
+    { key: 'department', label: t("Department"), render: (r) => nameOf(r.department, '-') },
+    { key: 'designation', label: t("Designation"), render: (r) => nameOf(r.designation, '-') },
+    { key: 'present', label: t("Present"), align: 'center', render: (r) => r.present_count ?? r.present ?? r.present_days ?? '-' },
+    { key: 'absent', label: t("Absent"), align: 'center', render: (r) => r.absence_count ?? r.absent_count ?? r.absent ?? r.absent_days ?? '-' },
+    { key: 'late', label: t("Late"), align: 'center', render: (r) => r.late_count ?? r.late ?? r.late_days ?? '-' },
+    { key: 'leave', label: t("Leave"), align: 'center', render: (r) => r.leave_count ?? r.leave ?? r.leave_days ?? '-' },
   ];
 
   const excelData = rows.map((r, i) => {
@@ -100,17 +102,17 @@ const StaffMonthlyAttendanceReport = () => {
       <form onSubmit={(e) => { e.preventDefault(); load(); }} className="no-print" style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
         <div style={{ background: 'white', padding: '16px', borderRadius: '30px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', display: 'flex', gap: '16px', alignItems: 'center', width: '90%', maxWidth: '900px', flexWrap: 'wrap' }}>
           <select value={staffId} onChange={(e) => setStaffId(e.target.value)} style={selectStyle}>
-            <option value="">All Staff</option>
+            <option value="">{t("All Staff")}</option>
             {staff.map((s) => <option key={s.id || s.uuid} value={s.id || s.uuid}>{s.full_name || s.name}</option>)}
           </select>
           <select value={month} onChange={(e) => setMonth(Number(e.target.value))} style={selectStyle}>
-            {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+            {MONTHS.map((m, i) => <option key={m} value={i + 1}>{t(m)}</option>)}
           </select>
           <select value={year} onChange={(e) => setYear(Number(e.target.value))} style={selectStyle}>
             {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
           <button type="submit" style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 500 }}>
-            Search
+            {t("Search")}
           </button>
         </div>
       </form>
@@ -118,21 +120,21 @@ const StaffMonthlyAttendanceReport = () => {
       <div className="premium-card" style={{ background: 'white', padding: '24px', borderRadius: '8px' }}>
         <PrintHeader />
         <h3 style={{ textAlign: 'center', margin: '0 0 16px', fontSize: '16px', color: 'var(--text-main)' }}>
-          Monthly Attendance Report — {MONTHS[month - 1]} {year}
+          {t("Monthly Attendance Report —")} {t(MONTHS[month - 1])} {year}
         </h3>
 
         <TableToolbar total={rows.length} excelData={excelData} excelName={`Attendance_${MONTHS[month - 1]}_${year}`} onReload={load} />
 
         {!searched ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>Select month & year then press Search.</div>
+          <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>{t("Select month & year then press Search.")}</div>
         ) : isMatrix ? (
           <div className="table-responsive">
             <table className="custom-table" style={{ width: '100%', fontSize: '11px', textAlign: 'center' }}>
               <thead>
                 <tr style={{ background: '#718096', color: 'white' }}>
-                  <th style={{ textAlign: 'left', padding: '8px', minWidth: '140px' }}>STAFF</th>
+                  <th style={{ textAlign: 'left', padding: '8px', minWidth: '140px' }}>{t("STAFF")}</th>
                   {dayKeys.map((d) => <th key={d} style={{ padding: '6px 2px' }}>{d}</th>)}
-                  <th>P</th><th>A</th><th>L</th>
+                  <th>{t("P")}</th><th>{t("A")}</th><th>{t("L")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -149,12 +151,12 @@ const StaffMonthlyAttendanceReport = () => {
                     </tr>
                   );
                 })}
-                {loading && <tr><td colSpan={dayKeys.length + 4} style={{ padding: '20px' }}>Loading...</td></tr>}
+                {loading && <tr><td colSpan={dayKeys.length + 4} style={{ padding: '20px' }}>{t("Loading...")}</td></tr>}
               </tbody>
             </table>
           </div>
         ) : (
-          <AutoTable rows={rows} columns={summaryColumns} loading={loading} emptyText="No attendance data for this month" />
+          <AutoTable rows={rows} columns={summaryColumns} loading={loading} emptyText={t("No attendance data for this month")} />
         )}
       </div>
     </div>

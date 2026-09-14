@@ -80,60 +80,60 @@ const SalesAll = () => {
           
           {/* Header row with Title and Go Back */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: 'bold', margin: '0' }}>SALES REPORT</h3>
+            <h3 style={{ fontSize: '14px', fontWeight: 'bold', margin: '0' }}>{t("SALES REPORT")}</h3>
             <button onClick={() => navigate(-1)} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--text-muted)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: '13px' }}>
-              <ArrowLeft size={14} /> Go Back
+              <ArrowLeft size={14} /> {t("Go Back")}
             </button>
           </div>
 
           {/* Filters Area */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>Search By Client</label>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Search By Client")}</label>
               <select name="client_id" value={filters.client_id} onChange={handleFilterChange} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }}>
-                <option value="">Select Client</option>
+                <option value="">{t("Select Client")}</option>
                 {clients.map(c => (
                   <option key={c.id} value={c.id}>{c.name || c.company_name}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>Search By Barcode</label>
-              <input type="text" name="barcode" value={filters.barcode} onChange={handleFilterChange} placeholder="Enter Barcode" style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Search By Barcode")}</label>
+              <input type="text" name="barcode" value={filters.barcode} onChange={handleFilterChange} placeholder={t("Enter Barcode")} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>From Date</label>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("From Date")}</label>
               <input type="date" name="from_date" value={filters.from_date} onChange={handleFilterChange} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>To Date</label>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("To Date")}</label>
               <input type="date" name="to_date" value={filters.to_date} onChange={handleFilterChange} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
             </div>
           </div>
 
           {/* Clear Filter Button */}
           <button onClick={handleClearFilters} style={{ width: '100%', background: '#7e8a9f', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', marginBottom: '24px' }}>
-            Clear Filter
+            {t("Clear Filter")}
           </button>
 
           {/* Total Sales Bar */}
           <div style={{ background: '#059669', color: 'white', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', marginBottom: '24px', borderRadius: '4px' }}>
-            <span>TOTAL SALES</span>
+            <span>{t("TOTAL SALES")}</span>
             <span>৳ {totalSalesAmount.toFixed(2)}</span>
           </div>
 
           {/* Controls */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-              Showing {reports.length} entries
+              {t("Showing")} {reports.length} {t("entries")}
             </div>
             
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 16px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
-                <Printer size={14} /> Print Report
+                <Printer size={14} /> {t("Print Report")}
               </button>
               <button onClick={fetchReports} style={{ background: 'var(--info)', color: 'white', padding: '6px 16px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
-                <RefreshCcw size={14} /> Refresh
+                <RefreshCcw size={14} /> {t("Refresh")}
               </button>
             </div>
           </div>
@@ -143,16 +143,16 @@ const SalesAll = () => {
             <table className="custom-table" style={{ width: '100%', minWidth: '1100px', borderCollapse: 'collapse', fontSize: '12px' }}>
               <thead>
                 <tr style={{ background: 'var(--secondary)', color: 'white' }}>
-                  <th style={{ padding: '10px', textAlign: 'center' }}>SL</th>
-                  <th style={{ padding: '10px', textAlign: 'center' }}>DATE</th>
-                  <th style={{ padding: '10px', textAlign: 'center' }}>CLIENT</th>
-                  <th style={{ padding: '10px', textAlign: 'center' }}>PRODUCT</th>
-                  <th style={{ padding: '10px', textAlign: 'center' }}>BARCODE</th>
-                  <th style={{ padding: '10px', textAlign: 'center' }}>QTY</th>
-                  <th style={{ padding: '10px', textAlign: 'right' }}>PRICE</th>
-                  <th style={{ padding: '10px', textAlign: 'right' }}>TOTAL</th>
-                  <th style={{ padding: '10px', textAlign: 'right' }}>RECEIVE</th>
-                  <th style={{ padding: '10px', textAlign: 'right' }}>PROFIT</th>
+                  <th style={{ padding: '10px', textAlign: 'center' }}>{t("SL")}</th>
+                  <th style={{ padding: '10px', textAlign: 'center' }}>{t("DATE")}</th>
+                  <th style={{ padding: '10px', textAlign: 'center' }}>{t("CLIENT")}</th>
+                  <th style={{ padding: '10px', textAlign: 'center' }}>{t("PRODUCT")}</th>
+                  <th style={{ padding: '10px', textAlign: 'center' }}>{t("BARCODE")}</th>
+                  <th style={{ padding: '10px', textAlign: 'center' }}>{t("QTY")}</th>
+                  <th style={{ padding: '10px', textAlign: 'right' }}>{t("PRICE")}</th>
+                  <th style={{ padding: '10px', textAlign: 'right' }}>{t("TOTAL")}</th>
+                  <th style={{ padding: '10px', textAlign: 'right' }}>{t("RECEIVE")}</th>
+                  <th style={{ padding: '10px', textAlign: 'right' }}>{t("PROFIT")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -172,7 +172,7 @@ const SalesAll = () => {
                 ))}
                 {reports.length === 0 && (
                   <tr>
-                    <td colSpan="10" style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>No sales report records found.</td>
+                    <td colSpan="10" style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>{t("No sales report records found.")}</td>
                   </tr>
                 )}
               </tbody>

@@ -16,13 +16,13 @@ const LoanPaymentList = () => {
   const toast = useToast();
 
   const handleDelete = async (loan) => {
-    if (!window.confirm('Delete this record?')) return;
+    if (!window.confirm(t("Delete this record?"))) return;
     try {
       await loanService.deleteLoanPayment(loan.id || loan.uuid);
-      toast.success('Deleted');
+      toast.success(t("Deleted"));
       fetchLoans();
     } catch (e) {
-      toast.error(e.message || 'Delete failed');
+      toast.error(e.message || t("Delete failed"));
     }
   };
   const [clients, setClients] = useState([]);
@@ -79,14 +79,14 @@ const LoanPaymentList = () => {
       
       {/* Center Title - stylized */}
       <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>Loan Payment List</h2>
+        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>{t("Loan Payment List")}</h2>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '18px', fontWeight: 'normal', color: '#333' }}>Loan Payment List</h2>
+        <h2 style={{ fontSize: '18px', fontWeight: 'normal', color: '#333' }}>{t("Loan Payment List")}</h2>
         <div className="card-actions" style={{ display: 'flex', gap: '8px' }}>
           <button className="btn btn-primary" onClick={() => navigate('/loan/payment-create')} style={{ background: 'var(--success)', padding: '6px 12px', fontSize: '14px', borderRadius: '4px' }}>
-            <Plus size={14} /> Add Loan Payment
+            <Plus size={14} /> {t("Add Loan Payment")}
           </button>
         </div>
       </div>
@@ -114,7 +114,7 @@ const LoanPaymentList = () => {
 
           <div className="form-group">
             <button className="btn btn-outline" onClick={handleClearFilter} style={{ height: '44px', width: '100%', background: '#64748b', color: 'white', justifyContent: 'center', borderRadius: '6px', border: 'none', fontWeight: 'bold', fontSize: '14px' }}>
-              Clear Filter
+              {t("Clear Filter")}
             </button>
           </div>
         </div>
@@ -122,18 +122,18 @@ const LoanPaymentList = () => {
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
-            Show 
+            {t("Show")} 
             <select style={{ margin: '0 8px', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
               <option>100</option>
             </select>
-            entries
+            {t("entries")}
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button className="btn" onClick={() => window.print()} style={{ background: '#4F46E5', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
-              <Printer size={16} style={{ marginRight: '6px' }} /> Print
+              <Printer size={16} style={{ marginRight: '6px' }} /> {t("Print")}
             </button>
             <button className="btn" onClick={handleClearFilter} style={{ background: '#4F46E5', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
-              <RotateCcw size={16} style={{ marginRight: '6px' }} /> Reset
+              <RotateCcw size={16} style={{ marginRight: '6px' }} /> {t("Reset")}
             </button>
           </div>
         </div>
@@ -143,14 +143,14 @@ const LoanPaymentList = () => {
           <table className="custom-table" style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#a0aebf', color: 'white' }}>
-                <th width="50" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px' }}>SL ↕</th>
-                <th width="120" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px' }}>DATE</th>
-                <th width="140" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px' }}>RECEIPT NO</th>
-                <th width="200" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px' }}>CLIENT</th>
-                <th width="150" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px' }}>TYPE</th>
-                <th width="250" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px' }}>DESCRIPTION</th>
-                <th width="120" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px' }}>AMOUNT</th>
-                <th width="100" style={{ textAlign: 'center', padding: '12px' }}>ACTION</th>
+                <th width="50" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px' }}>{t("SL ↕")}</th>
+                <th width="120" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px' }}>{t("DATE")}</th>
+                <th width="140" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px' }}>{t("RECEIPT NO")}</th>
+                <th width="200" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px' }}>{t("CLIENT")}</th>
+                <th width="150" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px' }}>{t("TYPE")}</th>
+                <th width="250" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px' }}>{t("DESCRIPTION")}</th>
+                <th width="120" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px' }}>{t("AMOUNT")}</th>
+                <th width="100" style={{ textAlign: 'center', padding: '12px' }}>{t("ACTION")}</th>
               </tr>
             </thead>
             <tbody>
@@ -169,10 +169,10 @@ const LoanPaymentList = () => {
                     <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0' }}>{loan.date || loan.created_at?.split('T')[0] || '-'}</td>
                     <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0', fontFamily: 'monospace', fontSize: '12px' }} title={rawReceipt}>{receiptDisplay}</td>
                     <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0', fontSize: '13px' }}>
-                      <div>Name: {clientName}</div>
-                      <div>Number: {clientPhone}</div>
+                      <div>{t("Name:")} {clientName}</div>
+                      <div>{t("Number:")} {clientPhone}</div>
                     </td>
-                    <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0' }}>{loan.type || 'Loan Payment'}</td>
+                    <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0' }}>{loan.type || t("Loan Payment")}</td>
                     <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0' }}>{loan.description || loan.note || '-'}</td>
                     <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0', fontWeight: 'bold' }}>{displayAmt} ৳</td>
                     <td style={{ textAlign: 'center', padding: '12px' }}>
@@ -190,12 +190,12 @@ const LoanPaymentList = () => {
               })}
               {loading && (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>Loading...</td>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>{t("Loading...")}</td>
                 </tr>
               )}
               {!loading && (!Array.isArray(loans) || loans.length === 0) && (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>No loans found.</td>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>{t("No loans found.")}</td>
                 </tr>
               )}
             </tbody>
@@ -204,9 +204,9 @@ const LoanPaymentList = () => {
       </div>
       {editing && (
         <QuickEditModal
-          title="Edit Loan Payment"
+          title={t("Edit Loan Payment")}
           record={editing}
-          fields={[{ name: 'date', label: 'Date', type: 'date' }, { name: 'amount', label: 'Amount', type: 'number' }, { name: 'description', label: 'Description', type: 'textarea' }]}
+          fields={[{ name: 'date', label: t("Date"), type: 'date' }, { name: 'amount', label: t("Amount"), type: 'number' }, { name: 'description', label: t("Description"), type: 'textarea' }]}
           onSave={(data) => loanService.updateLoanPayment(editing.id || editing.uuid, data)}
           onClose={(saved) => { setEditing(null); if (saved) fetchLoans(); }}
         />

@@ -1,5 +1,6 @@
 import apiClient from '../api/apiClient';
 import { ENDPOINTS } from '../api/endpoints';
+import i18n from '../i18n';
 
 /**
  * Communication / SMS module (see src/components/api_instructions/communication-api-instructions.md)
@@ -71,7 +72,7 @@ export const communicationService = {
       : groupId
         ? [{ key: recipientType.startsWith('supplier') ? 'supplier_group' : 'client_group', id: groupId }]
         : [];
-    if (targets.length === 0) throw new Error('No recipient selected');
+    if (targets.length === 0) throw new Error(i18n.t('No recipient selected'));
 
     const results = await Promise.allSettled(
       targets.map((t) =>

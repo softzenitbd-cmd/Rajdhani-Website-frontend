@@ -6,12 +6,14 @@ import { saleService } from '../../services/saleService';
 import { crmService } from '../../services/crmService';
 import { useToast } from '../../context/ToastContext';
 import { toList, money, fmtDate, today, nameOf } from '../../utils/apiHelpers';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Customer wise sales report. The sales report API returns item-wise rows; they are
  * grouped here per invoice so each voucher shows its products on nested lines.
  */
 const SalesCustomerWise = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
   const [clients, setClients] = useState([]);
@@ -30,7 +32,7 @@ const SalesCustomerWise = () => {
       setLoading(true);
       setReports(toList(await saleService.getSalesReport(filters)));
     } catch (err) {
-      toast.error(err.message || 'Failed to load sales report');
+      toast.error(err.message || t("Failed to load sales report"));
       setReports([]);
     } finally {
       setLoading(false);
@@ -119,11 +121,11 @@ const SalesCustomerWise = () => {
             <input type="date" name="to_date" value={filters.to_date} onChange={handleChange} style={{ width: '50%', padding: '12px 16px', border: '1px solid #e2e8f0', borderLeft: 'none', borderRadius: '0 4px 4px 0', outline: 'none' }} />
           </div>
           <select name="client_id" value={filters.client_id} onChange={handleChange} style={{ flex: 1, minWidth: '200px', padding: '12px 16px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', background: 'white' }}>
-            <option value="">All Customers</option>
+            <option value="">{t("All Customers")}</option>
             {clients.map((c) => <option key={c.id || c.uuid} value={c.id || c.uuid}>{c.name || c.company_name}</option>)}
           </select>
           <button type="submit" disabled={loading} style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 500 }}>
-            {loading ? 'Searching...' : 'Search'}
+            {loading ? t("Searching...") : t("Search")}
           </button>
         </form>
       </div>
@@ -134,9 +136,9 @@ const SalesCustomerWise = () => {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
             <h3 style={{ fontSize: '12px', fontWeight: 'bold', margin: 0, textTransform: 'uppercase' }}>
-              Customer Wise Sales Report | ({selectedClient?.name || 'All Customers'}) | From ({filters.from_date}) To ({filters.to_date})
+              {t("Customer Wise Sales Report | (")}{selectedClient?.name || t("All Customers")}{t(") | From (")}{filters.from_date}{t(") To (")}{filters.to_date})
             </h3>
-            <button className="no-print" onClick={() => navigate(-1)} style={{ background: '#7e8a9f', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Go Back</button>
+            <button className="no-print" onClick={() => navigate(-1)} style={{ background: '#7e8a9f', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>{t("Go Back")}</button>
           </div>
 
           <TableToolbar entries={entries} setEntries={setEntries} total={invoices.length} excelData={excelData} excelName="Customer_Wise_Sales" onReload={handleSearch} onReset={reset} />
@@ -152,9 +154,9 @@ const SalesCustomerWise = () => {
               </thead>
               <tbody style={{ background: '#f8fafc' }}>
                 {loading ? (
-                  <tr><td colSpan="15" style={{ padding: '24px', color: '#64748b' }}>Loading...</td></tr>
+                  <tr><td colSpan="15" style={{ padding: '24px', color: '#64748b' }}>{t("Loading...")}</td></tr>
                 ) : visible.length === 0 ? (
-                  <tr><td colSpan="15" style={{ padding: '24px', color: '#64748b' }}>No sales found for this period.</td></tr>
+                  <tr><td colSpan="15" style={{ padding: '24px', color: '#64748b' }}>{t("No sales found for this period.")}</td></tr>
                 ) : visible.map((g, idx) => (
                   <tr key={g.key}>
                     <td style={cellStyle}>{idx + 1}</td>
@@ -178,7 +180,7 @@ const SalesCustomerWise = () => {
               {invoices.length > 0 && (
                 <tfoot>
                   <tr style={{ background: '#e2e8f0', fontWeight: 'bold' }}>
-                    <td colSpan="8" style={{ padding: '8px', border: '1px solid #94a3b8', textAlign: 'right' }}>GRAND TOTAL ({invoices.length} invoices)</td>
+                    <td colSpan="8" style={{ padding: '8px', border: '1px solid #94a3b8', textAlign: 'right' }}>{t("GRAND TOTAL (")}{invoices.length} {t("invoices)")}</td>
                     <td style={{ padding: '8px', border: '1px solid #94a3b8' }}>{money(sum('total'))}</td>
                     <td style={{ padding: '8px', border: '1px solid #94a3b8' }}>{money(sum('discount'))}</td>
                     <td style={{ padding: '8px', border: '1px solid #94a3b8' }}>{money(sum('transport'))}</td>

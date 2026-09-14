@@ -73,7 +73,7 @@ const ProductStockList = () => {
         setProductsList(pList);
       }
     } catch (err) {
-      toast.error(err?.message || 'Failed to load stock report');
+      toast.error(err?.message || t("Failed to load stock report"));
       setStocks([]);
     } finally {
       setLoading(false);
@@ -115,7 +115,7 @@ const ProductStockList = () => {
       
       {/* Center Title */}
       <div style={{ textAlign: 'center', marginBottom: '40px', marginTop: '40px', position: 'relative' }}>
-        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>Stock List</h2>
+        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>{t("Stock List")}</h2>
       </div>
 
       <div className="card-body" style={{ padding: '0 24px' }}>
@@ -124,7 +124,7 @@ const ProductStockList = () => {
           <div style={{ position: 'relative' }}>
             <input 
               type="text" 
-              placeholder="Search All..." 
+              placeholder={t("Search All...")} 
               value={filters.searchAll}
               onChange={(e) => handleFilterChange('searchAll', e.target.value)}
               style={{ width: '100%', padding: '14px', border: '1px solid #0ea5e9', borderRadius: '8px', outline: 'none' }} 
@@ -136,7 +136,7 @@ const ProductStockList = () => {
               onChange={(e) => handleFilterChange('group', e.target.value)}
               style={{ width: '100%', padding: '14px', border: '1px solid #e2e8f0', borderRadius: '8px', outline: 'none', background: 'white' }}
             >
-              <option value="">Select Product Group</option>
+              <option value="">{t("Select Product Group")}</option>
               {groups.map(g => (
                 <option key={g.id} value={g.name || g.id}>{g.name}</option>
               ))}
@@ -148,7 +148,7 @@ const ProductStockList = () => {
               onChange={(e) => handleFilterChange('productId', e.target.value)}
               style={{ width: '100%', padding: '14px', border: '1px solid #e2e8f0', borderRadius: '8px', outline: 'none', background: 'white' }}
             >
-              <option value="">Select Product</option>
+              <option value="">{t("Select Product")}</option>
               {productsList.map(p => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
@@ -157,7 +157,7 @@ const ProductStockList = () => {
           <div style={{ position: 'relative' }}>
             <input 
               type="text" 
-              placeholder="Barcode..." 
+              placeholder={t("Barcode...")} 
               value={filters.barcode}
               onChange={(e) => handleFilterChange('barcode', e.target.value)}
               style={{ width: '100%', padding: '14px', border: '1px solid #0ea5e9', borderRadius: '8px', outline: 'none' }} 
@@ -185,7 +185,7 @@ const ProductStockList = () => {
           </div>
           <div>
             <button onClick={clearFilters} className="btn" style={{ width: '100%', padding: '14px', background: 'var(--text-muted)', color: 'white', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer' }}>
-              Clear Filter
+              {t("Clear Filter")}
             </button>
           </div>
         </div>
@@ -193,21 +193,21 @@ const ProductStockList = () => {
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
-            Show 
+            {t("Show")} 
             <select style={{ margin: '0 8px', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
               <option>50</option>
             </select>
-            entries
+            {t("entries")}
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>
             <button onClick={() => window.print()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              Print
+              {t("Print")}
             </button>
             <button onClick={clearFilters} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <RotateCcw size={14} /> Reset
+              <RotateCcw size={14} /> {t("Reset")}
             </button>
             <button onClick={fetchStockData} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <RefreshCw size={14} className={loading ? "spin" : ""} /> Reload
+              <RefreshCw size={14} className={loading ? "spin" : ""} /> {t("Reload")}
             </button>
           </div>
         </div>
@@ -217,22 +217,22 @@ const ProductStockList = () => {
           <table className="custom-table" style={{ width: '100%', minWidth: '1300px', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--secondary)', color: 'white' }}>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '60px' }}>ID NO ↕</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>DATE</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>PRODUCT</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>GROUP</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>OPENING STOCK</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>BUY QUANTITY</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>SALE QUANTITY</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>STOCK</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>TOTAL BUYING PRICE</th>
-                <th style={{ textAlign: 'center', padding: '12px', fontSize: '11px' }}>TOTAL SELLING PRICE</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '60px' }}>{t("ID NO ↕")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("DATE")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("PRODUCT")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("GROUP")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("OPENING STOCK")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("BUY QUANTITY")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("SALE QUANTITY")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("STOCK")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("TOTAL BUYING PRICE")}</th>
+                <th style={{ textAlign: 'center', padding: '12px', fontSize: '11px' }}>{t("TOTAL SELLING PRICE")}</th>
               </tr>
             </thead>
             <tbody>
               {filteredStocks.length === 0 ? (
                 <tr>
-                  <td colSpan="10" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>No stock data found</td>
+                  <td colSpan="10" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>{t("No stock data found")}</td>
                 </tr>
               ) : (
                 filteredStocks.map((stock) => (
@@ -241,7 +241,7 @@ const ProductStockList = () => {
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{stock.date}</td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>
                       <div style={{ fontWeight: '500' }}>{stock.product}</div>
-                      <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Buy Price: {stock.buyPrice} | Sell Price: {stock.sellPrice}</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{t("Buy Price:")} {stock.buyPrice} {t("| Sell Price:")} {stock.sellPrice}</div>
                     </td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{stock.group}</td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{stock.opening}</td>

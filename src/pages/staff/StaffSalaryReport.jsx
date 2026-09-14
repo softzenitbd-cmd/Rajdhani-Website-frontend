@@ -7,9 +7,11 @@ import staffApi from '../../api/staffApi';
 import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
 import { toList, fmtDate, nameOf, money, MONTHS, YEARS } from '../../utils/apiHelpers';
+import { useTranslation } from 'react-i18next';
 
 /** Salary report = staff payment report filtered by month/year (transaction_type "Staff Salary") */
 const StaffSalaryReport = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
   const now = new Date();
@@ -27,21 +29,21 @@ const StaffSalaryReport = () => {
   const [marking, setMarking] = useState(null);
 
   useEffect(() => {
-    staffApi.getStaffList().then((r) => setStaff(toList(r))).catch((e) => toast.error(e?.message || 'Failed to load staff'));
+    staffApi.getStaffList().then((r) => setStaff(toList(r))).catch((e) => toast.error(e?.message || t("Failed to load staff")));
     accountingService.getAccounts().then((r) => setAccounts(toList(r))).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // POST /api/accounting/staff-payments/generate/ – one pending salary per active staff
   const generatePayroll = async () => {
-    if (!genAccount) return toast.error('Select the account the salaries will be paid from');
-    if (!window.confirm(`Generate pending salaries for every active staff for ${MONTHS[month - 1]} ${year}?`)) return;
+    if (!genAccount) return toast.error(t("Select the account the salaries will be paid from"));
+    if (!window.confirm(t("Generate pending salaries for every active staff for {{v0}} {{v1}}?", { v0: t(MONTHS[month - 1]), v1: year }))) return;
     try {
       setGenerating(true);
       const res = await accountingService.generateStaffPayroll({ month, year, account_id: genAccount });
-      toast.success(res?.message || 'Payroll generated');
+      toast.success(res?.message || t("Payroll generated"));
       load();
     } catch (e) {
-      toast.error(e?.message || 'Failed to generate payroll');
+      toast.error(e?.message || t("Failed to generate payroll"));
     } finally {
       setGenerating(false);
     }
@@ -50,14 +52,14 @@ const StaffSalaryReport = () => {
   // PATCH /api/accounting/expenses/<id>/ { status: true }
   const isPaid = (r) => r.status === true || r.status === 1 || r.status === '1' || String(r.status).toLowerCase() === 'paid';
   const markPaid = async (r) => {
-    if (!window.confirm(`Mark ${nameOf(r.staff_name || r.staff || r.staff_id)}'s salary of ৳ ${money(r.amount)} as paid?`)) return;
+    if (!window.confirm(t("Mark {{v0}}'s salary of ৳ {{v1}} as paid?", { v0: nameOf(r.staff_name || r.staff || r.staff_id), v1: money(r.amount) }))) return;
     try {
       setMarking(r.id);
       await accountingService.updateStaffPaymentStatus(r.id, true);
-      toast.success('Marked as paid');
+      toast.success(t("Marked as paid"));
       setRows((prev) => prev.map((x) => (x.id === r.id ? { ...x, status: true } : x)));
     } catch (e) {
-      toast.error(e?.message || 'Failed to update');
+      toast.error(e?.message || t("Failed to update"));
     } finally {
       setMarking(null);
     }
@@ -74,7 +76,7 @@ const StaffSalaryReport = () => {
       const salaryOnly = all.filter((r) => /salary/i.test(r.transaction_type || r.description || ''));
       setRows(salaryOnly.length ? salaryOnly : all);
     } catch (e) {
-      toast.error(e.message || 'Failed to load salary report');
+      toast.error(e.message || t("Failed to load salary report"));
     } finally {
       setLoading(false);
     }
@@ -101,16 +103,16 @@ const StaffSalaryReport = () => {
       <div className="premium-card">
         <div className="premium-header no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'white' }}>
           <div>
-            <h2 className="premium-title" style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>Salary Report</h2>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>{MONTHS[month - 1]} {year}</span>
+            <h2 className="premium-title" style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>{t("Salary Report")}</h2>
+            <span style={{ fontSize: '12px', color: '#64748b' }}>{t(MONTHS[month - 1])} {year}</span>
           </div>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '11px', color: '#64748b' }}>Total Paid</div>
+              <div style={{ fontSize: '11px', color: '#64748b' }}>{t("Total Paid")}</div>
               <div style={{ fontSize: '18px', fontWeight: 800, color: '#dc2626' }}>৳ {money(total)}</div>
             </div>
             <button onClick={() => navigate('/staff/salary/create')} style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-              <Plus size={16} /> Add Salary
+              <Plus size={16} /> {t("Add Salary")}
             </button>
           </div>
         </div>
@@ -120,23 +122,23 @@ const StaffSalaryReport = () => {
 
           <form className="no-print" onSubmit={(e) => { e.preventDefault(); load(); }} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'end', marginBottom: '16px' }}>
             <select value={staffId} onChange={(e) => setStaffId(e.target.value)} style={inputStyle}>
-              <option value="">All Staff</option>
+              <option value="">{t("All Staff")}</option>
               {staff.map((s) => <option key={s.id || s.uuid} value={s.id || s.uuid}>{s.full_name || s.name}</option>)}
             </select>
             <select value={month} onChange={(e) => setMonth(Number(e.target.value))} style={inputStyle}>
-              {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+              {MONTHS.map((m, i) => <option key={m} value={i + 1}>{t(m)}</option>)}
             </select>
             <select value={year} onChange={(e) => setYear(Number(e.target.value))} style={inputStyle}>
               {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
             </select>
-            <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>Search</button>
+            <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>{t("Search")}</button>
             <span style={{ flex: 1 }} />
             <select value={genAccount} onChange={(e) => setGenAccount(e.target.value)} style={inputStyle}>
-              <option value="">Pay from account…</option>
+              <option value="">{t("Pay from account…")}</option>
               {accounts.map((a) => <option key={a.id || a.uuid} value={a.id || a.uuid}>{a.name}</option>)}
             </select>
             <button type="button" onClick={generatePayroll} disabled={generating} style={{ background: '#7c3aed', color: 'white', padding: '10px 16px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Zap size={14} /> {generating ? 'Generating…' : 'Generate Payroll'}
+              <Zap size={14} /> {generating ? t("Generating…") : t("Generate Payroll")}
             </button>
           </form>
 
@@ -146,20 +148,20 @@ const StaffSalaryReport = () => {
             <table className="custom-table" style={{ width: '100%', fontSize: '12px' }}>
               <thead>
                 <tr style={{ background: '#718096', color: 'white', textTransform: 'uppercase' }}>
-                  <th style={{ width: '50px', textAlign: 'center' }}>SL</th>
-                  <th>DATE</th>
-                  <th>STAFF</th>
-                  <th>ACCOUNT</th>
-                  <th>DESCRIPTION</th>
-                  <th style={{ textAlign: 'right' }}>AMOUNT</th>
-                  <th style={{ textAlign: 'center' }}>STATUS</th>
+                  <th style={{ width: '50px', textAlign: 'center' }}>{t("SL")}</th>
+                  <th>{t("DATE")}</th>
+                  <th>{t("STAFF")}</th>
+                  <th>{t("ACCOUNT")}</th>
+                  <th>{t("DESCRIPTION")}</th>
+                  <th style={{ textAlign: 'right' }}>{t("AMOUNT")}</th>
+                  <th style={{ textAlign: 'center' }}>{t("STATUS")}</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="7" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>Loading...</td></tr>
+                  <tr><td colSpan="7" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("Loading...")}</td></tr>
                 ) : visible.length === 0 ? (
-                  <tr><td colSpan="7" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>No salary payments found for this period</td></tr>
+                  <tr><td colSpan="7" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("No salary payments found for this period")}</td></tr>
                 ) : (
                   visible.map((r, i) => (
                     <tr key={r.id || i}>
@@ -171,10 +173,10 @@ const StaffSalaryReport = () => {
                       <td style={{ padding: '10px', textAlign: 'right', fontWeight: 'bold', color: '#dc2626' }}>৳ {money(r.amount)}</td>
                       <td style={{ padding: '10px', textAlign: 'center' }} className="action-column">
                         {isPaid(r) ? (
-                          <span style={{ color: '#16a34a', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}><CheckCircle size={14} /> Paid</span>
+                          <span style={{ color: '#16a34a', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}><CheckCircle size={14} /> {t("Paid")}</span>
                         ) : (
                           <button type="button" onClick={() => markPaid(r)} disabled={marking === r.id} style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 700 }}>
-                            {marking === r.id ? '…' : 'Mark Paid'}
+                            {marking === r.id ? '…' : t("Mark Paid")}
                           </button>
                         )}
                       </td>
@@ -185,7 +187,7 @@ const StaffSalaryReport = () => {
               {rows.length > 0 && (
                 <tfoot>
                   <tr style={{ background: '#f8fafc', fontWeight: 'bold' }}>
-                    <td colSpan="5" style={{ padding: '10px', textAlign: 'right' }}>TOTAL</td>
+                    <td colSpan="5" style={{ padding: '10px', textAlign: 'right' }}>{t("TOTAL")}</td>
                     <td style={{ padding: '10px', textAlign: 'right', color: '#dc2626' }}>৳ {money(total)}</td>
                     <td />
                   </tr>

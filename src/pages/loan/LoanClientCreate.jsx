@@ -4,8 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { loanService } from '../../services/loanService';
 import PrintHeader from '../../components/PrintHeader';
 import { useToast } from '../../context/ToastContext';
+import { useTranslation } from 'react-i18next';
 
 const LoanClientCreate = () => {
+  const { t } = useTranslation();
   const toast = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -25,7 +27,7 @@ const LoanClientCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.phone) {
-      toast.error("Loan Account Name and Phone Number are required.");
+      toast.error(t("Loan Account Name and Phone Number are required."));
       return;
     }
 
@@ -38,11 +40,11 @@ const LoanClientCreate = () => {
         previous_due: formData.previous_due || '0.00',
         max_due_limit: formData.max_due_limit || '0.00'
       });
-      toast.success("Loan Account created successfully!");
+      toast.success(t("Loan Account created successfully!"));
       navigate('/loan/client-list');
     } catch (error) {
       console.error("Error creating loan account:", error);
-      toast.error("Failed to create loan account. Please verify input and try again.");
+      toast.error(t("Failed to create loan account. Please verify input and try again."));
     } finally {
       setLoading(false);
     }
@@ -52,13 +54,13 @@ const LoanClientCreate = () => {
     <div className="premium-card">
       <PrintHeader />
       <div className="premium-header">
-        <h2 className="premium-title" style={{ textTransform: 'uppercase' }}>Add New Loan Account</h2>
+        <h2 className="premium-title" style={{ textTransform: 'uppercase' }}>{t("Add New Loan Account")}</h2>
         <div className="header-actions">
           <button className="btn-icon">
             <Settings size={18} />
           </button>
           <button className="btn-gray-outline" onClick={() => navigate('/loan/client-list')}>
-            <List size={16} /> Account List
+            <List size={16} /> {t("Account List")}
           </button>
         </div>
       </div>
@@ -72,7 +74,7 @@ const LoanClientCreate = () => {
               <div className="form-input floating-label">
                 <User size={18} className="input-icon" />
                 <input type="text" name="name" placeholder=" " value={formData.name} onChange={handleChange} required />
-                <label>Loan Account Title (e.g. IDLC LOAN) *</label>
+                <label>{t("Loan Account Title (e.g. IDLC LOAN) *")}</label>
               </div>
             </div>
 
@@ -81,7 +83,7 @@ const LoanClientCreate = () => {
               <div className="form-input floating-label">
                 <Phone size={18} className="input-icon" />
                 <input type="text" name="phone" placeholder=" " value={formData.phone} onChange={handleChange} required />
-                <label>Phone Number *</label>
+                <label>{t("Phone Number *")}</label>
               </div>
             </div>
 
@@ -90,7 +92,7 @@ const LoanClientCreate = () => {
               <div className="form-input floating-label">
                 <MapPin size={18} className="input-icon" />
                 <input type="text" name="address" placeholder=" " value={formData.address} onChange={handleChange} />
-                <label>Address</label>
+                <label>{t("Address")}</label>
               </div>
             </div>
 
@@ -99,7 +101,7 @@ const LoanClientCreate = () => {
               <div className="form-input floating-label">
                 <Wallet size={18} className="input-icon" />
                 <input type="number" step="0.01" name="previous_due" placeholder=" " value={formData.previous_due} onChange={handleChange} />
-                <label>Previous Due Amount</label>
+                <label>{t("Previous Due Amount")}</label>
               </div>
             </div>
 
@@ -108,14 +110,14 @@ const LoanClientCreate = () => {
               <div className="form-input floating-label">
                 <ShieldAlert size={18} className="input-icon" />
                 <input type="number" step="0.01" name="max_due_limit" placeholder=" " value={formData.max_due_limit} onChange={handleChange} />
-                <label>Max Due Limit</label>
+                <label>{t("Max Due Limit")}</label>
               </div>
             </div>
 
           </div>
 
           <button type="submit" className="btn-green" style={{ width: '100%', padding: '14px', fontSize: '16px', marginTop: '24px', background: 'var(--success)', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }} disabled={loading}>
-            {loading ? 'Creating Loan Account...' : 'Add Loan Account'}
+            {loading ? t("Creating Loan Account...") : t("Add Loan Account")}
           </button>
         </form>
       </div>

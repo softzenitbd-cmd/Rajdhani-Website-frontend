@@ -83,7 +83,7 @@ const SalesProductGroupWise = () => {
             onChange={(e) => setFilters(prev => ({ ...prev, product_group_id: e.target.value }))}
             style={{ flex: 1, padding: '12px 16px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', background: 'white' }}
           >
-            <option value="">Select Product Group</option>
+            <option value="">{t("Select Product Group")}</option>
             {productGroups.map(g => (
               <option key={g.id} value={g.id}>{g.name}</option>
             ))}
@@ -93,7 +93,7 @@ const SalesProductGroupWise = () => {
             onClick={handleSearch}
             style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}
           >
-            Search
+            {t("Search")}
           </button>
         </div>
       </div>
@@ -104,34 +104,34 @@ const SalesProductGroupWise = () => {
             <PrintHeader />
             
             <div style={{ textAlign: 'center', margin: '20px 0', fontFamily: 'monospace' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>Product Group Wise Sales Report</h2>
+              <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>{t("Product Group Wise Sales Report")}</h2>
             </div>
             
             {/* Header row with Title and Go Back */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ fontSize: '12px', fontWeight: 'bold', margin: '0', textTransform: 'uppercase' }}>
-                PRODUCT GROUP WISE SALES REPORT | FROM ({filters.from_date}) TO ({filters.to_date})
+                {t("PRODUCT GROUP WISE SALES REPORT | FROM (")}{filters.from_date}{t(") TO (")}{filters.to_date})
               </h3>
               <button 
                 onClick={() => navigate('/invoice/list')}
                 style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#7e8a9f', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
               >
-                 <ArrowLeft size={14} /> Go Back
+                 <ArrowLeft size={14} /> {t("Go Back")}
               </button>
             </div>
 
             {/* Controls */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                Showing {reports.length} entries
+                {t("Showing")} {reports.length} {t("entries")}
               </div>
               
               <div style={{ display: 'flex', gap: '2px' }}>
                 <button onClick={() => window.print()} style={{ background: '#3b82f6', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px 0 0 4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}>
-                  <Printer size={14} /> Print
+                  <Printer size={14} /> {t("Print")}
                 </button>
                 <button onClick={handleSearch} style={{ background: '#3b82f6', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '0 4px 4px 0', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}>
-                  <RefreshCcw size={14} /> Reset
+                  <RefreshCcw size={14} /> {t("Reset")}
                 </button>
               </div>
             </div>
@@ -141,28 +141,28 @@ const SalesProductGroupWise = () => {
               <table style={{ width: '100%', fontSize: '11px', textAlign: 'center', borderCollapse: 'collapse', border: '1px solid #94a3b8' }}>
                 <thead>
                   <tr style={{ background: '#94a3b8', color: 'white', textTransform: 'uppercase' }}>
-                    <th style={{ width: '40px', padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>SL ⇅</th>
-                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>ISSUED DATE ⇅</th>
-                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>VOUCHER NO ⇅</th>
-                    <th style={{ padding: '10px', border: '1px solid #94a3b8', minWidth: '150px', fontWeight: '600' }}>PRODUCT ⇅</th>
-                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>UNIT ⇅</th>
-                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>QUANTITY ⇅</th>
-                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>PRICE ⇅</th>
-                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>TOTAL ⇅</th>
-                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>DISCOUNT ⇅</th>
-                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>GRAND TOTAL ⇅</th>
-                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>RECEIVE AMOUNT ⇅</th>
-                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>DUE AMOUNT ⇅</th>
+                    <th style={{ width: '40px', padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("SL ⇅")}</th>
+                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("ISSUED DATE ⇅")}</th>
+                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("VOUCHER NO ⇅")}</th>
+                    <th style={{ padding: '10px', border: '1px solid #94a3b8', minWidth: '150px', fontWeight: '600' }}>{t("PRODUCT ⇅")}</th>
+                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("UNIT ⇅")}</th>
+                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("QUANTITY ⇅")}</th>
+                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("PRICE ⇅")}</th>
+                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("TOTAL ⇅")}</th>
+                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("DISCOUNT ⇅")}</th>
+                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("GRAND TOTAL ⇅")}</th>
+                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("RECEIVE AMOUNT ⇅")}</th>
+                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("DUE AMOUNT ⇅")}</th>
                   </tr>
                 </thead>
                 <tbody style={{ background: '#f8fafc' }}>
                   {loading ? (
                     <tr>
-                      <td colSpan="12" style={{ padding: '24px', textAlign: 'center' }}>Loading product group report...</td>
+                      <td colSpan="12" style={{ padding: '24px', textAlign: 'center' }}>{t("Loading product group report...")}</td>
                     </tr>
                   ) : reports.length === 0 ? (
                     <tr>
-                      <td colSpan="12" style={{ padding: '24px', textAlign: 'center' }}>No records found.</td>
+                      <td colSpan="12" style={{ padding: '24px', textAlign: 'center' }}>{t("No records found.")}</td>
                     </tr>
                   ) : (
                     reports.map((row, index) => {

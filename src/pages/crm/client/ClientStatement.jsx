@@ -7,11 +7,13 @@ import { crmService } from '../../../services/crmService';
 import { accountingService } from '../../../services/accountingService';
 import { useToast } from '../../../context/ToastContext';
 import { toList, fmtDate, money } from '../../../utils/apiHelpers';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Client statement / ledger → /api/accounting/reports/client-ledger/?client_id=&from_date=&to_date=
  */
 const ClientStatement = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
@@ -44,7 +46,7 @@ const ClientStatement = () => {
       setRows(list);
       setSummary(f.client && !Array.isArray(res) ? res : null);
     } catch (e) {
-      toast.error(e.message || 'Failed to load client statement');
+      toast.error(e.message || t("Failed to load client statement"));
       setRows([]);
     } finally {
       setLoading(false);
@@ -96,39 +98,39 @@ const ClientStatement = () => {
       <PrintHeader />
       <div className="chart-card">
         <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: 500, color: 'var(--text-main)', margin: 0 }}>Client Statement</h2>
+          <h2 style={{ fontSize: '20px', fontWeight: 500, color: 'var(--text-main)', margin: 0 }}>{t("Client Statement")}</h2>
           <button onClick={() => navigate('/account/receive-create', { state: { clientId: filters.client } })} style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', borderRadius: '4px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Plus size={16} /> Receive
+            <Plus size={16} /> {t("Receive")}
           </button>
         </div>
 
         <form className="form-grid no-print" onSubmit={(e) => { e.preventDefault(); load(); }} style={{ gridTemplateColumns: '1fr 1fr auto auto', marginBottom: '24px', alignItems: 'flex-end', gap: '16px' }}>
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: 600, marginBottom: '8px' }}>Search By Client</label>
+            <label style={{ fontSize: '12px', fontWeight: 600, marginBottom: '8px' }}>{t("Search By Client")}</label>
             <div className="form-input floating-label">
               <select value={filters.client} onChange={(e) => set('client', e.target.value)}>
-                <option value="">All Clients</option>
+                <option value="">{t("All Clients")}</option>
                 {clients.map((c) => <option key={c.id || c.uuid} value={c.id || c.uuid}>{c.name}{c.phone ? ` (${c.phone})` : ''}</option>)}
               </select>
             </div>
           </div>
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: 600, marginBottom: '8px' }}>Search By Date</label>
+            <label style={{ fontSize: '12px', fontWeight: 600, marginBottom: '8px' }}>{t("Search By Date")}</label>
             <div style={{ display: 'flex', gap: '12px' }}>
               <div className="form-input floating-label" style={{ flex: 1 }}><input type="date" value={filters.from_date} onChange={(e) => set('from_date', e.target.value)} /></div>
               <div className="form-input floating-label" style={{ flex: 1 }}><input type="date" value={filters.to_date} onChange={(e) => set('to_date', e.target.value)} /></div>
             </div>
           </div>
-          <button type="submit" style={{ height: '48px', padding: '0 28px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}>Search</button>
-          <button type="button" onClick={clear} style={{ height: '48px', padding: '0 28px', background: '#718096', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Clear Filter</button>
+          <button type="submit" style={{ height: '48px', padding: '0 28px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}>{t("Search")}</button>
+          <button type="button" onClick={clear} style={{ height: '48px', padding: '0 28px', background: '#718096', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t("Clear Filter")}</button>
         </form>
 
         {selectedClient && (
           <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', marginBottom: '16px', padding: '12px 16px', background: '#f8fafc', borderRadius: '6px', fontSize: '13px' }}>
-            <div><b>Client:</b> {selectedClient.name}</div>
-            {selectedClient.phone && <div><b>Phone:</b> {selectedClient.phone}</div>}
-            {selectedClient.address && <div><b>Address:</b> {selectedClient.address}</div>}
-            <div style={{ marginLeft: 'auto' }}><b>Current Due:</b> <span style={{ color: '#dc2626', fontWeight: 700 }}>৳ {money(selectedClient.due ?? selectedClient.current_balance ?? closing)}</span></div>
+            <div><b>{t("Client:")}</b> {selectedClient.name}</div>
+            {selectedClient.phone && <div><b>{t("Phone:")}</b> {selectedClient.phone}</div>}
+            {selectedClient.address && <div><b>{t("Address:")}</b> {selectedClient.address}</div>}
+            <div style={{ marginLeft: 'auto' }}><b>{t("Current Due:")}</b> <span style={{ color: '#dc2626', fontWeight: 700 }}>৳ {money(selectedClient.due ?? selectedClient.current_balance ?? closing)}</span></div>
           </div>
         )}
 
@@ -138,15 +140,15 @@ const ClientStatement = () => {
           <table className="custom-table" style={{ borderCollapse: 'collapse', width: '100%', minWidth: '1100px' }}>
             <thead>
               <tr style={{ background: '#718096', color: 'white' }}>
-                <th style={th}>SL</th><th style={th}>DATE</th><th style={th}>PRODUCT / DETAILS</th><th style={th}>QTY</th><th style={th}>UNIT</th><th style={th}>PRICE</th>
-                <th style={th}>DESCRIPTION</th><th style={th}>BILL</th><th style={th}>SALES RETURN</th><th style={th}>RECEIVE</th><th style={th}>MONEY RETURN</th><th style={{ ...th, borderRight: 'none' }}>BALANCE</th>
+                <th style={th}>{t("SL")}</th><th style={th}>{t("DATE")}</th><th style={th}>{t("PRODUCT / DETAILS")}</th><th style={th}>{t("QTY")}</th><th style={th}>{t("UNIT")}</th><th style={th}>{t("PRICE")}</th>
+                <th style={th}>{t("DESCRIPTION")}</th><th style={th}>{t("BILL")}</th><th style={th}>{t("SALES RETURN")}</th><th style={th}>{t("RECEIVE")}</th><th style={th}>{t("MONEY RETURN")}</th><th style={{ ...th, borderRight: 'none' }}>{t("BALANCE")}</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="12" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>Loading statement...</td></tr>
+                <tr><td colSpan="12" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>{t("Loading statement...")}</td></tr>
               ) : computed.length === 0 ? (
-                <tr><td colSpan="12" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No transactions found</td></tr>
+                <tr><td colSpan="12" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>{t("No transactions found")}</td></tr>
               ) : (
                 computed.map((r, i) => (
                   <tr key={r.id || i}>
@@ -169,7 +171,7 @@ const ClientStatement = () => {
             {computed.length > 0 && (
               <tfoot>
                 <tr style={{ background: '#f1f5f9', fontWeight: 700 }}>
-                  <td colSpan="7" style={{ ...td, textAlign: 'right' }}>TOTAL</td>
+                  <td colSpan="7" style={{ ...td, textAlign: 'right' }}>{t("TOTAL")}</td>
                   <td style={td}>{money(totals.bill)}</td>
                   <td style={td}>{money(totals.sr)}</td>
                   <td style={td}>{money(totals.rec)}</td>

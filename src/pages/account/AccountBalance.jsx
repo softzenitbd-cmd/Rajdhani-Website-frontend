@@ -36,11 +36,11 @@ const AccountBalance = () => {
   return (
     <div className="premium-card">
       <div className="premium-header">
-        <h2 className="premium-title" style={{ textTransform: 'uppercase' }}>Account Balance List</h2>
+        <h2 className="premium-title" style={{ textTransform: 'uppercase' }}>{t("Account Balance List")}</h2>
         <div className="header-actions">
-          <button className="btn-gray-outline" onClick={() => navigate(-1)}><ArrowLeft size={16} /> Go Back</button>
+          <button className="btn-gray-outline" onClick={() => navigate(-1)}><ArrowLeft size={16} /> {t("Go Back")}</button>
           <Link to="/account/account-create" style={{ textDecoration: 'none' }}>
-            <button className="btn-green">Add New</button>
+            <button className="btn-green">{t("Add New")}</button>
           </Link>
         </div>
       </div>
@@ -51,18 +51,18 @@ const AccountBalance = () => {
         {/* Table Section */}
         <div className="table-header-controls" style={{ marginBottom: '16px' }}>
           <div className="show-entries">
-            Show 
+            {t("Show")} 
             <select defaultValue="100">
               <option value="10">10</option>
               <option value="50">50</option>
               <option value="100">100</option>
             </select> 
-            entries
+            {t("entries")}
           </div>
           <div className="table-controls-right" style={{ gap: '4px' }}>
-            <button onClick={() => exportVisibleTable('xlsx')} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>Excel</button>
-            <button onClick={() => exportVisibleTable('csv')} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>CSV</button>
-            <button onClick={() => printPage()} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>PDF</button>
+            <button onClick={() => exportVisibleTable('xlsx')} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>{t("Excel")}</button>
+            <button onClick={() => exportVisibleTable('csv')} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>{t("CSV")}</button>
+            <button onClick={() => printPage()} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>{t("PDF")}</button>
             <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }} onClick={() => window.print()}><Printer size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.print')}</button>
             <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }} onClick={fetchAccounts}><RotateCcw size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.reset')}</button>
           </div>
@@ -71,10 +71,10 @@ const AccountBalance = () => {
         <table className="custom-table" style={{ border: '1px solid #d1d5db' }}>
           <thead>
             <tr>
-              <th style={{ width: '80px', textAlign: 'left', paddingLeft: '12px' }}>ID NO<span style={{ fontSize: '10px', verticalAlign: 'super', marginLeft: '4px' }}>↑↓</span></th>
-              <th style={{ textAlign: 'left' }}>TITLE<span style={{ fontSize: '10px', verticalAlign: 'super', marginLeft: '4px' }}>↑↓</span></th>
-              <th style={{ textAlign: 'left' }}>ACCOUNT<span style={{ fontSize: '10px', verticalAlign: 'super', marginLeft: '4px' }}>↑↓</span></th>
-              <th style={{ textAlign: 'left' }}>BALANCE<span style={{ fontSize: '10px', verticalAlign: 'super', marginLeft: '4px' }}>↑↓</span></th>
+              <th style={{ width: '80px', textAlign: 'left', paddingLeft: '12px' }}>{t("ID NO")}<span style={{ fontSize: '10px', verticalAlign: 'super', marginLeft: '4px' }}>↑↓</span></th>
+              <th style={{ textAlign: 'left' }}>{t("TITLE")}<span style={{ fontSize: '10px', verticalAlign: 'super', marginLeft: '4px' }}>↑↓</span></th>
+              <th style={{ textAlign: 'left' }}>{t("ACCOUNT")}<span style={{ fontSize: '10px', verticalAlign: 'super', marginLeft: '4px' }}>↑↓</span></th>
+              <th style={{ textAlign: 'left' }}>{t("BALANCE")}<span style={{ fontSize: '10px', verticalAlign: 'super', marginLeft: '4px' }}>↑↓</span></th>
             </tr>
           </thead>
           <tbody>
@@ -82,18 +82,18 @@ const AccountBalance = () => {
               <tr key={acc.id || idx}>
                 <td style={{ textAlign: 'left', paddingLeft: '12px' }}>{idx + 1}</td>
                 <td style={{ textAlign: 'left' }}>{acc.name}</td>
-                <td style={{ textAlign: 'left' }}>{acc.account_number || acc.accountNumber || 'N/A'}</td>
+                <td style={{ textAlign: 'left' }}>{acc.account_number || acc.accountNumber || t("N/A")}</td>
                 <td style={{ textAlign: 'left' }}>৳ {Number(acc.balance || 0).toLocaleString()}</td>
               </tr>
             ))}
             {loading && (
               <tr>
-                <td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>Loading account balances...</td>
+                <td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>{t("Loading account balances...")}</td>
               </tr>
             )}
             {!loading && (accounts || []).length === 0 && (
               <tr>
-                <td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No accounts found.</td>
+                <td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>{t("No accounts found.")}</td>
               </tr>
             )}
           </tbody>

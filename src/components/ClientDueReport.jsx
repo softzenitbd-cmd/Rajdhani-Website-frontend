@@ -4,6 +4,7 @@ import TableToolbar from './TableToolbar';
 import { crmService } from '../services/crmService';
 import { useToast } from '../context/ToastContext';
 import { toList, money, nameOf } from '../utils/apiHelpers';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Shared client due report → /api/crm/reports/client-due/
@@ -15,6 +16,7 @@ const num = (r, ...keys) => {
 };
 
 const ClientDueReport = ({ mode = 'all', title = 'All Due Report' }) => {
+  const { t } = useTranslation();
   const toast = useToast();
   const [rows, setRows] = useState([]);
   const [clients, setClients] = useState([]);
@@ -40,7 +42,7 @@ const ClientDueReport = ({ mode = 'all', title = 'All Due Report' }) => {
       if (f.onlyDue) filters.has_due = 'true';
       setRows(toList(await crmService.getClientDueReport(filters)));
     } catch (e) {
-      toast.error(e.message || 'Failed to load due report');
+      toast.error(e.message || t("Failed to load due report"));
     } finally {
       setLoading(false);
     }
@@ -105,36 +107,36 @@ const ClientDueReport = ({ mode = 'all', title = 'All Due Report' }) => {
           <div className="no-print" style={{ display: 'flex', justifyContent: 'center', gap: '16px', alignItems: 'flex-end', marginBottom: '24px', flexWrap: 'wrap' }}>
             {mode === 'client' && (
               <div style={{ width: '300px' }}>
-                <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>Search By Client</label>
+                <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Search By Client")}</label>
                 <select value={clientId} onChange={(e) => setClientId(e.target.value)} style={selectStyle}>
-                  <option value="">All Clients</option>
+                  <option value="">{t("All Clients")}</option>
                   {clients.map((c) => <option key={c.id || c.uuid} value={c.id || c.uuid}>{c.name}{c.phone ? ` (${c.phone})` : ''}</option>)}
                 </select>
               </div>
             )}
             {mode === 'group' && (
               <div style={{ width: '300px' }}>
-                <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>Search By Group</label>
+                <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Search By Group")}</label>
                 <select value={groupId} onChange={(e) => setGroupId(e.target.value)} style={selectStyle}>
-                  <option value="">All Groups (summary)</option>
+                  <option value="">{t("All Groups (summary)")}</option>
                   {groups.map((g) => <option key={g.id || g.uuid} value={g.id || g.uuid}>{g.name}</option>)}
                 </select>
               </div>
             )}
             <div style={{ width: '260px' }}>
-              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>Quick Search</label>
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="name / phone / address" style={selectStyle} />
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Quick Search")}</label>
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("name / phone / address")} style={selectStyle} />
             </div>
             <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', paddingBottom: '10px', cursor: 'pointer' }}>
-              <input type="checkbox" checked={onlyDue} onChange={(e) => setOnlyDue(e.target.checked)} /> Only with due
+              <input type="checkbox" checked={onlyDue} onChange={(e) => setOnlyDue(e.target.checked)} /> {t("Only with due")}
             </label>
             <button onClick={() => { setClientId(''); setGroupId(''); setSearch(''); setOnlyDue(true); }} style={{ background: '#7e8a9f', color: 'white', padding: '10px 32px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', height: '42px' }}>
-              Clear Filter
+              {t("Clear Filter")}
             </button>
           </div>
 
           <div style={{ textAlign: 'center', marginBottom: '24px', border: '1px solid #94a3b8' }}>
-            <div style={{ background: '#94a3b8', color: 'white', padding: '8px', fontSize: '11px', fontWeight: 'bold' }}>TOTAL DUE</div>
+            <div style={{ background: '#94a3b8', color: 'white', padding: '8px', fontSize: '11px', fontWeight: 'bold' }}>{t("TOTAL DUE")}</div>
             <div style={{ padding: '12px', fontSize: '18px', fontWeight: 'bold', color: '#dc2626' }}>৳ {money(totalDue)}</div>
           </div>
 
@@ -144,22 +146,22 @@ const ClientDueReport = ({ mode = 'all', title = 'All Due Report' }) => {
             <table className="custom-table" style={{ width: '100%', fontSize: '11px', textAlign: 'center' }}>
               <thead>
                 <tr style={{ background: '#94a3b8', color: 'white', textTransform: 'uppercase' }}>
-                  <th style={{ ...th, width: '40px' }}>SL</th>
-                  {grouped ? <><th style={{ ...th, textAlign: 'left' }}>GROUP</th><th style={th}>CLIENTS</th></> : <><th style={{ ...th, textAlign: 'left' }}>CLIENT INFO</th><th style={th}>GROUP</th></>}
-                  <th style={th}>PREVIOUS DUE</th>
-                  <th style={th}>SALES</th>
-                  <th style={th}>TOTAL BILL</th>
-                  <th style={th}>SALES RETURN</th>
-                  <th style={th}>COLLECTION</th>
-                  <th style={th}>RETURN</th>
-                  <th style={th}>DUE</th>
+                  <th style={{ ...th, width: '40px' }}>{t("SL")}</th>
+                  {grouped ? <><th style={{ ...th, textAlign: 'left' }}>{t("GROUP")}</th><th style={th}>{t("CLIENTS")}</th></> : <><th style={{ ...th, textAlign: 'left' }}>{t("CLIENT INFO")}</th><th style={th}>{t("GROUP")}</th></>}
+                  <th style={th}>{t("PREVIOUS DUE")}</th>
+                  <th style={th}>{t("SALES")}</th>
+                  <th style={th}>{t("TOTAL BILL")}</th>
+                  <th style={th}>{t("SALES RETURN")}</th>
+                  <th style={th}>{t("COLLECTION")}</th>
+                  <th style={th}>{t("RETURN")}</th>
+                  <th style={th}>{t("DUE")}</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="10" style={{ padding: '24px', color: '#64748b' }}>Loading...</td></tr>
+                  <tr><td colSpan="10" style={{ padding: '24px', color: '#64748b' }}>{t("Loading...")}</td></tr>
                 ) : visible.length === 0 ? (
-                  <tr><td colSpan="10" style={{ padding: '24px', color: '#64748b' }}>No records found</td></tr>
+                  <tr><td colSpan="10" style={{ padding: '24px', color: '#64748b' }}>{t("No records found")}</td></tr>
                 ) : (
                   visible.map((r, i) => (
                     <tr key={r.id || r.group || i}>
@@ -169,9 +171,9 @@ const ClientDueReport = ({ mode = 'all', title = 'All Due Report' }) => {
                       ) : (
                         <>
                           <td style={{ ...td, textAlign: 'left' }}>
-                            <div><b>Name :</b> {r.name}</div>
-                            {r.address && <div><b>Address :</b> {r.address}</div>}
-                            {r.phone && <div><b>Phone :</b> {r.phone}</div>}
+                            <div><b>{t("Name :")}</b> {r.name}</div>
+                            {r.address && <div><b>{t("Address :")}</b> {r.address}</div>}
+                            {r.phone && <div><b>{t("Phone :")}</b> {r.phone}</div>}
                           </td>
                           <td style={td}>{r.group || '-'}</td>
                         </>
@@ -190,7 +192,7 @@ const ClientDueReport = ({ mode = 'all', title = 'All Due Report' }) => {
               {visible.length > 0 && (
                 <tfoot>
                   <tr style={{ background: '#f1f5f9', fontWeight: 'bold' }}>
-                    <td colSpan="3" style={{ ...td, textAlign: 'right' }}>TOTAL</td>
+                    <td colSpan="3" style={{ ...td, textAlign: 'right' }}>{t("TOTAL")}</td>
                     {['prevDue', 'sales', 'totalBill', 'salesReturn', 'collection', 'moneyReturn', 'due'].map((k) => (
                       <td key={k} style={{ ...td, color: k === 'due' ? '#dc2626' : undefined }}>{money(filtered.reduce((s, r) => s + r[k], 0))}</td>
                     ))}

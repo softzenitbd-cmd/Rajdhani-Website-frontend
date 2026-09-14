@@ -98,12 +98,12 @@ const ProductList = () => {
   };
 
   const handleDeleteProduct = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    if (!window.confirm(t("Are you sure you want to delete this product?"))) return;
     try {
       await productService.deleteProduct(id);
       
       setProducts(prev => prev.filter(p => p.id !== id));
-      toast.success("Product deleted successfully!");
+      toast.success(t("Product deleted successfully!"));
     } catch (err) {
       console.error("Error deleting product:", err);
       setProducts(prev => prev.filter(p => p.id !== id));
@@ -116,28 +116,28 @@ const ProductList = () => {
       
       {/* Center Title */}
       <div style={{ textAlign: 'center', marginBottom: '40px', marginTop: '20px' }}>
-        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>Product List</h2>
+        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>{t("Product List")}</h2>
       </div>
 
       <div className="card-body">
         {/* Filters */}
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px', marginBottom: '24px' }}>
           <div>
-            <div style={{ fontSize: '12px', background: 'var(--info)', color: 'white', display: 'inline-block', padding: '2px 8px', borderRadius: '4px', marginBottom: '4px' }}>Search All</div>
+            <div style={{ fontSize: '12px', background: 'var(--info)', color: 'white', display: 'inline-block', padding: '2px 8px', borderRadius: '4px', marginBottom: '4px' }}>{t("Search All")}</div>
             <div className="form-input floating-label" style={{ borderRadius: '4px' }}>
               <input 
                 type="text" 
                 name="search"
                 value={filters.search}
                 onChange={handleFilterChange}
-                placeholder="Product Name or Code" 
+                placeholder={t("Product Name or Code")} 
                 style={{ padding: '10px', width: '100%' }} 
               />
             </div>
           </div>
           
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>Search By Group</div>
+            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t("Search By Group")}</div>
             <div className="form-input floating-label" style={{ borderRadius: '4px' }}>
               <select 
                 name="group"
@@ -145,7 +145,7 @@ const ProductList = () => {
                 onChange={handleFilterChange}
                 style={{ padding: '10px', width: '100%' }}
               >
-                <option value="">Select Product Group</option>
+                <option value="">{t("Select Product Group")}</option>
                 {groups.map(g => (
                   <option key={g.id} value={g.id}>{g.name}</option>
                 ))}
@@ -154,7 +154,7 @@ const ProductList = () => {
           </div>
 
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>Search By Brand</div>
+            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t("Search By Brand")}</div>
             <div className="form-input floating-label" style={{ borderRadius: '4px' }}>
               <select 
                 name="brand"
@@ -162,7 +162,7 @@ const ProductList = () => {
                 onChange={handleFilterChange}
                 style={{ padding: '10px', width: '100%' }}
               >
-                <option value="">Select Product Brand</option>
+                <option value="">{t("Select Product Brand")}</option>
                 {brands.map(b => (
                   <option key={b.id} value={b.id}>{b.name}</option>
                 ))}
@@ -201,24 +201,24 @@ const ProductList = () => {
             className="btn" 
             style={{ background: 'var(--text-muted)', color: 'white', padding: '12px 48px', borderRadius: '4px', fontSize: '16px', width: '40%', cursor: 'pointer' }}
           >
-            Clear Filter
+            {t("Clear Filter")}
           </button>
         </div>
 
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
-            Showing {products.length} entries
+            {t("Showing")} {products.length} {t("entries")}
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>
             <button className="btn" onClick={handleExportExcel} style={{ background: '#059669', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-              📊 Excel
+              {t("📊 Excel")}
             </button>
             <button className="btn" onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-              Print
+              {t("Print")}
             </button>
             <button className="btn" onClick={fetchProducts} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-              <RotateCcw size={14} /> Reset
+              <RotateCcw size={14} /> {t("Reset")}
             </button>
           </div>
         </div>
@@ -228,23 +228,23 @@ const ProductList = () => {
           <table className="custom-table" style={{ width: '100%', minWidth: '1200px', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--secondary)', color: 'white' }}>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>ID NO ↕</th>
-                <th style={{ textAlign: 'left', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>PRODUCT DETAILS ↕</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>BARCODE NUMBER</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>STOCK WARNING</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>OPENING STOCK</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>CREATED AT ↕</th>
-                <th style={{ textAlign: 'center', padding: '12px', fontSize: '11px' }}>ACTION</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("ID NO ↕")}</th>
+                <th style={{ textAlign: 'left', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("PRODUCT DETAILS ↕")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("BARCODE NUMBER")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("STOCK WARNING")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("OPENING STOCK")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("CREATED AT ↕")}</th>
+                <th style={{ textAlign: 'center', padding: '12px', fontSize: '11px' }}>{t("ACTION")}</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="7" style={{ textAlign: 'center', padding: '24px' }}>Loading products...</td>
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '24px' }}>{t("Loading products...")}</td>
                 </tr>
               ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan="7" style={{ textAlign: 'center', padding: '24px' }}>No products found.</td>
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '24px' }}>{t("No products found.")}</td>
                 </tr>
               ) : (
                 products.map((prod, index) => (
@@ -253,7 +253,7 @@ const ProductList = () => {
                     <td style={{ textAlign: 'left', padding: '8px', borderRight: '1px solid #e2e8f0' }}>
                       <div style={{ fontWeight: 'bold' }}>{prod.name}</div>
                       <div style={{ color: 'var(--text-muted)' }}>
-                        Buy Price: ৳{prod.purchase_price || prod.buy || '0.00'} | Sell Price: ৳{prod.sales_price || prod.sell || '0.00'} | Unit: {prod.unit_name || prod.unit || 'PEACE'}
+                        {t("Buy Price: ৳")}{prod.purchase_price || prod.buy || '0.00'} {t("| Sell Price: ৳")}{prod.sales_price || prod.sell || '0.00'} {t("| Unit:")} {prod.unit_name || prod.unit || t("PEACE")}
                       </div>
                     </td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.code || prod.barcode || '-'}</td>
@@ -262,10 +262,10 @@ const ProductList = () => {
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.created_at ? new Date(prod.created_at).toLocaleDateString() : (prod.createdAt || '-')}</td>
                     <td style={{ textAlign: 'center', padding: '8px' }}>
                       <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
-                        <button onClick={() => navigate('/product/create', { state: { product: prod } })} className="action-btn-sm edit" style={{ background: 'var(--info)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title="Edit Product">
+                        <button onClick={() => navigate('/product/create', { state: { product: prod } })} className="action-btn-sm edit" style={{ background: 'var(--info)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title={t("Edit Product")}>
                           <Edit size={14} />
                         </button>
-                        <button onClick={() => handleDeleteProduct(prod.id)} className="action-btn-sm delete" style={{ background: 'var(--danger)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title="Delete Product">
+                        <button onClick={() => handleDeleteProduct(prod.id)} className="action-btn-sm delete" style={{ background: 'var(--danger)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title={t("Delete Product")}>
                           <Trash2 size={14} />
                         </button>
                       </div>

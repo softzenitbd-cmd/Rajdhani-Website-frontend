@@ -8,12 +8,13 @@ import { companyStore } from '../services/companyStore';
 
 // Small pop-up calculator used from the header
 const CalculatorPopup = ({ onClose }) => {
+  const { t } = useTranslation();
   const [expr, setExpr] = useState('');
   const [result, setResult] = useState('');
 
   const evaluate = () => {
     try {
-      if (!/^[\d+\-*/().%\s]+$/.test(expr)) throw new Error('bad');
+      if (!/^[\d+\-*/().%\s]+$/.test(expr)) throw new Error(t("bad"));
       // eslint-disable-next-line no-new-func
       const val = Function(`"use strict"; return (${expr.replace(/%/g, '/100')})`)();
       setResult(Number.isFinite(val) ? String(+val.toFixed(4)) : 'Error');
@@ -27,7 +28,7 @@ const CalculatorPopup = ({ onClose }) => {
   return (
     <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '12px', width: '240px', background: 'white', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.15)', padding: '12px', zIndex: 100, color: '#1e293b' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <strong style={{ fontSize: '13px' }}>Calculator</strong>
+        <strong style={{ fontSize: '13px' }}>{t("Calculator")}</strong>
         <X size={16} style={{ cursor: 'pointer' }} onClick={onClose} />
       </div>
       <input
@@ -42,7 +43,7 @@ const CalculatorPopup = ({ onClose }) => {
         {keys.map((k) => (
           <button key={k} onClick={() => setExpr((p) => p + k)} style={{ padding: '8px 0', border: '1px solid #e2e8f0', background: '#f8fafc', borderRadius: '4px', cursor: 'pointer' }}>{k}</button>
         ))}
-        <button onClick={() => { setExpr(''); setResult(''); }} style={{ gridColumn: 'span 2', padding: '8px 0', border: 'none', background: '#ef4444', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>C</button>
+        <button onClick={() => { setExpr(''); setResult(''); }} style={{ gridColumn: 'span 2', padding: '8px 0', border: 'none', background: '#ef4444', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>{t("C")}</button>
         <button onClick={evaluate} style={{ gridColumn: 'span 2', padding: '8px 0', border: 'none', background: '#4f46e5', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>=</button>
       </div>
     </div>
@@ -105,7 +106,7 @@ const Header = ({ toggleSidebar }) => {
     loadShortcuts().then(setShortcuts);
     return () => window.removeEventListener(SHORTCUT_EVENT, sync);
   }, []);
-  const navButtons = shortcuts.map((s) => ({ label: s.labelKey ? t(s.labelKey) : s.title, icon: <PlusCircle size={14} />, path: s.path }));
+  const navButtons = shortcuts.map((s) => ({ label: s.labelKey ? t(s.labelKey) : t(s.title), icon: <PlusCircle size={14} />, path: s.path }));
 
   const profileMenu = [
     { label: t('header.my_profile'), icon: <User size={16} />, path: '/profile' },
@@ -130,7 +131,7 @@ const Header = ({ toggleSidebar }) => {
 
   const avatarNode = (size) => (
     avatar ? (
-      <img src={avatar} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      <img src={avatar} alt={t("Profile")} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
     ) : (
       <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e0e7ff', color: '#4338ca', fontWeight: 'bold', fontSize: size }}>
         {(fullName || 'U').charAt(0).toUpperCase()}
@@ -214,7 +215,7 @@ const Header = ({ toggleSidebar }) => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '2px', fontWeight: 'bold' }}>
-            <span>A</span>
+            <span>{t("A")}</span>
             <span style={{ fontSize: '10px' }}>文</span>
           </div>
           {t('header.switch_lang')}

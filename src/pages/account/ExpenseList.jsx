@@ -73,12 +73,12 @@ const ExpenseList = () => {
         amount: String(editAmount),
         description: editDesc
       });
-      toast.success('Expense updated successfully! Balances and ledgers have been auto-adjusted.');
+      toast.success(t("Expense updated successfully! Balances and ledgers have been auto-adjusted."));
       setEditingExpense(null);
       fetchExpenses();
     } catch (error) {
       console.error('Error updating expense:', error);
-      toast.error('Update failed. Please try again.');
+      toast.error(t("Update failed. Please try again."));
     } finally {
       setSavingEdit(false);
     }
@@ -106,13 +106,13 @@ const ExpenseList = () => {
         {/* Title */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0 24px' }}>
           <div>
-            <h1 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>Expense List (Costs & Payments)</h1>
-            <span style={{ fontSize: '13px', color: '#64748b' }}>Real-time view of all organizational expenses and payments</span>
+            <h1 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>{t("Expense List (Costs & Payments)")}</h1>
+            <span style={{ fontSize: '13px', color: '#64748b' }}>{t("Real-time view of all organizational expenses and payments")}</span>
           </div>
           <div style={{ display: 'flex', gap: '10px' }}>
             <Link to="/account/expense-create" style={{ textDecoration: 'none' }}>
               <button className="btn-green" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Plus size={16} /> Add New Expense
+                <Plus size={16} /> {t("Add New Expense")}
               </button>
             </Link>
           </div>
@@ -151,7 +151,7 @@ const ExpenseList = () => {
             >
               <div style={{ background: '#2563eb', color: 'white', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>
-                  Edit Expense &bull; Ref: {editingExpense.reference || editingExpense.id}
+                  {t("Edit Expense • Ref:")} {editingExpense.reference || editingExpense.id}
                 </h3>
                 <button onClick={() => setEditingExpense(null)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <X size={18} />
@@ -159,7 +159,7 @@ const ExpenseList = () => {
               </div>
               <form onSubmit={handleSaveEdit} style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#1e293b', marginBottom: '8px' }}>Amount (৳) *</label>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#1e293b', marginBottom: '8px' }}>{t("Amount (৳) *")}</label>
                   <input 
                     type="number" 
                     step="0.01" 
@@ -170,7 +170,7 @@ const ExpenseList = () => {
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#1e293b', marginBottom: '8px' }}>Description / Note</label>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#1e293b', marginBottom: '8px' }}>{t("Description / Note")}</label>
                   <textarea 
                     rows="4" 
                     value={editDesc} 
@@ -180,10 +180,10 @@ const ExpenseList = () => {
                 </div>
                 <div style={{ marginTop: 'auto', display: 'flex', gap: '12px', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
                   <button type="button" onClick={() => setEditingExpense(null)} style={{ padding: '10px 18px', border: '1px solid #cbd5e1', background: 'white', borderRadius: '6px', cursor: 'pointer' }}>
-                    Cancel
+                    {t("Cancel")}
                   </button>
                   <button type="submit" disabled={savingEdit} style={{ padding: '10px 22px', background: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>
-                    {savingEdit ? 'Saving...' : 'Update & Re-adjust'}
+                    {savingEdit ? t("Saving...") : t("Update & Re-adjust")}
                   </button>
                 </div>
               </form>
@@ -194,18 +194,18 @@ const ExpenseList = () => {
         {/* Filter Section */}
         <form onSubmit={handleFilter} className="filter-grid" style={{ gridTemplateColumns: '1.5fr 1fr 1fr auto', gap: '16px', marginBottom: '20px', alignItems: 'end' }}>
           <div>
-            <label className="filter-label">Search Description, Supplier or Staff</label>
+            <label className="filter-label">{t("Search Description, Supplier or Staff")}</label>
             <input 
               type="text" 
               className="input-outline" 
-              placeholder="Search reference or text..." 
+              placeholder={t("Search reference or text...")} 
               value={searchTerm} 
               onChange={(e) => setSearchTerm(e.target.value)} 
               style={{ width: '100%', padding: '10px' }}
             />
           </div>
           <div>
-            <label className="filter-label">From Date</label>
+            <label className="filter-label">{t("From Date")}</label>
             <input 
               type="date" 
               className="input-outline" 
@@ -215,7 +215,7 @@ const ExpenseList = () => {
             />
           </div>
           <div>
-            <label className="filter-label">To Date</label>
+            <label className="filter-label">{t("To Date")}</label>
             <input 
               type="date" 
               className="input-outline" 
@@ -226,10 +226,10 @@ const ExpenseList = () => {
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button type="submit" className="btn-blue" style={{ padding: '10px 16px', fontWeight: 'bold' }}>
-              <Search size={14} style={{ marginRight: '4px', display: 'inline' }} /> Filter
+              <Search size={14} style={{ marginRight: '4px', display: 'inline' }} /> {t("Filter")}
             </button>
             <button type="button" onClick={handleClear} className="btn-secondary" style={{ padding: '10px 16px' }}>
-              Reset
+              {t("Reset")}
             </button>
           </div>
         </form>
@@ -237,11 +237,11 @@ const ExpenseList = () => {
         {/* Table Section */}
         <div className="table-header-controls" style={{ marginBottom: '16px' }}>
           <div className="show-entries">
-            Total Expenses: <strong>{expenses.length}</strong>
+            {t("Total Expenses:")} <strong>{expenses.length}</strong>
           </div>
           <div className="table-controls-right">
             <button className="btn-blue" onClick={() => window.print()}><Printer size={16} /> {t('common.print')}</button>
-            <button className="btn-blue" onClick={fetchExpenses}><RotateCcw size={16} /> Reload</button>
+            <button className="btn-blue" onClick={fetchExpenses}><RotateCcw size={16} /> {t("Reload")}</button>
           </div>
         </div>
 
@@ -249,37 +249,37 @@ const ExpenseList = () => {
           <table className="custom-table" style={{ width: '100%' }}>
             <thead>
               <tr style={{ background: '#718096', color: 'white' }}>
-                <th>SL</th>
-                <th>DATE</th>
-                <th>REF / ID</th>
-                <th>CATEGORY</th>
-                <th>ACCOUNT</th>
-                <th>TYPE</th>
-                <th>DESCRIPTION</th>
-                <th style={{ textAlign: 'right' }}>AMOUNT (৳)</th>
-                <th style={{ textAlign: 'center' }}>ACTION</th>
+                <th>{t("SL")}</th>
+                <th>{t("DATE")}</th>
+                <th>{t("REF / ID")}</th>
+                <th>{t("CATEGORY")}</th>
+                <th>{t("ACCOUNT")}</th>
+                <th>{t("TYPE")}</th>
+                <th>{t("DESCRIPTION")}</th>
+                <th style={{ textAlign: 'right' }}>{t("AMOUNT (৳)")}</th>
+                <th style={{ textAlign: 'center' }}>{t("ACTION")}</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="9" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>Loading live expenses...</td>
+                  <td colSpan="9" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>{t("Loading live expenses...")}</td>
                 </tr>
               ) : expenses.length === 0 ? (
                 <tr>
-                  <td colSpan="9" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No expense records found.</td>
+                  <td colSpan="9" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>{t("No expense records found.")}</td>
                 </tr>
               ) : (
                 expenses.map((row, idx) => (
                   <tr key={row.id || idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
                     <td style={{ fontWeight: '600', color: '#64748b' }}>{idx + 1}</td>
-                    <td>{row.date ? String(row.date).split('T')[0] : 'N/A'}</td>
+                    <td>{row.date ? String(row.date).split('T')[0] : t("N/A")}</td>
                     <td style={{ fontWeight: '600' }}>{row.reference || row.idNo || `#${row.id}`}</td>
-                    <td><span style={{ fontWeight: '600', color: 'var(--text-main)' }}>{row.category_name || row.category || 'General'}</span></td>
-                    <td>{row.account_name || row.account || 'Cash'}</td>
+                    <td><span style={{ fontWeight: '600', color: 'var(--text-main)' }}>{row.category_name || row.category || t("General")}</span></td>
+                    <td>{row.account_name || row.account || t("Cash")}</td>
                     <td>
                       <span style={getTypeStyle(row.transaction_type || row.type)}>
-                        {row.transaction_type || row.type || 'Cost'}
+                        {row.transaction_type || row.type || t("Cost")}
                       </span>
                     </td>
                     <td style={{ color: '#4b5563', maxWidth: '240px' }}>{row.description || row.desc || '-'}</td>
@@ -290,7 +290,7 @@ const ExpenseList = () => {
                       <button 
                         onClick={() => startEdit(row)} 
                         style={{ background: '#0284c7', color: 'white', border: 'none', padding: '6px 8px', borderRadius: '4px', cursor: 'pointer' }}
-                        title="Edit Expense & Re-adjust"
+                        title={t("Edit Expense & Re-adjust")}
                       >
                         <Edit size={14} />
                       </button>

@@ -1,7 +1,11 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import bnUi from './locales/bn.json';
 
-// the translations
+export const LANG_STORAGE_KEY = 'lang';
+export const SUPPORTED_LANGS = ['en', 'bn'];
+
+// Structured (namespaced) translations used by the shell: menu, header, dashboard, modals …
 const resources = {
   en: {
     translation: {
@@ -40,6 +44,7 @@ const resources = {
         "add_user": "Add User",
         "settings": "Settings",
         "shortcut_menu": "Shortcut Menu",
+        "add_shortcut": "Add Shortcut",
         "company_info": "Company Information",
         "server_info": "Server Information"
       },
@@ -216,6 +221,123 @@ const resources = {
         "Color": "Color",
         "title": "SETTINGS",
         "user_permissions": "User Permissions"
+      },
+      "invoice": {
+        "top_banner_shortcut": "ADD INVOICE | CTRL + S = SAVE | ALT + S = SAVE & PRINT | CTRL + D = SAVE AS DRAFT",
+        "select_customer": "Select Customer / Client",
+        "issued_date": "Issued Date",
+        "barcode_header": "Barcode Number",
+        "barcode_placeholder": "Scan Barcode & Press Enter",
+        "select_product": "Select Product",
+        "sl": "SL",
+        "product": "PRODUCT",
+        "stock": "STOCK",
+        "price": "PRICE",
+        "quantity": "QUANTITY",
+        "unit": "UNIT",
+        "total": "TOTAL",
+        "action": "ACTION",
+        "no_items": "No items added yet. Select a product from dropdown or scan barcode.",
+        "total_quantity": "Total Quantity",
+        "total_balance_acc": "Select Account (Total Balance)",
+        "cash_sell_acc": "Select Sales / Cash Account",
+        "discount_amount": "Discount Amount",
+        "receive_amount": "Receive Amount",
+        "invoice_bill": "Invoice Bill",
+        "discount_minus": "Discount (-)",
+        "previous_due": "Previous Due",
+        "total_bill": "Total Bill",
+        "payment": "Payment",
+        "total_due": "Total Due",
+        "sms": "SMS",
+        "cancel": "Cancel",
+        "save_draft": "Save As Draft",
+        "save_print": "Save & Print",
+        "add_invoice": "Add Invoice",
+        "search_helper": "Please enter 2 or more characters",
+        "sales_cash_memo": "Sales Cash Memo",
+        "customer_name": "Customer Name",
+        "invoice_date": "Invoice Date",
+        "category": "Category",
+        "invoice_status": "Invoice Status",
+        "item_details": "Item Details",
+        "qty": "Qty",
+        "rate": "Rate",
+        "total_amount": "Total Amount",
+        "paid_received": "Paid / Received Amount",
+        "print_memo": "Print Memo",
+        "close": "Close",
+        "invoice_list_title": "Bill Invoice List",
+        "general_invoices": "General Sales Invoices",
+        "invoice_create": "Invoice Create",
+        "from_date": "From Date",
+        "to_date": "To Date",
+        "search_placeholder": "Search Invoice / Customer",
+        "clear_filter": "Clear Filter",
+        "showing_entries": "Showing {{count}} entries",
+        "print_list": "Print List",
+        "refresh": "Refresh",
+        "client_header": "CLIENT",
+        "invoice_id_no": "INVOICE ID NO",
+        "category_header": "CATEGORY",
+        "return_qty": "RETURN QUANTITY",
+        "bill_amount": "BILL AMOUNT",
+        "discount_header": "DISCOUNT",
+        "type_header": "TYPE",
+        "printable": "PRINTABLE",
+        "action_header": "ACTION"
+      },
+      "product_modal": {
+        "add_new_product": "Add New Product",
+        "product_name": "Product Name",
+        "product_name_placeholder": "Product Name",
+        "buying_price": "Buying Price",
+        "buying_price_placeholder": "Buying Price",
+        "selling_price": "Selling Price",
+        "selling_price_placeholder": "Selling Price",
+        "select_unit": "Select a Unit",
+        "opening_stock": "Opening Stock",
+        "opening_stock_placeholder": "Opening Stock",
+        "select_group": "Select Product Group",
+        "add": "Add",
+        "cancel": "Cancel",
+        "create_unit_title": "Create Product Unit",
+        "create_group_title": "Create Product Group",
+        "unit_name": "Unit Name",
+        "group_name": "Group Name",
+        "save": "Save",
+        "close": "Close"
+      },
+      "account_modal": {
+        "title": "Add New Account",
+        "account_title": "Account Title",
+        "initial_balance": "Initial Balance",
+        "account_number": "Account Number",
+        "contact_person": "Contact Person",
+        "phone_number": "Phone Number",
+        "account_description": "Account Description",
+        "add_btn": "Add New Account",
+        "cancel": "Cancel",
+        "title_required": "Account title is required",
+        "success": "Account added successfully!",
+        "error": "Failed to create account"
+      },
+      "client_modal": {
+        "add_new_client": "Add New Client",
+        "client_name": "Client Name",
+        "address": "Address",
+        "phone": "Phone",
+        "phone_optional": "Phone (Optional)",
+        "previous_due": "Previous Due",
+        "select_group": "Select Group",
+        "client_add": "Client Add",
+        "cancel": "Cancel",
+        "create_group_title": "Create Client Group",
+        "group_name": "Group Name",
+        "save": "Save",
+        "group_created": "Client Group created successfully!",
+        "name_required": "Please enter a client name",
+        "created_success": "Client added successfully!"
       }
     }
   },
@@ -255,7 +377,8 @@ const resources = {
         "role": "ভূমিকা",
         "add_user": "যুক্ত ইউজার",
         "settings": "সেটিংস",
-        "shortcut_menu": "শর্টকাট মেনু",
+        "shortcut_menu": "Shortcut Menu",
+        "add_shortcut": "শর্টকাট যুক্ত করুন",
         "company_info": "কোম্পানির তথ্য",
         "server_info": "সার্ভার তথ্য"
       },
@@ -432,20 +555,182 @@ const resources = {
         "Color": "রঙ",
         "title": "সেটিংস",
         "user_permissions": "ইউজার পারমিশন"
+      },
+      "invoice": {
+        "top_banner_shortcut": "ইনভয়েস যুক্ত করুন | CTRL + S = সংরক্ষণ | ALT + S = সংরক্ষণ & প্রিন্ট | CTRL + D = ড্রাফ্ট হিসেবে সংরক্ষণ",
+        "select_customer": "কাস্টমার নির্বাচন করুন",
+        "issued_date": "প্রদান এর তারিখ",
+        "barcode_header": "বারকোড নাম্বার",
+        "barcode_placeholder": "বারকোড নাম্বার",
+        "select_product": "পণ্য নির্বাচন করুন",
+        "sl": "সিরিয়াল",
+        "product": "পণ্য",
+        "stock": "স্টক",
+        "price": "মূল্য",
+        "quantity": "পরিমাণ",
+        "unit": "ইউনিট",
+        "total": "মোট",
+        "action": "অ্যাকশন",
+        "no_items": "কোন আইটেম যোগ করা হয়নি। ড্রপডাউন থেকে পণ্য নির্বাচন করুন অথবা বারকোড স্ক্যান করুন।",
+        "total_quantity": "মোট পরিমাণ",
+        "total_balance_acc": "অ্যাকাউন্ট নির্বাচন করুন (Total Balance)",
+        "cash_sell_acc": "অ্যাকাউন্ট নির্বাচন করুন (Cash Sell)",
+        "discount_amount": "ডিসকাউন্ট পরিমাণ",
+        "receive_amount": "জমা টাকা",
+        "invoice_bill": "ইনভয়েস বিল",
+        "discount_minus": "ডিসকাউন্ট (-)",
+        "previous_due": "পূর্বের বাকি",
+        "total_bill": "মোট বিল",
+        "payment": "পেমেন্ট",
+        "total_due": "মোট বাকি",
+        "sms": "এসএমএস",
+        "cancel": "বাতিল",
+        "save_draft": "খসড়া হিসেবে সেভ",
+        "save_print": "সংরক্ষণ ও প্রিন্ট",
+        "add_invoice": "ইনভয়েস যুক্ত করুন",
+        "search_helper": "Please enter 2 or more characters",
+        "sales_cash_memo": "বিক্রয় ক্যাশ মেমো",
+        "customer_name": "কাস্টমারের নাম",
+        "invoice_date": "ইনভয়েস তারিখ",
+        "category": "ক্যাটাগরি",
+        "invoice_status": "ইনভয়েস স্ট্যাটাস",
+        "item_details": "পণ্যের বিবরণ",
+        "qty": "পরিমাণ",
+        "rate": "দর",
+        "total_amount": "মোট টাকা",
+        "paid_received": "পরিশোধিত / জমা টাকা",
+        "print_memo": "মেমো প্রিন্ট করুন",
+        "close": "বন্ধ করুন",
+        "invoice_list_title": "বিল ইনভয়েস তালিকা",
+        "general_invoices": "সাধারণ বিক্রয় ইনভয়েস",
+        "invoice_create": "ইনভয়েস তৈরি করুন",
+        "from_date": "শুরু তারিখ",
+        "to_date": "শেষ তারিখ",
+        "search_placeholder": "ইনভয়েস / কাস্টমার খুঁজুন",
+        "clear_filter": "ফিল্টার মুছুন",
+        "showing_entries": "মোট {{count}} টি দেখাচ্ছে",
+        "print_list": "তালিকা প্রিন্ট",
+        "refresh": "রিফ্রেশ",
+        "client_header": "কাস্টমার",
+        "invoice_id_no": "ইনভয়েস আইডি",
+        "category_header": "ক্যাটাগরি",
+        "return_qty": "ফেরত পরিমাণ",
+        "bill_amount": "বিল পরিমাণ",
+        "discount_header": "ডিসকাউন্ট",
+        "type_header": "টাইপ",
+        "printable": "প্রিন্ট",
+        "action_header": "অ্যাকশন"
+      },
+      "product_modal": {
+        "add_new_product": "নতুন পণ্য যুক্ত করুন",
+        "product_name": "পণ্য নাম",
+        "product_name_placeholder": "পণ্য নাম",
+        "buying_price": "ক্রয় মূল্য",
+        "buying_price_placeholder": "ক্রয় মূল্য",
+        "selling_price": "বিক্রয় মূল্য",
+        "selling_price_placeholder": "বিক্রয় মূল্য",
+        "select_unit": "ইউনিট নির্বাচন করুন",
+        "opening_stock": "শুরুর স্টক",
+        "opening_stock_placeholder": "শুরুর স্টক",
+        "select_group": "পণ্য গ্রুপ নির্বাচন করুন",
+        "add": "যুক্ত",
+        "cancel": "বাতিল",
+        "create_unit_title": "পণ্য ইউনিট তৈরি",
+        "create_group_title": "পণ্য গ্রুপ তৈরি",
+        "unit_name": "ইউনিট নাম",
+        "group_name": "গ্রুপ নাম",
+        "save": "যুক্ত",
+        "close": "বাতিল"
+      },
+      "account_modal": {
+        "title": "নতুন একাউন্ট যুক্ত করুন",
+        "account_title": "একাউন্ট টাইটেল",
+        "initial_balance": "প্রাথমিক ব্যালেন্স",
+        "account_number": "একাউন্ট নাম্বার",
+        "contact_person": "যোগাযোগ নাম্বার",
+        "phone_number": "ফোন নাম্বার",
+        "account_description": "একাউন্ট বর্ণনা",
+        "add_btn": "একাউন্ট যুক্ত করুন",
+        "cancel": "বাতিল",
+        "title_required": "একাউন্ট টাইটেল আবশ্যিক",
+        "success": "একাউন্ট সফলভাবে যুক্ত হয়েছে!",
+        "error": "একাউন্ট যুক্ত করা সম্ভব হয়নি"
+      },
+      "client_modal": {
+        "add_new_client": "নতুন কাস্টমার যুক্ত করুন",
+        "client_name": "কাস্টমারের নাম",
+        "address": "ঠিকানা",
+        "phone": "ফোন নাম্বার",
+        "phone_optional": "ফোন (ঐচ্ছিক)",
+        "previous_due": "পূর্বের বাকি",
+        "select_group": "গ্রুপ নির্বাচন করুন",
+        "client_add": "কাস্টমার যুক্ত করুন",
+        "cancel": "বাতিল",
+        "create_group_title": "কাস্টমার গ্রুপ তৈরি",
+        "group_name": "গ্রুপ নাম",
+        "save": "যুক্ত",
+        "group_created": "কাস্টমার গ্রুপ সফলভাবে যুক্ত হয়েছে!",
+        "name_required": "কাস্টমারের নাম প্রদান করুন",
+        "created_success": "কাস্টমার সফলভাবে যুক্ত হয়েছে!"
       }
     }
   }
 };
 
+// Screens use the English text itself as the key (t("Client List")), so the nested
+// resources above are flattened to literal "menu.dashboard" style keys and merged with the
+// natural-language dictionary in src/locales/bn.json. Missing keys fall back to the English text.
+const flatten = (obj, prefix = '', out = {}) => {
+  Object.entries(obj).forEach(([k, v]) => {
+    const key = prefix ? `${prefix}.${k}` : k;
+    if (v && typeof v === 'object') flatten(v, key, out);
+    else out[key] = v;
+  });
+  return out;
+};
+
+const readStoredLang = () => {
+  try {
+    const stored = localStorage.getItem(LANG_STORAGE_KEY);
+    return SUPPORTED_LANGS.includes(stored) ? stored : 'en';
+  } catch {
+    return 'en';
+  }
+};
+
+const applyLangToDocument = (lng) => {
+  if (typeof document === 'undefined') return;
+  document.documentElement.lang = lng;
+  document.documentElement.setAttribute('data-lang', lng);
+};
+
 i18n
   .use(initReactI18next)
   .init({
-    resources,
-    lng: "en", // default language
-    fallbackLng: "en",
+    resources: {
+      en: { translation: flatten(resources.en.translation) },
+      bn: { translation: { ...bnUi, ...flatten(resources.bn.translation) } },
+    },
+    lng: readStoredLang(),
+    fallbackLng: 'en',
+    keySeparator: false,
+    nsSeparator: false,
+    returnEmptyString: false,
     interpolation: {
-      escapeValue: false
-    }
+      escapeValue: false,
+    },
   });
+
+applyLangToDocument(i18n.language);
+i18n.on('languageChanged', (lng) => {
+  try {
+    localStorage.setItem(LANG_STORAGE_KEY, lng);
+  } catch {
+    /* storage unavailable (private mode) – language still switches for this session */
+  }
+  applyLangToDocument(lng);
+});
+
+export const toggleLanguage = () => i18n.changeLanguage(i18n.language === 'bn' ? 'en' : 'bn');
 
 export default i18n;

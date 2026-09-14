@@ -6,6 +6,7 @@ import TableToolbar from '../../components/TableToolbar';
 import { communicationService } from '../../services/communicationService';
 import { useToast } from '../../context/ToastContext';
 import { toList } from '../../utils/apiHelpers';
+import { useTranslation } from 'react-i18next';
 
 const statusStyle = (s) => {
   const v = String(s || '').toLowerCase();
@@ -32,6 +33,7 @@ const bodyOf = (r) => r.body ?? r.message ?? '';
 const scheduledAt = (r) => r.scheduled_date || r.schedule_at || r.scheduled_at;
 
 const SmsScheduleReport = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
   const [rows, setRows] = useState([]);
@@ -52,7 +54,7 @@ const SmsScheduleReport = () => {
       if (f.toDate) filters.to_date = f.toDate;
       setRows(toList(await communicationService.getSmsSchedules(filters)));
     } catch (e) {
-      toast.error(e.message || 'Failed to load SMS schedules');
+      toast.error(e.message || t("Failed to load SMS schedules"));
     } finally {
       setLoading(false);
     }
@@ -61,13 +63,13 @@ const SmsScheduleReport = () => {
   useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cancel = async (r) => {
-    if (!window.confirm('Cancel this scheduled SMS?')) return;
+    if (!window.confirm(t("Cancel this scheduled SMS?"))) return;
     try {
       await communicationService.cancelSmsSchedule(r.id || r.uuid);
-      toast.success('SMS schedule cancelled');
+      toast.success(t("SMS schedule cancelled"));
       load();
     } catch (e) {
-      toast.error(e.message || 'Failed to cancel');
+      toast.error(e.message || t("Failed to cancel"));
     }
   };
 
@@ -85,9 +87,9 @@ const SmsScheduleReport = () => {
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
         <div className="premium-header no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'white' }}>
-          <h2 className="premium-title" style={{ fontSize: '18px', fontWeight: 'bold' }}>SMS Schedule Report</h2>
+          <h2 className="premium-title" style={{ fontSize: '18px', fontWeight: 'bold' }}>{t("SMS Schedule Report")}</h2>
           <button onClick={() => navigate('/sms/schedule')} style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-            <Plus size={16} /> Schedule SMS
+            <Plus size={16} /> {t("Schedule SMS")}
           </button>
         </div>
 
@@ -95,17 +97,17 @@ const SmsScheduleReport = () => {
           <PrintHeader />
 
           <form className="no-print" onSubmit={(e) => { e.preventDefault(); load(); }} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr auto', gap: '10px', marginBottom: '16px', alignItems: 'end' }}>
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search message / number" style={input} />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("Search message / number")} style={input} />
             <select value={status} onChange={(e) => setStatus(e.target.value)} style={input}>
-              <option value="">All status</option>
-              <option value="pending">Pending</option>
-              <option value="sent">Sent</option>
-              <option value="cancelled">Cancelled</option>
-              <option value="failed">Failed</option>
+              <option value="">{t("All status")}</option>
+              <option value="pending">{t("Pending")}</option>
+              <option value="sent">{t("Sent")}</option>
+              <option value="cancelled">{t("Cancelled")}</option>
+              <option value="failed">{t("Failed")}</option>
             </select>
             <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={input} />
             <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={input} />
-            <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '10px 16px', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Search size={14} /> Filter</button>
+            <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '10px 16px', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Search size={14} /> {t("Filter")}</button>
           </form>
 
           <TableToolbar entries={entries} setEntries={setEntries} total={rows.length} excelData={excelData} excelName="SMS_Schedule_Report" onReload={() => load()} onReset={reset} />
@@ -114,19 +116,19 @@ const SmsScheduleReport = () => {
             <table className="custom-table" style={{ width: '100%', fontSize: '12px' }}>
               <thead>
                 <tr>
-                  <th style={{ width: '50px', textAlign: 'center' }}>SL</th>
-                  <th>SENT TO</th>
-                  <th style={{ width: '35%' }}>MESSAGE</th>
-                  <th>SCHEDULE AT</th>
-                  <th style={{ textAlign: 'center' }}>STATUS</th>
-                  <th className="action-column" style={{ textAlign: 'center' }}>ACTION</th>
+                  <th style={{ width: '50px', textAlign: 'center' }}>{t("SL")}</th>
+                  <th>{t("SENT TO")}</th>
+                  <th style={{ width: '35%' }}>{t("MESSAGE")}</th>
+                  <th>{t("SCHEDULE AT")}</th>
+                  <th style={{ textAlign: 'center' }}>{t("STATUS")}</th>
+                  <th className="action-column" style={{ textAlign: 'center' }}>{t("ACTION")}</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="6" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>Loading...</td></tr>
+                  <tr><td colSpan="6" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("Loading...")}</td></tr>
                 ) : visible.length === 0 ? (
-                  <tr><td colSpan="6" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>No scheduled SMS found</td></tr>
+                  <tr><td colSpan="6" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("No scheduled SMS found")}</td></tr>
                 ) : (
                   visible.map((r, i) => (
                     <tr key={r.id || i}>
@@ -135,12 +137,12 @@ const SmsScheduleReport = () => {
                       <td style={{ padding: '10px', whiteSpace: 'pre-wrap' }}>{bodyOf(r)}</td>
                       <td style={{ padding: '10px' }}>{fmtDateTime(scheduledAt(r))}</td>
                       <td style={{ padding: '10px', textAlign: 'center' }}>
-                        <span style={{ padding: '2px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', textTransform: 'capitalize', ...statusStyle(r.status) }}>{r.status || 'pending'}</span>
+                        <span style={{ padding: '2px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', textTransform: 'capitalize', ...statusStyle(r.status) }}>{r.status || t("pending")}</span>
                       </td>
                       <td className="action-column" style={{ padding: '10px', textAlign: 'center' }}>
                         {isPending(r) ? (
                           <button onClick={() => cancel(r)} style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px' }}>
-                            <XCircle size={12} /> Cancel
+                            <XCircle size={12} /> {t("Cancel")}
                           </button>
                         ) : <span style={{ color: '#94a3b8' }}>—</span>}
                       </td>

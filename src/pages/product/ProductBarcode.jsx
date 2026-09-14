@@ -7,6 +7,7 @@ import JsBarcode from 'jsbarcode';
 import { useToast } from '../../context/ToastContext';
 
 const BarcodeSticker = ({ barcodeValue, name, price }) => {
+  const { t } = useTranslation();
   const svgRef = useRef(null);
 
   useEffect(() => {
@@ -30,7 +31,7 @@ const BarcodeSticker = ({ barcodeValue, name, price }) => {
   return (
     <div style={{ border: '1px dashed #94a3b8', padding: '12px', borderRadius: '6px', textAlign: 'center', background: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
       <div style={{ fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#334155', marginBottom: '2px' }}>
-        RAJDHANI GARMENTS
+        {t("RAJDHANI GARMENTS")}
       </div>
       <div style={{ fontSize: '12px', fontWeight: '600', color: '#1e293b', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {name}
@@ -42,7 +43,7 @@ const BarcodeSticker = ({ barcodeValue, name, price }) => {
       </div>
 
       <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#2563eb' }}>
-        Price: ৳{price}
+        {t("Price: ৳")}{price}
       </div>
     </div>
   );
@@ -88,7 +89,7 @@ const ProductBarcode = () => {
   const handleCreate = () => {
     const p = products.find(prod => String(prod.id) === String(selectedProductId));
     if (!p) {
-      toast.error("Please select a product first.");
+      toast.error(t("Please select a product first."));
       return;
     }
     const count = parseInt(quantity) || 1;
@@ -105,7 +106,7 @@ const ProductBarcode = () => {
       <div className="premium-card">
         <div className="premium-header" style={{ padding: '16px 24px', background: 'white', borderBottom: 'none' }}>
           <h2 className="premium-title" style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
-            Product Barcode Generator
+            {t("Product Barcode Generator")}
           </h2>
         </div>
 
@@ -119,7 +120,7 @@ const ProductBarcode = () => {
                 onChange={(e) => setSelectedProductId(e.target.value)}
                 style={{ flex: 2, padding: '12px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', background: 'white', fontSize: '14px' }}
               >
-                <option value="">Select Product</option>
+                <option value="">{t("Select Product")}</option>
                 {products.map(p => (
                   <option key={p.id} value={p.id}>
                     {p.name} ({p.code || p.barcode || '18647'}) - ৳{p.sales_price || p.price || 0}
@@ -133,12 +134,12 @@ const ProductBarcode = () => {
                 max="100"
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
-                placeholder="Qty"
+                placeholder={t("Qty")}
                 style={{ width: '80px', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '4px', textAlign: 'center', fontSize: '14px' }}
               />
 
               <button onClick={handleCreate} className="btn" style={{ background: 'var(--success)', color: 'white', padding: '0 24px', border: 'none', borderRadius: '4px', fontSize: '14px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                Create Barcodes
+                {t("Create Barcodes")}
               </button>
             </div>
           </div>
@@ -147,7 +148,7 @@ const ProductBarcode = () => {
           {generatedStickers.length > 0 && (
             <div style={{ marginBottom: '32px' }}>
               <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '16px', color: 'var(--text-muted)' }}>
-                Barcode Preview ({generatedStickers.length} Printable Stickers)
+                {t("Barcode Preview (")}{generatedStickers.length} {t("Printable Stickers)")}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: '16px' }}>
                 {generatedStickers.map((stk, idx) => (
@@ -165,7 +166,7 @@ const ProductBarcode = () => {
           {/* Bottom Controls */}
           <div>
             <button className="btn" onClick={() => window.print()} style={{ background: 'var(--info)', color: 'white', padding: '10px 20px', borderRadius: '4px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-              <Printer size={16} /> Print Barcodes
+              <Printer size={16} /> {t("Print Barcodes")}
             </button>
           </div>
         </div>

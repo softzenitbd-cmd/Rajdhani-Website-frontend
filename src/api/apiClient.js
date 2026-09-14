@@ -1,4 +1,5 @@
 import axios from 'axios';
+import i18n from '../i18n';
 
 // 1. Determine base URL
 // In development, if VITE_API_BASE_URL is empty, use empty string '' so relative calls (/api/...) get routed through Vite proxy (vite.config.js), avoiding CORS net::ERR_FAILED errors.
@@ -140,7 +141,7 @@ apiClient.interceptors.response.use(
     const customError = {
       message: extractErrorMessage(
         error.response?.data,
-        error.code === 'ECONNABORTED' ? 'Request timed out. Please try again.' : error.message || 'Something went wrong',
+        error.code === 'ECONNABORTED' ? i18n.t('Request timed out. Please try again.') : error.message || i18n.t('Something went wrong'),
         status
       ),
       status,

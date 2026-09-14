@@ -43,6 +43,10 @@
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+input[type="date"] {
+  cursor: pointer;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -56,6 +60,15 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   font-size: clamp(14px, 1vw + 10px, 16px);
+}
+
+/* Bangla UI: <html lang="bn"> is set by src/i18n.js when the language switches */
+html[lang="bn"] body,
+html[lang="bn"] button,
+html[lang="bn"] input,
+html[lang="bn"] select,
+html[lang="bn"] textarea {
+  font-family: 'Hind Siliguri', 'Inter', 'Noto Sans Bengali', sans-serif;
 }
 
 /* Layout */

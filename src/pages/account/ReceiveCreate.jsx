@@ -6,8 +6,10 @@ import AddOptionModal from '../../components/AddOptionModal';
 import { accountingService } from '../../services/accountingService';
 import { crmService } from '../../services/crmService';
 import { useToast } from '../../context/ToastContext';
+import { useTranslation } from 'react-i18next';
 
 const ReceiveCreate = () => {
+  const { t } = useTranslation();
   const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -47,7 +49,7 @@ const ReceiveCreate = () => {
 
       setClients(clientData);
     } catch (err) {
-      toast.error(err?.message || 'Failed to load form data');
+      toast.error(err?.message || t("Failed to load form data"));
     }
   };
 
@@ -70,7 +72,7 @@ const ReceiveCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.accountId || !formData.amount) {
-      toast.error("Please enter an amount and select an account.");
+      toast.error(t("Please enter an amount and select an account."));
       return;
     }
 
@@ -91,12 +93,12 @@ const ReceiveCreate = () => {
       if (formData.description) payload.reference = formData.description;
 
       await accountingService.createReceive(payload);
-      toast.success("Receive recorded successfully!");
+      toast.success(t("Receive recorded successfully!"));
       navigate('/account/receive-list');
     } catch (error) {
       console.error("Error creating receive:", error);
       const errorDetail = error.response?.data ? JSON.stringify(error.response.data, null, 2) : error.message;
-      toast.error(`Failed to submit receive:\n${errorDetail}`);
+      toast.error(t("Failed to submit receive: {{v0}}", { v0: errorDetail }));
     } finally {
       setSubmitting(false);
     }
@@ -110,13 +112,13 @@ const ReceiveCreate = () => {
         {/* Header */}
         <div style={{ background: '#2e7d32', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px' }}>
 
-          <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>Add New Receive</h2>
+          <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>{t("Add New Receive")}</h2>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={() => navigate('/account/receive-list')} style={{ background: '#818cf8', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
-              <List size={14} /> Receive List
+              <List size={14} /> {t("Receive List")}
             </button>
             <button onClick={() => navigate('/settings/income-category')} style={{ background: '#818cf8', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
-              <Layers size={14} /> Receive Category
+              <Layers size={14} /> {t("Receive Category")}
             </button>
           </div>
         </div>
@@ -138,7 +140,7 @@ const ReceiveCreate = () => {
                       onChange={handleChange}
                       style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px', appearance: 'none', background: 'transparent' }}
                     >
-                      <option value="">Select Client</option>
+                      <option value="">{t("Select Client")}</option>
                       {(clients || []).map(c => <option key={c.id} value={c.id}>{c.name || c.company_name}</option>)}
                     </select>
                     {formData.clientId && (
@@ -150,7 +152,7 @@ const ReceiveCreate = () => {
                       <Plus size={18} />
                     </button>
                   </div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', marginTop: '6px', marginLeft: '4px' }}>Due: {dueAmount}</div>
+                  <div style={{ fontSize: '12px', fontWeight: 'bold', marginTop: '6px', marginLeft: '4px' }}>{t("Due:")} {dueAmount}</div>
                 </div>
 
                 {/* Account Select */}
@@ -162,7 +164,7 @@ const ReceiveCreate = () => {
                     required
                     style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px', appearance: 'none', background: 'transparent' }}
                   >
-                    <option value="">Select Account</option>
+                    <option value="">{t("Select Account")}</option>
                     {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                   </select>
                   {formData.accountId && (
@@ -181,7 +183,7 @@ const ReceiveCreate = () => {
                   <input 
                     type="number" 
                     name="amount" 
-                    placeholder="Amount" 
+                    placeholder={t("Amount")} 
                     value={formData.amount} 
                     onChange={handleChange}
                     required
@@ -195,7 +197,7 @@ const ReceiveCreate = () => {
                     <div style={{ background: '#1e293b', borderRadius: '50%', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <span style={{ color: 'white', fontSize: '10px' }}>💬</span>
                     </div>
-                    SMS
+                    {t("SMS")}
                   </div>
                   <label style={{ position: 'relative', display: 'inline-block', width: '40px', height: '20px' }}>
                     <input type="checkbox" name="sms" checked={formData.sms} onChange={handleChange} style={{ opacity: 0, width: 0, height: 0 }} />
@@ -213,7 +215,7 @@ const ReceiveCreate = () => {
                 {/* Date Input */}
                 <div style={{ position: 'relative' }}>
                   <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    📅 Date
+                    {t("📅 Date")}
                   </div>
                   <input 
                     type="date" 
@@ -230,7 +232,7 @@ const ReceiveCreate = () => {
                   <input 
                     type="text" 
                     name="description" 
-                    placeholder="Receive Description in a short note" 
+                    placeholder={t("Receive Description in a short note")} 
                     value={formData.description} 
                     onChange={handleChange}
                     style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px' }}
@@ -245,7 +247,7 @@ const ReceiveCreate = () => {
                     onChange={handleChange}
                     style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px', appearance: 'none', background: 'transparent' }}
                   >
-                    <option value="">Select Category</option>
+                    <option value="">{t("Select Category")}</option>
                     {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                   {formData.category && (
@@ -268,14 +270,14 @@ const ReceiveCreate = () => {
                 disabled={submitting} 
                 style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
               >
-                {submitting ? 'Adding...' : 'Add New Receive'}
+                {submitting ? t("Adding...") : t("Add New Receive")}
               </button>
               <button 
                 type="button" 
                 onClick={() => navigate('/account/receive-list')} 
                 style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
               >
-                Close
+                {t("Close")}
               </button>
             </div>
           </form>
@@ -285,8 +287,8 @@ const ReceiveCreate = () => {
       <AddOptionModal 
         isOpen={isClientModalOpen}
         onClose={() => setIsClientModalOpen(false)}
-        title="Quick Add Client"
-        placeholder="Client Name"
+        title={t("Quick Add Client")}
+        placeholder={t("Client Name")}
         onSave={() => {
           setIsClientModalOpen(false);
         }}

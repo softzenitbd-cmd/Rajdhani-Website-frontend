@@ -80,11 +80,11 @@ const PurchaseList = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this purchase invoice?")) return;
+    if (!window.confirm(t("Are you sure you want to delete this purchase invoice?"))) return;
     try {
       await purchaseService.deletePurchaseInvoice(id).catch(() => null);
       setPurchases(prev => prev.filter(p => p.id !== id));
-      toast.success("Purchase invoice deleted successfully!");
+      toast.success(t("Purchase invoice deleted successfully!"));
     } catch (err) {
       console.error("Error deleting purchase:", err);
       setPurchases(prev => prev.filter(p => p.id !== id));
@@ -106,13 +106,13 @@ const PurchaseList = () => {
       
       {/* Center Title */}
       <div style={{ textAlign: 'center', marginBottom: '40px', marginTop: '20px', position: 'relative' }}>
-        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>Purchase List</h2>
+        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>{t("Purchase List")}</h2>
         <button 
           onClick={() => navigate('/product/purchase/add-new')}
           className="btn" 
           style={{ position: 'absolute', right: '20px', top: '0', background: 'var(--success)', color: 'white', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
         >
-          <Plus size={16} /> Purchase
+          <Plus size={16} /> {t("Purchase")}
         </button>
       </div>
 
@@ -120,13 +120,13 @@ const PurchaseList = () => {
         {/* Filters */}
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 2fr 1fr', gap: '16px', marginBottom: '24px', alignItems: 'end' }}>
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>Supplier</div>
+            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t("Supplier")}</div>
             <select 
               value={filters.supplier}
               onChange={(e) => handleFilterChange('supplier', e.target.value)}
               style={{ padding: '10px', width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', background: 'white' }}
             >
-              <option value="">Select Supplier</option>
+              <option value="">{t("Select Supplier")}</option>
               {suppliers.map(s => (
                 <option key={s.id} value={s.name || s.id}>{s.name}</option>
               ))}
@@ -134,10 +134,10 @@ const PurchaseList = () => {
           </div>
           
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>Invoice No</div>
+            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t("Invoice No")}</div>
             <input 
               type="text" 
-              placeholder="Search Invoice..." 
+              placeholder={t("Search Invoice...")} 
               value={filters.search}
               onChange={(e) => handleFilterChange('search', e.target.value)}
               style={{ padding: '10px', width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }} 
@@ -145,10 +145,10 @@ const PurchaseList = () => {
           </div>
 
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>Barcode</div>
+            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t("Barcode")}</div>
             <input 
               type="text" 
-              placeholder="Barcode..." 
+              placeholder={t("Barcode...")} 
               value={filters.barcode}
               onChange={(e) => handleFilterChange('barcode', e.target.value)}
               style={{ padding: '10px', width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }} 
@@ -175,7 +175,7 @@ const PurchaseList = () => {
 
           <div>
             <button onClick={clearFilters} className="btn" style={{ background: 'var(--text-muted)', color: 'white', padding: '12px', borderRadius: '4px', fontSize: '14px', width: '100%', cursor: 'pointer' }}>
-              Clear Filter
+              {t("Clear Filter")}
             </button>
           </div>
         </div>
@@ -183,17 +183,17 @@ const PurchaseList = () => {
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
-            Showing {filteredPurchases.length} entries
+            {t("Showing")} {filteredPurchases.length} {t("entries")}
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>
             <button onClick={() => window.print()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              Print
+              {t("Print")}
             </button>
             <button onClick={clearFilters} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <RotateCcw size={14} /> Reset
+              <RotateCcw size={14} /> {t("Reset")}
             </button>
             <button onClick={fetchData} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <RefreshCw size={14} className={loading ? "spin" : ""} /> Reload
+              <RefreshCw size={14} className={loading ? "spin" : ""} /> {t("Reload")}
             </button>
           </div>
         </div>
@@ -203,18 +203,18 @@ const PurchaseList = () => {
           <table className="custom-table" style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--secondary)', color: 'white' }}>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '60px' }}>ID NO ↕</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>DATE</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>INVOICE</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>SUPPLIER</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>TOTAL</th>
-                <th style={{ textAlign: 'center', padding: '12px', fontSize: '11px', width: '120px' }}>ACTION</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '60px' }}>{t("ID NO ↕")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("DATE")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("INVOICE")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("SUPPLIER")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("TOTAL")}</th>
+                <th style={{ textAlign: 'center', padding: '12px', fontSize: '11px', width: '120px' }}>{t("ACTION")}</th>
               </tr>
             </thead>
             <tbody>
               {filteredPurchases.length === 0 ? (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>No purchase invoices found</td>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>{t("No purchase invoices found")}</td>
                 </tr>
               ) : (
                 filteredPurchases.map((purchase) => (
@@ -226,10 +226,10 @@ const PurchaseList = () => {
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>৳{purchase.total}</td>
                     <td style={{ textAlign: 'center', padding: '8px' }}>
                       <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
-                        <button onClick={() => { setSelectedPurchase(purchase); setShowViewModal(true); }} className="action-btn-sm" style={{ background: 'var(--success)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title="View Invoice">
+                        <button onClick={() => { setSelectedPurchase(purchase); setShowViewModal(true); }} className="action-btn-sm" style={{ background: 'var(--success)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title={t("View Invoice")}>
                           <Eye size={14} />
                         </button>
-                        <button onClick={() => handleDelete(purchase.id)} className="action-btn-sm" style={{ background: 'var(--danger)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title="Delete Invoice">
+                        <button onClick={() => handleDelete(purchase.id)} className="action-btn-sm" style={{ background: 'var(--danger)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title={t("Delete Invoice")}>
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -251,27 +251,27 @@ const PurchaseList = () => {
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '2px solid #16a34a', paddingBottom: '12px' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#0f172a' }}>Purchase Invoice Memo</h3>
-                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '600' }}>Invoice #{selectedPurchase.invoice || selectedPurchase.invoiceNo || `PUR-${selectedPurchase.id}`}</span>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#0f172a' }}>{t("Purchase Invoice Memo")}</h3>
+                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '600' }}>{t("Invoice #")}{selectedPurchase.invoice || selectedPurchase.invoiceNo || `PUR-${selectedPurchase.id}`}</span>
               </div>
               <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#f1f5f9', padding: '6px 16px', borderRadius: '50%', cursor: 'pointer', color: '#64748b' }}>✕</button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px', marginBottom: '20px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <div><strong>Supplier:</strong> {selectedPurchase.supplier || selectedPurchase.supplier_name || 'GENERAL SUPPLIER'}</div>
-              <div><strong>Purchase Date:</strong> {selectedPurchase.date || selectedPurchase.created_at || '-'}</div>
-              <div><strong>Category / Memo:</strong> PURCHASE INVOICE</div>
-              <div><strong>Status:</strong> <span style={{ color: '#059669', fontWeight: 'bold' }}>RECEIVED</span></div>
+              <div><strong>{t("Supplier:")}</strong> {selectedPurchase.supplier || selectedPurchase.supplier_name || t("GENERAL SUPPLIER")}</div>
+              <div><strong>{t("Purchase Date:")}</strong> {selectedPurchase.date || selectedPurchase.created_at || '-'}</div>
+              <div><strong>{t("Category / Memo:")}</strong> {t("PURCHASE INVOICE")}</div>
+              <div><strong>{t("Status:")}</strong> <span style={{ color: '#059669', fontWeight: 'bold' }}>{t("RECEIVED")}</span></div>
             </div>
 
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px', fontSize: '13px' }}>
               <thead>
                 <tr style={{ background: '#1e293b', color: 'white' }}>
-                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', width: '40px' }}>SL</th>
-                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'left' }}>Item Details</th>
-                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', width: '60px' }}>Qty</th>
-                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'right', width: '100px' }}>Buying Price</th>
-                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'right', width: '110px' }}>Total Amount</th>
+                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', width: '40px' }}>{t("SL")}</th>
+                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'left' }}>{t("Item Details")}</th>
+                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', width: '60px' }}>{t("Qty")}</th>
+                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'right', width: '100px' }}>{t("Buying Price")}</th>
+                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'right', width: '110px' }}>{t("Total Amount")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -288,7 +288,7 @@ const PurchaseList = () => {
                 ) : (
                   <tr>
                     <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>1</td>
-                    <td style={{ padding: '8px', border: '1px solid #e2e8f0', fontWeight: '500' }}>PURCHASED GARMENTS / APPAREL ITEMS</td>
+                    <td style={{ padding: '8px', border: '1px solid #e2e8f0', fontWeight: '500' }}>{t("PURCHASED GARMENTS / APPAREL ITEMS")}</td>
                     <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>1</td>
                     <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right' }}>৳ {Number(selectedPurchase.total || 0).toFixed(2)}</td>
                     <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 'bold' }}>৳ {Number(selectedPurchase.total || 0).toFixed(2)}</td>
@@ -297,7 +297,7 @@ const PurchaseList = () => {
               </tbody>
               <tfoot>
                 <tr style={{ background: '#f1f5f9', fontWeight: 'bold' }}>
-                  <td colSpan="4" style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>Total Purchase Bill:</td>
+                  <td colSpan="4" style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>{t("Total Purchase Bill:")}</td>
                   <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>৳ {Number(selectedPurchase.total || 0).toFixed(2)}</td>
                 </tr>
               </tfoot>
@@ -306,19 +306,19 @@ const PurchaseList = () => {
             {/* Signature Footer */}
             <div className="print-only" style={{ display: 'none', justifyContent: 'space-between', marginTop: '60px', paddingTop: '20px' }}>
               <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: '12px' }}>
-                Supplier Signature
+                {t("Supplier Signature")}
               </div>
               <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: '12px' }}>
-                Authorized Signature
+                {t("Authorized Signature")}
               </div>
             </div>
 
             <div className="no-print" style={{ textAlign: 'right', marginTop: '16px' }}>
               <button onClick={() => window.print()} className="btn" style={{ background: 'var(--success)', color: 'white', padding: '10px 24px', borderRadius: '6px', marginRight: '8px', fontWeight: '600' }}>
-                🖨️ Print Memo
+                {t("🖨️ Print Memo")}
               </button>
               <button onClick={() => setShowViewModal(false)} className="btn" style={{ background: '#64748b', color: 'white', padding: '10px 20px', borderRadius: '6px' }}>
-                Close
+                {t("Close")}
               </button>
             </div>
           </div>

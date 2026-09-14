@@ -42,7 +42,7 @@ const ExpenseCreate = () => {
 
       setCategories(catData);
     } catch (err) {
-      toast.error(err?.message || 'Failed to load form data');
+      toast.error(err?.message || t("Failed to load form data"));
     }
   };
 
@@ -55,7 +55,7 @@ const ExpenseCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.accountId || !formData.amount || !formData.category) {
-      toast.error("Please select account, category, and enter an amount.");
+      toast.error(t("Please select account, category, and enter an amount."));
       return;
     }
 
@@ -73,11 +73,11 @@ const ExpenseCreate = () => {
       };
 
       await accountingService.createExpense(payload);
-      toast.success("Expense created and account balance updated successfully!");
+      toast.success(t("Expense created and account balance updated successfully!"));
       navigate('/account/expense-list');
     } catch (error) {
       console.error("Error creating expense:", error);
-      toast.error("Failed to save expense. Please check your network connection.");
+      toast.error(t("Failed to save expense. Please check your network connection."));
     } finally {
       setSubmitting(false);
     }
@@ -87,10 +87,10 @@ const ExpenseCreate = () => {
     <div className="premium-card">
       <PrintHeader />
       <div className="premium-header">
-        <h2 className="premium-title" style={{ textTransform: 'uppercase' }}>Add New Expense (Cost)</h2>
+        <h2 className="premium-title" style={{ textTransform: 'uppercase' }}>{t("Add New Expense (Cost)")}</h2>
         <div className="header-actions">
-          <button className="btn-gray-outline" onClick={() => navigate('/account/expense-list')}><List size={16} /> Expense List</button>
-          <button className="btn-gray-outline" onClick={() => navigate('/settings/expense-category')}><List size={16} /> Expense Category</button>
+          <button className="btn-gray-outline" onClick={() => navigate('/account/expense-list')}><List size={16} /> {t("Expense List")}</button>
+          <button className="btn-gray-outline" onClick={() => navigate('/settings/expense-category')}><List size={16} /> {t("Expense Category")}</button>
         </div>
       </div>
 
@@ -99,13 +99,13 @@ const ExpenseCreate = () => {
           {/* Row 1 */}
           <div className="form-row">
             <div className="form-col">
-              <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>Payment Account (Cash/Bank) *</label>
+              <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>{t("Payment Account (Cash/Bank) *")}</label>
               <div className="input-with-append">
                 <select name="accountId" value={formData.accountId} onChange={handleChange} required>
-                  <option value="">Select Account</option>
+                  <option value="">{t("Select Account")}</option>
                   {accounts.map(acc => (
                     <option key={acc.id} value={acc.id}>
-                      {acc.name} (Balance: ৳{Number(acc.balance || 0).toLocaleString()})
+                      {acc.name} {t("(Balance: ৳")}{Number(acc.balance || 0).toLocaleString()})
                     </option>
                   ))}
                 </select>
@@ -114,10 +114,10 @@ const ExpenseCreate = () => {
             </div>
 
             <div className="form-col">
-              <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>Expense Category *</label>
+              <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>{t("Expense Category *")}</label>
               <div className="input-with-append">
                 <select name="category" value={formData.category} onChange={handleChange} required>
-                  <option value="">Select Expense Category</option>
+                  <option value="">{t("Select Expense Category")}</option>
                   {categories.map(cat => (
                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                   ))}
@@ -130,7 +130,7 @@ const ExpenseCreate = () => {
           {/* Row 2 */}
           <div className="form-row" style={{ marginTop: '20px' }}>
             <div className="form-col">
-              <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>Expense Date *</label>
+              <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>{t("Expense Date *")}</label>
               <input 
                 type="date" 
                 name="date" 
@@ -141,7 +141,7 @@ const ExpenseCreate = () => {
               />
             </div>
             <div className="form-col">
-              <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>Amount (৳) *</label>
+              <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>{t("Amount (৳) *")}</label>
               <input 
                 type="number" 
                 step="0.01" 
@@ -158,10 +158,10 @@ const ExpenseCreate = () => {
 
           {/* Row 3 */}
           <div style={{ marginTop: '20px' }}>
-            <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>Description / Reason of Expense</label>
+            <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>{t("Description / Reason of Expense")}</label>
             <textarea 
               name="note" 
-              placeholder="e.g. Office electricity bill, tea and snacks, courier cost..." 
+              placeholder={t("e.g. Office electricity bill, tea and snacks, courier cost...")} 
               value={formData.note} 
               onChange={handleChange} 
               className="input-outline"
@@ -177,7 +177,7 @@ const ExpenseCreate = () => {
               className="btn-primary" 
               style={{ width: '100%', padding: '14px', fontSize: '16px', background: 'var(--danger)', borderColor: 'var(--danger)', fontWeight: 'bold' }}
             >
-              {submitting ? 'Recording Expense...' : 'Confirm & Save Expense'}
+              {submitting ? t("Recording Expense...") : t("Confirm & Save Expense")}
             </button>
           </div>
         </form>

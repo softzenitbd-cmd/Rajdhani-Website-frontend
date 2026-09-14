@@ -87,7 +87,7 @@ const ProductCreate = () => {
       setSizes(list(sizesRes));
       setWarehouses(list(whRes));
     } catch (err) {
-      toast.error(err?.message || 'Failed to load units / groups');
+      toast.error(err?.message || t("Failed to load units / groups"));
     }
   };
 
@@ -102,7 +102,7 @@ const ProductCreate = () => {
   const handleSubmit = async (e) => {
     e?.preventDefault();
     if (!formData.name?.trim()) {
-      toast.error("Please enter a product name");
+      toast.error(t("Please enter a product name"));
       return;
     }
     try {
@@ -132,21 +132,21 @@ const ProductCreate = () => {
       try {
         if (isEditMode && editingProduct?.id) {
           await productService.updateProduct(editingProduct.id, payload);
-          toast.success("Product updated successfully via API!");
+          toast.success(t("Product updated successfully via API!"));
         } else {
           await productService.createProduct(payload);
-          toast.success("Product created successfully via API!");
+          toast.success(t("Product created successfully via API!"));
         }
       } catch (apiErr) {
         console.error("Error saving product:", apiErr);
-        toast.error(apiErr?.message || "Failed to save product. Please check the form and try again.");
+        toast.error(apiErr?.message || t("Failed to save product. Please check the form and try again."));
         return;
       }
 
       navigate('/product/list');
     } catch (err) {
       console.error("Error saving product:", err);
-      toast.error("An unexpected error occurred while saving product.");
+      toast.error(t("An unexpected error occurred while saving product."));
     } finally {
       setSubmitting(false);
     }
@@ -178,14 +178,14 @@ const ProductCreate = () => {
       <div className="premium-card">
         <div className="premium-header" style={{ padding: '16px 24px', background: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold', textTransform: 'uppercase' }}>
-            {isEditMode ? 'Product Edit' : 'Product Create'}
+            {isEditMode ? t("Product Edit") : t("Product Create")}
           </h2>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button className="btn" onClick={() => navigate('/product/list')} style={{ background: 'var(--text-muted)', color: 'white', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
-              <List size={16} /> Product List
+              <List size={16} /> {t("Product List")}
             </button>
             <button className="btn" onClick={() => navigate('/product/group')} style={{ background: 'var(--text-muted)', color: 'white', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
-              <Layers size={16} /> Product Group
+              <Layers size={16} /> {t("Product Group")}
             </button>
           </div>
         </div>
@@ -200,7 +200,7 @@ const ProductCreate = () => {
                   <div style={{ padding: '12px', color: 'var(--text-muted)' }}>
                     <Package size={18} />
                   </div>
-                  <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Product Name" style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} required />
+                  <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder={t("Product Name")} style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} required />
                 </div>
               </div>
 
@@ -210,7 +210,7 @@ const ProductCreate = () => {
                   <div style={{ padding: '12px', color: 'var(--text-muted)', fontWeight: 'bold' }}>
                     ৳
                   </div>
-                  <input type="number" step="0.01" name="buying_price" value={formData.buying_price} onChange={handleChange} placeholder="Buying Price" style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
+                  <input type="number" step="0.01" name="buying_price" value={formData.buying_price} onChange={handleChange} placeholder={t("Buying Price")} style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
                 </div>
               </div>
 
@@ -220,7 +220,7 @@ const ProductCreate = () => {
                   <div style={{ padding: '12px', color: 'var(--text-muted)', fontWeight: 'bold' }}>
                     ৳
                   </div>
-                  <input type="number" step="0.01" name="selling_price" value={formData.selling_price} onChange={handleChange} placeholder="Selling Price" style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
+                  <input type="number" step="0.01" name="selling_price" value={formData.selling_price} onChange={handleChange} placeholder={t("Selling Price")} style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
                 </div>
               </div>
 
@@ -228,7 +228,7 @@ const ProductCreate = () => {
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <div className="input-with-append">
                   <select name="unit" value={formData.unit} onChange={handleChange} style={{ padding: '14px', flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px 0 0 4px', outline: 'none', background: 'white' }}>
-                    <option value="">Select a Unit</option>
+                    <option value="">{t("Select a Unit")}</option>
                     {units.map(u => (
                       <option key={u.id} value={u.id}>{u.name}</option>
                     ))}
@@ -243,7 +243,7 @@ const ProductCreate = () => {
                   <div style={{ padding: '12px', color: 'var(--text-muted)' }}>
                     <Scale size={18} />
                   </div>
-                  <input type="number" step="0.01" name="opening_stock" value={formData.opening_stock} onChange={handleChange} placeholder="Opening Stock" disabled={isEditMode} style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
+                  <input type="number" step="0.01" name="opening_stock" value={formData.opening_stock} onChange={handleChange} placeholder={t("Opening Stock")} disabled={isEditMode} style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
                 </div>
               </div>
 
@@ -251,7 +251,7 @@ const ProductCreate = () => {
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <div className="input-with-append">
                   <select name="group" value={formData.group} onChange={handleChange} style={{ padding: '14px', flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px 0 0 4px', outline: 'none', background: 'white' }}>
-                    <option value="">Select Product Group</option>
+                    <option value="">{t("Select Product Group")}</option>
                     {groups.map(g => (
                       <option key={g.id} value={g.id}>{g.name}</option>
                     ))}
@@ -263,8 +263,8 @@ const ProductCreate = () => {
               {/* Barcode */}
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
-                  <div style={{ padding: '12px', color: 'var(--text-muted)', fontSize: '12px', fontWeight: 'bold' }}>BC</div>
-                  <input type="text" name="custom_barcode_no" value={formData.custom_barcode_no} onChange={handleChange} placeholder="Custom Barcode No (optional – auto generated when empty)" style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
+                  <div style={{ padding: '12px', color: 'var(--text-muted)', fontSize: '12px', fontWeight: 'bold' }}>{t("BC")}</div>
+                  <input type="text" name="custom_barcode_no" value={formData.custom_barcode_no} onChange={handleChange} placeholder={t("Custom Barcode No (optional – auto generated when empty)")} style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
                 </div>
               </div>
 
@@ -272,7 +272,7 @@ const ProductCreate = () => {
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
                   <div style={{ padding: '12px', color: 'var(--text-muted)', fontWeight: 'bold' }}>৳</div>
-                  <input type="number" step="0.01" name="wholesale_price" value={formData.wholesale_price} onChange={handleChange} placeholder="Wholesale Price" style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
+                  <input type="number" step="0.01" name="wholesale_price" value={formData.wholesale_price} onChange={handleChange} placeholder={t("Wholesale Price")} style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
                 </div>
               </div>
 
@@ -280,45 +280,45 @@ const ProductCreate = () => {
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
                   <div style={{ padding: '12px', color: 'var(--text-muted)' }}><Scale size={18} /></div>
-                  <input type="number" name="stock_warning" value={formData.stock_warning} onChange={handleChange} placeholder="Stock Warning Qty" style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
+                  <input type="number" name="stock_warning" value={formData.stock_warning} onChange={handleChange} placeholder={t("Stock Warning Qty")} style={{ flex: 1, padding: '12px', border: 'none', outline: 'none' }} />
                 </div>
               </div>
 
               {/* Brand / Color / Size / Warehouse / Status */}
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <select name="brand" value={formData.brand} onChange={handleChange} style={{ padding: '14px', flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', background: 'white' }}>
-                  <option value="">Select Brand (optional)</option>
+                  <option value="">{t("Select Brand (optional)")}</option>
                   {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                 </select>
               </div>
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <select name="color" value={formData.color} onChange={handleChange} style={{ padding: '14px', flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', background: 'white' }}>
-                  <option value="">Select Color (optional)</option>
+                  <option value="">{t("Select Color (optional)")}</option>
                   {colors.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <select name="size" value={formData.size} onChange={handleChange} style={{ padding: '14px', flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', background: 'white' }}>
-                  <option value="">Select Size (optional)</option>
+                  <option value="">{t("Select Size (optional)")}</option>
                   {sizes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <select name="warehouse" value={formData.warehouse} onChange={handleChange} style={{ padding: '14px', flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', background: 'white' }}>
-                  <option value="">Select Warehouse (optional)</option>
+                  <option value="">{t("Select Warehouse (optional)")}</option>
                   {warehouses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <select name="status" value={String(formData.status)} onChange={handleChange} style={{ padding: '14px', flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', background: 'white' }}>
-                  <option value="1">Active</option>
-                  <option value="0">Inactive</option>
+                  <option value="1">{t("Active")}</option>
+                  <option value="0">{t("Inactive")}</option>
                 </select>
               </div>
             </div>
 
             <button type="submit" disabled={submitting} className="btn-primary" style={{ width: '100%', padding: '16px', background: 'var(--success)', border: 'none', borderRadius: '4px', fontSize: '16px', cursor: 'pointer' }}>
-              {submitting ? (isEditMode ? 'Updating...' : 'Adding...') : (isEditMode ? 'Update Product' : 'Add Product')}
+              {submitting ? (isEditMode ? t("Updating...") : t("Adding...")) : (isEditMode ? t("Update Product") : t("Add Product"))}
             </button>
           </form>
         </div>
@@ -328,16 +328,16 @@ const ProductCreate = () => {
         isOpen={isUnitModalOpen}
         onClose={() => setIsUnitModalOpen(false)}
         onSave={handleAddUnit}
-        title="Add Unit"
-        label="Unit Name"
+        title={t("Add Unit")}
+        label={t("Unit Name")}
       />
 
       <AddOptionModal
         isOpen={isGroupModalOpen}
         onClose={() => setIsGroupModalOpen(false)}
         onSave={handleAddGroup}
-        title="Add Product Group"
-        label="Group Name"
+        title={t("Add Product Group")}
+        label={t("Group Name")}
       />
     </div>
   );

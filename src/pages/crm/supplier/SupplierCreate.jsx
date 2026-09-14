@@ -5,8 +5,10 @@ import AddOptionModal from '../../../components/AddOptionModal';
 import { useApi } from '../../../hooks/useApi';
 import { ENDPOINTS } from '../../../api/endpoints';
 import { useToast } from '../../../context/ToastContext';
+import { useTranslation } from 'react-i18next';
 
 const SupplierCreate = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
@@ -46,7 +48,7 @@ const SupplierCreate = () => {
   const handleAddGroup = async (groupName) => {
     if (!groupName || !groupName.trim()) return;
     try {
-      await post(ENDPOINTS.CRM_SUPPLIER_GROUPS, { name: groupName.toUpperCase() }, "Supplier Group Added");
+      await post(ENDPOINTS.CRM_SUPPLIER_GROUPS, { name: groupName.toUpperCase() }, t("Supplier Group Added"));
       setIsGroupModalOpen(false);
       fetchGroups();
     } catch (err) {
@@ -57,7 +59,7 @@ const SupplierCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.supplierName || !formData.phone || !formData.group) {
-      toast.error("Please fill in required fields: Supplier Name, Phone, and Group.");
+      toast.error(t("Please fill in required fields: Supplier Name, Phone, and Group."));
       return;
     }
     
@@ -73,7 +75,7 @@ const SupplierCreate = () => {
     };
     
     try {
-      await post(ENDPOINTS.CRM_SUPPLIERS, payload, "Supplier Added Successfully!");
+      await post(ENDPOINTS.CRM_SUPPLIERS, payload, t("Supplier Added Successfully!"));
       navigate('/crm/supplier-list');
     } catch (err) {
       console.error("Failed to add supplier", err);
@@ -83,13 +85,13 @@ const SupplierCreate = () => {
   return (
     <div className="dashboard-content">
       <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 className="card-title">SUPPLIER CREATE</h2>
+        <h2 className="card-title">{t("SUPPLIER CREATE")}</h2>
         <div className="card-actions">
           <button className="btn btn-outline" style={{ padding: '6px 12px', background: 'var(--table-header-bg)', color: 'white' }} onClick={() => navigate('/crm/supplier-list')}>
-            <List size={14} /> Supplier List
+            <List size={14} /> {t("Supplier List")}
           </button>
           <button className="btn btn-outline" style={{ padding: '6px 12px', background: 'var(--table-header-bg)', color: 'white' }} onClick={() => navigate('/crm/supplier-group')}>
-            <Users size={14} /> Supplier Group
+            <Users size={14} /> {t("Supplier Group")}
           </button>
         </div>
       </div>
@@ -101,7 +103,7 @@ const SupplierCreate = () => {
               <div className="form-input floating-label">
                 <div className="input-icon">👤</div>
                 <input type="text" placeholder=" " name="supplierName" value={formData.supplierName} onChange={handleInputChange} />
-                <label>Supplier Name</label>
+                <label>{t("Supplier Name")}</label>
               </div>
             </div>
             
@@ -109,7 +111,7 @@ const SupplierCreate = () => {
               <div className="form-input floating-label">
                 <div className="input-icon">🏢</div>
                 <input type="text" placeholder=" " name="companyName" value={formData.companyName} onChange={handleInputChange} />
-                <label>Company Name</label>
+                <label>{t("Company Name")}</label>
               </div>
             </div>
 
@@ -117,7 +119,7 @@ const SupplierCreate = () => {
               <div className="form-input floating-label">
                 <div className="input-icon">📱</div>
                 <input type="text" placeholder=" " name="phone" value={formData.phone} onChange={handleInputChange} />
-                <label>Phone</label>
+                <label>{t("Phone")}</label>
               </div>
             </div>
 
@@ -125,7 +127,7 @@ const SupplierCreate = () => {
               <div className="form-input floating-label">
                 <div className="input-icon">💳</div>
                 <input type="text" placeholder=" " name="previousDue" value={formData.previousDue} onChange={handleInputChange} />
-                <label>Previous Due</label>
+                <label>{t("Previous Due")}</label>
               </div>
             </div>
 
@@ -133,7 +135,7 @@ const SupplierCreate = () => {
               <div className="form-input floating-label">
                 <div className="input-icon">🏢</div>
                 <input type="text" placeholder=" " name="address" value={formData.address} onChange={handleInputChange} />
-                <label>Address</label>
+                <label>{t("Address")}</label>
               </div>
             </div>
 
@@ -141,7 +143,7 @@ const SupplierCreate = () => {
               <div className="form-input floating-label">
                 <div className="input-icon">🌐</div>
                 <input type="text" placeholder=" " name="domain" value={formData.domain} onChange={handleInputChange} />
-                <label>Domain</label>
+                <label>{t("Domain")}</label>
               </div>
             </div>
 
@@ -150,12 +152,12 @@ const SupplierCreate = () => {
                 <div className="form-input floating-label">
                   <select name="group" value={formData.group} onChange={handleInputChange}>
                     <option value="" disabled hidden></option>
-                    <option value="test">Select a group</option>
+                    <option value="test">{t("Select a group")}</option>
                     {groups.map(group => (
                       <option key={group.id || group.uuid} value={group.id || group.uuid}>{group.name}</option>
                     ))}
                   </select>
-                  <label>Select a group</label>
+                  <label>{t("Select a group")}</label>
                 </div>
                 <button type="button" className="btn-append" onClick={() => setIsGroupModalOpen(true)}>
                   <Plus size={20} />
@@ -166,7 +168,7 @@ const SupplierCreate = () => {
 
           <div className="form-group" style={{ marginBottom: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', color: 'var(--text-main)', fontSize: '14px', fontWeight: '500' }}>
-              <span style={{ marginRight: '8px' }}>🏦</span> Bank Account info
+              <span style={{ marginRight: '8px' }}>🏦</span> {t("Bank Account info")}
             </div>
             <textarea 
               name="bankInfo"
@@ -178,7 +180,7 @@ const SupplierCreate = () => {
           </div>
 
           <button type="submit" className="btn-success">
-            Add Supplier
+            {t("Add Supplier")}
           </button>
         </form>
       </div>
@@ -187,8 +189,8 @@ const SupplierCreate = () => {
         isOpen={isGroupModalOpen}
         onClose={() => setIsGroupModalOpen(false)}
         onSave={handleAddGroup}
-        title="Add Supplier Group"
-        label="Group Name"
+        title={t("Add Supplier Group")}
+        label={t("Group Name")}
       />
     </div>
   );

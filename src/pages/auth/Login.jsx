@@ -4,8 +4,10 @@ import {
   ShieldCheck, Sparkles, Layers, Activity 
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const Login = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState('');
@@ -52,11 +54,11 @@ const Login = () => {
         
         navigate(location.state?.from || '/dashboard', { replace: true });
       } else {
-        setErrorMessage("Login failed, no token received");
+        setErrorMessage(t("Login failed, no token received"));
       }
     } catch (err) {
       console.error("Login Error:", err);
-      setErrorMessage(err?.message || "Invalid credentials or server error");
+      setErrorMessage(err?.message || t("Invalid credentials or server error"));
     } finally {
       setIsLoading(false);
     }
@@ -78,12 +80,12 @@ const Login = () => {
           {/* Brand Emblem */}
           <div className="rg-brand-badge">
             <div className="rg-brand-crest">
-              <span className="rg-brand-letters">RG</span>
+              <span className="rg-brand-letters">{t("RG")}</span>
             </div>
             <div>
-              <div className="rg-brand-eyebrow">PREMIER APPAREL ERP</div>
+              <div className="rg-brand-eyebrow">{t("PREMIER APPAREL ERP")}</div>
               <h1 className="rg-brand-title">
-                Rajdhani Garments
+                {t("Rajdhani Garments")}
               </h1>
               <p className="rg-brand-subtitle-bn">রাজধানী গার্মেন্টস লিমিটেড</p>
             </div>
@@ -92,10 +94,10 @@ const Login = () => {
           {/* Tagline & Description */}
           <div className="rg-showcase-body">
             <h2 className="rg-showcase-heading">
-              Next-Gen Enterprise Apparel & Retail Management
+              {t("Next-Gen Enterprise Apparel & Retail Management")}
             </h2>
             <p className="rg-showcase-desc">
-              Comprehensive cloud ERP for modern garment manufacturers, wholesalers, and retail chains. Seamlessly orchestrate inventory, supply chains, invoicing, and staff payroll in real time.
+              {t("Comprehensive cloud ERP for modern garment manufacturers, wholesalers, and retail chains. Seamlessly orchestrate inventory, supply chains, invoicing, and staff payroll in real time.")}
             </p>
 
             {/* Key Pillars */}
@@ -105,8 +107,8 @@ const Login = () => {
                   <Layers size={20} />
                 </div>
                 <div>
-                  <h4 className="rg-feature-title">Production & Stock Sync</h4>
-                  <p className="rg-feature-text">Real-time tracking of fabric, cuts, and finished stock.</p>
+                  <h4 className="rg-feature-title">{t("Production & Stock Sync")}</h4>
+                  <p className="rg-feature-text">{t("Real-time tracking of fabric, cuts, and finished stock.")}</p>
                 </div>
               </div>
 
@@ -115,8 +117,8 @@ const Login = () => {
                   <Sparkles size={20} />
                 </div>
                 <div>
-                  <h4 className="rg-feature-title">Smart Barcode & POS</h4>
-                  <p className="rg-feature-text">Lightning-fast billing with thermal & full-sheet printing.</p>
+                  <h4 className="rg-feature-title">{t("Smart Barcode & POS")}</h4>
+                  <p className="rg-feature-text">{t("Lightning-fast billing with thermal & full-sheet printing.")}</p>
                 </div>
               </div>
 
@@ -125,8 +127,8 @@ const Login = () => {
                   <ShieldCheck size={20} />
                 </div>
                 <div>
-                  <h4 className="rg-feature-title">Financial & Audit Guard</h4>
-                  <p className="rg-feature-text">Granular ledger, client credit, and supplier schedules.</p>
+                  <h4 className="rg-feature-title">{t("Financial & Audit Guard")}</h4>
+                  <p className="rg-feature-text">{t("Granular ledger, client credit, and supplier schedules.")}</p>
                 </div>
               </div>
             </div>
@@ -138,7 +140,7 @@ const Login = () => {
               <span className="rg-status-dot" />
               <span className="rg-status-ping" />
             </div>
-            <span>Cloud Server Live &bull; Rajdhani Garments ERP v2.6 Enterprise Edition</span>
+            <span>{t("Cloud Server Live • Rajdhani Garments ERP v2.6 Enterprise Edition")}</span>
           </div>
         </div>
       </div>
@@ -149,10 +151,10 @@ const Login = () => {
           {/* Header Mobile Brand */}
           <div className="rg-mobile-brand">
             <div className="rg-brand-crest rg-crest-small">
-              <span className="rg-brand-letters">RG</span>
+              <span className="rg-brand-letters">{t("RG")}</span>
             </div>
             <div>
-              <h2 className="rg-mobile-title">Rajdhani Garments</h2>
+              <h2 className="rg-mobile-title">{t("Rajdhani Garments")}</h2>
               <span className="rg-mobile-sub">রাজধানী গার্মেন্টস</span>
             </div>
           </div>
@@ -161,11 +163,11 @@ const Login = () => {
           <div className="rg-form-header">
             <div className="rg-badge-pill">
               <Activity size={14} className="rg-badge-icon" />
-              <span>Administrative Portal</span>
+              <span>{t("Administrative Portal")}</span>
             </div>
-            <h2 className="rg-welcome-heading">Welcome Back</h2>
+            <h2 className="rg-welcome-heading">{t("Welcome Back")}</h2>
             <p className="rg-welcome-sub">
-              Please enter your authorized credentials to access your terminal.
+              {t("Please enter your authorized credentials to access your terminal.")}
             </p>
           </div>
 
@@ -190,7 +192,7 @@ const Login = () => {
             {/* Email Field */}
             <div className="rg-field-group">
               <label className="rg-field-label" htmlFor="rg-email">
-                Email or Staff ID <span className="rg-required">*</span>
+                {t("Email or Staff ID")} <span className="rg-required">*</span>
               </label>
               <div className={`rg-input-box ${focusedInput === 'email' ? 'focused' : ''}`}>
                 <div className="rg-input-icon">
@@ -203,7 +205,7 @@ const Login = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   onFocus={() => setFocusedInput('email')}
                   onBlur={() => setFocusedInput(null)}
-                  placeholder="name@rajdhanigarments.com"
+                  placeholder={t("name@rajdhanigarments.com")}
                   required
                   className="rg-native-input"
                   autoComplete="username"
@@ -215,10 +217,10 @@ const Login = () => {
             <div className="rg-field-group">
               <div className="rg-field-label-row">
                 <label className="rg-field-label" htmlFor="rg-password">
-                  Password <span className="rg-required">*</span>
+                  {t("Password")} <span className="rg-required">*</span>
                 </label>
                 <a href="#forgot" className="rg-link" onClick={(e) => e.preventDefault()}>
-                  Forgot password?
+                  {t("Forgot password?")}
                 </a>
               </div>
               <div className={`rg-input-box ${focusedInput === 'password' ? 'focused' : ''}`}>
@@ -232,7 +234,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   onFocus={() => setFocusedInput('password')}
                   onBlur={() => setFocusedInput(null)}
-                  placeholder="Enter your password"
+                  placeholder={t("Enter your password")}
                   required
                   className="rg-native-input"
                   autoComplete="current-password"
@@ -241,7 +243,7 @@ const Login = () => {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="rg-eye-btn"
-                  title={showPassword ? 'Hide password' : 'Show password'}
+                  title={showPassword ? t("Hide password") : t("Show password")}
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -258,7 +260,7 @@ const Login = () => {
                   onChange={(e) => setRememberMe(e.target.checked)}
                   className="rg-checkbox"
                 />
-                <span className="rg-checkbox-text">Keep me signed in for 30 days</span>
+                <span className="rg-checkbox-text">{t("Keep me signed in for 30 days")}</span>
               </label>
             </div>
 
@@ -271,11 +273,11 @@ const Login = () => {
               {isLoading ? (
                 <div className="rg-spinner-row">
                   <span className="rg-btn-spinner" />
-                  <span>Authenticating...</span>
+                  <span>{t("Authenticating...")}</span>
                 </div>
               ) : (
                 <>
-                  <span>Sign In to Terminal</span>
+                  <span>{t("Sign In to Terminal")}</span>
                   <ArrowRight size={18} className="rg-btn-arrow" />
                 </>
               )}
@@ -286,10 +288,10 @@ const Login = () => {
           <div className="rg-auth-footer">
             <div className="rg-security-badge">
               <ShieldCheck size={14} color="#059669" />
-              <span>256-Bit SSL Encrypted Enterprise System</span>
+              <span>{t("256-Bit SSL Encrypted Enterprise System")}</span>
             </div>
             <p className="rg-copyright">
-              &copy; {new Date().getFullYear()} <strong>Rajdhani Garments BD</strong>. All rights reserved.
+              &copy; {new Date().getFullYear()} <strong>{t("Rajdhani Garments BD")}</strong>{t(". All rights reserved.")}
             </p>
           </div>
         </div>

@@ -6,6 +6,7 @@ import staffApi from '../../api/staffApi';
 import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
 import { toList, today, money, MONTHS, YEARS } from '../../utils/apiHelpers';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Monthly salary sheet. Each row that is ticked is saved as an expense
@@ -15,6 +16,7 @@ const inputStyle = { width: '100%', padding: '10px 12px', border: '1px solid #0e
 const labelStyle = { display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: 'var(--label-color)' };
 
 const StaffSalaryCreate = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
   const now = new Date();
@@ -48,7 +50,7 @@ const StaffSalaryCreate = () => {
         });
         setSheet(init);
       } catch (e) {
-        toast.error(e.message || 'Failed to load data');
+        toast.error(e.message || t("Failed to load data"));
       } finally {
         setLoading(false);
       }
@@ -62,10 +64,10 @@ const StaffSalaryCreate = () => {
   const total = selectedRows.reduce((sum, s) => sum + Number(sheet[s.id || s.uuid].amount || 0), 0);
 
   const save = async () => {
-    if (!account) return toast.error('Select an account to pay from');
-    if (!category) return toast.error('Select an expense category');
-    if (selectedRows.length === 0) return toast.error('Select at least one staff with an amount');
-    if (!window.confirm(`Pay salary to ${selectedRows.length} staff, total ৳ ${money(total)}?`)) return;
+    if (!account) return toast.error(t("Select an account to pay from"));
+    if (!category) return toast.error(t("Select an expense category"));
+    if (selectedRows.length === 0) return toast.error(t("Select at least one staff with an amount"));
+    if (!window.confirm(t("Pay salary to {{v0}} staff, total ৳ {{v1}}?", { v0: selectedRows.length, v1: money(total) }))) return;
 
     const label = `Salary ${MONTHS[month - 1]} ${year}`;
     try {
@@ -91,10 +93,10 @@ const StaffSalaryCreate = () => {
       );
       const failed = results.filter((r) => r.status === 'rejected');
       if (failed.length === 0) {
-        toast.success(`${label} saved for ${selectedRows.length} staff`);
+        toast.success(t("{{v0}} saved for {{v1}} staff", { v0: label, v1: selectedRows.length }));
         navigate('/staff/salary/report');
       } else {
-        toast.error(`${failed.length} of ${selectedRows.length} payments failed: ${failed[0].reason?.message || ''}`);
+        toast.error(t("{{v0}} of {{v1}} payments failed: {{v2}}", { v0: failed.length, v1: selectedRows.length, v2: failed[0].reason?.message || '' }));
       }
     } finally {
       setSaving(false);
@@ -107,9 +109,9 @@ const StaffSalaryCreate = () => {
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
         <div className="premium-header" style={{ padding: '16px 24px', background: 'white', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold', textTransform: 'uppercase' }}>Add Salary</h2>
+          <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold', textTransform: 'uppercase' }}>{t("Add Salary")}</h2>
           <button type="button" onClick={() => navigate('/staff/salary/report')} style={{ background: '#64748b', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-            <List size={14} /> Salary Report
+            <List size={14} /> {t("Salary Report")}
           </button>
         </div>
 
@@ -118,32 +120,32 @@ const StaffSalaryCreate = () => {
 
           <div className="no-print" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '24px' }}>
             <div>
-              <label style={labelStyle}>Salary Month</label>
+              <label style={labelStyle}>{t("Salary Month")}</label>
               <select value={month} onChange={(e) => setMonth(Number(e.target.value))} style={inputStyle}>
-                {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+                {MONTHS.map((m, i) => <option key={m} value={i + 1}>{t(m)}</option>)}
               </select>
             </div>
             <div>
-              <label style={labelStyle}>Year</label>
+              <label style={labelStyle}>{t("Year")}</label>
               <select value={year} onChange={(e) => setYear(Number(e.target.value))} style={inputStyle}>
                 {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
               </select>
             </div>
             <div>
-              <label style={labelStyle}>Payment Date</label>
+              <label style={labelStyle}>{t("Payment Date")}</label>
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle} />
             </div>
             <div>
-              <label style={labelStyle}>Pay From Account *</label>
+              <label style={labelStyle}>{t("Pay From Account *")}</label>
               <select value={account} onChange={(e) => setAccount(e.target.value)} style={inputStyle}>
-                <option value="">Select account</option>
+                <option value="">{t("Select account")}</option>
                 {accounts.map((a) => <option key={a.id || a.uuid} value={a.id || a.uuid}>{a.name} (৳ {money(a.balance ?? a.current_balance)})</option>)}
               </select>
             </div>
             <div>
-              <label style={labelStyle}>Expense Category *</label>
+              <label style={labelStyle}>{t("Expense Category *")}</label>
               <select value={category} onChange={(e) => setCategory(e.target.value)} style={inputStyle}>
-                <option value="">Select category</option>
+                <option value="">{t("Select category")}</option>
                 {categories.map((c) => <option key={c.id || c.uuid} value={c.id || c.uuid}>{c.name}</option>)}
               </select>
             </div>
@@ -156,17 +158,17 @@ const StaffSalaryCreate = () => {
                   <th style={{ ...cell, width: '40px', textAlign: 'center' }}>
                     <input type="checkbox" checked={staff.length > 0 && selectedRows.length === staff.filter((s) => Number(sheet[s.id || s.uuid]?.amount) > 0).length} onChange={(e) => toggleAll(e.target.checked)} />
                   </th>
-                  <th style={cell}>STAFF</th>
-                  <th style={cell}>DESIGNATION</th>
-                  <th style={{ ...cell, width: '160px' }}>SALARY AMOUNT</th>
-                  <th style={{ ...cell, borderRight: 'none' }}>NOTE</th>
+                  <th style={cell}>{t("STAFF")}</th>
+                  <th style={cell}>{t("DESIGNATION")}</th>
+                  <th style={{ ...cell, width: '160px' }}>{t("SALARY AMOUNT")}</th>
+                  <th style={{ ...cell, borderRight: 'none' }}>{t("NOTE")}</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>Loading staff...</td></tr>
+                  <tr><td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("Loading staff...")}</td></tr>
                 ) : staff.length === 0 ? (
-                  <tr><td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>No staff found</td></tr>
+                  <tr><td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("No staff found")}</td></tr>
                 ) : (
                   staff.map((s, i) => {
                     const sid = s.id || s.uuid;
@@ -177,7 +179,7 @@ const StaffSalaryCreate = () => {
                         <td style={cell}><div style={{ fontWeight: 600 }}>{s.full_name || s.name}</div><div style={{ fontSize: '11px', color: '#64748b' }}>{s.phone_number || s.phone}</div></td>
                         <td style={cell}>{s.designation_name || s.designation?.name || '-'}</td>
                         <td style={cell}><input type="number" min="0" step="0.01" value={r.amount} onChange={(e) => update(sid, 'amount', e.target.value)} style={{ ...inputStyle, padding: '6px 8px', borderColor: '#e2e8f0' }} /></td>
-                        <td style={{ ...cell, borderRight: 'none' }}><input value={r.note} onChange={(e) => update(sid, 'note', e.target.value)} placeholder="optional" style={{ ...inputStyle, padding: '6px 8px', borderColor: '#e2e8f0' }} /></td>
+                        <td style={{ ...cell, borderRight: 'none' }}><input value={r.note} onChange={(e) => update(sid, 'note', e.target.value)} placeholder={t("optional")} style={{ ...inputStyle, padding: '6px 8px', borderColor: '#e2e8f0' }} /></td>
                       </tr>
                     );
                   })
@@ -186,7 +188,7 @@ const StaffSalaryCreate = () => {
               {staff.length > 0 && (
                 <tfoot>
                   <tr style={{ background: '#f8fafc', fontWeight: 'bold' }}>
-                    <td colSpan="3" style={{ ...cell, textAlign: 'right' }}>TOTAL ({selectedRows.length} staff)</td>
+                    <td colSpan="3" style={{ ...cell, textAlign: 'right' }}>{t("TOTAL (")}{selectedRows.length} {t("staff)")}</td>
                     <td style={cell}>৳ {money(total)}</td>
                     <td style={{ ...cell, borderRight: 'none' }}></td>
                   </tr>
@@ -197,7 +199,7 @@ const StaffSalaryCreate = () => {
 
           <div style={{ textAlign: 'center', marginTop: '24px' }}>
             <button onClick={save} disabled={saving || loading} style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', border: 'none', borderRadius: '4px', fontSize: '14px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', opacity: saving ? 0.7 : 1 }}>
-              <Save size={16} /> {saving ? 'Saving...' : 'Save Salary Sheet'}
+              <Save size={16} /> {saving ? t("Saving...") : t("Save Salary Sheet")}
             </button>
           </div>
         </div>

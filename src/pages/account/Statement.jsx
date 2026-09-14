@@ -75,15 +75,15 @@ const Statement = () => {
         {/* Top Action Buttons */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div>
-            <h1 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>Account Statement & Unified Ledger</h1>
-            <span style={{ fontSize: '13px', color: '#64748b' }}>Complete log of all deposits, expenses, and inter-account transfers</span>
+            <h1 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>{t("Account Statement & Unified Ledger")}</h1>
+            <span style={{ fontSize: '13px', color: '#64748b' }}>{t("Complete log of all deposits, expenses, and inter-account transfers")}</span>
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <Link to="/account/account-create" style={{ textDecoration: 'none' }}>
-              <button className="btn-green" style={{ padding: '8px 16px', fontWeight: 'bold' }}>Add Account</button>
+              <button className="btn-green" style={{ padding: '8px 16px', fontWeight: 'bold' }}>{t("Add Account")}</button>
             </Link>
             <Link to="/account/account-list" style={{ textDecoration: 'none' }}>
-              <button className="btn-blue" style={{ padding: '8px 16px', fontWeight: 'bold' }}>Account List</button>
+              <button className="btn-blue" style={{ padding: '8px 16px', fontWeight: 'bold' }}>{t("Account List")}</button>
             </Link>
           </div>
         </div>
@@ -91,9 +91,9 @@ const Statement = () => {
         {/* Filter Section */}
         <form onSubmit={handleFilter} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.5fr auto', gap: '16px', marginBottom: '24px', alignItems: 'end' }}>
           <div>
-            <label className="filter-label">Filter by Account</label>
+            <label className="filter-label">{t("Filter by Account")}</label>
             <select className="input-outline" value={selectedAccount} onChange={(e) => setSelectedAccount(e.target.value)} style={{ width: '100%', padding: '10px' }}>
-              <option value="">All Accounts</option>
+              <option value="">{t("All Accounts")}</option>
               {accounts.map(acc => (
                 <option key={acc.id} value={acc.id}>{acc.name}</option>
               ))}
@@ -101,16 +101,16 @@ const Statement = () => {
           </div>
 
           <div>
-            <label className="filter-label">Filter by Type</label>
+            <label className="filter-label">{t("Filter by Type")}</label>
             <select className="input-outline" value={selectedType} onChange={(e) => setSelectedType(e.target.value)} style={{ width: '100%', padding: '10px' }}>
-              <option value="">All (Deposit & Expense)</option>
-              <option value="deposit">Deposit Only (In)</option>
-              <option value="cost">Cost Only (Out)</option>
+              <option value="">{t("All (Deposit & Expense)")}</option>
+              <option value="deposit">{t("Deposit Only (In)")}</option>
+              <option value="cost">{t("Cost Only (Out)")}</option>
             </select>
           </div>
 
           <div>
-            <label className="filter-label">Search Date</label>
+            <label className="filter-label">{t("Search Date")}</label>
             <div style={{ display: 'flex' }}>
               <input type="date" className="input-outline" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ borderRadius: '8px 0 0 8px', borderRight: 'none', width: '50%', padding: '10px' }} />
               <input type="date" className="input-outline" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ borderRadius: '0 8px 8px 0', width: '50%', padding: '10px' }} />
@@ -119,10 +119,10 @@ const Statement = () => {
 
           <div style={{ display: 'flex', gap: '8px' }}>
             <button type="submit" className="btn-blue" style={{ padding: '10px 18px', fontWeight: 'bold' }}>
-              <Search size={14} style={{ marginRight: '4px', display: 'inline' }} /> Filter
+              <Search size={14} style={{ marginRight: '4px', display: 'inline' }} /> {t("Filter")}
             </button>
             <button type="button" onClick={handleClear} className="btn-secondary" style={{ padding: '10px 14px' }}>
-              Reset
+              {t("Reset")}
             </button>
           </div>
         </form>
@@ -130,11 +130,11 @@ const Statement = () => {
         {/* Table Controls */}
         <div className="table-header-controls" style={{ marginBottom: '16px' }}>
           <div className="show-entries">
-            Total Statement Records: <strong>{statements.length}</strong>
+            {t("Total Statement Records:")} <strong>{statements.length}</strong>
           </div>
           <div className="table-controls-right" style={{ gap: '4px' }}>
             <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }} onClick={() => window.print()}><Printer size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.print')}</button>
-            <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }} onClick={fetchStatements}><RotateCcw size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> Reload</button>
+            <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }} onClick={fetchStatements}><RotateCcw size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t("Reload")}</button>
           </div>
         </div>
 
@@ -142,24 +142,24 @@ const Statement = () => {
           <table className="custom-table" style={{ border: '1px solid #d1d5db', width: '100%' }}>
             <thead>
               <tr style={{ background: '#718096', color: 'white' }}>
-                <th style={{ width: '50px' }}>SL</th>
-                <th>DATE</th>
-                <th>TYPE</th>
-                <th>ACCOUNT</th>
-                <th>SOURCE / PARTY</th>
-                <th>DESCRIPTION</th>
-                <th style={{ textAlign: 'right', color: '#86efac' }}>CREDIT (+)</th>
-                <th style={{ textAlign: 'right', color: '#fca5a5' }}>DEBIT (-)</th>
+                <th style={{ width: '50px' }}>{t("SL")}</th>
+                <th>{t("DATE")}</th>
+                <th>{t("TYPE")}</th>
+                <th>{t("ACCOUNT")}</th>
+                <th>{t("SOURCE / PARTY")}</th>
+                <th>{t("DESCRIPTION")}</th>
+                <th style={{ textAlign: 'right', color: '#86efac' }}>{t("CREDIT (+)")}</th>
+                <th style={{ textAlign: 'right', color: '#fca5a5' }}>{t("DEBIT (-)")}</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="8" style={{ padding: '24px', textAlign: 'center', color: '#6b7280' }}>Loading statement ledger...</td>
+                  <td colSpan="8" style={{ padding: '24px', textAlign: 'center', color: '#6b7280' }}>{t("Loading statement ledger...")}</td>
                 </tr>
               ) : statements.length === 0 ? (
                 <tr>
-                  <td colSpan="8" style={{ padding: '24px', textAlign: 'center', color: '#6b7280' }}>No records found for the selected filter.</td>
+                  <td colSpan="8" style={{ padding: '24px', textAlign: 'center', color: '#6b7280' }}>{t("No records found for the selected filter.")}</td>
                 </tr>
               ) : (
                 statements.map((row, idx) => {
@@ -177,10 +177,10 @@ const Statement = () => {
                           fontSize: '11px',
                           fontWeight: 'bold'
                         }}>
-                          {row.type} ({row.transaction_type || 'General'})
+                          {row.type} ({row.transaction_type || t("General")})
                         </span>
                       </td>
-                      <td style={{ fontWeight: '500' }}>{row.account_name || 'Cash Account'}</td>
+                      <td style={{ fontWeight: '500' }}>{row.account_name || t("Cash Account")}</td>
                       <td style={{ fontWeight: '500', color: '#3b82f6' }}>{row.source || '-'}</td>
                       <td style={{ color: '#4b5563' }}>{row.description || '-'}</td>
                       <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#059669' }}>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
+import FloatingShortcutMenu from './components/FloatingShortcutMenu';
 import Dashboard from './pages/Dashboard';
 import CrmRoutes from './routes/CrmRoutes';
 import AccountRoutes from './routes/AccountRoutes';
@@ -20,6 +21,7 @@ import Profile from './pages/profile/Profile';
 import Login from './pages/auth/Login';
 import { LoaderProvider, useLoader } from './context/LoaderContext';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const RouteChangeListener = () => {
   const location = useLocation();
@@ -38,8 +40,33 @@ const RouteChangeListener = () => {
 };
 
 const AppContent = () => {
+  const { t } = useTranslation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
+
+  // Global listener: Auto-open calendar picker on click/focus for ALL date fields across entire app
+  React.useEffect(() => {
+    const handleGlobalDatePicker = (e) => {
+      const target = e.target;
+      if (target && target.tagName === 'INPUT' && target.type === 'date') {
+        try {
+          if (typeof target.showPicker === 'function') {
+            target.showPicker();
+          }
+        } catch (err) {
+          // Ignore if already open or not supported
+        }
+      }
+    };
+
+    document.addEventListener('click', handleGlobalDatePicker);
+    document.addEventListener('focusin', handleGlobalDatePicker);
+
+    return () => {
+      document.removeEventListener('click', handleGlobalDatePicker);
+      document.removeEventListener('focusin', handleGlobalDatePicker);
+    };
+  }, []);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -67,6 +94,7 @@ const AppContent = () => {
   return (
     <div className="app-layout">
       <Sidebar isOpen={isSidebarOpen} closeSidebar={closeSidebar} />
+      <FloatingShortcutMenu />
       
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
@@ -127,7 +155,7 @@ const AppContent = () => {
           </Routes>
         </div>
         <footer style={{ textAlign: 'center', padding: '20px', color: '#6b7280', fontSize: '13px', flexShrink: 0 }}>
-          Copyright © 2026 Softzen IT. All rights reserved.
+          {t("Copyright © 2026 Softzen IT. All rights reserved.")}
         </footer>
       </main>
     </div>

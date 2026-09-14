@@ -113,13 +113,13 @@ const PurchaseInvoiceList = () => {
       
       {/* Center Title */}
       <div style={{ textAlign: 'center', marginBottom: '40px', marginTop: '20px', position: 'relative' }}>
-        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>Product Wise Purchase List</h2>
+        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>{t("Product Wise Purchase List")}</h2>
         <button 
           onClick={() => navigate('/product/purchase/add-new')}
           className="btn" 
           style={{ position: 'absolute', right: '20px', top: '0', background: 'var(--success)', color: 'white', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
         >
-          <Plus size={16} /> Purchase
+          <Plus size={16} /> {t("Purchase")}
         </button>
       </div>
 
@@ -127,13 +127,13 @@ const PurchaseInvoiceList = () => {
         {/* Filters */}
         <div className="form-grid" style={{ gridTemplateColumns: '1.5fr 1fr 1fr 2fr 1fr', gap: '16px', marginBottom: '24px', alignItems: 'end' }}>
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>Supplier</div>
+            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t("Supplier")}</div>
             <select 
               value={filters.supplier}
               onChange={(e) => handleFilterChange('supplier', e.target.value)}
               style={{ padding: '10px', width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', background: 'white' }}
             >
-              <option value="">Select Supplier</option>
+              <option value="">{t("Select Supplier")}</option>
               {suppliers.map(s => (
                 <option key={s.id} value={s.name || s.id}>{s.name}</option>
               ))}
@@ -141,10 +141,10 @@ const PurchaseInvoiceList = () => {
           </div>
           
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>Product Name</div>
+            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t("Product Name")}</div>
             <input 
               type="text" 
-              placeholder="Product Name..." 
+              placeholder={t("Product Name...")} 
               value={filters.productName}
               onChange={(e) => handleFilterChange('productName', e.target.value)}
               style={{ padding: '10px', width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }} 
@@ -152,10 +152,10 @@ const PurchaseInvoiceList = () => {
           </div>
 
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>Barcode</div>
+            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t("Barcode")}</div>
             <input 
               type="text" 
-              placeholder="Barcode..." 
+              placeholder={t("Barcode...")} 
               value={filters.barcode}
               onChange={(e) => handleFilterChange('barcode', e.target.value)}
               style={{ padding: '10px', width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }} 
@@ -182,7 +182,7 @@ const PurchaseInvoiceList = () => {
 
           <div>
             <button onClick={clearFilters} className="btn" style={{ background: 'var(--text-muted)', color: 'white', padding: '12px', borderRadius: '4px', fontSize: '14px', width: '100%', cursor: 'pointer' }}>
-              Clear Filter
+              {t("Clear Filter")}
             </button>
           </div>
         </div>
@@ -190,17 +190,17 @@ const PurchaseInvoiceList = () => {
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
-            Showing {filteredPurchases.length} entries
+            {t("Showing")} {filteredPurchases.length} {t("entries")}
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>
             <button onClick={() => window.print()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              Print
+              {t("Print")}
             </button>
             <button onClick={clearFilters} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <RotateCcw size={14} /> Reset
+              <RotateCcw size={14} /> {t("Reset")}
             </button>
             <button onClick={fetchData} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <RefreshCw size={14} className={loading ? "spin" : ""} /> Reload
+              <RefreshCw size={14} className={loading ? "spin" : ""} /> {t("Reload")}
             </button>
           </div>
         </div>
@@ -210,21 +210,21 @@ const PurchaseInvoiceList = () => {
           <table className="custom-table" style={{ width: '100%', minWidth: '1200px', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--secondary)', color: 'white' }}>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '60px' }}>ID NO ↕</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>DATE</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>SUPPLIER</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>PRODUCT</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>BUYING</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>SELLING</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>QUANTITY</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>TOTAL</th>
-                <th style={{ textAlign: 'center', padding: '12px', fontSize: '11px' }}>DESCRIPTION</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '60px' }}>{t("ID NO ↕")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("DATE")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("SUPPLIER")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("PRODUCT")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("BUYING")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("SELLING")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("QUANTITY")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("TOTAL")}</th>
+                <th style={{ textAlign: 'center', padding: '12px', fontSize: '11px' }}>{t("DESCRIPTION")}</th>
               </tr>
             </thead>
             <tbody>
               {filteredPurchases.length === 0 ? (
                 <tr>
-                  <td colSpan="9" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>No product purchase entries found</td>
+                  <td colSpan="9" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>{t("No product purchase entries found")}</td>
                 </tr>
               ) : (
                 filteredPurchases.map((purchase) => (

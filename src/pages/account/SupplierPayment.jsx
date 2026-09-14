@@ -73,11 +73,11 @@ const SupplierPayment = () => {
         
         {/* Title and Top Action Buttons */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: '400', color: '#4b5563', margin: 0 }}>Supplier Payment List</h2>
+          <h2 style={{ fontSize: '24px', fontWeight: '400', color: '#4b5563', margin: 0 }}>{t("Supplier Payment List")}</h2>
           <div style={{ display: 'flex', gap: '12px' }}>
             <Link to="/account/expense-create" style={{ textDecoration: 'none' }}>
               <button className="btn-green">
-                <Plus size={16} /> Payment
+                <Plus size={16} /> {t("Payment")}
               </button>
             </Link>
           </div>
@@ -86,13 +86,13 @@ const SupplierPayment = () => {
         {/* Filter Section */}
         <div style={{ display: 'flex', gap: '20px', marginBottom: '40px', alignItems: 'end' }}>
           <div style={{ flex: 1 }}>
-            <label className="filter-label">Search By Supplier</label>
+            <label className="filter-label">{t("Search By Supplier")}</label>
             <select 
               className="input-outline" 
               value={selectedSupplier} 
               onChange={(e) => { setSelectedSupplier(e.target.value); }}
             >
-              <option value="">Select Suppliers</option>
+              <option value="">{t("Select Suppliers")}</option>
               {suppliers.map(s => (
                 <option key={s.id} value={s.id}>{s.name || s.company_name}</option>
               ))}
@@ -118,7 +118,7 @@ const SupplierPayment = () => {
             </div>
           </div>
           <div style={{ flex: 1, display: 'flex', gap: '8px' }}>
-            <button className="btn-primary" style={{ flex: 1, height: '44px' }} onClick={handleFilter}>Search</button>
+            <button className="btn-primary" style={{ flex: 1, height: '44px' }} onClick={handleFilter}>{t("Search")}</button>
             <button className="btn-secondary" style={{ flex: 1, height: '44px' }} onClick={handleClearFilter}>{t('common.clear_filter')}</button>
           </div>
         </div>
@@ -126,13 +126,13 @@ const SupplierPayment = () => {
         {/* Table Section */}
         <div className="table-header-controls">
           <div className="show-entries">
-            Show 
+            {t("Show")} 
             <select defaultValue="100">
               <option value="10">10</option>
               <option value="50">50</option>
               <option value="100">100</option>
             </select> 
-            entries
+            {t("entries")}
           </div>
           <div className="table-controls-right">
             <button className="btn-blue" onClick={() => window.print()}><Printer size={16} /> {t('common.print')}</button>
@@ -145,16 +145,16 @@ const SupplierPayment = () => {
             <tr>
               <th>{t('common.sl')}<span style={{ fontSize: '10px', verticalAlign: 'super' }}>↑↓</span></th>
               <th>{t('common.date')}</th>
-              <th>RECEIPT FOR</th>
-              <th>ID NO</th>
+              <th>{t("RECEIPT FOR")}</th>
+              <th>{t("ID NO")}</th>
               <th>{t('common.category')}</th>
               <th>{t('common.account')}</th>
-              <th>CHEQUE NO</th>
+              <th>{t("CHEQUE NO")}</th>
               <th>{t('common.description')}</th>
-              <th>TRANSACTION TYPE</th>
-              <th>BANK</th>
+              <th>{t("TRANSACTION TYPE")}</th>
+              <th>{t("BANK")}</th>
               <th>{t('common.amount')}</th>
-              <th className="no-print">PRINTABLE</th>
+              <th className="no-print">{t("PRINTABLE")}</th>
               <th className="no-print">{t('common.action')}</th>
             </tr>
           </thead>
@@ -163,13 +163,13 @@ const SupplierPayment = () => {
               <tr key={item.id || index}>
                 <td>{index + 1}</td>
                 <td>{item.date}</td>
-                <td>{item.supplier_name || item.supplier?.name || 'Supplier'}</td>
+                <td>{item.supplier_name || item.supplier?.name || t("Supplier")}</td>
                 <td>{item.id?.toString().slice(-6) || '-'}</td>
                 <td>{item.category_name || item.category?.name || '-'}</td>
                 <td>{item.account_name || item.account?.name || '-'}</td>
                 <td>{item.cheque_no || '-'}</td>
                 <td>{item.reference || item.description || '-'}</td>
-                <td>{item.transaction_type || 'Payment'}</td>
+                <td>{item.transaction_type || t("Payment")}</td>
                 <td>{item.bank || '-'}</td>
                 <td>৳ {Number(item.amount || 0).toLocaleString()}</td>
                 <td className="no-print">
@@ -178,7 +178,7 @@ const SupplierPayment = () => {
                     onClick={() => { setSelectedPayment(item); setShowViewModal(true); }}
                     style={{ cursor: 'pointer' }}
                   >
-                    Print
+                    {t("Print")}
                   </button>
                 </td>
                 <td className="no-print">
@@ -187,19 +187,19 @@ const SupplierPayment = () => {
                     onClick={() => { setSelectedPayment(item); setShowViewModal(true); }}
                     style={{ cursor: 'pointer' }}
                   >
-                    View
+                    {t("View")}
                   </button>
                 </td>
               </tr>
             ))}
             {loading && (
               <tr>
-                <td colSpan="13" style={{ padding: '24px', textAlign: 'center', background: 'white' }}>Loading supplier payments...</td>
+                <td colSpan="13" style={{ padding: '24px', textAlign: 'center', background: 'white' }}>{t("Loading supplier payments...")}</td>
               </tr>
             )}
             {!loading && payments.length === 0 && (
               <tr>
-                <td colSpan="13" style={{ padding: '24px', color: '#374151', background: 'white', textAlign: 'center' }}>No data available in table</td>
+                <td colSpan="13" style={{ padding: '24px', color: '#374151', background: 'white', textAlign: 'center' }}>{t("No data available in table")}</td>
               </tr>
             )}
           </tbody>
@@ -214,10 +214,10 @@ const SupplierPayment = () => {
 
         {/* Pagination Section */}
         <div className="table-footer-controls">
-          <div>Showing 1 to {payments.length} of {payments.length} entries</div>
+          <div>{t("Showing {{from}} to {{to}} of {{total}} entries", { from: payments.length ? 1 : 0, to: payments.length, total: payments.length })}</div>
           <div className="pagination-controls">
-            <button className="pagination-btn">Previous</button>
-            <button className="pagination-btn">Next</button>
+            <button className="pagination-btn">{t("Previous")}</button>
+            <button className="pagination-btn">{t("Next")}</button>
           </div>
         </div>
 
@@ -232,34 +232,34 @@ const SupplierPayment = () => {
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '2px solid #0ea5e9', paddingBottom: '12px' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#0f172a' }}>Supplier Payment Voucher</h3>
-                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '600' }}>Voucher #{selectedPayment.id || selectedPayment.voucherNo || 'PAY-001'}</span>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#0f172a' }}>{t("Supplier Payment Voucher")}</h3>
+                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '600' }}>{t("Voucher #")}{selectedPayment.id || selectedPayment.voucherNo || t("PAY-001")}</span>
               </div>
               <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#f1f5f9', padding: '6px 12px', borderRadius: '50%', cursor: 'pointer', color: '#64748b' }}>✕</button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px', marginBottom: '20px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <div><strong>Supplier Name:</strong> {selectedPayment.supplier_name || selectedPayment.supplier?.name || 'Supplier'}</div>
-              <div><strong>Payment Date:</strong> {selectedPayment.date || '-'}</div>
-              <div><strong>Category:</strong> {selectedPayment.category_name || selectedPayment.category?.name || 'Supplier Payment'}</div>
-              <div><strong>Payment Account:</strong> {selectedPayment.account_name || selectedPayment.account?.name || 'Cash Account'}</div>
-              <div><strong>Transaction Type:</strong> {selectedPayment.transaction_type || 'General Expense'}</div>
-              <div><strong>Cheque / Ref No:</strong> {selectedPayment.cheque_no || '-'}</div>
+              <div><strong>{t("Supplier Name:")}</strong> {selectedPayment.supplier_name || selectedPayment.supplier?.name || t("Supplier")}</div>
+              <div><strong>{t("Payment Date:")}</strong> {selectedPayment.date || '-'}</div>
+              <div><strong>{t("Category:")}</strong> {selectedPayment.category_name || selectedPayment.category?.name || t("Supplier Payment")}</div>
+              <div><strong>{t("Payment Account:")}</strong> {selectedPayment.account_name || selectedPayment.account?.name || t("Cash Account")}</div>
+              <div><strong>{t("Transaction Type:")}</strong> {selectedPayment.transaction_type || t("General Expense")}</div>
+              <div><strong>{t("Cheque / Ref No:")}</strong> {selectedPayment.cheque_no || '-'}</div>
             </div>
 
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px', fontSize: '13px' }}>
               <thead>
                 <tr style={{ background: '#1e293b', color: 'white' }}>
-                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', width: '40px' }}>SL</th>
-                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'left' }}>Description / Particulars</th>
-                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'right', width: '140px' }}>Amount (৳)</th>
+                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', width: '40px' }}>{t("SL")}</th>
+                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'left' }}>{t("Description / Particulars")}</th>
+                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'right', width: '140px' }}>{t("Amount (৳)")}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
                   <td style={{ padding: '10px', border: '1px solid #e2e8f0', textAlign: 'center' }}>1</td>
                   <td style={{ padding: '10px', border: '1px solid #e2e8f0', fontWeight: '500' }}>
-                    {selectedPayment.reference || selectedPayment.description || 'Supplier Payment Clearance'}
+                    {selectedPayment.reference || selectedPayment.description || t("Supplier Payment Clearance")}
                   </td>
                   <td style={{ padding: '10px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 'bold' }}>
                     ৳ {Number(selectedPayment.amount || 0).toLocaleString()}
@@ -268,7 +268,7 @@ const SupplierPayment = () => {
               </tbody>
               <tfoot>
                 <tr style={{ background: '#f1f5f9', fontWeight: 'bold' }}>
-                  <td colSpan="2" style={{ padding: '10px', textAlign: 'right', border: '1px solid #cbd5e1' }}>Total Paid Amount:</td>
+                  <td colSpan="2" style={{ padding: '10px', textAlign: 'right', border: '1px solid #cbd5e1' }}>{t("Total Paid Amount:")}</td>
                   <td style={{ padding: '10px', textAlign: 'right', border: '1px solid #cbd5e1', color: '#059669', fontSize: '14px' }}>
                     ৳ {Number(selectedPayment.amount || 0).toLocaleString()}
                   </td>
@@ -279,19 +279,19 @@ const SupplierPayment = () => {
             {/* Signature Footer */}
             <div className="print-only" style={{ display: 'none', justifyContent: 'space-between', marginTop: '60px', paddingTop: '20px' }}>
               <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: '12px' }}>
-                Supplier Signature
+                {t("Supplier Signature")}
               </div>
               <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: '12px' }}>
-                Authorized Signature
+                {t("Authorized Signature")}
               </div>
             </div>
 
             <div className="no-print" style={{ textAlign: 'right', marginTop: '16px' }}>
               <button onClick={() => window.print()} className="btn" style={{ background: 'var(--success)', color: 'white', padding: '10px 24px', borderRadius: '6px', marginRight: '8px', fontWeight: '600' }}>
-                🖨️ Print Memo
+                {t("🖨️ Print Memo")}
               </button>
               <button onClick={() => setShowViewModal(false)} className="btn" style={{ background: '#64748b', color: 'white', padding: '10px 20px', borderRadius: '6px' }}>
-                Close
+                {t("Close")}
               </button>
             </div>
           </div>

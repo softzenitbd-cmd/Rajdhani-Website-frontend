@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShoppingCart } from 'lucide-react';
 import { companyStore, companyHeaderImage } from '../services/companyStore';
 import { appSettingsService } from '../services/appSettingsService';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Company header printed on top of every list / report / voucher.
@@ -18,6 +19,7 @@ const readPrefs = () => ({
 });
 
 const PrintHeader = () => {
+  const { t } = useTranslation();
   const [prefs, setPrefs] = useState(readPrefs);
   const [companyInfo, setCompanyInfo] = useState(() => companyStore.getCached());
 
@@ -44,7 +46,7 @@ const PrintHeader = () => {
       <div className="receipt-header-image" style={{ marginBottom: '20px', textAlign: 'center' }}>
         <img
           src={headerImage}
-          alt={info.company_name || 'Company banner'}
+          alt={info.company_name || t("Company banner")}
           style={{
             maxWidth: '100%',
             height: 'auto',
@@ -63,8 +65,8 @@ const PrintHeader = () => {
   if (activeCard === 'card1') {
     return (
       <div className="receipt-header-text" style={{ border: '2px solid #000', borderRadius: '8px', padding: '16px 24px', background: 'white', textAlign: 'center', margin: '0 auto 20px auto', maxWidth: '800px' }}>
-        <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: '36px', color: 'black' }}>{info.company_name || 'Rajdhani'}</h2>
-        <h3 style={{ fontFamily: 'cursive', margin: '-8px 0 0 40px', fontSize: '24px', color: 'black' }}>{info.company_type || 'Garments'}</h3>
+        <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: '36px', color: 'black' }}>{info.company_name || t("Rajdhani")}</h2>
+        <h3 style={{ fontFamily: 'cursive', margin: '-8px 0 0 40px', fontSize: '24px', color: 'black' }}>{info.company_type || t("Garments")}</h3>
       </div>
     );
   }
@@ -73,8 +75,8 @@ const PrintHeader = () => {
   if (activeCard === 'card3') {
     return (
       <div className="receipt-header-text" style={{ border: '2px solid #000', borderRadius: '8px', padding: '16px 24px', background: 'white', textAlign: 'center', margin: '0 auto 20px auto', maxWidth: '800px' }}>
-        <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: '36px', color: 'black' }}>{info.company_name || 'Rajdhani'}</h2>
-        <h3 style={{ fontFamily: 'cursive', margin: '-8px 0 0 40px', fontSize: '24px', color: 'black' }}>Super Shop</h3>
+        <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: '36px', color: 'black' }}>{info.company_name || t("Rajdhani")}</h2>
+        <h3 style={{ fontFamily: 'cursive', margin: '-8px 0 0 40px', fontSize: '24px', color: 'black' }}>{t("Super Shop")}</h3>
       </div>
     );
   }

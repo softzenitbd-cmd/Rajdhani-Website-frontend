@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 import { AlertTriangle, HelpCircle, Info, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const ConfirmContext = createContext(null);
 
 export const ConfirmProvider = ({ children }) => {
+  const { t } = useTranslation();
   const [modalState, setModalState] = useState(null);
   const resolveRef = useRef(null);
 
@@ -12,10 +14,10 @@ export const ConfirmProvider = ({ children }) => {
       resolveRef.current = resolve;
       
       let config = {
-        title: 'Confirmation Needed',
+        title: t("Confirmation Needed"),
         message: '',
-        confirmText: 'Confirm',
-        cancelText: 'Cancel',
+        confirmText: t("Confirm"),
+        cancelText: t("Cancel"),
         variant: 'danger', // 'danger' | 'warning' | 'info'
       };
 
@@ -53,6 +55,7 @@ export const ConfirmProvider = ({ children }) => {
 };
 
 const ConfirmModalUI = ({ config, onClose }) => {
+  const { t } = useTranslation();
   const { title, message, confirmText, cancelText, variant } = config;
 
   const handleKeyDown = (e) => {
@@ -152,7 +155,7 @@ const ConfirmModalUI = ({ config, onClose }) => {
               alignItems: 'center',
               justifyContent: 'center'
             }}
-            title="Close"
+            title={t("Close")}
           >
             <X size={18} />
           </button>

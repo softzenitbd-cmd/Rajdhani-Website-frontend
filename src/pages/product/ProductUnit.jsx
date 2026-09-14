@@ -1,6 +1,7 @@
 import React from 'react';
 import SimpleCrudPage from '../../components/SimpleCrudPage';
 import { productService } from '../../services/productService';
+import { useTranslation } from 'react-i18next';
 
 const service = {
   list: productService.units.getAll,
@@ -9,8 +10,11 @@ const service = {
   remove: productService.units.delete,
 };
 
-const ProductUnit = () => (
-  <SimpleCrudPage title="Product Unit List" itemLabel="Unit" service={service} excelName="Product_Units" />
+const ProductUnit = () => {
+  const { t } = useTranslation();
+  return (
+  <SimpleCrudPage title={t("Product Unit List")} itemLabel={t("Unit")} service={service} excelName="Product_Units" />
 );
+};
 
 export default ProductUnit;

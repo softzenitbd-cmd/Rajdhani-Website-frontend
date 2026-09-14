@@ -1,6 +1,10 @@
 import React from 'react';
 import TransactionReport from '../../components/TransactionReport';
+import { useTranslation } from 'react-i18next';
 
-const ExpenseSupplierPurchase = () => <TransactionReport kind="expense" groupBy="supplier" title="Supplier Payment Report" />;
+const ExpenseSupplierPurchase = () => {
+  const { t } = useTranslation();
+  return <TransactionReport kind="expense" groupBy="supplier" title={t("Supplier Payment Report")} />;
+};
 
 export default ExpenseSupplierPurchase;

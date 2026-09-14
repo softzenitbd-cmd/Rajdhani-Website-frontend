@@ -104,7 +104,7 @@ const PurchaseCreate = () => {
         handleSelectProduct(prod.id);
         setFormData(prev => ({ ...prev, barcode: '' }));
       } else {
-        toast.error(`Product with barcode "${code}" not found.`);
+        toast.error(t("Product with barcode \"{{v0}}\" not found.", { v0: code }));
       }
     }
   };
@@ -131,7 +131,7 @@ const PurchaseCreate = () => {
       setFormData(prev => ({ ...prev, supplier: newSup.id }));
       setIsSupplierModalOpen(false);
     } catch (err) {
-      toast.error(`Failed to create supplier: ${err?.message || 'server error'}`);
+      toast.error(t("Failed to create supplier: {{v0}}", { v0: err?.message || t("server error") }));
     }
   };
 
@@ -145,17 +145,17 @@ const PurchaseCreate = () => {
       handleSelectProduct(newProd.id);
       setIsProductModalOpen(false);
     } catch (err) {
-      toast.error(`Failed to create product: ${err?.message || 'server error'}`);
+      toast.error(t("Failed to create product: {{v0}}", { v0: err?.message || t("server error") }));
     }
   };
 
   const handleSubmitPurchase = async () => {
     if (!formData.supplier) {
-      toast.error("Please select a supplier.");
+      toast.error(t("Please select a supplier."));
       return;
     }
     if (items.length === 0) {
-      toast.error("Please add at least one product to purchase list.");
+      toast.error(t("Please add at least one product to purchase list."));
       return;
     }
 
@@ -188,11 +188,11 @@ const PurchaseCreate = () => {
       };
 
       const created = await purchaseService.createPurchaseInvoice(payload);
-      toast.success(`Purchase invoice ${created?.invoice_id ? created.invoice_id + ' ' : ''}created successfully!`);
+      toast.success(t("Purchase invoice {{v0}}created successfully!", { v0: created?.invoice_id ? created.invoice_id + ' ' : '' }));
       navigate('/product/purchase/list');
     } catch (err) {
       console.error("Error creating purchase:", err);
-      toast.error(`Failed to create purchase: ${err?.message || 'server error'}`);
+      toast.error(t("Failed to create purchase: {{v0}}", { v0: err?.message || t("server error") }));
     } finally {
       setSubmitting(false);
     }
@@ -213,7 +213,7 @@ const PurchaseCreate = () => {
       <div className="premium-card">
         <div className="premium-header" style={{ padding: '16px 24px', background: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold', textTransform: 'uppercase' }}>
-            Purchase Create
+            {t("Purchase Create")}
           </h2>
           <div style={{ display: 'flex', gap: '8px' }}>
           </div>
@@ -228,7 +228,7 @@ const PurchaseCreate = () => {
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <div className="input-with-append">
                   <select name="supplier" value={formData.supplier} onChange={handleChange} style={{ padding: '14px', flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px 0 0 4px', outline: 'none', background: 'white' }}>
-                    <option value="">Select Suppliers</option>
+                    <option value="">{t("Select Suppliers")}</option>
                     {suppliers.map(sup => (
                       <option key={sup.id} value={sup.id}>{sup.name}</option>
                     ))}
@@ -241,7 +241,7 @@ const PurchaseCreate = () => {
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <div style={{ position: 'relative' }}>
                   <div style={{ position: 'absolute', top: '-10px', left: '16px', background: 'var(--info)', color: 'white', fontSize: '11px', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Calendar size={12} /> Date
+                    <Calendar size={12} /> {t("Date")}
                   </div>
                   <input type="date" name="date" value={formData.date} onChange={handleChange} style={{ width: '100%', padding: '14px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none' }} />
                 </div>
@@ -259,7 +259,7 @@ const PurchaseCreate = () => {
                     value={formData.barcode}
                     onChange={handleChange}
                     onKeyDown={handleBarcodeKeyDown}
-                    placeholder="Scan Barcode & Press Enter"
+                    placeholder={t("Scan Barcode & Press Enter")}
                     style={{ flex: 1, padding: '12px', border: 'none', outline: 'none', color: '#334155' }}
                   />
                 </div>
@@ -269,7 +269,7 @@ const PurchaseCreate = () => {
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <div className="input-with-append">
                   <select name="product" value={formData.product} onChange={handleChange} style={{ padding: '14px', flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px 0 0 4px', outline: 'none', background: 'white' }}>
-                    <option value="">Select Product</option>
+                    <option value="">{t("Select Product")}</option>
                     {products.map(p => (
                       <option key={p.id} value={p.id}>{p.name || p.title} {p.code || p.barcode ? `[${p.code || p.barcode}]` : ''}</option>
                     ))}
@@ -285,22 +285,22 @@ const PurchaseCreate = () => {
               <table className="custom-table" style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ background: 'var(--secondary)', color: 'white' }}>
-                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '50px' }}>SL</th>
-                    <th style={{ textAlign: 'left', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>PRODUCT</th>
-                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '90px' }}>QUANTITY</th>
-                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '120px' }}>BUYING PRICE</th>
-                    <th style={{ textAlign: 'right', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>TOTAL BUYING PRICE</th>
-                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '120px' }}>SALE PRICE</th>
-                    <th style={{ textAlign: 'right', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>TOTAL SALE PRICE</th>
-                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>BARCODE</th>
-                    <th style={{ textAlign: 'center', padding: '12px', fontSize: '11px' }}>ACTION</th>
+                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '50px' }}>{t("SL")}</th>
+                    <th style={{ textAlign: 'left', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("PRODUCT")}</th>
+                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '90px' }}>{t("QUANTITY")}</th>
+                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '120px' }}>{t("BUYING PRICE")}</th>
+                    <th style={{ textAlign: 'right', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("TOTAL BUYING PRICE")}</th>
+                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '120px' }}>{t("SALE PRICE")}</th>
+                    <th style={{ textAlign: 'right', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("TOTAL SALE PRICE")}</th>
+                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("BARCODE")}</th>
+                    <th style={{ textAlign: 'center', padding: '12px', fontSize: '11px' }}>{t("ACTION")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {items.length === 0 ? (
                     <tr>
                       <td colSpan="9" style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
-                        No products added to purchase list yet. Select a product or scan barcode above.
+                        {t("No products added to purchase list yet. Select a product or scan barcode above.")}
                       </td>
                     </tr>
                   ) : (
@@ -354,7 +354,7 @@ const PurchaseCreate = () => {
                 </tbody>
                 <tfoot>
                   <tr style={{ background: '#f8fafc', fontWeight: 'bold' }}>
-                    <td colSpan="2" style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0', borderTop: '1px solid #e2e8f0' }}>Line Total</td>
+                    <td colSpan="2" style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0', borderTop: '1px solid #e2e8f0' }}>{t("Line Total")}</td>
                     <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0', borderTop: '1px solid #e2e8f0' }}>{totalQty}</td>
                     <td style={{ borderRight: '1px solid #e2e8f0', borderTop: '1px solid #e2e8f0' }}></td>
                     <td style={{ textAlign: 'right', padding: '12px', borderRight: '1px solid #e2e8f0', borderTop: '1px solid #e2e8f0' }}>৳ {totalBuying.toFixed(2)}</td>
@@ -369,28 +369,28 @@ const PurchaseCreate = () => {
             {/* Bill summary */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '24px', maxWidth: '900px', marginLeft: 'auto' }}>
               {[
-                { label: 'Purchase Bill', value: `৳ ${totalBuying.toFixed(2)}` },
+                { label: t("Purchase Bill"), value: `৳ ${totalBuying.toFixed(2)}` },
               ].map((r) => (
                 <div key={r.label} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '10px 12px' }}>
                   <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>{r.label}</div>
                   <div style={{ fontWeight: 'bold', fontSize: '15px' }}>{r.value}</div>
                 </div>
               ))}
-              <label style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>Discount
+              <label style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>{t("Discount")}
                 <input type="number" step="0.01" name="discount" value={formData.discount} onChange={handleChange} style={{ padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '14px', textTransform: 'none' }} />
               </label>
-              <label style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>Transport Fare
+              <label style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>{t("Transport Fare")}
                 <input type="number" step="0.01" name="transport_fare" value={formData.transport_fare} onChange={handleChange} style={{ padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '14px' }} />
               </label>
               <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '6px', padding: '10px 12px' }}>
-                <div style={{ fontSize: '11px', color: '#047857', textTransform: 'uppercase' }}>Grand Total</div>
+                <div style={{ fontSize: '11px', color: '#047857', textTransform: 'uppercase' }}>{t("Grand Total")}</div>
                 <div style={{ fontWeight: 'bold', fontSize: '15px' }}>৳ {grandTotal.toFixed(2)}</div>
               </div>
-              <label style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>Paid Amount
+              <label style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>{t("Paid Amount")}
                 <input type="number" step="0.01" name="receive_amount" value={formData.receive_amount} onChange={handleChange} style={{ padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '14px' }} />
               </label>
               <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', padding: '10px 12px' }}>
-                <div style={{ fontSize: '11px', color: '#b91c1c', textTransform: 'uppercase' }}>Due</div>
+                <div style={{ fontSize: '11px', color: '#b91c1c', textTransform: 'uppercase' }}>{t("Due")}</div>
                 <div style={{ fontWeight: 'bold', fontSize: '15px' }}>৳ {totalDue.toFixed(2)}</div>
               </div>
             </div>
@@ -403,7 +403,7 @@ const PurchaseCreate = () => {
                 className="btn-primary"
                 style={{ padding: '12px 32px', background: 'var(--success)', border: 'none', borderRadius: '4px', fontSize: '14px', cursor: 'pointer' }}
               >
-                {submitting ? 'Processing...' : 'Buy Product'}
+                {submitting ? t("Processing...") : t("Buy Product")}
               </button>
             </div>
           </form>
@@ -414,16 +414,16 @@ const PurchaseCreate = () => {
         isOpen={isSupplierModalOpen}
         onClose={() => setIsSupplierModalOpen(false)}
         onSave={handleAddSupplier}
-        title="Add Supplier"
-        label="Supplier Name"
+        title={t("Add Supplier")}
+        label={t("Supplier Name")}
       />
 
       <AddOptionModal
         isOpen={isProductModalOpen}
         onClose={() => setIsProductModalOpen(false)}
         onSave={handleAddProduct}
-        title="Add Product"
-        label="Product Name"
+        title={t("Add Product")}
+        label={t("Product Name")}
       />
     </div>
   );

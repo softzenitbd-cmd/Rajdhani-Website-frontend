@@ -6,8 +6,10 @@ import { useApi } from '../../../hooks/useApi';
 import { useConfirm } from '../../../context/ConfirmContext';
 import { ENDPOINTS } from '../../../api/endpoints';
 import { exportToExcel } from '../../../utils/excelExporter';
+import { useTranslation } from 'react-i18next';
 
 const ClientList = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const confirm = useConfirm();
   
@@ -30,14 +32,14 @@ const ClientList = () => {
 
   const handleDelete = async (id) => {
     const isConfirmed = await confirm({
-      title: 'Delete Client',
-      message: 'Are you sure you want to delete this client?',
-      confirmText: 'Delete',
+      title: t("Delete Client"),
+      message: t("Are you sure you want to delete this client?"),
+      confirmText: t("Delete"),
       variant: 'danger'
     });
     if (isConfirmed) {
       try {
-        await del(`${ENDPOINTS.CRM_CLIENTS}${id}/`, 'Client deleted successfully');
+        await del(`${ENDPOINTS.CRM_CLIENTS}${id}/`, t("Client deleted successfully"));
         fetchClients();
         setActiveAction(null);
       } catch (err) {
@@ -49,18 +51,18 @@ const ClientList = () => {
   const handleDeactivate = async (id, currentStatus) => {
     const isCurrentlyActive = currentStatus === true || currentStatus === 'Active' || currentStatus === 'Activated';
     const newStatusBool = !isCurrentlyActive;
-    const actionLabel = newStatusBool ? 'activate' : 'deactivate';
+    const actionLabel = newStatusBool ? t('activate') : t('deactivate');
 
     const isConfirmed = await confirm({
-      title: `${newStatusBool ? 'Activate' : 'Deactivate'} Client`,
-      message: `Are you sure you want to ${actionLabel} this client?`,
-      confirmText: newStatusBool ? 'Activate' : 'Deactivate',
+      title: t("{{v0}} Client", { v0: newStatusBool ? t("Activate") : t("Deactivate") }),
+      message: t("Are you sure you want to {{v0}} this client?", { v0: actionLabel }),
+      confirmText: newStatusBool ? t("Activate") : t("Deactivate"),
       variant: newStatusBool ? 'warning' : 'danger'
     });
 
     if (isConfirmed) {
       try {
-        await patch(`${ENDPOINTS.CRM_CLIENTS}${id}/`, { status: newStatusBool }, `Client ${newStatusBool ? 'activated' : 'deactivated'} successfully`);
+        await patch(`${ENDPOINTS.CRM_CLIENTS}${id}/`, { status: newStatusBool }, t("Client {{v0}} successfully", { v0: newStatusBool ? t("activated") : t("deactivated") }));
         fetchClients();
         setActiveAction(null);
       } catch (err) {
@@ -131,16 +133,16 @@ const ClientList = () => {
       <div className="chart-card">
         {/* Header */}
         <div className="card-header">
-          <h2 className="card-title">CUSTOMER LIST</h2>
+          <h2 className="card-title">{t("CUSTOMER LIST")}</h2>
           <div className="card-actions">
             <button onClick={() => navigate(-1)} className="btn btn-outline" style={{ padding: '6px 12px', background: '#718096', color: 'white' }}>
-              <ArrowLeft size={14} /> Go Back
+              <ArrowLeft size={14} /> {t("Go Back")}
             </button>
             <button className="btn btn-outline" onClick={() => navigate('/crm/client-group')} style={{ padding: '6px 12px', background: 'var(--table-header-bg)', color: 'white' }}>
-              <Users size={14} /> Client Group
+              <Users size={14} /> {t("Client Group")}
             </button>
             <button className="btn btn-primary" onClick={() => navigate('/crm/client-create')} style={{ padding: '6px 12px', background: 'var(--success)' }}>
-              <Plus size={14} /> Add Client
+              <Plus size={14} /> {t("Add Client")}
             </button>
           </div>
         </div>
@@ -156,19 +158,19 @@ const ClientList = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <label>Search All</label>
+              <label>{t("Search All")}</label>
             </div>
           </div>
           
           <div className="form-group">
             <div className="form-input floating-label">
               <select value={selectedGroup} onChange={(e) => setSelectedGroup(e.target.value)}>
-                <option value="">All Groups</option>
+                <option value="">{t("All Groups")}</option>
                 {groups.map(g => (
                   <option key={g.id || g.uuid} value={g.id || g.uuid}>{g.name}</option>
                 ))}
               </select>
-              <label>Search By Client Group</label>
+              <label>{t("Search By Client Group")}</label>
             </div>
           </div>
 
@@ -178,7 +180,7 @@ const ClientList = () => {
               style={{ height: '48px', width: '100%', background: '#718096', color: 'white', justifyContent: 'center' }}
               onClick={() => { setSearchTerm(''); setSelectedGroup(''); }}
             >
-              Clear Filter
+              {t("Clear Filter")}
             </button>
           </div>
         </div>
@@ -186,21 +188,21 @@ const ClientList = () => {
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
-            Show 
+            {t("Show")} 
             <select style={{ margin: '0 8px', padding: '4px', border: '1px solid var(--secondary)', borderRadius: '4px' }}>
               <option>25</option>
             </select>
-            entries
+            {t("entries")}
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button className="btn" onClick={handleExportExcel} style={{ background: '#059669', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', cursor: 'pointer' }}>
-              <FileSpreadsheet size={14} style={{ marginRight: '6px' }} /> Excel
+              <FileSpreadsheet size={14} style={{ marginRight: '6px' }} /> {t("Excel")}
             </button>
             <button className="btn" onClick={() => window.print()} style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
-              <Printer size={14} style={{ marginRight: '6px' }} /> Print
+              <Printer size={14} style={{ marginRight: '6px' }} /> {t("Print")}
             </button>
             <button onClick={() => window.location.reload()} className="btn" style={{ background: '#4318ff', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>
-              <RotateCcw size={14} style={{ marginRight: '6px' }} /> Reset
+              <RotateCcw size={14} style={{ marginRight: '6px' }} /> {t("Reset")}
             </button>
           </div>
         </div>
@@ -210,17 +212,17 @@ const ClientList = () => {
           <table className="custom-table">
             <thead>
               <tr>
-                <th width="50">ID NO</th>
-                <th width="300">CLIENT DETAILS</th>
-                <th>DETAILS</th>
-                <th width="100">ACTION</th>
+                <th width="50">{t("ID NO")}</th>
+                <th width="300">{t("CLIENT DETAILS")}</th>
+                <th>{t("DETAILS")}</th>
+                <th width="100">{t("ACTION")}</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>Loading...</td></tr>
+                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>{t("Loading...")}</td></tr>
               ) : filteredClients.length === 0 ? (
-                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No clients found.</td></tr>
+                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>{t("No clients found.")}</td></tr>
               ) : (
                 filteredClients.map((client) => (
                   <tr key={client.id || client.uuid}>
@@ -228,26 +230,26 @@ const ClientList = () => {
                     
                     <td style={{ verticalAlign: 'top', paddingTop: '16px', fontSize: '13px' }}>
                       <div style={{ display: 'grid', gridTemplateColumns: '80px 10px 1fr', gap: '4px', marginBottom: '4px' }}>
-                        <div style={{ fontWeight: '600' }}>Name</div><div>:</div><div>{client.name || (client.details && client.details.name)}</div>
-                        <div style={{ fontWeight: '600' }}>Phone</div><div>:</div><div>{client.phone || (client.details && client.details.phone)}</div>
-                        {(client.group || (client.details && client.details.group)) && <><div style={{ fontWeight: '600' }}>Client Group</div><div>:</div><div>{client.group || (client.details && client.details.group)}</div></>}
-                        <div style={{ fontWeight: '600' }}>Address</div><div>:</div><div>{client.address || (client.details && client.details.address)}</div>
-                        <div style={{ fontWeight: '600' }}>Status</div><div>:</div><div>{(client.status === true || client.status === 'Active' || client.status === 'Activated') ? 'Active' : 'Deactivated'}</div>
-                        <div style={{ fontWeight: '600' }}>Created At</div><div>:</div><div>{client.created_at || (client.details && client.details.createdAt)}</div>
+                        <div style={{ fontWeight: '600' }}>{t("Name")}</div><div>:</div><div>{client.name || (client.details && client.details.name)}</div>
+                        <div style={{ fontWeight: '600' }}>{t("Phone")}</div><div>:</div><div>{client.phone || (client.details && client.details.phone)}</div>
+                        {(client.group || (client.details && client.details.group)) && <><div style={{ fontWeight: '600' }}>{t("Client Group")}</div><div>:</div><div>{client.group || (client.details && client.details.group)}</div></>}
+                        <div style={{ fontWeight: '600' }}>{t("Address")}</div><div>:</div><div>{client.address || (client.details && client.details.address)}</div>
+                        <div style={{ fontWeight: '600' }}>{t("Status")}</div><div>:</div><div>{(client.status === true || client.status === 'Active' || client.status === 'Activated') ? t("Active") : t("Deactivated")}</div>
+                        <div style={{ fontWeight: '600' }}>{t("Created At")}</div><div>:</div><div>{client.created_at || (client.details && client.details.createdAt)}</div>
                       </div>
                     </td>
                     
                     <td style={{ verticalAlign: 'top', padding: '0' }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                         <tbody>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>Previous Due</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{client.previous_due || (client.stats && client.stats.prevDue) || '0.00'}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>Bill</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{client.bill || '0.00'}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>Total Bill</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{client.total_bill || '0.00'}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>Receive</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{client.receive || '0.00'}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>Sales Return</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{client.sales_return || '0.00'}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>Money Return</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{client.money_return || '0.00'}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}><span style={{ background: '#ef4444', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>Due</span></td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0', fontWeight: 'bold' }}>{client.due || client.previous_due || '0.00'}</td></tr>
-                          <tr><td style={{ padding: '6px 12px' }}>Collection Date</td><td style={{ padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}><Calendar size={12} style={{ marginRight: '4px', display: 'inline-block', verticalAlign: 'middle' }}/> {client.collection_date || '-'}</td></tr>
+                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Previous Due")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{client.previous_due || (client.stats && client.stats.prevDue) || '0.00'}</td></tr>
+                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Bill")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{client.bill || '0.00'}</td></tr>
+                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Total Bill")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{client.total_bill || '0.00'}</td></tr>
+                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Receive")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{client.receive || '0.00'}</td></tr>
+                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Sales Return")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{client.sales_return || '0.00'}</td></tr>
+                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Money Return")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{client.money_return || '0.00'}</td></tr>
+                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}><span style={{ background: '#ef4444', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>{t("Due")}</span></td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0', fontWeight: 'bold' }}>{client.due || client.previous_due || '0.00'}</td></tr>
+                          <tr><td style={{ padding: '6px 12px' }}>{t("Collection Date")}</td><td style={{ padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}><Calendar size={12} style={{ marginRight: '4px', display: 'inline-block', verticalAlign: 'middle' }}/> {client.collection_date || '-'}</td></tr>
                         </tbody>
                       </table>
                     </td>
@@ -258,19 +260,19 @@ const ClientList = () => {
                       className="btn" 
                       style={{ background: '#05cd99', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', width: '100%', justifyContent: 'space-between' }}
                     >
-                      Action <ChevronDown size={14} />
+                      {t("Action")} <ChevronDown size={14} />
                     </button>
                     
                     {activeAction === (client.id || client.uuid) && (
                       <div style={{ position: 'absolute', top: '50px', right: '16px', background: 'white', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', borderRadius: '8px', zIndex: 10, width: '160px', padding: '8px 0', border: '1px solid #e2e8f0' }}>
                         <div onClick={() => handleDeactivate(client.id || client.uuid, client.status)} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item">
-                          {(client.status === false || client.status === 'Deactivated') ? '✅ Activate' : '🚫 Deactivate'}
+                          {(client.status === false || client.status === 'Deactivated') ? t("✅ Activate") : t("🚫 Deactivate")}
                         </div>
-                        <div onClick={() => { setViewClient(client); setActiveAction(null); }} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>👁</span> View</div>
-                        <div onClick={() => { navigate('/account/receive-create', { state: { clientId: client.id || client.uuid } }); setActiveAction(null); }} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>⬇️</span> Receive</div>
-                        <div onClick={() => navigate(`/crm/client-edit/${client.id || client.uuid}`)} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>✏️</span> Edit</div>
-                        <div onClick={() => handleDelete(client.id || client.uuid)} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', color: '#ef4444' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>🗑</span> Delete</div>
-                        <div onClick={() => navigate('/crm/client-statement')} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>📄</span> View Statement</div>
+                        <div onClick={() => { setViewClient(client); setActiveAction(null); }} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>👁</span> {t("View")}</div>
+                        <div onClick={() => { navigate('/account/receive-create', { state: { clientId: client.id || client.uuid } }); setActiveAction(null); }} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>⬇️</span> {t("Receive")}</div>
+                        <div onClick={() => navigate(`/crm/client-edit/${client.id || client.uuid}`)} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>✏️</span> {t("Edit")}</div>
+                        <div onClick={() => handleDelete(client.id || client.uuid)} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', color: '#ef4444' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>🗑</span> {t("Delete")}</div>
+                        <div onClick={() => navigate('/crm/client-statement')} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>📄</span> {t("View Statement")}</div>
                       </div>
                     )}
                   </td>
@@ -289,28 +291,28 @@ const ClientList = () => {
           <div className="printable-modal-content" style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '550px', maxWidth: '90vw', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
             <PrintHeader />
             
-            <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '18px', fontWeight: 'bold', borderBottom: '2px solid #0ea5e9', paddingBottom: '8px' }}>Customer Profile / Ledger Info</h3>
+            <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '18px', fontWeight: 'bold', borderBottom: '2px solid #0ea5e9', paddingBottom: '8px' }}>{t("Customer Profile / Ledger Info")}</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '12px', fontSize: '14px', background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
-              <div style={{ fontWeight: '600' }}>Customer ID:</div><div>{viewClient.id || viewClient.uuid}</div>
-              <div style={{ fontWeight: '600' }}>Name:</div><div style={{ fontWeight: 'bold' }}>{viewClient.name}</div>
-              <div style={{ fontWeight: '600' }}>Phone:</div><div>{viewClient.phone}</div>
-              <div style={{ fontWeight: '600' }}>Group:</div><div>{viewClient.group || '-'}</div>
-              <div style={{ fontWeight: '600' }}>Address:</div><div>{viewClient.address || '-'}</div>
-              <div style={{ fontWeight: '600' }}>Total Due:</div><div style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '16px' }}>৳ {viewClient.due || viewClient.previous_due || '0.00'}</div>
+              <div style={{ fontWeight: '600' }}>{t("Customer ID:")}</div><div>{viewClient.id || viewClient.uuid}</div>
+              <div style={{ fontWeight: '600' }}>{t("Name:")}</div><div style={{ fontWeight: 'bold' }}>{viewClient.name}</div>
+              <div style={{ fontWeight: '600' }}>{t("Phone:")}</div><div>{viewClient.phone}</div>
+              <div style={{ fontWeight: '600' }}>{t("Group:")}</div><div>{viewClient.group || '-'}</div>
+              <div style={{ fontWeight: '600' }}>{t("Address:")}</div><div>{viewClient.address || '-'}</div>
+              <div style={{ fontWeight: '600' }}>{t("Total Due:")}</div><div style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '16px' }}>৳ {viewClient.due || viewClient.previous_due || '0.00'}</div>
             </div>
 
             <div className="print-only" style={{ display: 'none', justifyContent: 'space-between', marginTop: '60px', paddingTop: '20px' }}>
               <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '160px', paddingTop: '4px', fontSize: '12px' }}>
-                Customer Signature
+                {t("Customer Signature")}
               </div>
               <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '160px', paddingTop: '4px', fontSize: '12px' }}>
-                Authorized Signature
+                {t("Authorized Signature")}
               </div>
             </div>
 
             <div className="no-print" style={{ textAlign: 'right' }}>
-              <button onClick={() => window.print()} className="btn" style={{ background: 'var(--success)', color: 'white', padding: '8px 20px', borderRadius: '6px', marginRight: '8px', fontWeight: '600' }}>🖨️ Print Memo</button>
-              <button onClick={() => setViewClient(null)} className="btn" style={{ background: '#64748b', color: 'white', padding: '8px 16px', borderRadius: '6px' }}>Close</button>
+              <button onClick={() => window.print()} className="btn" style={{ background: 'var(--success)', color: 'white', padding: '8px 20px', borderRadius: '6px', marginRight: '8px', fontWeight: '600' }}>{t("🖨️ Print Memo")}</button>
+              <button onClick={() => setViewClient(null)} className="btn" style={{ background: '#64748b', color: 'white', padding: '8px 16px', borderRadius: '6px' }}>{t("Close")}</button>
             </div>
           </div>
         </div>

@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import SmsComposer from '../../components/SmsComposer';
 import { crmService } from '../../services/crmService';
 import { toList } from '../../utils/apiHelpers';
+import { useTranslation } from 'react-i18next';
 
 const SmsSupplier = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,7 +21,7 @@ const SmsSupplier = () => {
 
   return (
     <SmsComposer
-      title="Send SMS to Supplier"
+      title={t("Send SMS to Supplier")}
       recipientType="supplier"
       contacts={contacts}
       loading={loading}

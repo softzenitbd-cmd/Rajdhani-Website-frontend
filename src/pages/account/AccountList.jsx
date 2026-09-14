@@ -40,7 +40,7 @@ const AccountList = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this account?')) return;
+    if (!window.confirm(t("Are you sure you want to delete this account?"))) return;
     try {
       await accountingService.deleteAccount(id);
       fetchAccounts();
@@ -53,11 +53,11 @@ const AccountList = () => {
   return (
     <div className="premium-card">
       <div className="premium-header">
-        <h2 className="premium-title" style={{ textTransform: 'uppercase' }}>Account List</h2>
+        <h2 className="premium-title" style={{ textTransform: 'uppercase' }}>{t("Account List")}</h2>
         <div className="header-actions">
-          <button className="btn-gray-outline" onClick={() => navigate(-1)}><ArrowLeft size={16} /> Go Back</button>
+          <button className="btn-gray-outline" onClick={() => navigate(-1)}><ArrowLeft size={16} /> {t("Go Back")}</button>
           <Link to="/account/account-create" style={{ textDecoration: 'none' }}>
-            <button className="btn-green">Add New Account</button>
+            <button className="btn-green">{t("Add New Account")}</button>
           </Link>
         </div>
       </div>
@@ -71,7 +71,7 @@ const AccountList = () => {
             <div style={{ position: 'relative', width: '280px' }}>
               <input
                 type="text"
-                placeholder="Search name or account number..."
+                placeholder={t("Search name or account number...")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{ width: '100%', padding: '8px 12px 8px 34px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px', outline: 'none' }}
@@ -79,14 +79,14 @@ const AccountList = () => {
               <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
             </div>
             <button type="submit" className="btn-blue" style={{ padding: '8px 14px', fontSize: '13px', fontWeight: 'bold' }}>
-              Search
+              {t("Search")}
             </button>
           </form>
 
           <div className="table-controls-right" style={{ display: 'flex', gap: '4px' }}>
-            <button className="btn-blue" onClick={() => exportVisibleTable('xlsx', 'Account_List')} style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold', background: '#059669', cursor: 'pointer' }}>Excel</button>
-            <button onClick={() => exportVisibleTable('csv')} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>CSV</button>
-            <button onClick={() => printPage()} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>PDF</button>
+            <button className="btn-blue" onClick={() => exportVisibleTable('xlsx', 'Account_List')} style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold', background: '#059669', cursor: 'pointer' }}>{t("Excel")}</button>
+            <button onClick={() => exportVisibleTable('csv')} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>{t("CSV")}</button>
+            <button onClick={() => printPage()} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>{t("PDF")}</button>
             <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }} onClick={() => window.print()}><Printer size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.print')}</button>
             <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }} onClick={() => { setSearchTerm(''); fetchAccounts(''); }}><RotateCcw size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.reset')}</button>
           </div>
@@ -95,33 +95,33 @@ const AccountList = () => {
         <table className="custom-table" style={{ border: '1px solid #d1d5db', width: '100%' }}>
           <thead>
             <tr style={{ background: '#718096', color: 'white' }}>
-              <th style={{ width: '80px', textAlign: 'left', padding: '12px' }}>ID NO</th>
-              <th style={{ textAlign: 'left', padding: '12px' }}>TITLE</th>
-              <th style={{ textAlign: 'left', padding: '12px' }}>ACCOUNT NUMBER</th>
-              <th style={{ textAlign: 'right', padding: '12px' }}>BALANCE</th>
-              <th style={{ width: '100px', textAlign: 'center', padding: '12px' }}>ACTION</th>
+              <th style={{ width: '80px', textAlign: 'left', padding: '12px' }}>{t("ID NO")}</th>
+              <th style={{ textAlign: 'left', padding: '12px' }}>{t("TITLE")}</th>
+              <th style={{ textAlign: 'left', padding: '12px' }}>{t("ACCOUNT NUMBER")}</th>
+              <th style={{ textAlign: 'right', padding: '12px' }}>{t("BALANCE")}</th>
+              <th style={{ width: '100px', textAlign: 'center', padding: '12px' }}>{t("ACTION")}</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#6b7280' }}>Loading accounts...</td>
+                <td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#6b7280' }}>{t("Loading accounts...")}</td>
               </tr>
             ) : accounts.length === 0 ? (
               <tr>
-                <td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#6b7280' }}>No accounts found.</td>
+                <td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#6b7280' }}>{t("No accounts found.")}</td>
               </tr>
             ) : (
               accounts.map((acc, idx) => (
                 <tr key={acc.id || idx} style={{ borderBottom: '1px solid #e5e7eb' }}>
                   <td style={{ textAlign: 'left', padding: '12px', fontWeight: '600', color: '#4b5563' }}>#{acc.id || idx + 1}</td>
                   <td style={{ textAlign: 'left', padding: '12px', fontWeight: '600' }}>{acc.name}</td>
-                  <td style={{ textAlign: 'left', padding: '12px', color: '#4b5563' }}>{acc.account_number || acc.accountNumber || 'Cash'}</td>
+                  <td style={{ textAlign: 'left', padding: '12px', color: '#4b5563' }}>{acc.account_number || acc.accountNumber || t("Cash")}</td>
                   <td style={{ textAlign: 'right', padding: '12px', fontWeight: 'bold', color: '#059669' }}>
                     ৳ {Number(acc.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </td>
                   <td style={{ textAlign: 'center', padding: '12px' }}>
-                    <button onClick={() => handleDelete(acc.id)} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px 8px', borderRadius: '4px', cursor: 'pointer' }} title="Delete">
+                    <button onClick={() => handleDelete(acc.id)} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px 8px', borderRadius: '4px', cursor: 'pointer' }} title={t("Delete")}>
                       <Trash2 size={14} />
                     </button>
                   </td>

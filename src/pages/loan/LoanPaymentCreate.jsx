@@ -48,7 +48,7 @@ const LoanPaymentCreate = () => {
       setBankAccounts(accData);
       setCategories(catData);
     } catch (err) {
-      toast.error(err?.message || 'Failed to load form data');
+      toast.error(err?.message || t("Failed to load form data"));
     }
   };
 
@@ -86,7 +86,7 @@ const LoanPaymentCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.clientId || !formData.accountId || !formData.amount) {
-      toast.error("Please select Loan Account, Payment Account, and enter Amount.");
+      toast.error(t("Please select Loan Account, Payment Account, and enter Amount."));
       return;
     }
 
@@ -100,11 +100,11 @@ const LoanPaymentCreate = () => {
         ...(formData.categoryId ? { category: formData.categoryId } : {}),
         date: formData.date,
       });
-      toast.success("Loan Payment added successfully!");
+      toast.success(t("Loan Payment added successfully!"));
       navigate('/loan/payment');
     } catch (error) {
       console.error("Error creating loan payment:", error);
-      toast.error(`Failed to create loan payment: ${error?.message || 'server error'}`);
+      toast.error(t("Failed to create loan payment: {{v0}}", { v0: error?.message || t("server error") }));
     } finally {
       setLoading(false);
     }
@@ -115,10 +115,10 @@ const LoanPaymentCreate = () => {
       <PrintHeader />
       <div className="premium-card">
         <div className="premium-header">
-          <h2 className="premium-title">Create Loan Payment</h2>
+          <h2 className="premium-title">{t("Create Loan Payment")}</h2>
           <div className="header-actions">
             <button className="btn-gray-outline" onClick={() => navigate('/loan/payment')}>
-              <List size={16} /> List
+              <List size={16} /> {t("List")}
             </button>
           </div>
         </div>
@@ -140,7 +140,7 @@ const LoanPaymentCreate = () => {
               </div>
               <div className="form-col" style={{ position: 'relative' }}>
                 <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
-                  <Calendar size={12} /> Date
+                  <Calendar size={12} /> {t("Date")}
                 </div>
                 <input type="date" name="date" value={formData.date} onChange={handleChange} style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: '14px', outline: 'none', background: 'white' }} />
               </div>
@@ -151,7 +151,7 @@ const LoanPaymentCreate = () => {
               <div className="form-col">
                 <div style={{ display: 'flex', border: '1px solid #93c5fd', borderRadius: '6px', overflow: 'hidden', background: 'white' }}>
                   <select name="accountId" value={formData.accountId} onChange={handleChange} required style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px', appearance: 'none', background: 'transparent' }}>
-                    <option value="">Select Account</option>
+                    <option value="">{t("Select Account")}</option>
                     {(bankAccounts || []).map(acc => (
                       <option key={acc.id} value={acc.id}>{acc.name}</option>
                     ))}
@@ -164,7 +164,7 @@ const LoanPaymentCreate = () => {
                   <div style={{ padding: '0 12px', display: 'flex', alignItems: 'center' }}>
                     <FileText size={18} color="#1e293b" />
                   </div>
-                  <input type="text" name="note" placeholder="Payment Description in a short note" value={formData.note} onChange={handleChange} style={{ flex: 1, padding: '12px 16px 12px 0', border: 'none', outline: 'none', fontSize: '14px' }} />
+                  <input type="text" name="note" placeholder={t("Payment Description in a short note")} value={formData.note} onChange={handleChange} style={{ flex: 1, padding: '12px 16px 12px 0', border: 'none', outline: 'none', fontSize: '14px' }} />
                 </div>
               </div>
             </div>
@@ -176,13 +176,13 @@ const LoanPaymentCreate = () => {
                   <div style={{ padding: '0 16px', fontWeight: 'bold', color: '#1e293b' }}>
                     <DollarSign size={18} color="#1e293b" />
                   </div>
-                  <input type="number" name="amount" placeholder="Amount" value={formData.amount} onChange={handleChange} required style={{ flex: 1, padding: '12px 16px 12px 0', border: 'none', outline: 'none', fontSize: '14px' }} />
+                  <input type="number" name="amount" placeholder={t("Amount")} value={formData.amount} onChange={handleChange} required style={{ flex: 1, padding: '12px 16px 12px 0', border: 'none', outline: 'none', fontSize: '14px' }} />
                 </div>
               </div>
               <div className="form-col">
                 <div style={{ display: 'flex', border: '1px solid #93c5fd', borderRadius: '6px', overflow: 'hidden', background: 'white' }}>
                   <select name="categoryId" value={formData.categoryId} onChange={handleChange} style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px', appearance: 'none', background: 'transparent' }}>
-                    <option value="">Select Categories</option>
+                    <option value="">{t("Select Categories")}</option>
                     {categories.map(c => (
                       <option key={c.id || c.uuid} value={c.id || c.uuid}>{c.name}</option>
                     ))}
@@ -198,7 +198,7 @@ const LoanPaymentCreate = () => {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #93c5fd', borderRadius: '6px', padding: '12px 16px', background: 'white', height: '48px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '500', color: '#334155' }}>
                     <MessageSquare size={18} color="#1e293b" />
-                    SMS
+                    {t("SMS")}
                   </div>
                   <label style={{ position: 'relative', display: 'inline-block', width: '40px', height: '20px', margin: 0 }}>
                     <input type="checkbox" name="sms" checked={formData.sms} onChange={handleChange} style={{ opacity: 0, width: 0, height: 0 }} />
@@ -213,10 +213,10 @@ const LoanPaymentCreate = () => {
             {/* Footer Buttons */}
             <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '32px' }}>
               <button type="submit" className="btn-primary" style={{ background: 'var(--primary)', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }} disabled={loading}>
-                {loading ? 'Processing...' : 'Add New Payment'}
+                {loading ? t("Processing...") : t("Add New Payment")}
               </button>
               <button type="button" className="btn-danger" onClick={() => navigate('/loan/payment')} style={{ background: 'var(--danger)', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }}>
-                Close
+                {t("Close")}
               </button>
             </div>
           </form>
@@ -227,22 +227,22 @@ const LoanPaymentCreate = () => {
         isOpen={isClientModalOpen}
         onClose={() => setIsClientModalOpen(false)}
         onSave={handleAddLoanClient}
-        title="Add Client"
-        label="Client Name"
+        title={t("Add Client")}
+        label={t("Client Name")}
       />
       <AddOptionModal 
         isOpen={isAccountModalOpen}
         onClose={() => setIsAccountModalOpen(false)}
         onSave={handleAddAccount}
-        title="Add Account"
-        label="Account Name"
+        title={t("Add Account")}
+        label={t("Account Name")}
       />
       <AddOptionModal 
         isOpen={isCategoryModalOpen}
         onClose={() => setIsCategoryModalOpen(false)}
         onSave={handleAddCategory}
-        title="Add Category"
-        label="Category Name"
+        title={t("Add Category")}
+        label={t("Category Name")}
       />
     </div>
   );

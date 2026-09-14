@@ -5,6 +5,7 @@ import { communicationService } from '../../services/communicationService';
 import { crmService } from '../../services/crmService';
 import { useToast } from '../../context/ToastContext';
 import { toList } from '../../utils/apiHelpers';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Schedule an SMS for a later time. Recipients can be picked from clients,
@@ -14,6 +15,7 @@ const box = { width: '100%', padding: '12px', border: '1px solid #0ea5e9', borde
 const label = { display: 'block', fontSize: '12px', marginBottom: '6px', color: 'var(--label-color)', fontWeight: 600 };
 
 const SmsSchedule = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -28,7 +30,7 @@ const SmsSchedule = () => {
     const fetcher = source === 'client' ? crmService.getClients : crmService.getSuppliers;
     fetcher()
       .then((r) => setContacts(toList(r).map((c) => ({ id: c.id || c.uuid, name: c.name, phone: c.phone || c.mobile }))))
-      .catch((e) => { toast.error(e?.message || `Failed to load ${source}s`); setContacts([]); });
+      .catch((e) => { toast.error(e?.message || t("Failed to load {{v0}}s", { v0: source })); setContacts([]); });
     setContactId('');
   }, [source]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -40,10 +42,10 @@ const SmsSchedule = () => {
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!message.trim()) return toast.error('Type a message');
-    if (!scheduleAt) return toast.error('Pick a schedule date & time');
+    if (!message.trim()) return toast.error(t("Type a message"));
+    if (!scheduleAt) return toast.error(t("Pick a schedule date & time"));
     const recipients = resolveRecipients();
-    if (recipients.length === 0) return toast.error('Select at least one recipient');
+    if (recipients.length === 0) return toast.error(t("Select at least one recipient"));
 
     try {
       setSending(true);
@@ -53,13 +55,13 @@ const SmsSchedule = () => {
         recipientType: source,
         recipientIds: recipients.map((r) => r.id).filter(Boolean),
       });
-      if (failed) toast.error(`${failed} schedule(s) failed: ${errors[0]}`);
+      if (failed) toast.error(t("{{v0}} schedule(s) failed: {{v1}}", { v0: failed, v1: errors[0] }));
       if (ok) {
-        toast.success(`SMS scheduled for ${ok} recipient(s)`);
+        toast.success(t("SMS scheduled for {{v0}} recipient(s)", { v0: ok }));
         navigate('/sms/schedule-report');
       }
     } catch (err) {
-      toast.error(err.message || 'Failed to schedule SMS');
+      toast.error(err.message || t("Failed to schedule SMS"));
     } finally {
       setSending(false);
     }
@@ -69,45 +71,45 @@ const SmsSchedule = () => {
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
         <div className="premium-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'white' }}>
-          <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold' }}>SCHEDULE SMS</h2>
+          <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold' }}>{t("SCHEDULE SMS")}</h2>
           <button type="button" onClick={() => navigate('/sms/schedule-report')} style={{ background: '#64748b', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <List size={14} /> Schedule Report
+            <List size={14} /> {t("Schedule Report")}
           </button>
         </div>
 
         <form onSubmit={submit} className="premium-body" style={{ background: 'white', padding: '24px', maxWidth: '760px', margin: '0 auto' }}>
           <div style={{ marginBottom: '20px' }}>
-            <label style={label}>Message Body</label>
-            <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type your message here ..." style={{ ...box, height: '140px', resize: 'vertical' }} />
-            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>{message.length} characters · {Math.max(1, Math.ceil(message.length / 160))} SMS</div>
+            <label style={label}>{t("Message Body")}</label>
+            <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder={t("Type your message here ...")} style={{ ...box, height: '140px', resize: 'vertical' }} />
+            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>{message.length} {t("characters ·")} {Math.max(1, Math.ceil(message.length / 160))} {t("SMS")}</div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
             <div>
-              <label style={label}><Clock size={12} /> Schedule Date & Time</label>
+              <label style={label}><Clock size={12} /> {t("Schedule Date & Time")}</label>
               <input type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} style={box} required />
             </div>
             <div>
-              <label style={label}>Recipient Type</label>
+              <label style={label}>{t("Recipient Type")}</label>
               <select value={source} onChange={(e) => setSource(e.target.value)} style={box}>
-                <option value="client">Client</option>
-                <option value="supplier">Supplier</option>
+                <option value="client">{t("Client")}</option>
+                <option value="supplier">{t("Supplier")}</option>
               </select>
             </div>
           </div>
 
           <div style={{ marginBottom: '32px' }}>
-            <label style={label}>{source === 'client' ? 'Client' : 'Supplier'}</label>
+            <label style={label}>{source === 'client' ? t("Client") : t("Supplier")}</label>
             <select value={contactId} onChange={(e) => setContactId(e.target.value)} style={box}>
-              <option value="">Select {source}</option>
-              <option value="all">— All {source}s with phone ({contacts.filter((c) => c.phone).length}) —</option>
+              <option value="">{t("Select")} {source}</option>
+              <option value="all">{t("— All")} {source}{t("s with phone (")}{contacts.filter((c) => c.phone).length}) —</option>
               {contacts.map((c) => <option key={c.id} value={c.id}>{c.name}{c.phone ? ` (${c.phone})` : ''}</option>)}
             </select>
           </div>
 
           <div style={{ textAlign: 'center' }}>
             <button type="submit" disabled={sending} style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', border: 'none', borderRadius: '4px', fontSize: '14px', cursor: 'pointer', opacity: sending ? 0.7 : 1 }}>
-              {sending ? 'Scheduling...' : 'Schedule SMS'}
+              {sending ? t("Scheduling...") : t("Schedule SMS")}
             </button>
           </div>
         </form>

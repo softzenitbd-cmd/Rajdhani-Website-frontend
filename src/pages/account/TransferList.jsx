@@ -57,12 +57,12 @@ const TransferList = () => {
         {/* Title */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0 24px' }}>
           <div>
-            <h1 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>Transfer List</h1>
-            <span style={{ fontSize: '13px', color: '#64748b' }}>Account-to-account fund transfer history</span>
+            <h1 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>{t("Transfer List")}</h1>
+            <span style={{ fontSize: '13px', color: '#64748b' }}>{t("Account-to-account fund transfer history")}</span>
           </div>
           <Link to="/account/transfer-create" style={{ textDecoration: 'none' }}>
             <button className="btn-green" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Plus size={16} /> New Fund Transfer
+              <Plus size={16} /> {t("New Fund Transfer")}
             </button>
           </Link>
         </div>
@@ -70,7 +70,7 @@ const TransferList = () => {
         {/* Filter Section */}
         <form onSubmit={handleFilter} className="filter-grid" style={{ gridTemplateColumns: '1fr 1fr auto', gap: '16px', marginBottom: '20px', alignItems: 'end' }}>
           <div>
-            <label className="filter-label">From Date</label>
+            <label className="filter-label">{t("From Date")}</label>
             <input 
               type="date" 
               className="input-outline" 
@@ -80,7 +80,7 @@ const TransferList = () => {
             />
           </div>
           <div>
-            <label className="filter-label">To Date</label>
+            <label className="filter-label">{t("To Date")}</label>
             <input 
               type="date" 
               className="input-outline" 
@@ -91,10 +91,10 @@ const TransferList = () => {
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button type="submit" className="btn-blue" style={{ padding: '10px 16px', fontWeight: 'bold' }}>
-              <Search size={14} style={{ marginRight: '4px', display: 'inline' }} /> Filter
+              <Search size={14} style={{ marginRight: '4px', display: 'inline' }} /> {t("Filter")}
             </button>
             <button type="button" onClick={handleClear} className="btn-secondary" style={{ padding: '10px 16px' }}>
-              Reset
+              {t("Reset")}
             </button>
           </div>
         </form>
@@ -102,11 +102,11 @@ const TransferList = () => {
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ fontSize: '14px', color: '#4b5563' }}>
-            Total Transfers: <strong>{transfers.length}</strong>
+            {t("Total Transfers:")} <strong>{transfers.length}</strong>
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="btn-blue" onClick={() => window.print()}><Printer size={14} /> Print</button>
-            <button className="btn-blue" onClick={fetchTransfers}><RotateCcw size={14} /> Reload</button>
+            <button className="btn-blue" onClick={() => window.print()}><Printer size={14} /> {t("Print")}</button>
+            <button className="btn-blue" onClick={fetchTransfers}><RotateCcw size={14} /> {t("Reload")}</button>
           </div>
         </div>
 
@@ -115,30 +115,30 @@ const TransferList = () => {
           <table className="custom-table" style={{ width: '100%' }}>
             <thead>
               <tr style={{ background: '#718096', color: 'white' }}>
-                <th style={{ width: '60px' }}>SL</th>
-                <th>DATE</th>
-                <th>FROM ACCOUNT</th>
-                <th>TO ACCOUNT</th>
-                <th>DESCRIPTION</th>
-                <th style={{ textAlign: 'right' }}>AMOUNT (৳)</th>
+                <th style={{ width: '60px' }}>{t("SL")}</th>
+                <th>{t("DATE")}</th>
+                <th>{t("FROM ACCOUNT")}</th>
+                <th>{t("TO ACCOUNT")}</th>
+                <th>{t("DESCRIPTION")}</th>
+                <th style={{ textAlign: 'right' }}>{t("AMOUNT (৳)")}</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>Loading transfers...</td>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>{t("Loading transfers...")}</td>
                 </tr>
               ) : transfers.length === 0 ? (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No transfers recorded.</td>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>{t("No transfers recorded.")}</td>
                 </tr>
               ) : (
                 transfers.map((row, idx) => (
                   <tr key={row.id || idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
                     <td style={{ fontWeight: '600', color: '#64748b' }}>{idx + 1}</td>
-                    <td>{row.date ? String(row.date).split('T')[0] : 'N/A'}</td>
-                    <td style={{ fontWeight: '600', color: '#dc2626' }}>{row.from_account_name || row.from_account || 'Cash'}</td>
-                    <td style={{ fontWeight: '600', color: '#059669' }}>{row.to_account_name || row.to_account || 'Bank'}</td>
+                    <td>{row.date ? String(row.date).split('T')[0] : t("N/A")}</td>
+                    <td style={{ fontWeight: '600', color: '#dc2626' }}>{row.from_account_name || row.from_account || t("Cash")}</td>
+                    <td style={{ fontWeight: '600', color: '#059669' }}>{row.to_account_name || row.to_account || t("Bank")}</td>
                     <td style={{ color: '#4b5563' }}>{row.description || '-'}</td>
                     <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--primary)' }}>
                       ৳ {Number(row.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}

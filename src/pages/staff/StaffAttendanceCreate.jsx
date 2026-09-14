@@ -3,7 +3,9 @@ import { Calendar, Save } from 'lucide-react';
 import staffApi from '../../api/staffApi';
 import { useToast } from '../../context/ToastContext';
 import { toList, today } from '../../utils/apiHelpers';
+import { useTranslation } from 'react-i18next';
 
+// labels are translation keys, resolved with t() at render time
 const STATUS = [
   { value: 'present', label: 'Present' },
   { value: 'absence', label: 'Absent' },
@@ -17,6 +19,7 @@ const nowTime = () => {
 };
 
 const StaffAttendanceCreate = () => {
+  const { t } = useTranslation();
   const toast = useToast();
   const [date, setDate] = useState(today());
   const [staff, setStaff] = useState([]);
@@ -35,7 +38,7 @@ const StaffAttendanceCreate = () => {
         });
         setRows(init);
       } catch (e) {
-        toast.error(e.message || 'Failed to load staff');
+        toast.error(e.message || t("Failed to load staff"));
       } finally {
         setLoading(false);
       }
@@ -79,7 +82,7 @@ const StaffAttendanceCreate = () => {
   };
 
   const save = async () => {
-    if (!date) return toast.error('Select a date');
+    if (!date) return toast.error(t("Select a date"));
     const payload = staff.map((s) => {
       const sid = s.id || s.uuid;
       const r = rows[sid] || {};
@@ -98,12 +101,12 @@ const StaffAttendanceCreate = () => {
       const results = await Promise.allSettled(payload.map((p) => staffApi.createStaffAttendance(p)));
       const failed = results.filter((r) => r.status === 'rejected');
       if (failed.length) {
-        toast.error(`${failed.length} of ${payload.length} failed: ${failed[0].reason?.message || ''}`);
+        toast.error(t("{{v0}} of {{v1}} failed: {{v2}}", { v0: failed.length, v1: payload.length, v2: failed[0].reason?.message || '' }));
       } else {
-        toast.success(`Attendance saved for ${payload.length} staff`);
+        toast.success(t("Attendance saved for {{v0}} staff", { v0: payload.length }));
       }
     } catch (e) {
-      toast.error(e.message || 'Failed to save attendance');
+      toast.error(e.message || t("Failed to save attendance"));
     } finally {
       setSaving(false);
     }
@@ -116,10 +119,10 @@ const StaffAttendanceCreate = () => {
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
         <div className="premium-header" style={{ padding: '16px 24px', background: 'white', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-          <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold', textTransform: 'uppercase' }}>Add Attendance</h2>
+          <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold', textTransform: 'uppercase' }}>{t("Add Attendance")}</h2>
           <div style={{ display: 'flex', gap: '6px' }}>
-            <button type="button" onClick={() => markAll('present')} style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>All Present</button>
-            <button type="button" onClick={() => markAll('absence')} style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>All Absent</button>
+            <button type="button" onClick={() => markAll('present')} style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>{t("All Present")}</button>
+            <button type="button" onClick={() => markAll('absence')} style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>{t("All Absent")}</button>
           </div>
         </div>
 
@@ -127,7 +130,7 @@ const StaffAttendanceCreate = () => {
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
             <div style={{ position: 'relative', width: '300px' }}>
               <div style={{ position: 'absolute', top: '-10px', left: '16px', background: 'var(--info)', color: 'white', fontSize: '11px', padding: '2px 8px', borderRadius: '4px', zIndex: 1, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Calendar size={12} /> Date
+                <Calendar size={12} /> {t("Date")}
               </div>
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ width: '100%', padding: '12px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none', textAlign: 'center' }} />
             </div>
@@ -137,18 +140,18 @@ const StaffAttendanceCreate = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e2e8f0' }}>
               <thead>
                 <tr style={{ background: '#94a3b8', color: 'white', textAlign: 'left', textTransform: 'uppercase', fontSize: '12px' }}>
-                  <th style={cell}>STAFF NAME</th>
-                  <th style={cell}>PHONE</th>
-                  <th style={{ ...cell, width: '140px' }}>IN TIME</th>
-                  <th style={{ ...cell, width: '140px' }}>OUT TIME</th>
-                  <th style={{ ...cell, width: '150px', borderRight: 'none' }}>ATTENDANCE</th>
+                  <th style={cell}>{t("STAFF NAME")}</th>
+                  <th style={cell}>{t("PHONE")}</th>
+                  <th style={{ ...cell, width: '140px' }}>{t("IN TIME")}</th>
+                  <th style={{ ...cell, width: '140px' }}>{t("OUT TIME")}</th>
+                  <th style={{ ...cell, width: '150px', borderRight: 'none' }}>{t("ATTENDANCE")}</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>Loading staff...</td></tr>
+                  <tr><td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("Loading staff...")}</td></tr>
                 ) : staff.length === 0 ? (
-                  <tr><td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>No staff found. Add staff first.</td></tr>
+                  <tr><td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("No staff found. Add staff first.")}</td></tr>
                 ) : (
                   staff.map((s, index) => {
                     const sid = s.id || s.uuid;
@@ -161,7 +164,7 @@ const StaffAttendanceCreate = () => {
                         <td style={cell}><input type="time" value={r.out_time || ''} onChange={(e) => update(sid, 'out_time', e.target.value)} style={timeInput} /></td>
                         <td style={{ ...cell, borderRight: 'none' }}>
                           <select value={r.status || 'present'} onChange={(e) => update(sid, 'status', e.target.value)} style={{ ...timeInput, fontWeight: 600, color: r.status === 'absence' ? '#b91c1c' : r.status === 'late' ? '#b45309' : '#166534' }}>
-                            {STATUS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                            {STATUS.map((o) => <option key={o.value} value={o.value}>{t(o.label)}</option>)}
                           </select>
                         </td>
                       </tr>
@@ -174,7 +177,7 @@ const StaffAttendanceCreate = () => {
 
           <div style={{ textAlign: 'center', marginTop: '24px' }}>
             <button onClick={save} disabled={saving || staff.length === 0} style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', border: 'none', borderRadius: '4px', fontSize: '14px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', opacity: saving ? 0.7 : 1 }}>
-              <Save size={16} /> {saving ? 'Saving...' : 'Save Attendance'}
+              <Save size={16} /> {saving ? t("Saving...") : t("Save Attendance")}
             </button>
           </div>
         </div>

@@ -66,23 +66,23 @@ const LoanStatement = () => {
       
       {/* Center Title - stylized */}
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>Loan Statement</h2>
+        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>{t("Loan Statement")}</h2>
       </div>
 
       {/* Header Info */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px', fontSize: '14px' }}>
         <div>
-          <div><span style={{ fontWeight: 'bold' }}>Name :</span> {selectedClientObj?.name || 'All Clients'}</div>
-          <div><span style={{ fontWeight: 'bold' }}>Address :</span> {selectedClientObj?.address || '-'}</div>
-          <div><span style={{ fontWeight: 'bold' }}>Contact No :</span> {selectedClientObj?.phone || '-'}</div>
+          <div><span style={{ fontWeight: 'bold' }}>{t("Name :")}</span> {selectedClientObj?.name || t("All Clients")}</div>
+          <div><span style={{ fontWeight: 'bold' }}>{t("Address :")}</span> {selectedClientObj?.address || '-'}</div>
+          <div><span style={{ fontWeight: 'bold' }}>{t("Contact No :")}</span> {selectedClientObj?.phone || '-'}</div>
         </div>
         <div>
-          <span style={{ fontWeight: 'bold' }}>Date :</span> {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+          <span style={{ fontWeight: 'bold' }}>{t("Date :")}</span> {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
         </div>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '18px', fontWeight: 'normal', color: '#333' }}>Loan Statement</h2>
+        <h2 style={{ fontSize: '18px', fontWeight: 'normal', color: '#333' }}>{t("Loan Statement")}</h2>
         <div className="card-actions" style={{ display: 'flex', gap: '8px' }}>
         </div>
       </div>
@@ -110,7 +110,7 @@ const LoanStatement = () => {
 
           <div className="form-group">
             <button className="btn btn-outline" onClick={handleClearFilter} style={{ height: '44px', width: '100%', background: '#64748b', color: 'white', justifyContent: 'center', borderRadius: '6px', border: 'none', fontWeight: 'bold', fontSize: '14px' }}>
-              Clear Filter
+              {t("Clear Filter")}
             </button>
           </div>
         </div>
@@ -118,18 +118,18 @@ const LoanStatement = () => {
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
-            Show 
+            {t("Show")} 
             <select style={{ margin: '0 8px', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
               <option>100</option>
             </select>
-            entries
+            {t("entries")}
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button className="btn" onClick={() => window.print()} style={{ background: '#4F46E5', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
-              <Printer size={16} style={{ marginRight: '6px' }} /> Print
+              <Printer size={16} style={{ marginRight: '6px' }} /> {t("Print")}
             </button>
             <button className="btn" onClick={handleClearFilter} style={{ background: '#4F46E5', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
-              <RotateCcw size={16} style={{ marginRight: '6px' }} /> Reset
+              <RotateCcw size={16} style={{ marginRight: '6px' }} /> {t("Reset")}
             </button>
           </div>
         </div>
@@ -139,15 +139,15 @@ const LoanStatement = () => {
           <table className="custom-table" style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#a0aebf', color: 'white' }}>
-                <th width="40" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '12px' }}>SL ↕</th>
-                <th width="100" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '12px' }}>DATE</th>
-                <th width="100" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '12px' }}>RECEIPT NO</th>
-                <th width="200" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '12px' }}>CLIENT</th>
-                <th width="200" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '12px' }}>DESCRIPTION</th>
-                <th width="100" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '12px' }}>TYPE</th>
-                <th width="100" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '12px' }}>LOAN RECEIVE</th>
-                <th width="100" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '12px' }}>LOAN PAYMENT</th>
-                <th width="100" style={{ textAlign: 'center', padding: '12px', fontSize: '12px' }}>BALANCE</th>
+                <th width="40" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '12px' }}>{t("SL ↕")}</th>
+                <th width="100" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '12px' }}>{t("DATE")}</th>
+                <th width="100" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '12px' }}>{t("RECEIPT NO")}</th>
+                <th width="200" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '12px' }}>{t("CLIENT")}</th>
+                <th width="200" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '12px' }}>{t("DESCRIPTION")}</th>
+                <th width="100" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '12px' }}>{t("TYPE")}</th>
+                <th width="100" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '12px' }}>{t("LOAN RECEIVE")}</th>
+                <th width="100" style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '12px' }}>{t("LOAN PAYMENT")}</th>
+                <th width="100" style={{ textAlign: 'center', padding: '12px', fontSize: '12px' }}>{t("BALANCE")}</th>
               </tr>
             </thead>
             <tbody>
@@ -159,8 +159,8 @@ const LoanStatement = () => {
                   <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0', fontSize: '13px' }}>
                     {statement.source || (
                       <>
-                        <div>Name: {statement.clientName || statement.loan_account?.name || '-'} | </div>
-                        <div>Number: {statement.clientNumber || statement.loan_account?.phone || '-'}</div>
+                        <div>{t("Name:")} {statement.clientName || statement.loan_account?.name || '-'} | </div>
+                        <div>{t("Number:")} {statement.clientNumber || statement.loan_account?.phone || '-'}</div>
                       </>
                     )}
                   </td>
@@ -173,12 +173,12 @@ const LoanStatement = () => {
               ))}
               {loading && (
                 <tr>
-                  <td colSpan="9" style={{ textAlign: 'center', padding: '20px' }}>Loading...</td>
+                  <td colSpan="9" style={{ textAlign: 'center', padding: '20px' }}>{t("Loading...")}</td>
                 </tr>
               )}
               {!loading && (!Array.isArray(statements) || statements.length === 0) && (
                 <tr>
-                  <td colSpan="9" style={{ textAlign: 'center', padding: '20px' }}>No statements found.</td>
+                  <td colSpan="9" style={{ textAlign: 'center', padding: '20px' }}>{t("No statements found.")}</td>
                 </tr>
               )}
             </tbody>

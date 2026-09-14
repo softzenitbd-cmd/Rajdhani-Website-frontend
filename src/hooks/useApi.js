@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import apiClient from '../api/apiClient';
 import { useToast } from '../context/ToastContext';
+import i18n from '../i18n';
 
 export const useApi = () => {
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,7 @@ export const useApi = () => {
         console.error('API Error Response Data:', err.response.data);
       }
       // apiClient already flattens DRF errors and shortens HTML error pages
-      const errorMessage = (err.message || 'An unexpected error occurred').slice(0, 300);
+      const errorMessage = (err.message || i18n.t('An unexpected error occurred')).slice(0, 300);
 
       setError(errorMessage);
       toast.error(errorMessage);

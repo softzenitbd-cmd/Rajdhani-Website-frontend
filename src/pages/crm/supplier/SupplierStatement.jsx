@@ -101,23 +101,23 @@ const SupplierStatement = () => {
 
         {/* Title and Action */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '500', color: 'var(--text-main)' }}>Supplier Statement</h2>
+          <h2 style={{ fontSize: '20px', fontWeight: '500', color: 'var(--text-main)' }}>{t("Supplier Statement")}</h2>
           <button
             className="btn btn-primary"
             onClick={() => navigate('/product/purchase/add-new')}
             style={{ background: 'var(--success)', padding: '8px 16px', borderRadius: '4px' }}
           >
-            <Plus size={16} /> Purchase
+            <Plus size={16} /> {t("Purchase")}
           </button>
         </div>
 
         {/* Filters */}
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr auto', marginBottom: '24px', alignItems: 'flex-end', gap: '16px' }}>
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>Search By Supplier</label>
+            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>{t("Search By Supplier")}</label>
             <div className="form-input floating-label">
               <select name="supplier" value={filters.supplier} onChange={handleInputChange}>
-                <option value="">Select Suppliers</option>
+                <option value="">{t("Select Suppliers")}</option>
                 {suppliers.map(s => (
                   <option key={s.id || s.uuid} value={s.id || s.uuid}>{s.name}</option>
                 ))}
@@ -126,7 +126,7 @@ const SupplierStatement = () => {
           </div>
 
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>Search By Date</label>
+            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>{t("Search By Date")}</label>
             <div style={{ display: 'flex', gap: '12px' }}>
               <div className="form-input floating-label" style={{ flex: 1 }}>
                 <input
@@ -155,23 +155,23 @@ const SupplierStatement = () => {
               onClick={handleClearFilter}
               style={{ height: '48px', padding: '0 32px', background: '#718096', color: 'white', border: 'none' }}
             >
-              Clear Filter
+              {t("Clear Filter")}
             </button>
           </div>
         </div>
 
         {summary?.supplier && (
           <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', padding: '12px 16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', marginBottom: '16px', fontSize: '13px' }}>
-            <div><b>Supplier:</b> {summary.supplier.name}</div>
-            {summary.supplier.phone && <div><b>Phone:</b> {summary.supplier.phone}</div>}
-            <div style={{ marginLeft: 'auto' }}><b>Current Due:</b> <span style={{ color: '#dc2626', fontWeight: 700 }}>৳ {Number(summary.supplier.current_due || 0).toFixed(2)}</span></div>
+            <div><b>{t("Supplier:")}</b> {summary.supplier.name}</div>
+            {summary.supplier.phone && <div><b>{t("Phone:")}</b> {summary.supplier.phone}</div>}
+            <div style={{ marginLeft: 'auto' }}><b>{t("Current Due:")}</b> <span style={{ color: '#dc2626', fontWeight: 700 }}>৳ {Number(summary.supplier.current_due || 0).toFixed(2)}</span></div>
           </div>
         )}
 
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
-            Show
+            {t("Show")}
             <select
               value={entries}
               onChange={(e) => setEntries(Number(e.target.value))}
@@ -182,15 +182,15 @@ const SupplierStatement = () => {
               <option value={50}>50</option>
               <option value={100}>100</option>
             </select>
-            entries
-            {loading && <span style={{ marginLeft: '16px', color: '#3b82f6' }}>Loading...</span>}
+            {t("entries")}
+            {loading && <span style={{ marginLeft: '16px', color: '#3b82f6' }}>{t("Loading...")}</span>}
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button className="btn" onClick={() => window.print()} style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
-              <Printer size={16} style={{ marginRight: '6px' }}/> Print
+              <Printer size={16} style={{ marginRight: '6px' }}/> {t("Print")}
             </button>
             <button className="btn" onClick={handleReset} style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
-              <RotateCcw size={16} style={{ marginRight: '6px' }}/> Reset
+              <RotateCcw size={16} style={{ marginRight: '6px' }}/> {t("Reset")}
             </button>
           </div>
         </div>
@@ -200,13 +200,13 @@ const SupplierStatement = () => {
           <table className="custom-table" style={{ borderCollapse: 'collapse', width: '100%', minWidth: '900px' }}>
             <thead>
               <tr style={{ background: '#718096', color: 'white' }}>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>SL</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>DATE</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>TYPE</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>REFERENCE</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'right', borderRight: '1px solid rgba(255,255,255,0.2)' }}>PURCHASE (DEBIT)</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'right', borderRight: '1px solid rgba(255,255,255,0.2)' }}>PAYMENT / RETURN (CREDIT)</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'right' }}>BALANCE</th>
+                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("SL")}</th>
+                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("DATE")}</th>
+                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("TYPE")}</th>
+                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("REFERENCE")}</th>
+                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'right', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("PURCHASE (DEBIT)")}</th>
+                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'right', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("PAYMENT / RETURN (CREDIT)")}</th>
+                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'right' }}>{t("BALANCE")}</th>
               </tr>
             </thead>
             <tbody>
@@ -223,13 +223,13 @@ const SupplierStatement = () => {
               )) : (
                 <tr>
                   <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
-                    {loading ? 'Loading statement...' : filters.supplier ? 'No transactions found' : 'Select a supplier to view the statement'}
+                    {loading ? t("Loading statement...") : filters.supplier ? t("No transactions found") : t("Select a supplier to view the statement")}
                   </td>
                 </tr>
               )}
               {displayedData.length > 0 && (
                 <tr style={{ background: '#f8fafc', fontWeight: 'bold' }}>
-                  <td colSpan="4" style={{ padding: '10px', textAlign: 'right' }}>TOTAL</td>
+                  <td colSpan="4" style={{ padding: '10px', textAlign: 'right' }}>{t("TOTAL")}</td>
                   <td style={{ padding: '10px', textAlign: 'right' }}>{displayedData.reduce((a, r) => a + Number(r.debit || 0), 0).toFixed(2)}</td>
                   <td style={{ padding: '10px', textAlign: 'right', color: '#059669' }}>{displayedData.reduce((a, r) => a + Number(r.credit || 0), 0).toFixed(2)}</td>
                   <td style={{ padding: '10px', textAlign: 'right', color: '#dc2626' }}>{Number(summary?.supplier?.current_due ?? displayedData[displayedData.length - 1]?.balance ?? 0).toFixed(2)}</td>

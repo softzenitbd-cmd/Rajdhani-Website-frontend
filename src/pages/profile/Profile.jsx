@@ -98,7 +98,7 @@ const Profile = () => {
       setIsEditing(false);
       if (next.full_name) localStorage.setItem('full_name', next.full_name);
       window.dispatchEvent(new Event('profileUpdated'));
-      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      setMessage({ type: 'success', text: t("Profile updated successfully!") });
     } catch (err) {
       console.error("Error updating profile:", err);
       setMessage({ type: 'error', text: err?.message || 'Failed to update profile' });
@@ -122,7 +122,7 @@ const Profile = () => {
       const saved = res?.data?.image || res?.image || res?.profile_picture || imageUrl;
       localStorage.setItem('profile_image', saved);
       window.dispatchEvent(new Event('profileUpdated'));
-      setMessage({ type: 'success', text: 'Profile image updated!' });
+      setMessage({ type: 'success', text: t("Profile image updated!") });
     } catch (err) {
       console.error("Error uploading image:", err);
       setMessage({ type: 'error', text: err.message || 'Failed to upload image' });
@@ -132,11 +132,11 @@ const Profile = () => {
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setMessage({ type: 'error', text: 'New password and confirm password do not match!' });
+      setMessage({ type: 'error', text: t("New password and confirm password do not match!") });
       return;
     }
     if (!passwordForm.oldPassword || !passwordForm.newPassword) {
-      setMessage({ type: 'error', text: 'Please fill in all password fields.' });
+      setMessage({ type: 'error', text: t("Please fill in all password fields.") });
       return;
     }
 
@@ -147,11 +147,11 @@ const Profile = () => {
         old_password: passwordForm.oldPassword,
         new_password: passwordForm.newPassword
       });
-      setMessage({ type: 'success', text: 'Password changed successfully!' });
+      setMessage({ type: 'success', text: t("Password changed successfully!") });
       setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
     } catch (err) {
       console.error("Error changing password:", err);
-      setMessage({ type: 'success', text: 'Password updated successfully!' });
+      setMessage({ type: 'success', text: t("Password updated successfully!") });
       setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
     } finally {
       setPasswordSaving(false);
@@ -213,7 +213,7 @@ const Profile = () => {
                 overflow: 'hidden'
               }}>
                 {profile.image ? (
-                  <img src={profile.image} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={profile.image} alt={t("Profile")} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e0e7ff', color: '#4338ca', fontSize: '40px', fontWeight: 'bold' }}>
                     {(profile.full_name || profile.username || 'U').charAt(0).toUpperCase()}
@@ -222,7 +222,7 @@ const Profile = () => {
               </div>
               <div 
                 onClick={() => fileInputRef.current?.click()}
-                title="Change Image"
+                title={t("Change Image")}
                 style={{ 
                   position: 'absolute', 
                   top: '0', 
@@ -255,7 +255,7 @@ const Profile = () => {
                 cursor: 'pointer',
                 marginBottom: '16px'
               }}>
-              Update Image
+              {t("Update Image")}
             </button>
             
             <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -263,7 +263,7 @@ const Profile = () => {
             </h3>
             
             <div style={{ alignSelf: 'flex-start', width: '100%', marginTop: '16px' }}>
-              <p style={{ margin: '0 0 16px 0', fontSize: '13px', fontWeight: '500' }}>Bio</p>
+              <p style={{ margin: '0 0 16px 0', fontSize: '13px', fontWeight: '500' }}>{t("Bio")}</p>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <button 
@@ -288,7 +288,7 @@ const Profile = () => {
                   <div style={{ background: activeTab === 'profile' ? 'rgba(255,255,255,0.2)' : '#e2e8f0', padding: '4px', borderRadius: '50%', display: 'flex' }}>
                     <Home size={16} />
                   </div>
-                  Profile
+                  {t("Profile")}
                 </button>
                 
                 <button 
@@ -313,7 +313,7 @@ const Profile = () => {
                   <div style={{ background: activeTab === 'password' ? 'rgba(255,255,255,0.2)' : '#e2e8f0', padding: '4px', borderRadius: '50%', display: 'flex' }}>
                     <Settings size={16} />
                   </div>
-                  Change Password
+                  {t("Change Password")}
                 </button>
               </div>
             </div>
@@ -333,7 +333,7 @@ const Profile = () => {
           {activeTab === 'profile' && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-                <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold' }}>PERSONAL INFORMATION</h4>
+                <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold' }}>{t("PERSONAL INFORMATION")}</h4>
                 
                 {!isEditing ? (
                   <button 
@@ -350,7 +350,7 @@ const Profile = () => {
                       justifyContent: 'center',
                       cursor: 'pointer'
                     }}
-                    title="Edit Profile"
+                    title={t("Edit Profile")}
                   >
                     <Edit size={16} />
                   </button>
@@ -373,7 +373,7 @@ const Profile = () => {
                         fontWeight: '600'
                       }}
                     >
-                      <Save size={14} /> {saving ? 'Saving...' : 'Save'}
+                      <Save size={14} /> {saving ? t("Saving...") : t("Save")}
                     </button>
                     <button 
                       onClick={() => setIsEditing(false)}
@@ -390,7 +390,7 @@ const Profile = () => {
                         fontSize: '12px'
                       }}
                     >
-                      <X size={14} /> Cancel
+                      <X size={14} /> {t("Cancel")}
                     </button>
                   </div>
                 )}
@@ -398,29 +398,29 @@ const Profile = () => {
 
               {!isEditing ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <InfoRow label="User Name" value={profile.username} />
-                  <InfoRow label="Full Name" value={profile.full_name} />
-                  <InfoRow label="E-mail" value={profile.email} type="email" />
-                  <InfoRow label="Present Address" value={profile.present_address || 'Present Address'} isPlaceholder={!profile.present_address} />
-                  <InfoRow label="Permanent Address" value={profile.permanent_address || 'Permanent Address'} isPlaceholder={!profile.permanent_address} />
-                  <InfoRow label="Phone Number" value={profile.phone_number || 'Phone'} isPlaceholder={!profile.phone_number} />
-                  <InfoRow label="Nationality" value={profile.nationality || 'Nationality'} isPlaceholder={!profile.nationality} />
-                  <InfoRow label="Nid" value={profile.nid || 'Nid'} isPlaceholder={!profile.nid} />
-                  <InfoRow label="Blood Group" value={profile.blood_group} />
-                  <InfoRow label="Date Of Birth" value={profile.date_of_birth} />
+                  <InfoRow label={t("User Name")} value={profile.username} />
+                  <InfoRow label={t("Full Name")} value={profile.full_name} />
+                  <InfoRow label={t("E-mail")} value={profile.email} type="email" />
+                  <InfoRow label={t("Present Address")} value={profile.present_address || 'Present Address'} isPlaceholder={!profile.present_address} />
+                  <InfoRow label={t("Permanent Address")} value={profile.permanent_address || 'Permanent Address'} isPlaceholder={!profile.permanent_address} />
+                  <InfoRow label={t("Phone Number")} value={profile.phone_number || 'Phone'} isPlaceholder={!profile.phone_number} />
+                  <InfoRow label={t("Nationality")} value={profile.nationality || 'Nationality'} isPlaceholder={!profile.nationality} />
+                  <InfoRow label={t("Nid")} value={profile.nid || 'Nid'} isPlaceholder={!profile.nid} />
+                  <InfoRow label={t("Blood Group")} value={profile.blood_group} />
+                  <InfoRow label={t("Date Of Birth")} value={profile.date_of_birth} />
                 </div>
               ) : (
                 <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <EditRow label="User Name" name="username" value={editForm.username} onChange={handleEditChange} />
-                  <EditRow label="Full Name" name="full_name" value={editForm.full_name} onChange={handleEditChange} />
-                  <EditRow label="E-mail" name="email" value={editForm.email} onChange={handleEditChange} type="email" />
-                  <EditRow label="Present Address" name="present_address" value={editForm.present_address} onChange={handleEditChange} />
-                  <EditRow label="Permanent Address" name="permanent_address" value={editForm.permanent_address} onChange={handleEditChange} />
-                  <EditRow label="Phone Number" name="phone_number" value={editForm.phone_number} onChange={handleEditChange} />
-                  <EditRow label="Nationality" name="nationality" value={editForm.nationality} onChange={handleEditChange} />
-                  <EditRow label="Nid" name="nid" value={editForm.nid} onChange={handleEditChange} />
-                  <EditRow label="Blood Group" name="blood_group" value={editForm.blood_group} onChange={handleEditChange} />
-                  <EditRow label="Date Of Birth" name="date_of_birth" value={editForm.date_of_birth} onChange={handleEditChange} type="date" />
+                  <EditRow label={t("User Name")} name="username" value={editForm.username} onChange={handleEditChange} />
+                  <EditRow label={t("Full Name")} name="full_name" value={editForm.full_name} onChange={handleEditChange} />
+                  <EditRow label={t("E-mail")} name="email" value={editForm.email} onChange={handleEditChange} type="email" />
+                  <EditRow label={t("Present Address")} name="present_address" value={editForm.present_address} onChange={handleEditChange} />
+                  <EditRow label={t("Permanent Address")} name="permanent_address" value={editForm.permanent_address} onChange={handleEditChange} />
+                  <EditRow label={t("Phone Number")} name="phone_number" value={editForm.phone_number} onChange={handleEditChange} />
+                  <EditRow label={t("Nationality")} name="nationality" value={editForm.nationality} onChange={handleEditChange} />
+                  <EditRow label={t("Nid")} name="nid" value={editForm.nid} onChange={handleEditChange} />
+                  <EditRow label={t("Blood Group")} name="blood_group" value={editForm.blood_group} onChange={handleEditChange} />
+                  <EditRow label={t("Date Of Birth")} name="date_of_birth" value={editForm.date_of_birth} onChange={handleEditChange} type="date" />
                 </form>
               )}
             </div>
@@ -428,33 +428,33 @@ const Profile = () => {
           
           {activeTab === 'password' && (
             <div>
-              <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', marginBottom: '32px' }}>CHANGE PASSWORD</h4>
+              <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', marginBottom: '32px' }}>{t("CHANGE PASSWORD")}</h4>
               <form onSubmit={handlePasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '600px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: '600' }}>Current Password</label>
+                  <label style={{ fontSize: '13px', fontWeight: '600' }}>{t("Current Password")}</label>
                   <input 
                     type="password" 
-                    placeholder="Current Password" 
+                    placeholder={t("Current Password")} 
                     value={passwordForm.oldPassword}
                     onChange={(e) => setPasswordForm(prev => ({ ...prev, oldPassword: e.target.value }))}
                     style={{ padding: '12px 16px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '13px', color: '#334155', outline: 'none' }} 
                   />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: '600' }}>New Password</label>
+                  <label style={{ fontSize: '13px', fontWeight: '600' }}>{t("New Password")}</label>
                   <input 
                     type="password" 
-                    placeholder="Type New Password" 
+                    placeholder={t("Type New Password")} 
                     value={passwordForm.newPassword}
                     onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
                     style={{ padding: '12px 16px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '13px', color: '#334155', outline: 'none' }} 
                   />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: '600' }}>Confirm Password</label>
+                  <label style={{ fontSize: '13px', fontWeight: '600' }}>{t("Confirm Password")}</label>
                   <input 
                     type="password" 
-                    placeholder="Re-type Password" 
+                    placeholder={t("Re-type Password")} 
                     value={passwordForm.confirmPassword}
                     onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
                     style={{ padding: '12px 16px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '13px', color: '#334155', outline: 'none' }} 
@@ -475,7 +475,7 @@ const Profile = () => {
                     width: '100%',
                     fontSize: '14px'
                   }}>
-                  {passwordSaving ? 'Changing...' : 'Change Password'}
+                  {passwordSaving ? t("Changing...") : t("Change Password")}
                 </button>
               </form>
             </div>
@@ -488,6 +488,7 @@ const Profile = () => {
 };
 
 const InfoRow = ({ label, value, isPlaceholder, type }) => {
+  const { t } = useTranslation();
   return (
     <div style={{ display: 'flex', alignItems: 'center' }}>
       <div style={{ width: '180px', fontSize: '13px', color: '#334155', fontWeight: '500' }}>
@@ -509,7 +510,7 @@ const InfoRow = ({ label, value, isPlaceholder, type }) => {
            }}>
              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#dcfce7', color: '#16a34a', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '600' }}>
                <Mail size={12} />
-               TEMP MAIL
+               {t("TEMP MAIL")}
              </div>
            </div>
         ) : (

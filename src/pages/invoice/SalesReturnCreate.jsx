@@ -3,7 +3,10 @@ import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { Plus, X, Calendar, Clock, Barcode, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import AddOptionModal from '../../components/AddOptionModal';
+import SearchableSelect from '../../components/SearchableSelect';
+import AddClientModal from '../../components/AddClientModal';
+import AddProductModal from '../../components/AddProductModal';
+import AddAccountModal from '../../components/AddAccountModal';
 import { crmService } from '../../services/crmService';
 import { productService } from '../../services/productService';
 import { accountingService } from '../../services/accountingService';
@@ -58,6 +61,17 @@ const SalesReturnCreate = () => {
       setClients(clientData);
       setProducts(prodData);
       setAccounts(accData);
+
+      if (clientData && clientData.length > 0) {
+        const defaultClient = clientData.find(c => {
+          const name = String(c.name || c.company_name || '').toLowerCase();
+          return name.includes('c.customer') || name.includes('c.castomer') || name.includes('c. customer') || name === 'default';
+        }) || clientData[0];
+
+        if (defaultClient) {
+          setFormData(prev => ({ ...prev, clientId: defaultClient.id }));
+        }
+      }
     } catch (err) {
       console.error("Error loading prerequisites for sales return:", err);
       setClients([]);
@@ -71,6 +85,23 @@ const SalesReturnCreate = () => {
   useEffect(() => {
     fetchPrerequisites();
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        handleSaveReturn(1, false);
+      } else if (e.altKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        handleSaveReturn(1, true);
+      } else if (e.ctrlKey && e.key.toLowerCase() === 'd') {
+        e.preventDefault();
+        handleSaveReturn(0, false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [formData, items, clients, products, accounts]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -119,7 +150,7 @@ const SalesReturnCreate = () => {
         handleSelectProduct(prod.id);
         setFormData(prev => ({ ...prev, barcode: '' }));
       } else {
-        toast.error(`Product with barcode "${code}" not found.`);
+        toast.error(t("Product with barcode \"{{v0}}\" not found.", { v0: code }));
       }
     }
   };
@@ -150,11 +181,11 @@ const SalesReturnCreate = () => {
 
   const handleSaveReturn = async (status = 1, shouldPrint = false) => {
     if (!formData.clientId) {
-      toast.error("Please select a customer / client.");
+      toast.error(t("Please select a customer / client."));
       return;
     }
     if (items.length === 0) {
-      toast.error("Please add at least one return product item.");
+      toast.error(t("Please add at least one return product item."));
       return;
     }
 
@@ -179,10 +210,10 @@ const SalesReturnCreate = () => {
     try {
       await saleService.createSalesReturn(payload);
       if (status === 0) {
-        toast.success("Draft Return Invoice Saved Successfully!");
+        toast.success(t("Draft Return Invoice Saved Successfully!"));
         navigate('/invoice/sales-return/list');
       } else {
-        toast.success("Sales Return Created Successfully!");
+        toast.success(t("Sales Return Created Successfully!"));
         if (shouldPrint) {
           window.print();
         }
@@ -191,7 +222,7 @@ const SalesReturnCreate = () => {
     } catch (err) {
       console.error("Error creating sales return:", err);
       const errMsg = err?.response?.data?.detail || err?.response?.data?.message || err?.message || "Failed to save sales return via API.";
-      toast.error(`API Error: ${errMsg}`);
+      toast.error(t("API Error: {{v0}}", { v0: errMsg }));
     }
   };
 
@@ -200,7 +231,7 @@ const SalesReturnCreate = () => {
       <div className="premium-card">
         <div className="premium-header" style={{ padding: '12px 24px', background: 'white' }}>
           <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold' }}>
-            SALES RETURN | CTRL + S = SAVE | ALT + S = SAVE & PRINT | CTRL + D = ড্রাফ্ট হিসেবে সংরক্ষণ
+            {t("SALES RETURN | CTRL + S = SAVE | ALT + S = SAVE & PRINT | CTRL + D = ড্রাফ্ট হিসেবে সংরক্ষণ")}
           </h2>
         </div>
 
@@ -210,29 +241,38 @@ const SalesReturnCreate = () => {
             {/* Top Row */}
             <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '8px' }}>
               <div className="form-group" style={{ marginBottom: '0' }}>
-                <div className="input-with-append">
-                  <select name="clientId" value={formData.clientId} onChange={handleChange}>
-                    <option value="">Select Customer / Client</option>
-                    <option value="C.CASTOMER">C.CASTOMER (Default)</option>
-                    {(clients || []).map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name || c.company_name} {c.phone ? `(${c.phone})` : ''}
-                      </option>
-                    ))}
-                  </select>
-                  {formData.clientId && (
-                    <button type="button" className="clear-btn" onClick={() => clearField('clientId')}><X size={16} /></button>
-                  )}
-                  <button type="button" className="append-btn" onClick={() => setIsClientModalOpen(true)}><Plus size={20} /></button>
-                </div>
+                <SearchableSelect
+                  options={(clients || []).map((c) => {
+                    const nameStr = c.name || c.company_name || '';
+                    const isDefault = /c\.?\s*customer|c\.?\s*castomer|default/i.test(nameStr);
+                    return {
+                      value: c.id,
+                      label: `${nameStr}${isDefault ? ' (Default)' : ''} ${c.phone ? `(${c.phone})` : ''}`,
+                      searchValue: `${nameStr} ${c.phone || ''}`
+                    };
+                  })}
+                  value={formData.clientId}
+                  onChange={(val) => setFormData(prev => ({ ...prev, clientId: val }))}
+                  placeholder={t("Select Customer / Client")}
+                  onAddClick={() => setIsClientModalOpen(true)}
+                />
                 <div style={{ fontSize: '12px', fontWeight: 'bold', marginTop: '4px', color: '#0ea5e9' }}>
-                  Due: ৳ {dueAmount.toFixed(2)}
+                  {t("Due: ৳")} {dueAmount.toFixed(2)}
                 </div>
               </div>
 
               <div className="form-group" style={{ position: 'relative', marginBottom: '0' }}>
-                <div className="badge-date" style={{ background: 'var(--info)' }}><Calendar size={12} /> Issued Date</div>
-                <input type="date" name="date" className="input-date" value={formData.date} onChange={handleChange} />
+                <div className="badge-date" style={{ background: 'var(--info)' }}><Calendar size={12} /> {t("Issued Date")}</div>
+                <input 
+                  type="date" 
+                  name="date" 
+                  className="input-date" 
+                  value={formData.date} 
+                  onChange={handleChange}
+                  onClick={(e) => { try { e.target.showPicker(); } catch (err) {} }}
+                  onFocus={(e) => { try { e.target.showPicker(); } catch (err) {} }}
+                  style={{ cursor: 'pointer' }}
+                />
               </div>
 
               <div className="form-group" style={{ marginBottom: '0' }}>
@@ -246,7 +286,7 @@ const SalesReturnCreate = () => {
             {/* Second Row */}
             <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px', position: 'relative' }}>
               <div className="form-group" style={{ marginBottom: '0', position: 'relative' }}>
-                <div style={{ position: 'absolute', top: '-10px', left: '20px', background: 'var(--primary)', color: 'white', padding: '2px 8px', fontSize: '10px', borderRadius: '4px' }}>Barcode Number</div>
+                <div style={{ position: 'absolute', top: '-10px', left: '20px', background: 'var(--primary)', color: 'white', padding: '2px 8px', fontSize: '10px', borderRadius: '4px' }}>{t("Barcode Number")}</div>
                 <div style={{ display: 'flex', border: '1px solid #e2e8f0', borderRadius: '4px', overflow: 'hidden', background: 'var(--card-border)' }}>
                   <div style={{ padding: '12px', borderRight: '1px solid #cbd5e1', display: 'flex', alignItems: 'center' }}>
                     <Barcode size={24} style={{ color: 'var(--text-muted)' }} />
@@ -254,7 +294,7 @@ const SalesReturnCreate = () => {
                   <input 
                     type="text" 
                     name="barcode" 
-                    placeholder="Scan Barcode & Press Enter" 
+                    placeholder={t("Scan Barcode & Press Enter")} 
                     value={formData.barcode} 
                     onChange={handleChange} 
                     onKeyDown={handleBarcodeKeyDown}
@@ -264,17 +304,20 @@ const SalesReturnCreate = () => {
               </div>
 
               <div className="form-group" style={{ marginBottom: '0' }}>
-                <div className="input-with-append">
-                  <select name="productId" value={formData.productId} onChange={handleChange}>
-                    <option value="">Select Product</option>
-                    {(products || []).map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name || p.title} {p.code || p.barcode ? `[${p.code || p.barcode}]` : ''} - ৳{p.sales_price || p.price || 0}
-                      </option>
-                    ))}
-                  </select>
-                  <button type="button" className="append-btn" onClick={() => setIsProductModalOpen(true)}><Plus size={20} /></button>
-                </div>
+                <SearchableSelect
+                  options={(products || []).map((p) => ({
+                    value: p.id,
+                    label: `${p.name || p.title} ${p.code || p.barcode ? `[${p.code || p.barcode}]` : ''} - ৳${p.sales_price || p.price || 0}`,
+                    searchValue: `${p.name || p.title} ${p.code || p.barcode || ''}`
+                  }))}
+                  value={formData.productId}
+                  onChange={(val) => {
+                    if (val) handleSelectProduct(val);
+                  }}
+                  clearOnSelect={true}
+                  placeholder={t("Select Product")}
+                  onAddClick={() => setIsProductModalOpen(true)}
+                />
               </div>
             </div>
 
@@ -283,21 +326,21 @@ const SalesReturnCreate = () => {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                 <thead>
                   <tr style={{ background: 'var(--secondary)', color: 'white' }}>
-                    <th style={{ padding: '8px', textAlign: 'center' }}>SL</th>
-                    <th style={{ padding: '8px', textAlign: 'left' }}>PRODUCT</th>
-                    <th style={{ padding: '8px', textAlign: 'center' }}>STOCK</th>
-                    <th style={{ padding: '8px', textAlign: 'center', width: '120px' }}>PRICE</th>
-                    <th style={{ padding: '8px', textAlign: 'center', width: '100px' }}>QUANTITY</th>
-                    <th style={{ padding: '8px', textAlign: 'center' }}>UNIT</th>
-                    <th style={{ padding: '8px', textAlign: 'right' }}>TOTAL</th>
-                    <th style={{ padding: '8px', textAlign: 'center' }}>ACTION</th>
+                    <th style={{ padding: '8px', textAlign: 'center' }}>{t("SL")}</th>
+                    <th style={{ padding: '8px', textAlign: 'left' }}>{t("PRODUCT")}</th>
+                    <th style={{ padding: '8px', textAlign: 'center' }}>{t("STOCK")}</th>
+                    <th style={{ padding: '8px', textAlign: 'center', width: '120px' }}>{t("PRICE")}</th>
+                    <th style={{ padding: '8px', textAlign: 'center', width: '100px' }}>{t("QUANTITY")}</th>
+                    <th style={{ padding: '8px', textAlign: 'center' }}>{t("UNIT")}</th>
+                    <th style={{ padding: '8px', textAlign: 'right' }}>{t("TOTAL")}</th>
+                    <th style={{ padding: '8px', textAlign: 'center' }}>{t("ACTION")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {items.length === 0 ? (
                     <tr>
                       <td colSpan="8" style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
-                        No return items added yet. Select a product from dropdown or scan barcode.
+                        {t("No return items added yet. Select a product from dropdown or scan barcode.")}
                       </td>
                     </tr>
                   ) : (
@@ -343,46 +386,37 @@ const SalesReturnCreate = () => {
             </div>
 
             <div style={{ textAlign: 'center', fontSize: '13px', marginBottom: '24px', fontWeight: 'bold' }}>
-              Total Quantity: {totalQuantity}
+              {t("Total Quantity:")} {totalQuantity}
             </div>
 
             {/* Bottom Section */}
             <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '40px' }}>
               {/* Left Column - Accounts */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div className="form-group" style={{ position: 'relative' }}>
-                  <div style={{ position: 'absolute', top: '-10px', left: '20px', background: 'var(--primary)', color: 'white', padding: '2px 8px', fontSize: '10px', borderRadius: '4px', zIndex: 1 }}>Account</div>
-                  <div className="input-with-append">
-                    <select name="totalBalanceAcc" value={formData.totalBalanceAcc} onChange={handleChange}>
-                      <option value="">Select Total Balance Account</option>
-                      <option value="TOTAL BALENCE">TOTAL BALENCE</option>
-                      {(accounts || []).map((a) => (
-                        <option key={a.id} value={a.id}>{a.name}</option>
-                      ))}
-                    </select>
-                    {formData.totalBalanceAcc && (
-                      <button type="button" className="clear-btn" onClick={() => clearField('totalBalanceAcc')}><X size={16} /></button>
-                    )}
-                    <button type="button" className="append-btn" onClick={() => setIsTotalBalanceAccModalOpen(true)}><Plus size={20} /></button>
-                  </div>
-                </div>
+                <SearchableSelect
+                  options={[
+                    { value: 'TOTAL BALENCE', label: t("TOTAL BALENCE") },
+                    ...(accounts || []).map((a) => ({ value: a.id, label: a.name }))
+                  ]}
+                  value={formData.totalBalanceAcc}
+                  onChange={(val) => setFormData(prev => ({ ...prev, totalBalanceAcc: val }))}
+                  placeholder={t("Select Total Balance Account")}
+                  onAddClick={() => setIsTotalBalanceAccModalOpen(true)}
+                />
                 
-                <div className="input-with-append">
-                  <select name="mallFerotAcc" value={formData.mallFerotAcc} onChange={handleChange}>
-                    <option value="">Select Return / Mall Ferot Account</option>
-                    <option value="MALL FEROT">MALL FEROT</option>
-                    {(accounts || []).map((a) => (
-                      <option key={a.id} value={a.id}>{a.name}</option>
-                    ))}
-                  </select>
-                  {formData.mallFerotAcc && (
-                    <button type="button" className="clear-btn" onClick={() => clearField('mallFerotAcc')}><X size={16} /></button>
-                  )}
-                  <button type="button" className="append-btn" onClick={() => setIsMallFerotAccModalOpen(true)}><Plus size={20} /></button>
-                </div>
+                <SearchableSelect
+                  options={[
+                    { value: 'MALL FEROT', label: t("MALL FEROT") },
+                    ...(accounts || []).map((a) => ({ value: a.id, label: a.name }))
+                  ]}
+                  value={formData.mallFerotAcc}
+                  onChange={(val) => setFormData(prev => ({ ...prev, mallFerotAcc: val }))}
+                  placeholder={t("Select Return / Mall Ferot Account")}
+                  onAddClick={() => setIsMallFerotAccModalOpen(true)}
+                />
 
                 <div style={{ position: 'relative' }}>
-                  <div className="badge-date" style={{ background: 'var(--info)' }}> Receive Amount</div>
+                  <div className="badge-date" style={{ background: 'var(--info)' }}> {t("Receive Amount")}</div>
                   <input type="number" step="0.01" name="receiveAmount" className="input-date" value={formData.receiveAmount} onChange={handleChange} />
                 </div>
               </div>
@@ -391,30 +425,30 @@ const SalesReturnCreate = () => {
               <div>
                 <div style={{ border: '1px solid #e2e8f0', borderRadius: '4px', marginBottom: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px' }}>
-                    <span>Invoice Return</span>
+                    <span>{t("Invoice Return")}</span>
                     <span>: ৳ {returnBill.toFixed(2)}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px' }}>
-                    <span>Previous Due</span>
+                    <span>{t("Previous Due")}</span>
                     <span>: ৳ {dueAmount.toFixed(2)}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px', fontWeight: 'bold' }}>
-                    <span>Upcoming Due</span>
+                    <span>{t("Upcoming Due")}</span>
                     <span>: ৳ {upcomingDue.toFixed(2)}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px' }}>
-                    <span>Payment</span>
+                    <span>{t("Payment")}</span>
                     <span>: ৳ {receiveAmt.toFixed(2)}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', fontSize: '14px', fontWeight: 'bold', color: '#ef4444' }}>
-                    <span>সর্বশেষ বাকি</span>
+                    <span>{t("Total Remaining Due", "সর্বশেষ বাকি")}</span>
                     <span>: ৳ {upcomingDue.toFixed(2)}</span>
                   </div>
                 </div>
 
                 <div className="toggle-switch" style={{ border: '1px solid #e2e8f0', borderRadius: '4px', padding: '8px 16px', display: 'flex', alignItems: 'center' }}>
                   <MessageSquare size={18} style={{ color: '#111827', marginRight: '8px' }} />
-                  <div className="toggle-label" style={{ flex: 1, fontWeight: 'bold' }}>SMS</div>
+                  <div className="toggle-label" style={{ flex: 1, fontWeight: 'bold' }}>{t("SMS")}</div>
                   <label className="switch">
                     <input type="checkbox" name="sms" checked={formData.sms} onChange={handleChange} />
                     <span className="slider round"></span>
@@ -426,17 +460,17 @@ const SalesReturnCreate = () => {
             {/* Footer Buttons */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <button type="button" className="btn-danger" onClick={() => navigate('/invoice/sales-return/list')} style={{ background: 'var(--danger)', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }}>
-                Cancel
+                {t("Cancel")}
               </button>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button type="button" className="btn-primary" onClick={() => handleSaveReturn(0)} style={{ background: '#64748b', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }}>
-                  Save As Draft
+                  {t("Save As Draft")}
                 </button>
                 <button type="button" className="btn-primary" onClick={() => handleSaveReturn(1, true)} style={{ background: '#3b82f6', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }}>
-                  Save & Print
+                  {t("Save & Print")}
                 </button>
                 <button type="button" className="btn-primary" onClick={() => handleSaveReturn(1)} style={{ background: 'var(--success)', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }}>
-                  Return Invoice
+                  {t("Return Invoice")}
                 </button>
               </div>
             </div>
@@ -444,65 +478,49 @@ const SalesReturnCreate = () => {
         </div>
       </div>
 
-      <AddOptionModal 
+      <AddClientModal 
         isOpen={isClientModalOpen}
         onClose={() => setIsClientModalOpen(false)}
-        onSave={async (val) => { 
-          if (val?.trim()) {
-            const created = await crmService.createClient({ name: val.trim(), phone: '', address: '' });
-            const newObj = { ...(created && typeof created === 'object' ? created : {}), id: created?.id || created?.uuid, name: created?.name || val.trim() };
-              setClients(prev => [...prev, newObj]);
-              setFormData(prev => ({ ...prev, clientId: newObj.id }));
+        onSuccess={(newClient) => { 
+          if (newClient) {
+            setClients(prev => [...prev, newClient]);
+            setFormData(prev => ({ ...prev, clientId: newClient.id }));
           }
           setIsClientModalOpen(false); 
         }}
-        title="Add Client"
-        label="Client Name"
       />
-      <AddOptionModal 
+      <AddProductModal 
         isOpen={isProductModalOpen}
         onClose={() => setIsProductModalOpen(false)}
-        onSave={async (val) => { 
-          if (val?.trim()) {
-            const created = await productService.createProduct({ name: val.trim(), selling_price: 0, buying_price: 0, opening_stock: 0, stock: 0 });
-            const newProd = { selling_price: 0, sales_price: 0, stock: 0, ...(created && typeof created === 'object' ? created : {}), id: created?.id || created?.uuid, name: created?.name || val.trim() };
-              setProducts(prev => [...prev, newProd]);
-              handleSelectProduct(newProd.id);
+        onSuccess={(newProd) => { 
+          if (newProd) {
+            setProducts(prev => [...prev, newProd]);
+            handleSelectProduct(newProd.id);
           }
           setIsProductModalOpen(false); 
         }}
-        title="Add Product"
-        label="Product Name"
       />
-      <AddOptionModal 
+      <AddAccountModal 
         isOpen={isTotalBalanceAccModalOpen}
         onClose={() => setIsTotalBalanceAccModalOpen(false)}
-        onSave={async (val) => { 
-          if (val?.trim()) {
-            const created = await accountingService.createAccount({ name: val.trim() });
-            const newAcc = { ...(created && typeof created === 'object' ? created : {}), id: created?.id || created?.uuid, name: created?.name || val.trim() };
-              setAccounts(prev => [...prev, newAcc]);
-              setFormData(prev => ({ ...prev, totalBalanceAcc: newAcc.id }));
+        onSuccess={(newAcc) => { 
+          if (newAcc) {
+            setAccounts(prev => [...prev, newAcc]);
+            setFormData(prev => ({ ...prev, totalBalanceAcc: newAcc.id }));
           }
           setIsTotalBalanceAccModalOpen(false); 
         }}
-        title="Add Account"
-        label="Account Name"
       />
-      <AddOptionModal 
+      <AddAccountModal 
         isOpen={isMallFerotAccModalOpen}
         onClose={() => setIsMallFerotAccModalOpen(false)}
-        onSave={async (val) => { 
-          if (val?.trim()) {
-            const created = await accountingService.createAccount({ name: val.trim() });
-            const newAcc = { ...(created && typeof created === 'object' ? created : {}), id: created?.id || created?.uuid, name: created?.name || val.trim() };
-              setAccounts(prev => [...prev, newAcc]);
-              setFormData(prev => ({ ...prev, mallFerotAcc: newAcc.id }));
+        onSuccess={(newAcc) => { 
+          if (newAcc) {
+            setAccounts(prev => [...prev, newAcc]);
+            setFormData(prev => ({ ...prev, mallFerotAcc: newAcc.id }));
           }
           setIsMallFerotAccModalOpen(false); 
         }}
-        title="Add Account"
-        label="Account Name"
       />
     </div>
   );

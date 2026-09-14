@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import { toast } from '../context/ToastContext';
+import i18n from '../i18n';
 
 /**
  * Export the table currently shown on screen (first `table.custom-table`, or the
@@ -37,12 +38,12 @@ const rowsFromTable = (table) => {
 export const exportVisibleTable = (format = 'xlsx', name = 'Report') => {
   const table = findTable();
   if (!table) {
-    toast.error('No table found to export.');
+    toast.error(i18n.t('No table found to export.'));
     return;
   }
   const rows = rowsFromTable(table);
   if (rows.length <= 1) {
-    toast.error('No data available to export.');
+    toast.error(i18n.t('No data available to export.'));
     return;
   }
   const fileBase = `${name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}`;

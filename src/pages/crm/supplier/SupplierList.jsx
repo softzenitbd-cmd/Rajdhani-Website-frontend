@@ -6,8 +6,10 @@ import { useApi } from '../../../hooks/useApi';
 import { ENDPOINTS } from '../../../api/endpoints';
 import { exportToExcel } from '../../../utils/excelExporter';
 import { useToast } from '../../../context/ToastContext';
+import { useTranslation } from 'react-i18next';
 
 const SupplierList = () => {
+  const { t } = useTranslation();
   const toast = useToast();
   const navigate = useNavigate();
   const [activeAction, setActiveAction] = useState(null);
@@ -88,16 +90,16 @@ const SupplierList = () => {
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <PrintHeader />
       <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 className="card-title">SUPPLIER LIST</h2>
+        <h2 className="card-title">{t("SUPPLIER LIST")}</h2>
         <div className="card-actions">
           <button onClick={() => navigate(-1)} className="btn btn-outline" style={{ padding: '6px 12px', background: '#718096', color: 'white' }}>
-            <ArrowLeft size={14} /> Go Back
+            <ArrowLeft size={14} /> {t("Go Back")}
           </button>
           <button className="btn btn-outline" style={{ padding: '6px 12px', background: 'var(--table-header-bg)', color: 'white' }} onClick={() => navigate('/crm/supplier-group')}>
-            <Users size={14} /> Supplier Group
+            <Users size={14} /> {t("Supplier Group")}
           </button>
           <button className="btn btn-primary" onClick={() => navigate('/crm/supplier-create')} style={{ padding: '6px 12px', background: 'var(--success)' }}>
-            <Plus size={14} /> Add Supplier
+            <Plus size={14} /> {t("Add Supplier")}
           </button>
         </div>
       </div>
@@ -106,18 +108,18 @@ const SupplierList = () => {
         {/* Filters */}
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr', marginBottom: '24px', alignItems: 'flex-end', gap: '16px' }}>
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px', color: 'var(--primary)' }}>Search All</label>
+            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px', color: 'var(--primary)' }}>{t("Search All")}</label>
             <div className="form-input floating-label">
               <input type="text" placeholder=" " value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-              <label>Search All</label>
+              <label>{t("Search All")}</label>
             </div>
           </div>
 
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>Search By Supplier Group</label>
+            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>{t("Search By Supplier Group")}</label>
             <div className="form-input floating-label">
               <select value={selectedGroup} onChange={(e) => setSelectedGroup(e.target.value)}>
-                <option value="">All Groups</option>
+                <option value="">{t("All Groups")}</option>
                 {groups.map(g => (
                   <option key={g.id || g.uuid} value={g.id || g.uuid}>{g.name}</option>
                 ))}
@@ -126,7 +128,7 @@ const SupplierList = () => {
           </div>
 
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>Search By Date</label>
+            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>{t("Search By Date")}</label>
             <div style={{ display: 'flex', gap: '8px' }}>
               <div className="form-input floating-label" style={{ flex: 1, padding: '0 8px' }}>
                 <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ color: '#94a3b8' }} />
@@ -143,34 +145,34 @@ const SupplierList = () => {
               style={{ height: '48px', width: '100%', background: '#718096', color: 'white', justifyContent: 'center' }}
               onClick={() => { setSearchTerm(''); setSelectedGroup(''); setFromDate(''); setToDate(''); }}
             >
-              Clear Filter
+              {t("Clear Filter")}
             </button>
           </div>
         </div>
 
         {/* Total Due Label */}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#000' }}>Total Supplier Due: 6957663</h3>
+          <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#000' }}>{t("Total Supplier Due: 6957663")}</h3>
         </div>
 
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
-            Show 
+            {t("Show")} 
             <select style={{ margin: '0 8px', padding: '4px', border: '1px solid var(--secondary)', borderRadius: '4px' }}>
               <option>25</option>
             </select>
-            entries
+            {t("entries")}
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button className="btn" onClick={handleExportExcel} style={{ background: '#059669', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px', cursor: 'pointer' }}>
-              <FileSpreadsheet size={16} style={{ marginRight: '6px' }} /> Excel
+              <FileSpreadsheet size={16} style={{ marginRight: '6px' }} /> {t("Excel")}
             </button>
             <button className="btn" onClick={() => window.print()} style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
-              <Printer size={16} style={{ marginRight: '6px' }} /> Print
+              <Printer size={16} style={{ marginRight: '6px' }} /> {t("Print")}
             </button>
             <button onClick={() => window.location.reload()} className="btn" style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
-              <RotateCcw size={16} style={{ marginRight: '6px' }} /> Reset
+              <RotateCcw size={16} style={{ marginRight: '6px' }} /> {t("Reset")}
             </button>
           </div>
         </div>
@@ -180,17 +182,17 @@ const SupplierList = () => {
           <table className="custom-table" style={{ width: '100%', minWidth: '1000px' }}>
             <thead>
               <tr style={{ background: '#718096', color: 'white' }}>
-                <th width="50" style={{ textAlign: 'center' }}>ID NO ↕</th>
-                <th width="400">SUPPLIER DETAILS</th>
-                <th width="250">ACCOUNT ↕</th>
-                <th width="100" style={{ textAlign: 'center' }}>ACTION ↕</th>
+                <th width="50" style={{ textAlign: 'center' }}>{t("ID NO ↕")}</th>
+                <th width="400">{t("SUPPLIER DETAILS")}</th>
+                <th width="250">{t("ACCOUNT ↕")}</th>
+                <th width="100" style={{ textAlign: 'center' }}>{t("ACTION ↕")}</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>Loading...</td></tr>
+                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>{t("Loading...")}</td></tr>
               ) : suppliers.length === 0 ? (
-                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No suppliers found.</td></tr>
+                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>{t("No suppliers found.")}</td></tr>
               ) : (
                 suppliers.map((supplier) => (
                   <tr key={supplier.id || supplier.uuid} style={{ background: 'white' }}>
@@ -199,19 +201,19 @@ const SupplierList = () => {
                       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <tbody>
                           <tr>
-                            <td style={{ width: '120px', fontWeight: '700', padding: '2px 0', border: 'none' }}>Name</td>
+                            <td style={{ width: '120px', fontWeight: '700', padding: '2px 0', border: 'none' }}>{t("Name")}</td>
                             <td style={{ padding: '2px 0', border: 'none' }}>: {supplier.name}</td>
                           </tr>
                           <tr>
-                            <td style={{ fontWeight: '700', padding: '2px 0', border: 'none' }}>Phone</td>
+                            <td style={{ fontWeight: '700', padding: '2px 0', border: 'none' }}>{t("Phone")}</td>
                             <td style={{ padding: '2px 0', border: 'none' }}>: {supplier.phone}</td>
                           </tr>
                           <tr>
-                            <td style={{ fontWeight: '700', padding: '2px 0', border: 'none' }}>Supplier Group</td>
+                            <td style={{ fontWeight: '700', padding: '2px 0', border: 'none' }}>{t("Supplier Group")}</td>
                             <td style={{ padding: '2px 0', border: 'none' }}>: {supplier.group || '-'}</td>
                           </tr>
                           <tr>
-                            <td style={{ fontWeight: '700', padding: '2px 0', border: 'none' }}>Address</td>
+                            <td style={{ fontWeight: '700', padding: '2px 0', border: 'none' }}>{t("Address")}</td>
                             <td style={{ padding: '2px 0', border: 'none' }}>: {supplier.address}</td>
                           </tr>
                           {supplier.bank_info && (
@@ -228,27 +230,27 @@ const SupplierList = () => {
                       <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e2e8f0', fontSize: '12px' }}>
                         <tbody>
                           <tr>
-                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>Previous Due</td>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{t("Previous Due")}</td>
                             <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{supplier.previous_due || '0.00'}</td>
                           </tr>
                           <tr>
-                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>Bill</td>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{t("Bill")}</td>
                             <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{supplier.bill || '0.00'}</td>
                           </tr>
                           <tr>
-                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>Total Bill</td>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{t("Total Bill")}</td>
                             <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{supplier.total_bill || '0.00'}</td>
                           </tr>
                           <tr>
-                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>SalesReturn</td>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{t("SalesReturn")}</td>
                             <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{supplier.sales_return || '0.00'}</td>
                           </tr>
                           <tr>
-                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>Paid</td>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{t("Paid")}</td>
                             <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{supplier.paid || '0.00'}</td>
                           </tr>
                           <tr>
-                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0', background: '#718096', color: 'white' }}>Due</td>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0', background: '#718096', color: 'white' }}>{t("Due")}</td>
                             <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{supplier.due || supplier.previous_due || '0.00'}</td>
                           </tr>
                         </tbody>
@@ -260,7 +262,7 @@ const SupplierList = () => {
                       className="btn" 
                       style={{ background: 'var(--success)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                     >
-                      Action <ChevronDown size={14} />
+                      {t("Action")} <ChevronDown size={14} />
                     </button>
 
                     {activeAction === (supplier.id || supplier.uuid) && (
@@ -277,13 +279,13 @@ const SupplierList = () => {
                         zIndex: 100,
                         textAlign: 'left'
                       }}>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => navigate('/crm/supplier-statement', { state: { supplierId: supplier.id || supplier.uuid } })}><Eye size={14} /> View</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => toast.info("Edit supplier feature coming soon!")}><Edit size={14} /> Edit</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => toast.info("Delete supplier feature coming soon!")}><Trash2 size={14} /> Delete</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => navigate('/account/supplier-payment')}><DollarSign size={14} /> Payment</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => navigate('/expense-report/supplier-purchase')}><FileText size={14} /> Payment Report</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}onClick={() => { navigate("/product/purchase/report", { state: { supplierId: supplier.id || supplier.uuid } }); setActiveAction(null); }}><FileBarChart size={14} /> Purchase Report</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}onClick={() => { navigate("/crm/supplier-statement", { state: { supplierId: supplier.id || supplier.uuid } }); setActiveAction(null); }}><FileText size={14} /> Statement</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => navigate('/crm/supplier-statement', { state: { supplierId: supplier.id || supplier.uuid } })}><Eye size={14} /> {t("View")}</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => toast.info(t("Edit supplier feature coming soon!"))}><Edit size={14} /> {t("Edit")}</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => toast.info(t("Delete supplier feature coming soon!"))}><Trash2 size={14} /> {t("Delete")}</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => navigate('/account/supplier-payment')}><DollarSign size={14} /> {t("Payment")}</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => navigate('/expense-report/supplier-purchase')}><FileText size={14} /> {t("Payment Report")}</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}onClick={() => { navigate("/product/purchase/report", { state: { supplierId: supplier.id || supplier.uuid } }); setActiveAction(null); }}><FileBarChart size={14} /> {t("Purchase Report")}</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}onClick={() => { navigate("/crm/supplier-statement", { state: { supplierId: supplier.id || supplier.uuid } }); setActiveAction(null); }}><FileText size={14} /> {t("Statement")}</div>
                       </div>
                     )}
                   </td>

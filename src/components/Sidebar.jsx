@@ -1,16 +1,46 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { forceLogout } from '../api/apiClient';
+import { companyStore, companyHeaderImage } from '../services/companyStore';
+import { appSettingsService } from '../services/appSettingsService';
 import { 
   LayoutDashboard, Users, CreditCard, Banknote, 
   FileText, Package, MessageSquare, UserCircle,
-  Settings, LogOut, ChevronDown, ChevronRight, X
+  Settings, LogOut, ChevronDown, ChevronRight, X, ShoppingCart
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, closeSidebar }) => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+
+  const username = localStorage.getItem('username') || 'admin 2';
+  const role = (localStorage.getItem('role') || 'ADMIN 2').toUpperCase();
+
+  const [companyInfo, setCompanyInfo] = useState(() => companyStore.getCached());
+  const [headerSettings, setHeaderSettings] = useState(() => ({
+    activeCard: appSettingsService.get('print_header_card', 'card2'),
+    headerMode: appSettingsService.get('print_header_mode', 'card')
+  }));
+
+  useEffect(() => {
+    const syncCompany = () => setCompanyInfo({ ...companyStore.getCached() });
+    const syncHeaderSettings = () => setHeaderSettings({
+      activeCard: appSettingsService.get('print_header_card', 'card2'),
+      headerMode: appSettingsService.get('print_header_mode', 'card')
+    });
+
+    window.addEventListener(companyStore.EVENT, syncCompany);
+    window.addEventListener(appSettingsService.EVENT, syncHeaderSettings);
+    companyStore.load().then(syncCompany);
+    appSettingsService.load().then(syncHeaderSettings);
+
+    return () => {
+      window.removeEventListener(companyStore.EVENT, syncCompany);
+      window.removeEventListener(appSettingsService.EVENT, syncHeaderSettings);
+    };
+  }, []);
 
   const [crmOpen, setCrmOpen] = useState(pathname.startsWith('/crm'));
   const [clientOpen, setClientOpen] = useState(pathname.startsWith('/crm/client') || pathname.startsWith('/crm/due-collection-date'));
@@ -93,51 +123,193 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
     setSettingsOpen(menu === 'settings' ? !settingsOpen : false);
   };
 
+  const renderSidebarBanner = () => {
+    const info = companyInfo || {};
+    const headerImage = companyHeaderImage(info);
+    const { activeCard, headerMode } = headerSettings;
+
+    if (headerMode === 'image' && headerImage) {
+      return (
+        <img
+          src={headerImage}
+          alt={info.company_name || t("Header Banner")}
+          style={{ maxWidth: '100%', maxHeight: '65px', objectFit: 'contain', display: 'block', margin: '0 auto' }}
+        />
+      );
+    }
+
+    if (activeCard === 'card1') {
+      return (
+        <div style={{ textAlign: 'center', padding: '4px 8px' }}>
+          <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: '22px', color: 'black', fontWeight: 'bold', lineHeight: 1.1 }}>
+            {info.company_name || t("Rajdhani")}
+          </h2>
+          <h3 style={{ fontFamily: 'cursive', margin: '-4px 0 0 20px', fontSize: '14px', color: 'black' }}>
+            {info.company_type || t("Garments")}
+          </h3>
+        </div>
+      );
+    }
+
+    if (activeCard === 'card3') {
+      return (
+        <div style={{ textAlign: 'center', padding: '4px 8px' }}>
+          <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: '22px', color: 'black', fontWeight: 'bold', lineHeight: 1.1 }}>
+            {info.company_name || t("Rajdhani")}
+          </h2>
+          <h3 style={{ fontFamily: 'cursive', margin: '-4px 0 0 20px', fontSize: '14px', color: 'black' }}>
+            {t("Super Shop")}
+          </h3>
+        </div>
+      );
+    }
+
+    // card2 (default): Company name + ShoppingCart / Address
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '4px 8px' }}>
+        <div style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px dashed black', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <ShoppingCart size={16} color="black" />
+        </div>
+        <div style={{ textAlign: 'left' }}>
+          <h2 style={{ margin: 0, fontSize: '16px', fontWeight: '900', color: 'black', lineHeight: 1.1 }}>
+            {info.company_name || 'রাজধানী'} <span style={{ fontWeight: 'normal' }}>সুপার শপ</span>
+          </h2>
+          {(info.address || info.present_address) && (
+            <p style={{ margin: '2px 0 0 0', fontSize: '9px', fontWeight: 'bold', color: 'black', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }}>
+              {info.address || info.present_address}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`} style={{ overflowY: 'auto' }}>
-      <div style={{ padding: '24px 20px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', borderBottom: '1px solid #e2e8f0', position: 'relative', background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)' }}>
+      {/* Top Banner & Profile Container */}
+      <div style={{
+        background: 'linear-gradient(180deg, #15803d 0%, #166534 60%, #14532d 100%)',
+        padding: '16px 14px 16px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        position: 'relative',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.15)'
+      }}>
         <button 
           className="mobile-close-btn" 
           onClick={closeSidebar}
-          style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+          style={{ position: 'absolute', top: '12px', right: '12px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'white', zIndex: 2 }}
         >
-          <X size={24} />
+          <X size={20} />
         </button>
-        <div style={{ 
-          width: '56px', 
-          height: '56px', 
-          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', 
-          border: '2px solid #f59e0b',
-          borderRadius: '16px',
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          boxShadow: '0 8px 20px -4px rgba(245, 158, 11, 0.35)',
-          marginBottom: '10px'
-        }}>
-          <span style={{ 
-            fontFamily: "'Cinzel', Georgia, serif", 
-            fontSize: '24px', 
-            fontWeight: '800', 
-            background: 'linear-gradient(135deg, #fbbf24, #d97706)', 
-            WebkitBackgroundClip: 'text', 
-            WebkitTextFillColor: 'transparent' 
-          }}>
-            RG
-          </span>
-        </div>
-        <div style={{ textAlign: 'center' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a', margin: '0 0 2px', letterSpacing: '-0.3px' }}>
-            Rajdhani Garments
-          </h2>
-          <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-            Enterprise ERP
-          </span>
-        </div>
-      </div>
 
-      <div style={{ padding: '16px', display: 'flex', justifyContent: 'center', borderBottom: '1px solid #f1f5f9' }}>
-        <button style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '6px 16px', borderRadius: '4px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}>
+        {/* Active Header Banner Card (Dynamic!) */}
+        <div style={{
+          width: '100%',
+          background: 'white',
+          borderRadius: '6px',
+          padding: '10px 8px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          marginBottom: '16px',
+          minHeight: '65px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+          border: '1px solid #e2e8f0'
+        }}>
+          {renderSidebarBanner()}
+        </div>
+
+        {/* User Info */}
+        <div style={{ textAlign: 'center', color: 'white', marginBottom: '12px' }}>
+          <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold', letterSpacing: '-0.2px', color: '#ffffff' }}>
+            {username}
+          </h3>
+          <span style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            {role || t("ADMIN")}
+          </span>
+        </div>
+
+        {/* Quick Icon Actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+          <button
+            onClick={() => navigate('/settings/company-information')}
+            title={t("Settings / Profile Header")}
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: '1px solid rgba(255, 255, 255, 0.4)',
+              color: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <Settings size={16} />
+          </button>
+
+          <button
+            onClick={() => navigate('/profile')}
+            title={t("My Profile")}
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: '1px solid rgba(255, 255, 255, 0.4)',
+              color: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <UserCircle size={16} />
+          </button>
+
+          <button
+            onClick={() => forceLogout()}
+            title={t("Logout")}
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: '1px solid rgba(255, 255, 255, 0.4)',
+              color: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <LogOut size={16} />
+          </button>
+        </div>
+
+        {/* Show Balance Button */}
+        <button 
+          style={{ 
+            background: '#059669', 
+            color: 'white', 
+            border: '1px solid #34d399', 
+            padding: '8px 20px', 
+            borderRadius: '6px', 
+            fontSize: '13px', 
+            fontWeight: 'bold', 
+            cursor: 'pointer',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+            width: '85%'
+          }}
+        >
           {t('sidebar.show_balance')}
         </button>
       </div>
@@ -207,7 +379,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.due_collection_date')}
                     </NavLink>
                     <NavLink to="/crm/client-cheque-schedule" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
-                      <span style={{ marginRight: '8px' }}>»</span> Client Cheque Schedule
+                      <span style={{ marginRight: '8px' }}>»</span> {t("Client Cheque Schedule")}
                     </NavLink>
                   </div>
                 )}
@@ -760,7 +932,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.group_wise')}
               </NavLink>
               <NavLink to="/due-report/supplier-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
-                <span style={{ marginRight: '8px' }}>»</span> Supplier Due
+                <span style={{ marginRight: '8px' }}>»</span> {t("Supplier Due")}
               </NavLink>
             </div>
           )}
@@ -933,7 +1105,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                 <span style={{ marginRight: '8px' }}>»</span> {t('menu.settings')}
               </NavLink>
               <NavLink to="/settings/users" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
-                <span style={{ marginRight: '8px' }}>»</span> Users & Permissions
+                <span style={{ marginRight: '8px' }}>»</span> {t("Users & Permissions")}
               </NavLink>
 
             </div>

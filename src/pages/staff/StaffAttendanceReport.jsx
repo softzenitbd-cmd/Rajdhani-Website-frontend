@@ -4,6 +4,7 @@ import TableToolbar from '../../components/TableToolbar';
 import staffApi from '../../api/staffApi';
 import { useToast } from '../../context/ToastContext';
 import { toList, fmtDate, nameOf, today, MONTHS, YEARS } from '../../utils/apiHelpers';
+import { useTranslation } from 'react-i18next';
 
 const badge = (status) => {
   const s = String(status || '').toLowerCase();
@@ -22,6 +23,7 @@ const fmtTime = (t) => {
 };
 
 const StaffAttendanceReport = () => {
+  const { t } = useTranslation();
   const toast = useToast();
   const now = new Date();
   const [mode, setMode] = useState('date'); // 'date' | 'month'
@@ -39,7 +41,7 @@ const StaffAttendanceReport = () => {
       const res = await staffApi.getStaffAttendance(params);
       setRows(toList(res));
     } catch (e) {
-      toast.error(e.message || 'Failed to load attendance');
+      toast.error(e.message || t("Failed to load attendance"));
     } finally {
       setLoading(false);
     }
@@ -65,7 +67,7 @@ const StaffAttendanceReport = () => {
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
         <div className="premium-header" style={{ padding: '24px', background: 'white', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>
-          <h2 className="premium-title" style={{ fontSize: '18px', fontWeight: 'bold' }}>Staff Attendance</h2>
+          <h2 className="premium-title" style={{ fontSize: '18px', fontWeight: 'bold' }}>{t("Staff Attendance")}</h2>
         </div>
 
         <div className="premium-body" style={{ background: 'white', padding: '24px' }}>
@@ -74,17 +76,17 @@ const StaffAttendanceReport = () => {
           <div className="no-print" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
             <form onSubmit={(e) => { e.preventDefault(); setMode('month'); setTimeout(load, 0); }} style={{ display: 'flex', gap: '16px', alignItems: 'center', background: 'white', padding: '16px', border: `1px solid ${mode === 'month' ? '#0ea5e9' : '#e2e8f0'}`, borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', flexWrap: 'wrap', justifyContent: 'center' }}>
               <select value={month} onChange={(e) => setMonth(Number(e.target.value))} style={selectStyle}>
-                {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+                {MONTHS.map((m, i) => <option key={m} value={i + 1}>{t(m)}</option>)}
               </select>
               <select value={year} onChange={(e) => setYear(Number(e.target.value))} style={selectStyle}>
                 {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
               </select>
-              <button type="submit" style={searchBtn}>Search by Month</button>
+              <button type="submit" style={searchBtn}>{t("Search by Month")}</button>
             </form>
 
             <form onSubmit={(e) => { e.preventDefault(); setMode('date'); setTimeout(load, 0); }} style={{ display: 'flex', gap: '16px', alignItems: 'center', background: 'white', padding: '16px', border: `1px solid ${mode === 'date' ? '#0ea5e9' : '#e2e8f0'}`, borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', flexWrap: 'wrap', justifyContent: 'center' }}>
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ ...selectStyle, width: '376px', maxWidth: '80vw', textAlign: 'center' }} />
-              <button type="submit" style={searchBtn}>Search by Date</button>
+              <button type="submit" style={searchBtn}>{t("Search by Date")}</button>
             </form>
           </div>
 
@@ -94,20 +96,20 @@ const StaffAttendanceReport = () => {
             <table className="custom-table" style={{ width: '100%', fontSize: '12px', textAlign: 'center' }}>
               <thead>
                 <tr style={{ background: '#94a3b8', color: 'white' }}>
-                  <th style={{ width: '50px' }}>SL</th>
-                  <th>NAME</th>
-                  <th>PHONE</th>
-                  <th>DATE</th>
-                  <th>IN TIME</th>
-                  <th>OUT TIME</th>
-                  <th>ATTENDANCE</th>
+                  <th style={{ width: '50px' }}>{t("SL")}</th>
+                  <th>{t("NAME")}</th>
+                  <th>{t("PHONE")}</th>
+                  <th>{t("DATE")}</th>
+                  <th>{t("IN TIME")}</th>
+                  <th>{t("OUT TIME")}</th>
+                  <th>{t("ATTENDANCE")}</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="7" style={{ padding: '24px', color: '#64748b' }}>Loading...</td></tr>
+                  <tr><td colSpan="7" style={{ padding: '24px', color: '#64748b' }}>{t("Loading...")}</td></tr>
                 ) : visible.length === 0 ? (
-                  <tr><td colSpan="7" style={{ padding: '24px', color: '#64748b' }}>No attendance records found</td></tr>
+                  <tr><td colSpan="7" style={{ padding: '24px', color: '#64748b' }}>{t("No attendance records found")}</td></tr>
                 ) : (
                   visible.map((r, i) => (
                     <tr key={r.id || i}>

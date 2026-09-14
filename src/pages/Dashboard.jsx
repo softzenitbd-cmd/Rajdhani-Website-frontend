@@ -42,7 +42,7 @@ const Dashboard = () => {
   const [series, setSeries] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const monthName = stats?.current_month?.month_name || MONTHS[new Date().getMonth()];
+  const monthName = t(stats?.current_month?.month_name || MONTHS[new Date().getMonth()]);
 
   const load = async () => {
     try {
@@ -88,7 +88,7 @@ const Dashboard = () => {
         setSeries(Object.values(byDay));
       }
     } catch (e) {
-      toast.error(e.message || 'Failed to load dashboard');
+      toast.error(e.message || t("Failed to load dashboard"));
     } finally {
       setLoading(false);
     }
@@ -130,7 +130,7 @@ const Dashboard = () => {
     <div className="dashboard-content">
       <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
         <button onClick={load} disabled={loading} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#475569' }}>
-          <RefreshCcw size={14} className={loading ? 'spin' : ''} /> {loading ? 'Loading...' : 'Refresh'}
+          <RefreshCcw size={14} className={loading ? 'spin' : ''} /> {loading ? t("Loading...") : t("Refresh")}
         </button>
       </div>
 
@@ -149,11 +149,11 @@ const Dashboard = () => {
       <div className="stats-grid">
         <StatCard title={`${monthName} ${t('dashboard.sales')}`} amount={month.sales} type="sales" icon={<ShoppingBag />} />
         <StatCard title={`${monthName} ${t('dashboard.receive')}`} amount={month.receive} type="receive" icon={<CreditCard />} />
-        <StatCard title={`${monthName} Expense`} amount={month.expense} type="expense" icon={<Receipt />} />
+        <StatCard title={t("{{v0}} Expense", { v0: monthName })} amount={month.expense} type="expense" icon={<Receipt />} />
       </div>
       <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
         <StatCard title={`${monthName} ${t('dashboard.due')}`} amount={month.due} type="expense" icon={<CalendarClock />} />
-        <StatCard title={`${monthName} Balance`} amount={month.balance} type="sales" icon={<Scale />} />
+        <StatCard title={t("{{v0}} Balance", { v0: monthName })} amount={month.balance} type="sales" icon={<Scale />} />
       </div>
 
       {/* Charts */}
@@ -202,7 +202,7 @@ const Dashboard = () => {
       </div>
 
       {/* Floating Action Button → new invoice */}
-      <div className="fab" onClick={() => navigate('/invoice/add-new')} title="New Invoice" style={{ cursor: 'pointer' }}>
+      <div className="fab" onClick={() => navigate('/invoice/add-new')} title={t("New Invoice")} style={{ cursor: 'pointer' }}>
         <Plus size={24} />
       </div>
     </div>

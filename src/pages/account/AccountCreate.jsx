@@ -4,8 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
 import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
+import { useTranslation } from 'react-i18next';
 
 const AccountCreate = () => {
+  const { t } = useTranslation();
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -26,7 +28,7 @@ const AccountCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.balance) {
-      toast.error("Account Title and Initial Balance are required!");
+      toast.error(t("Account Title and Initial Balance are required!"));
       return;
     }
 
@@ -40,11 +42,11 @@ const AccountCreate = () => {
         phone: formData.phone,
         description: formData.description
       });
-      toast.success("Account added successfully!");
+      toast.success(t("Account added successfully!"));
       navigate('/account/account-list');
     } catch (error) {
       console.error("Error creating account:", error);
-      toast.error("Failed to create account. Please check your network and try again.");
+      toast.error(t("Failed to create account. Please check your network and try again."));
     } finally {
       setSubmitting(false);
     }
@@ -57,19 +59,19 @@ const AccountCreate = () => {
       <div style={{ background: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
         {/* Header */}
         <div style={{ padding: '20px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9' }}>
-          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#0f172a', letterSpacing: '0.5px' }}>ADD NEW ACCOUNT</h2>
+          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#0f172a', letterSpacing: '0.5px' }}>{t("ADD NEW ACCOUNT")}</h2>
           <div style={{ display: 'flex', gap: '10px' }}>
             <button 
               onClick={() => navigate('/account/account-list')}
               style={{ background: '#94a3b8', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
             >
-              <List size={15} /> Account List
+              <List size={15} /> {t("Account List")}
             </button>
             <button 
               onClick={() => navigate(-1)}
               style={{ background: '#94a3b8', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
             >
-              <ArrowLeft size={15} /> Go Back
+              <ArrowLeft size={15} /> {t("Go Back")}
             </button>
           </div>
         </div>
@@ -93,7 +95,7 @@ const AccountCreate = () => {
                   />
                 </div>
                 <div style={{ fontSize: '13px', color: '#3b82f6', marginTop: '6px', fontWeight: '500' }}>
-                  Account Title (e.g. Cash, DBBL, Brac Bank) *
+                  {t("Account Title (e.g. Cash, DBBL, Brac Bank) *")}
                 </div>
               </div>
 
@@ -112,7 +114,7 @@ const AccountCreate = () => {
                   />
                 </div>
                 <div style={{ fontSize: '13px', color: '#3b82f6', marginTop: '6px', fontWeight: '500' }}>
-                  Initial Balance *
+                  {t("Initial Balance *")}
                 </div>
               </div>
 
@@ -129,7 +131,7 @@ const AccountCreate = () => {
                   />
                 </div>
                 <div style={{ fontSize: '13px', color: '#475569', marginTop: '6px', fontWeight: '500' }}>
-                  Account Number
+                  {t("Account Number")}
                 </div>
               </div>
 
@@ -146,7 +148,7 @@ const AccountCreate = () => {
                   />
                 </div>
                 <div style={{ fontSize: '13px', color: '#475569', marginTop: '6px', fontWeight: '500' }}>
-                  Contact Person
+                  {t("Contact Person")}
                 </div>
               </div>
 
@@ -163,7 +165,7 @@ const AccountCreate = () => {
                   />
                 </div>
                 <div style={{ fontSize: '13px', color: '#475569', marginTop: '6px', fontWeight: '500' }}>
-                  Phone Number
+                  {t("Phone Number")}
                 </div>
               </div>
 
@@ -171,10 +173,10 @@ const AccountCreate = () => {
 
             {/* Field 6: Description */}
             <div style={{ marginTop: '20px' }}>
-              <div style={{ fontSize: '13px', color: '#475569', marginBottom: '8px', fontWeight: '500' }}>Description</div>
+              <div style={{ fontSize: '13px', color: '#475569', marginBottom: '8px', fontWeight: '500' }}>{t("Description")}</div>
               <textarea 
                 name="description" 
-                placeholder="Account Description" 
+                placeholder={t("Account Description")} 
                 value={formData.description} 
                 onChange={handleChange} 
                 style={{ 
@@ -210,7 +212,7 @@ const AccountCreate = () => {
                   transition: 'background 0.2s'
                 }}
               >
-                {submitting ? 'Adding Account...' : 'Add Account'}
+                {submitting ? t("Adding Account...") : t("Add Account")}
               </button>
             </div>
 

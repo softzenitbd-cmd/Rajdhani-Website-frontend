@@ -7,9 +7,11 @@ import { saleService } from '../../services/saleService';
 import { crmService } from '../../services/crmService';
 import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 
 const SalesReturnList = () => {
   const toast = useToast();
+  const confirm = useConfirm();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -88,14 +90,21 @@ const SalesReturnList = () => {
   };
 
   const handleConvertToFinal = async (id) => {
-    if (!window.confirm("Are you sure you want to convert this Draft Return to Final Sales Return? Product stock will increase and client due will decrease automatically.")) return;
+    const isConfirmed = await confirm({
+      title: t("Convert Sales Return"),
+      message: t("Are you sure you want to convert this Draft Return to Final Sales Return? Product stock will increase and client due will decrease automatically."),
+      confirmText: t("Convert"),
+      cancelText: t("Cancel"),
+      variant: 'warning'
+    });
+    if (!isConfirmed) return;
     try {
       await saleService.updateSalesReturn(id, { status: 1 });
-      toast.success("Sales Return converted to Final successfully!");
+      toast.success(t("Sales Return converted to Final successfully!"));
       fetchReturns();
     } catch (err) {
       console.error("Error converting sales return:", err);
-      toast.success("Converted Sales Return to Final!");
+      toast.success(t("Converted Sales Return to Final!"));
       fetchReturns();
     }
   };
@@ -105,13 +114,13 @@ const SalesReturnList = () => {
       <PrintHeader />
       
       <div style={{ textAlign: 'center', marginBottom: '20px', marginTop: '20px' }}>
-        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>Sales Return List</h2>
+        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>{t("Sales Return List")}</h2>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 'normal', color: '#333' }}>Sales Return Invoices</h2>
+        <h2 style={{ fontSize: '20px', fontWeight: 'normal', color: '#333' }}>{t("Sales Return Invoices")}</h2>
         <button className="btn btn-primary" onClick={() => navigate('/invoice/sales-return/add-new')} style={{ background: 'var(--success)', padding: '8px 16px', fontSize: '14px', borderRadius: '4px' }}>
-          Sales Return Create
+          {t("Sales Return Create")}
         </button>
       </div>
 
@@ -119,7 +128,7 @@ const SalesReturnList = () => {
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
           <div className="form-input floating-label" style={{ borderRadius: '4px' }}>
             <select name="client" value={filters.client} onChange={handleFilterChange} style={{ padding: '10px' }}>
-              <option value="">Select Customer / Client</option>
+              <option value="">{t("Select Customer / Client")}</option>
               {clients.map(c => (
                 <option key={c.id} value={c.id}>{c.name || c.company_name}</option>
               ))}
@@ -127,7 +136,7 @@ const SalesReturnList = () => {
           </div>
           <div className="form-input floating-label" style={{ borderRadius: '4px' }}>
             <select name="account_id" value={filters.account_id} onChange={handleFilterChange} style={{ padding: '10px' }}>
-              <option value="">Select Account</option>
+              <option value="">{t("Select Account")}</option>
               {accounts.map(a => (
                 <option key={a.id} value={a.name}>{a.name}</option>
               ))}
@@ -143,25 +152,25 @@ const SalesReturnList = () => {
             <input type="date" name="to_date" value={filters.to_date} onChange={handleFilterChange} style={{ color: '#334155', padding: '10px' }} />
           </div>
           <div className="form-input floating-label" style={{ borderRadius: '4px' }}>
-            <input type="text" name="search" value={filters.search} onChange={handleFilterChange} placeholder="Return Invoice ID or Barcode" style={{ padding: '10px' }} />
+            <input type="text" name="search" value={filters.search} onChange={handleFilterChange} placeholder={t("Return Invoice ID or Barcode")} style={{ padding: '10px' }} />
           </div>
           <div>
             <button className="btn btn-primary" onClick={handleClearFilters} style={{ width: '100%', height: '100%', background: 'var(--success)', border: 'none', borderRadius: '4px', fontSize: '15px' }}>
-              Clear Filter
+              {t("Clear Filter")}
             </button>
           </div>
         </div>
 
         <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
-            Showing {returns.length} entries
+            {t("Showing")} {returns.length} {t("entries")}
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>
             <button className="btn" onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              Print List
+              {t("Print List")}
             </button>
             <button className="btn" onClick={fetchReturns} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <RotateCcw size={14} /> Refresh
+              <RotateCcw size={14} /> {t("Refresh")}
             </button>
           </div>
         </div>
@@ -170,30 +179,30 @@ const SalesReturnList = () => {
           <table className="custom-table" style={{ width: '100%', minWidth: '1200px', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--secondary)', color: 'white' }}>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>SL</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>RETURN DATE</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>CLIENT</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>RETURN INVOICE ID</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>CATEGORY</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>TOTAL DUE</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>STATUS</th>
-                <th className="action-column" style={{ textAlign: 'center', padding: '12px', fontSize: '11px' }}>ACTION</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("SL")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("RETURN DATE")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("CLIENT")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("RETURN INVOICE ID")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("CATEGORY")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("TOTAL DUE")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("STATUS")}</th>
+                <th className="action-column" style={{ textAlign: 'center', padding: '12px', fontSize: '11px' }}>{t("ACTION")}</th>
               </tr>
             </thead>
             <tbody>
               {returns.map((ret, index) => (
                 <tr key={ret.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: '12px' }}>
                   <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
-                  <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{ret.created_at ? new Date(ret.created_at).toLocaleDateString() : (ret.date || '25 Aug 2026')}</td>
+                  <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{ret.created_at ? new Date(ret.created_at).toLocaleDateString() : (ret.date || t("25 Aug 2026"))}</td>
                   <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>
-                    <div>{ret.client_name || ret.clientName || 'C.CASTOMER'}</div>
+                    <div>{ret.client_name || ret.clientName || t("C.CASTOMER")}</div>
                   </td>
                   <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0', fontWeight: 'bold' }}>{ret.return_invoice_id || ret.invoiceNo || `SR-${ret.id}`}</td>
-                  <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{ret.category || 'MALL FEROT'}</td>
+                  <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{ret.category || t("MALL FEROT")}</td>
                   <td style={{ textAlign: 'right', padding: '8px', borderRight: '1px solid #e2e8f0', color: '#ef4444', fontWeight: 'bold' }}>৳ {Number(ret.total_due || ret.dueAmount || 0).toFixed(2)}</td>
                   <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>
                     <span style={{ background: Number(ret.status) === 0 ? '#64748b' : '#059669', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>
-                      {Number(ret.status) === 0 ? 'Draft (0)' : 'Final (1)'}
+                      {Number(ret.status) === 0 ? t("Draft (0)") : t("Final (1)")}
                     </span>
                   </td>
                   <td className="action-column" style={{ textAlign: 'center', padding: '8px' }}>
@@ -203,11 +212,11 @@ const SalesReturnList = () => {
                           onClick={() => handleConvertToFinal(ret.id)}
                           style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
                         >
-                          <CheckCircle size={14} /> Make Final
+                          <CheckCircle size={14} /> {t("Make Final")}
                         </button>
                       )}
                       <button onClick={() => window.print()} style={{ background: 'var(--info)', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>
-                        Print
+                        {t("Print")}
                       </button>
                     </div>
                   </td>
@@ -215,7 +224,7 @@ const SalesReturnList = () => {
               ))}
               {returns.length === 0 && (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>No sales returns found.</td>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>{t("No sales returns found.")}</td>
                 </tr>
               )}
             </tbody>

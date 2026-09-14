@@ -6,8 +6,10 @@ import AddOptionModal from '../../components/AddOptionModal';
 import { accountingService } from '../../services/accountingService';
 import { crmService } from '../../services/crmService';
 import { useToast } from '../../context/ToastContext';
+import { useTranslation } from 'react-i18next';
 
 const MoneyReturn = () => {
+  const { t } = useTranslation();
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -45,7 +47,7 @@ const MoneyReturn = () => {
 
       setClients(clientData);
     } catch (err) {
-      toast.error(err?.message || 'Failed to load form data');
+      toast.error(err?.message || t("Failed to load form data"));
     }
   };
 
@@ -64,7 +66,7 @@ const MoneyReturn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.accountId || !formData.amount) {
-      toast.error("Please select an Account and enter an Amount.");
+      toast.error(t("Please select an Account and enter an Amount."));
       return;
     }
 
@@ -83,12 +85,12 @@ const MoneyReturn = () => {
       if (formData.description) payload.reference = formData.description;
 
       await accountingService.createExpense(payload);
-      toast.success("Money Return recorded successfully!");
+      toast.success(t("Money Return recorded successfully!"));
       navigate('/account/expense-list');
     } catch (error) {
       console.error("Error submitting money return:", error);
       const errorDetail = error.response?.data ? JSON.stringify(error.response.data, null, 2) : error.message;
-      toast.error(`Failed to submit Money Return:\n${errorDetail}`);
+      toast.error(t("Failed to submit Money Return: {{v0}}", { v0: errorDetail }));
     } finally {
       setSubmitting(false);
     }
@@ -101,13 +103,13 @@ const MoneyReturn = () => {
       <div style={{ background: 'white', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', borderBottom: '6px solid #2e7d32' }}>
         {/* Header */}
         <div style={{ background: '#2e7d32', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px' }}>
-          <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>Money Return</h2>
+          <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>{t("Money Return")}</h2>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={() => navigate('/crm/client-list')} style={{ background: '#818cf8', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
-              <List size={14} /> Client List
+              <List size={14} /> {t("Client List")}
             </button>
             <button onClick={() => navigate('/crm/client-groups')} style={{ background: '#818cf8', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
-              <Layers size={14} /> Client Group
+              <Layers size={14} /> {t("Client Group")}
             </button>
           </div>
         </div>
@@ -123,7 +125,7 @@ const MoneyReturn = () => {
                 {/* Date Input */}
                 <div style={{ position: 'relative' }}>
                   <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    📅 Date
+                    {t("📅 Date")}
                   </div>
                   <input 
                     type="date" 
@@ -142,7 +144,7 @@ const MoneyReturn = () => {
                     onChange={handleChange}
                     style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px', appearance: 'none', background: 'transparent' }}
                   >
-                    <option value="">Select Client</option>
+                    <option value="">{t("Select Client")}</option>
                     {(clients || []).map(c => <option key={c.id} value={c.id}>{c.name || c.company_name}</option>)}
                   </select>
                   {formData.clientId && (
@@ -163,7 +165,7 @@ const MoneyReturn = () => {
                     onChange={handleChange}
                     style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px', appearance: 'none', background: 'transparent' }}
                   >
-                    <option value="">Select Category</option>
+                    <option value="">{t("Select Category")}</option>
                     {(categories || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                   {formData.categoryId && (
@@ -190,7 +192,7 @@ const MoneyReturn = () => {
                     required
                     style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px', appearance: 'none', background: 'transparent' }}
                   >
-                    <option value="">Select Account</option>
+                    <option value="">{t("Select Account")}</option>
                     {(accounts || []).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                   </select>
                   {formData.accountId && (
@@ -211,7 +213,7 @@ const MoneyReturn = () => {
                   <input 
                     type="number" 
                     name="amount" 
-                    placeholder="Amount" 
+                    placeholder={t("Amount")} 
                     value={formData.amount} 
                     onChange={handleChange}
                     required
@@ -227,7 +229,7 @@ const MoneyReturn = () => {
                   <input 
                     type="text" 
                     name="description" 
-                    placeholder="Expense Description in a short note" 
+                    placeholder={t("Expense Description in a short note")} 
                     value={formData.description} 
                     onChange={handleChange}
                     style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px' }}
@@ -244,14 +246,14 @@ const MoneyReturn = () => {
                 disabled={submitting} 
                 style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
               >
-                {submitting ? 'Adding...' : 'Add New'}
+                {submitting ? t("Adding...") : t("Add New")}
               </button>
               <button 
                 type="button" 
                 onClick={() => navigate('/account/expense-list')} 
                 style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
               >
-                Close
+                {t("Close")}
               </button>
             </div>
           </form>
@@ -261,8 +263,8 @@ const MoneyReturn = () => {
       <AddOptionModal 
         isOpen={isClientModalOpen}
         onClose={() => setIsClientModalOpen(false)}
-        title="Quick Add Client"
-        placeholder="Client Name"
+        title={t("Quick Add Client")}
+        placeholder={t("Client Name")}
         onSave={() => {
           setIsClientModalOpen(false);
         }}

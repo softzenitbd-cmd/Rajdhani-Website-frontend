@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useToast } from '../context/ToastContext';
 import { X, Check, Plus } from 'lucide-react';
 
 const AddOptionModal = ({ isOpen, onClose, onSave, title, label, placeholder, initialValue = '' }) => {
+  const { t } = useTranslation();
   const [inputValue, setInputValue] = useState('');
   const [saving, setSaving] = useState(false);
   const toast = useToast();
@@ -18,17 +20,17 @@ const AddOptionModal = ({ isOpen, onClose, onSave, title, label, placeholder, in
   // onSave may be async and may throw (API failure) – only close on success
   const handleSave = async () => {
     if (!inputValue.trim()) {
-      toast.error(`Please enter ${label ? label.toLowerCase() : 'a value'}`);
+      toast.error(t("Please enter {{v0}}", { v0: label ? label.toLowerCase() : t("a value") }));
       return;
     }
     try {
       setSaving(true);
       await onSave(inputValue.trim());
-      toast.success("Saved successfully!");
+      toast.success(t("Saved successfully!"));
       setInputValue('');
       onClose();
     } catch (err) {
-      toast.error(err?.message || 'Save failed');
+      toast.error(err?.message || t("Save failed"));
     } finally {
       setSaving(false);
     }
@@ -86,9 +88,9 @@ const AddOptionModal = ({ isOpen, onClose, onSave, title, label, placeholder, in
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', letterSpacing: '0.3px' }}>
-                {title || 'Add Option'}
+                {title || t("Add Option")}
               </h3>
-              <span style={{ fontSize: '11px', opacity: 0.85 }}>Side Drawer Quick Creation</span>
+              <span style={{ fontSize: '11px', opacity: 0.85 }}>{t("Side Drawer Quick Creation")}</span>
             </div>
           </div>
           <button 
@@ -116,14 +118,14 @@ const AddOptionModal = ({ isOpen, onClose, onSave, title, label, placeholder, in
         <div style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
           <div style={{ marginBottom: '24px' }}>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#1e293b', marginBottom: '8px' }}>
-              {label || 'Title / Name'} <span style={{ color: '#ef4444' }}>*</span>
+              {label || t("Title / Name")} <span style={{ color: '#ef4444' }}>*</span>
             </label>
             <div style={{ position: 'relative' }}>
               <input 
                 type="text" 
                 value={inputValue} 
                 onChange={(e) => setInputValue(e.target.value)} 
-                placeholder={placeholder || `Enter ${label ? label.toLowerCase() : 'name'}...`}
+                placeholder={placeholder || t("Enter {{v0}}...", { v0: label ? label.toLowerCase() : t("name") })}
                 style={{
                   width: '100%',
                   padding: '12px 14px',
@@ -169,7 +171,7 @@ const AddOptionModal = ({ isOpen, onClose, onSave, title, label, placeholder, in
               cursor: 'pointer'
             }}
           >
-            Cancel
+            {t('common.cancel', 'Cancel')}
           </button>
           <button 
             type="button" 
@@ -190,7 +192,7 @@ const AddOptionModal = ({ isOpen, onClose, onSave, title, label, placeholder, in
               boxShadow: '0 2px 4px rgba(37, 99, 235, 0.2)'
             }}
           >
-            <Check size={16} /> {saving ? 'Saving...' : 'Save Option'}
+            <Check size={16} /> {saving ? t('common.saving', 'Saving...') : t('common.save', 'Save')}
           </button>
         </div>
       </div>

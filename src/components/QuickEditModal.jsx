@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Generic small edit dialog.
@@ -10,6 +11,7 @@ import { useToast } from '../context/ToastContext';
 const input = { width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' };
 
 const QuickEditModal = ({ title = 'Edit', fields, record, onSave, onClose }) => {
+  const { t } = useTranslation();
   const toast = useToast();
   const [form, setForm] = useState(() => {
     const f = {};
@@ -31,10 +33,10 @@ const QuickEditModal = ({ title = 'Edit', fields, record, onSave, onClose }) => 
     try {
       setSaving(true);
       await onSave(changed);
-      toast.success('Updated successfully');
+      toast.success(t("Updated successfully"));
       onClose(true);
     } catch (e) {
-      toast.error(e.message || 'Update failed');
+      toast.error(e.message || t("Update failed"));
     } finally {
       setSaving(false);
     }
@@ -63,8 +65,8 @@ const QuickEditModal = ({ title = 'Edit', fields, record, onSave, onClose }) => 
             </div>
           ))}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
-            <button onClick={() => onClose()} style={{ padding: '8px 16px', background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
-            <button onClick={save} disabled={saving} style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: saving ? 0.7 : 1 }}>{saving ? 'Saving...' : 'Save'}</button>
+            <button onClick={() => onClose()} style={{ padding: '8px 16px', background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t("Cancel")}</button>
+            <button onClick={save} disabled={saving} style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: saving ? 0.7 : 1 }}>{saving ? t("Saving...") : t("Save")}</button>
           </div>
         </div>
       </div>

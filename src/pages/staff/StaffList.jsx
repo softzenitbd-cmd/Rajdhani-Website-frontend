@@ -6,11 +6,13 @@ import { useNavigate } from 'react-router-dom';
 import staffApi from '../../api/staffApi';
 import { useToast } from '../../context/ToastContext';
 import { toList, fmtDate, nameOf, money } from '../../utils/apiHelpers';
+import { useTranslation } from 'react-i18next';
 
 // status is the string 'active' | 'inactive' (older rows may carry a boolean)
 const isActive = (s) => (typeof s.status === 'string' ? s.status.toLowerCase() === 'active' : (s.is_active ?? s.status ?? true));
 
 const StaffList = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -30,7 +32,7 @@ const StaffList = () => {
       const res = await staffApi.getStaffList(filters);
       setRows(toList(res));
     } catch (e) {
-      toast.error(e.message || 'Failed to load staff');
+      toast.error(e.message || t("Failed to load staff"));
     } finally {
       setLoading(false);
     }
@@ -43,13 +45,13 @@ const StaffList = () => {
 
   const handleDelete = async (row) => {
     const rid = row.id || row.uuid;
-    if (!window.confirm(`Delete staff "${row.name || row.full_name}"?`)) return;
+    if (!window.confirm(t("Delete staff \"{{v0}}\"?", { v0: row.name || row.full_name }))) return;
     try {
       await staffApi.deleteStaff(rid);
-      toast.success('Staff deleted');
+      toast.success(t("Staff deleted"));
       setRows((p) => p.filter((r) => (r.id || r.uuid) !== rid));
     } catch (e) {
-      toast.error(e.message || 'Delete failed');
+      toast.error(e.message || t("Delete failed"));
     }
   };
 
@@ -76,9 +78,9 @@ const StaffList = () => {
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
         <div className="premium-header no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'white' }}>
-          <h2 className="premium-title" style={{ fontSize: '18px', fontWeight: 'bold' }}>Staff List</h2>
+          <h2 className="premium-title" style={{ fontSize: '18px', fontWeight: 'bold' }}>{t("Staff List")}</h2>
           <button onClick={() => navigate('/staff/create')} style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-            <Plus size={16} /> Add Staff
+            <Plus size={16} /> {t("Add Staff")}
           </button>
         </div>
 
@@ -91,18 +93,18 @@ const StaffList = () => {
             style={{ display: 'grid', gridTemplateColumns: '2fr 1fr auto', gap: '12px', marginBottom: '16px', alignItems: 'end' }}
           >
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: 'var(--label-color)' }}>Search (name / phone)</label>
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search..." style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '6px', outline: 'none' }} />
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: 'var(--label-color)' }}>{t("Search (name / phone)")}</label>
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("Search...")} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '6px', outline: 'none' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: 'var(--label-color)' }}>Department</label>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: 'var(--label-color)' }}>{t("Department")}</label>
               <select value={department} onChange={(e) => setDepartment(e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '6px', outline: 'none' }}>
-                <option value="">All departments</option>
+                <option value="">{t("All departments")}</option>
                 {departments.map((d) => <option key={d.id || d.uuid} value={d.id || d.uuid}>{d.name}</option>)}
               </select>
             </div>
             <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '10px 18px', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Search size={14} /> Filter
+              <Search size={14} /> {t("Filter")}
             </button>
           </form>
 
@@ -112,24 +114,24 @@ const StaffList = () => {
             <table className="custom-table" style={{ width: '100%', fontSize: '12px' }}>
               <thead>
                 <tr>
-                  <th style={{ width: '50px', textAlign: 'center' }}>SL</th>
-                  <th style={{ textAlign: 'center' }}>IMAGE</th>
-                  <th>NAME</th>
-                  <th>PHONE</th>
-                  <th>E-MAIL</th>
-                  <th>DEPARTMENT</th>
-                  <th>DESIGNATION</th>
-                  <th style={{ textAlign: 'right' }}>SALARY</th>
-                  <th>JOINING</th>
-                  <th style={{ textAlign: 'center' }}>STATUS</th>
-                  <th className="action-column" style={{ textAlign: 'center' }}>ACTION</th>
+                  <th style={{ width: '50px', textAlign: 'center' }}>{t("SL")}</th>
+                  <th style={{ textAlign: 'center' }}>{t("IMAGE")}</th>
+                  <th>{t("NAME")}</th>
+                  <th>{t("PHONE")}</th>
+                  <th>{t("E-MAIL")}</th>
+                  <th>{t("DEPARTMENT")}</th>
+                  <th>{t("DESIGNATION")}</th>
+                  <th style={{ textAlign: 'right' }}>{t("SALARY")}</th>
+                  <th>{t("JOINING")}</th>
+                  <th style={{ textAlign: 'center' }}>{t("STATUS")}</th>
+                  <th className="action-column" style={{ textAlign: 'center' }}>{t("ACTION")}</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="11" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>Loading staff...</td></tr>
+                  <tr><td colSpan="11" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("Loading staff...")}</td></tr>
                 ) : visible.length === 0 ? (
-                  <tr><td colSpan="11" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>No staff found</td></tr>
+                  <tr><td colSpan="11" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("No staff found")}</td></tr>
                 ) : (
                   visible.map((s, i) => {
                     const active = isActive(s);
@@ -154,13 +156,13 @@ const StaffList = () => {
                         <td style={{ padding: '10px' }}>{fmtDate(s.joining_date || s.created_at)}</td>
                         <td style={{ padding: '10px', textAlign: 'center' }}>
                           <span style={{ background: active ? '#dcfce7' : '#fee2e2', color: active ? '#166534' : '#991b1b', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>
-                            {active ? 'Active' : 'Inactive'}
+                            {active ? t("Active") : t("Inactive")}
                           </span>
                         </td>
                         <td className="action-column" style={{ padding: '10px' }}>
                           <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                            <button onClick={() => navigate(`/staff/edit/${s.id || s.uuid}`)} title="Edit" style={{ background: 'var(--info)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}><Pencil size={14} /></button>
-                            <button onClick={() => handleDelete(s)} title="Delete" style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}><Trash2 size={14} /></button>
+                            <button onClick={() => navigate(`/staff/edit/${s.id || s.uuid}`)} title={t("Edit")} style={{ background: 'var(--info)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}><Pencil size={14} /></button>
+                            <button onClick={() => handleDelete(s)} title={t("Delete")} style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}><Trash2 size={14} /></button>
                           </div>
                         </td>
                       </tr>

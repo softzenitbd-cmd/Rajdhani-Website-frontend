@@ -38,7 +38,7 @@ const ClientGroup = () => {
   const handleAddGroup = async (groupName) => {
     if (!groupName || !groupName.trim()) return;
     try {
-      await post(ENDPOINTS.CRM_CLIENT_GROUPS, { name: groupName.toUpperCase() }, "Client Group Added");
+      await post(ENDPOINTS.CRM_CLIENT_GROUPS, { name: groupName.toUpperCase() }, t("Client Group Added"));
       setIsModalOpen(false);
       fetchGroups();
     } catch (err) {
@@ -54,7 +54,7 @@ const ClientGroup = () => {
   const handleEditSave = async (newName) => {
     if (!newName || !newName.trim()) return;
     try {
-      await put(`${ENDPOINTS.CRM_CLIENT_GROUPS}${editingGroup.id}/`, { name: newName.toUpperCase() }, "Client Group Updated");
+      await put(`${ENDPOINTS.CRM_CLIENT_GROUPS}${editingGroup.id}/`, { name: newName.toUpperCase() }, t("Client Group Updated"));
       setIsEditModalOpen(false);
       setEditingGroup(null);
       fetchGroups();
@@ -69,13 +69,13 @@ const ClientGroup = () => {
       <div className="chart-card">
         {/* Header */}
         <div className="card-header">
-          <h2 className="card-title" style={{ textTransform: 'none', fontSize: '20px' }}>Client Group</h2>
+          <h2 className="card-title" style={{ textTransform: 'none', fontSize: '20px' }}>{t("Client Group")}</h2>
           <div className="card-actions">
             <button className="btn btn-outline" style={{ padding: '6px 12px', background: 'var(--table-header-bg)', color: 'white' }} onClick={() => navigate('/crm/client-list')}>
-              <List size={14} /> Client List
+              <List size={14} /> {t("Client List")}
             </button>
             <button className="btn btn-primary" style={{ padding: '6px 12px', background: 'var(--success)' }} onClick={() => setIsModalOpen(true)}>
-              <Plus size={14} /> Group Add
+              <Plus size={14} /> {t("Group Add")}
             </button>
           </div>
         </div>
@@ -83,19 +83,19 @@ const ClientGroup = () => {
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
-            Show 
+            {t("Show")} 
             <select style={{ margin: '0 8px', padding: '4px', border: '1px solid var(--secondary)', borderRadius: '4px' }}>
               <option>50</option>
             </select>
-            entries
+            {t("entries")}
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>
-            <button onClick={() => exportVisibleTable('xlsx')} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>Excel</button>
-            <button onClick={() => exportVisibleTable('csv')} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>CSV</button>
-            <button onClick={() => printPage()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>PDF</button>
+            <button onClick={() => exportVisibleTable('xlsx')} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>{t("Excel")}</button>
+            <button onClick={() => exportVisibleTable('csv')} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>{t("CSV")}</button>
+            <button onClick={() => printPage()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>{t("PDF")}</button>
             <button className="btn" onClick={window.print} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}><Printer size={14} style={{ marginRight: '4px' }} /> {t('common.print')}</button>
             <button onClick={() => window.location.reload()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}><RotateCcw size={14} style={{ marginRight: '4px' }} /> {t('common.reset')}</button>
-            <button onClick={() => window.location.reload()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>Reload</button>
+            <button onClick={() => window.location.reload()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>{t("Reload")}</button>
           </div>
         </div>
 
@@ -104,10 +104,10 @@ const ClientGroup = () => {
           <table className="custom-table">
             <thead style={{ background: 'var(--table-header-bg)', color: 'white' }}>
               <tr>
-                <th width="80" style={{ textAlign: 'center' }}>ID NO <span style={{ opacity: 0.5, fontSize: '8px', verticalAlign: 'middle' }}>▼</span></th>
-                <th>NAME <span style={{ opacity: 0.5, fontSize: '8px', verticalAlign: 'middle' }}>▼</span></th>
-                <th>CREATED AT <span style={{ opacity: 0.5, fontSize: '8px', verticalAlign: 'middle' }}>▼</span></th>
-                <th width="100" style={{ textAlign: 'center' }}>ACTION</th>
+                <th width="80" style={{ textAlign: 'center' }}>{t("ID NO")} <span style={{ opacity: 0.5, fontSize: '8px', verticalAlign: 'middle' }}>▼</span></th>
+                <th>{t("NAME")} <span style={{ opacity: 0.5, fontSize: '8px', verticalAlign: 'middle' }}>▼</span></th>
+                <th>{t("CREATED AT")} <span style={{ opacity: 0.5, fontSize: '8px', verticalAlign: 'middle' }}>▼</span></th>
+                <th width="100" style={{ textAlign: 'center' }}>{t("ACTION")}</th>
               </tr>
             </thead>
             <tbody>
@@ -120,7 +120,7 @@ const ClientGroup = () => {
                     <button style={{ background: 'var(--info)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', marginRight: '4px' }} onClick={() => handleEditClick(group)}>
                       <Edit size={14} />
                     </button>
-                    <button style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer' }} onClick={() => toast.info("Delete group feature coming soon!")}>
+                    <button style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer' }} onClick={() => toast.info(t("Delete group feature coming soon!"))}>
                       <Trash2 size={14} />
                     </button>
                   </td>
@@ -128,7 +128,7 @@ const ClientGroup = () => {
               ))}
               {groups.length === 0 && (
                 <tr>
-                  <td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No client groups found.</td>
+                  <td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>{t("No client groups found.")}</td>
                 </tr>
               )}
             </tbody>
@@ -140,16 +140,16 @@ const ClientGroup = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleAddGroup}
-        title="Add New Client Group"
-        label="Group Name"
+        title={t("Add New Client Group")}
+        label={t("Group Name")}
       />
 
       <AddOptionModal 
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onSave={handleEditSave}
-        title="Edit Client Group"
-        label="Group Name"
+        title={t("Edit Client Group")}
+        label={t("Group Name")}
         initialValue={editingGroup ? editingGroup.name : ''}
       />
     </div>
