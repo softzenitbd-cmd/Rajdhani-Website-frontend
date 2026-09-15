@@ -4,6 +4,7 @@ import PrintHeader from '../../components/PrintHeader';
 import { Settings, Barcode, Calendar, Trash2, Plus, List } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
+import SearchableSelect from '../../components/SearchableSelect';
 import AddOptionModal from '../../components/AddOptionModal';
 import { useApi } from '../../hooks/useApi';
 import { ENDPOINTS } from '../../api/endpoints';
@@ -204,17 +205,17 @@ const PurchaseReturnCreate = () => {
               
               {/* Select Suppliers */}
               <div className="form-group" style={{ marginBottom: '0' }}>
-                <div style={{ display: 'flex' }}>
-                  <select name="supplier" value={formData.supplier} onChange={handleChange} style={{ padding: '14px', flex: 1, border: '1px solid #0ea5e9', borderRadius: '4px 0 0 4px', outline: 'none', appearance: 'none', background: 'white', color: '#334155' }} required>
-                    <option value="">{t("Select Suppliers")}</option>
-                    {suppliers.map(sup => (
-                      <option key={sup.id} value={sup.id}>{sup.name}</option>
-                    ))}
-                  </select>
-                  <button type="button" onClick={() => setIsSupplierModalOpen(true)} style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '0 16px', borderRadius: '0 4px 4px 0', cursor: 'pointer' }}>
-                    <Plus size={20} />
-                  </button>
-                </div>
+                <SearchableSelect
+                  options={suppliers.map(sup => ({
+                    value: sup.id,
+                    label: sup.name,
+                    searchValue: sup.name
+                  }))}
+                  value={formData.supplier}
+                  onChange={(val) => setFormData(prev => ({ ...prev, supplier: val }))}
+                  placeholder={t("Select Suppliers")}
+                  onAddClick={() => setIsSupplierModalOpen(true)}
+                />
               </div>
 
               {/* Date */}
@@ -247,12 +248,23 @@ const PurchaseReturnCreate = () => {
 
               {/* Select Product */}
               <div className="form-group" style={{ marginBottom: '0' }}>
-                <select name="product" value={formData.product} onChange={handleChange} style={{ padding: '14px', width: '100%', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none', appearance: 'none', background: 'white', color: '#334155' }}>
-                  <option value="">{t("Select Product to Return")}</option>
-                  {products.map(p => (
-                    <option key={p.id} value={p.id}>{p.name || p.title} {p.code || p.barcode ? `[${p.code || p.barcode}]` : ''}</option>
-                  ))}
-                </select>
+                <SearchableSelect
+                  options={products.map(p => ({
+                    value: p.id,
+                    label: `${p.name || p.title} ${p.code || p.barcode ? `[${p.code || p.barcode}]` : ''}`,
+                    searchValue: `${p.name || p.title} ${p.code || p.barcode || ''}`
+                  }))}
+                  value={formData.product}
+                  onChange={(val) => {
+                    if (val) {
+                      setFormData(prev => ({ ...prev, product: val }));
+                      handleSelectProduct(val);
+                    }
+                  }}
+                  clearOnSelect={true}
+                  placeholder={t("Select Product to Return")}
+                  onAddClick={() => setIsProductModalOpen(true)}
+                />
               </div>
 
             </div>

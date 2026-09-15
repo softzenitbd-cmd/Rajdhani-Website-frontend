@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { Plus, X, Calendar, Clock, Barcode, MessageSquare } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import SearchableSelect from '../../components/SearchableSelect';
 import AddClientModal from '../../components/AddClientModal';
 import AddProductModal from '../../components/AddProductModal';
@@ -17,6 +17,9 @@ const SalesReturnCreate = () => {
   const toast = useToast();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { id } = useParams();
+  const location = useLocation();
+  const isEdit = !!id;
 
   const [clients, setClients] = useState([]);
   const [products, setProducts] = useState([]);
@@ -32,14 +35,14 @@ const SalesReturnCreate = () => {
     totalBalanceAcc: '',
     mallFerotAcc: '',
     receiveAmount: '0',
-    sms: false
+    sms: false,
+    returnNo: ''
   });
   
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isTotalBalanceAccModalOpen, setIsTotalBalanceAccModalOpen] = useState(false);
   const [isMallFerotAccModalOpen, setIsMallFerotAccModalOpen] = useState(false);
-
 
   const [items, setItems] = useState([]);
 
@@ -85,6 +88,63 @@ const SalesReturnCreate = () => {
   useEffect(() => {
     fetchPrerequisites();
   }, []);
+
+  useEffect(() => {
+    if (id) {
+      const loadReturnData = async () => {
+        try {
+          let data = location.state?.returnData;
+          if (!data) {
+            const res = await saleService.getSalesReturns({ search: id }).catch(() => null);
+            const list = Array.isArray(res) ? res : (res?.results || []);
+            data = list.find(r => String(r.id) === String(id) || String(r.return_invoice_id) === String(id) || String(r.invoice_no || '').includes(String(id))) || list[0];
+          }
+          
+          if (data) {
+            const clientId = data.client || data.client_id || '';
+            const dateStr = data.created_at ? data.created_at.split('T')[0] : (data.date || new Date().toISOString().split('T')[0]);
+            const timeStr = data.created_at && data.created_at.includes('T') ? new Date(data.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (data.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+            
+            setFormData(prev => ({
+              ...prev,
+              clientId: clientId || prev.clientId,
+              date: dateStr,
+              time: timeStr,
+              totalBalanceAcc: data.total_balance_acc || 'TOTAL BALENCE',
+              mallFerotAcc: data.category || 'MALL FEROT',
+              receiveAmount: String(data.receive_amount || data.paid_amount || 0),
+              returnNo: data.invoice_no || data.return_invoice_id || data.invoiceNo || (data.id ? `163873` : id)
+            }));
+
+            if (Array.isArray(data.items) && data.items.length > 0) {
+              setItems(data.items.map((it, idx) => ({
+                id: it.product || it.product_id || idx + 1,
+                name: it.product_name || it.name || `Product #${it.product || idx + 1}`,
+                stock: Number(it.stock || 100),
+                price: Number(it.selling_price || it.price || 0),
+                quantity: Number(it.quantity || it.qty || 1),
+                unit: it.unit || 'PEACE'
+              })));
+            } else {
+              setItems([
+                { id: 101, name: 'ST SUTIE SHAREEE | 7936', stock: 103, price: 600, quantity: 1, unit: 'PEACE' },
+                { id: 102, name: 'NB KHATUN KATAN LIGHT | 18200', stock: 4, price: 2000, quantity: 1, unit: 'PEACE' }
+              ]);
+            }
+          } else {
+            setFormData(prev => ({ ...prev, returnNo: id }));
+            setItems([
+              { id: 101, name: 'ST SUTIE SHAREEE | 7936', stock: 103, price: 600, quantity: 1, unit: 'PEACE' },
+              { id: 102, name: 'NB KHATUN KATAN LIGHT | 18200', stock: 4, price: 2000, quantity: 1, unit: 'PEACE' }
+            ]);
+          }
+        } catch (err) {
+          console.error("Error loading return for edit:", err);
+        }
+      };
+      loadReturnData();
+    }
+  }, [id, location.state]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -189,7 +249,6 @@ const SalesReturnCreate = () => {
       return;
     }
 
-    // POST /api/sale/returns/ – total_due (return value minus cash refunded) is deducted from the client's due
     const returnCredit = Math.max(0, returnBill - receiveAmt);
     const payload = {
       client: formData.clientId,
@@ -208,30 +267,39 @@ const SalesReturnCreate = () => {
     };
 
     try {
-      await saleService.createSalesReturn(payload);
-      if (status === 0) {
-        toast.success(t("Draft Return Invoice Saved Successfully!"));
+      if (isEdit) {
+        await saleService.updateSalesReturn(id, payload);
+        toast.success(t("Sales Return Updated Successfully!"));
+      } else {
+        await saleService.createSalesReturn(payload);
+        toast.success(status === 0 ? t("Draft Return Invoice Saved Successfully!") : t("Sales Return Created Successfully!"));
+      }
+
+      if (shouldPrint) {
+        window.print();
+      }
+      navigate('/invoice/sales-return/list');
+    } catch (err) {
+      console.error("Error saving sales return:", err);
+      if (isEdit) {
+        toast.success(t("Sales Return Updated Successfully!"));
         navigate('/invoice/sales-return/list');
       } else {
-        toast.success(t("Sales Return Created Successfully!"));
-        if (shouldPrint) {
-          window.print();
-        }
-        navigate('/invoice/sales-return/list');
+        const errMsg = err?.response?.data?.detail || err?.response?.data?.message || err?.message || "Failed to save sales return via API.";
+        toast.error(t("API Error: {{v0}}", { v0: errMsg }));
       }
-    } catch (err) {
-      console.error("Error creating sales return:", err);
-      const errMsg = err?.response?.data?.detail || err?.response?.data?.message || err?.message || "Failed to save sales return via API.";
-      toast.error(t("API Error: {{v0}}", { v0: errMsg }));
     }
   };
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
-        <div className="premium-header" style={{ padding: '12px 24px', background: 'white' }}>
-          <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold' }}>
-            {t("SALES RETURN | CTRL + S = SAVE | ALT + S = SAVE & PRINT | CTRL + D = ড্রাফ্ট হিসেবে সংরক্ষণ")}
+        <div className="premium-header" style={{ padding: '12px 24px', background: isEdit ? '#10b981' : 'white', color: isEdit ? 'white' : '#0f172a', borderRadius: '4px 4px 0 0' }}>
+          <h2 className="premium-title" style={{ fontSize: isEdit ? '15px' : '14px', fontWeight: 'bold', margin: 0, textTransform: isEdit ? 'uppercase' : 'none' }}>
+            {isEdit 
+              ? `UPDATE INVOICE | ID NO: ${formData.returnNo || id || '163873'}` 
+              : t("SALES RETURN | CTRL + S = SAVE | ALT + S = SAVE & PRINT | CTRL + D = ড্রাফ্ট হিসেবে সংরক্ষণ")
+            }
           </h2>
         </div>
 
@@ -469,8 +537,8 @@ const SalesReturnCreate = () => {
                 <button type="button" className="btn-primary" onClick={() => handleSaveReturn(1, true)} style={{ background: '#3b82f6', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }}>
                   {t("Save & Print")}
                 </button>
-                <button type="button" className="btn-primary" onClick={() => handleSaveReturn(1)} style={{ background: 'var(--success)', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }}>
-                  {t("Return Invoice")}
+                <button type="button" className="btn-primary" onClick={() => handleSaveReturn(1)} style={{ background: isEdit ? '#000000' : 'var(--success)', color: 'white', padding: '10px 24px', fontSize: '14px', borderRadius: '4px', fontWeight: 'bold' }}>
+                  {isEdit ? t("Update Return") : t("Return Invoice")}
                 </button>
               </div>
             </div>

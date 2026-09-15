@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { loanService } from '../../services/loanService';
 import { accountingService } from '../../services/accountingService';
 import PrintHeader from '../../components/PrintHeader';
+import SearchableSelect from '../../components/SearchableSelect';
 import AddOptionModal from '../../components/AddOptionModal';
 import { useToast } from '../../context/ToastContext';
 
@@ -128,15 +129,17 @@ const LoanReceiveCreate = () => {
             {/* Row 1 */}
             <div className="form-row">
               <div className="form-col">
-                <div style={{ display: 'flex', border: '1px solid #93c5fd', borderRadius: '6px', overflow: 'hidden', background: 'white' }}>
-                  <select name="clientId" value={formData.clientId} onChange={handleChange} required style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px', appearance: 'none', background: 'transparent' }}>
-                    <option value="">{t('common.select_client')}</option>
-                    {loanAccounts.map(acc => (
-                      <option key={acc.id} value={acc.id}>{acc.name} - {acc.phone}</option>
-                    ))}
-                  </select>
-                  <button type="button" onClick={() => setIsClientModalOpen(true)} style={{ background: '#22c55e', color: 'white', border: 'none', padding: '0 16px', cursor: 'pointer' }}><Plus size={18} /></button>
-                </div>
+                <SearchableSelect
+                  options={loanAccounts.map(acc => ({
+                    value: acc.id,
+                    label: `${acc.name} - ${acc.phone}`,
+                    searchValue: `${acc.name} ${acc.phone}`
+                  }))}
+                  value={formData.clientId}
+                  onChange={(val) => setFormData(prev => ({ ...prev, clientId: val }))}
+                  placeholder={t('common.select_client')}
+                  onAddClick={() => setIsClientModalOpen(true)}
+                />
               </div>
               <div className="form-col" style={{ position: 'relative' }}>
                 <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
@@ -149,15 +152,17 @@ const LoanReceiveCreate = () => {
             {/* Row 2 */}
             <div className="form-row">
               <div className="form-col">
-                <div style={{ display: 'flex', border: '1px solid #93c5fd', borderRadius: '6px', overflow: 'hidden', background: 'white' }}>
-                  <select name="accountId" value={formData.accountId} onChange={handleChange} required style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px', appearance: 'none', background: 'transparent' }}>
-                    <option value="">{t("Select Account")}</option>
-                    {(bankAccounts || []).map(acc => (
-                      <option key={acc.id} value={acc.id}>{acc.name}</option>
-                    ))}
-                  </select>
-                  <button type="button" onClick={() => setIsAccountModalOpen(true)} style={{ background: '#22c55e', color: 'white', border: 'none', padding: '0 16px', cursor: 'pointer' }}><Plus size={18} /></button>
-                </div>
+                <SearchableSelect
+                  options={(bankAccounts || []).map(acc => ({
+                    value: acc.id,
+                    label: acc.name,
+                    searchValue: acc.name
+                  }))}
+                  value={formData.accountId}
+                  onChange={(val) => setFormData(prev => ({ ...prev, accountId: val }))}
+                  placeholder={t("Select Account")}
+                  onAddClick={() => setIsAccountModalOpen(true)}
+                />
               </div>
               <div className="form-col">
                 <div style={{ display: 'flex', border: '1px solid #93c5fd', borderRadius: '6px', overflow: 'hidden', background: 'white', alignItems: 'center' }}>
@@ -180,15 +185,17 @@ const LoanReceiveCreate = () => {
                 </div>
               </div>
               <div className="form-col">
-                <div style={{ display: 'flex', border: '1px solid #93c5fd', borderRadius: '6px', overflow: 'hidden', background: 'white' }}>
-                  <select name="categoryId" value={formData.categoryId} onChange={handleChange} style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px', appearance: 'none', background: 'transparent' }}>
-                    <option value="">{t("Select Categories")}</option>
-                    {categories.map(c => (
-                      <option key={c.id || c.uuid} value={c.id || c.uuid}>{c.name}</option>
-                    ))}
-                  </select>
-                  <button type="button" onClick={() => setIsCategoryModalOpen(true)} style={{ background: '#22c55e', color: 'white', border: 'none', padding: '0 16px', cursor: 'pointer' }}><Plus size={18} /></button>
-                </div>
+                <SearchableSelect
+                  options={categories.map(c => ({
+                    value: c.id || c.uuid,
+                    label: c.name,
+                    searchValue: c.name
+                  }))}
+                  value={formData.categoryId}
+                  onChange={(val) => setFormData(prev => ({ ...prev, categoryId: val }))}
+                  placeholder={t("Select Categories")}
+                  onAddClick={() => setIsCategoryModalOpen(true)}
+                />
               </div>
             </div>
 

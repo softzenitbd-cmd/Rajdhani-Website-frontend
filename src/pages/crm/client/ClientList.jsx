@@ -4,9 +4,167 @@ import { ArrowLeft, Users, Plus, Search, Calendar, FileSpreadsheet, Printer, Rot
 import PrintHeader from '../../../components/PrintHeader';
 import { useApi } from '../../../hooks/useApi';
 import { useConfirm } from '../../../context/ConfirmContext';
+import { useToast } from '../../../context/ToastContext';
 import { ENDPOINTS } from '../../../api/endpoints';
 import { exportToExcel } from '../../../utils/excelExporter';
 import { useTranslation } from 'react-i18next';
+import crmService from '../../../services/crmService';
+
+const ClientImageUploader = ({ client, onUploadSuccess }) => {
+  const { patch } = useApi();
+  const { t } = useTranslation();
+  const toast = useToast();
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [preview, setPreview] = useState(client.image || client.details?.image || null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSave = async () => {
+    if (!selectedFile) return;
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('image', selectedFile);
+    try {
+      await patch(`${ENDPOINTS.CRM_CLIENTS}${client.id || client.uuid}/`, formData, t("Image saved"), {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (onUploadSuccess) onUploadSuccess();
+      setSelectedFile(null);
+    } catch (err) {
+      console.error(err);
+      toast.error(t("Failed to save image"));
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+      <div style={{ width: '60px', height: '60px', borderRadius: '50%', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', background: '#f8fafc' }}>
+        {preview ? (
+          <img src={preview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        ) : (
+          <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(45deg, transparent 48%, #cbd5e1 48%, #cbd5e1 52%, transparent 52%)' }}></div>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(-45deg, transparent 48%, #cbd5e1 48%, #cbd5e1 52%, transparent 52%)', borderRadius: '50%', border: '2px solid #cbd5e1' }}></div>
+          </div>
+        )}
+      </div>
+      <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+        <label style={{ 
+          background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', 
+          padding: '4px 8px', fontSize: '10px', cursor: 'pointer', display: 'inline-block', fontWeight: 'bold' 
+        }}>
+          {t("Choose a file")}
+          <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
+        </label>
+        <button 
+          onClick={handleSave} 
+          disabled={!selectedFile || uploading}
+          style={{ 
+            background: (!selectedFile || uploading) ? '#94a3b8' : '#64748b', 
+            color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', 
+            fontSize: '10px', cursor: (!selectedFile || uploading) ? 'not-allowed' : 'pointer', fontWeight: 'bold' 
+          }}
+        >
+          {uploading ? t("Saving") : t("Save")}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const CollectionDateModal = ({ isOpen, onClose, client, onUpdate }) => {
+  const { patch } = useApi();
+  const { t } = useTranslation();
+  const toast = useToast();
+  const [date, setDate] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (client && isOpen) {
+      const d = client.collection_date ? String(client.collection_date).split('T')[0] : '';
+      setDate(d);
+    }
+  }, [client, isOpen]);
+
+  if (!isOpen || !client) return null;
+
+  const handleUpdate = async () => {
+    setLoading(true);
+    try {
+      await patch(`${ENDPOINTS.CRM_CLIENTS}${client.id || client.uuid}/`, { collection_date: date || null }, t("Collection date updated"));
+      onUpdate({ collection_date: date || null });
+      onClose();
+    } catch (err) {
+      console.error(err);
+      toast.error(t("Failed to update date"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, animation: 'modalFadeIn 0.3s ease' }}>
+      <div style={{ background: 'white', padding: '24px', borderRadius: '8px', width: '400px', maxWidth: '90vw', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
+        <div className="form-group" style={{ marginBottom: '20px', position: 'relative', marginTop: '10px' }}>
+          <div className="form-input floating-label" style={{ position: 'relative' }}>
+            <label style={{ 
+              position: 'absolute', top: '-12px', left: '12px', background: '#258b88', color: 'white', 
+              padding: '2px 10px', borderRadius: '4px', fontSize: '13px', fontWeight: 'bold', zIndex: 10
+            }}>
+              {t("Due Collection Date", "বাকি গ্রহণের তারিখ")}
+            </label>
+            <input 
+              type="date" 
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              style={{ width: '100%', padding: '16px 12px', border: '1px solid #93c5fd', borderRadius: '8px', fontSize: '14px', outline: 'none' }}
+            />
+          </div>
+        </div>
+        
+        <button 
+          onClick={handleUpdate}
+          disabled={loading}
+          style={{ width: '100%', background: '#059669', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', fontWeight: 'bold', fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer', marginBottom: '16px' }}
+        >
+          {loading ? t("Updating...") : t("Update")}
+        </button>
+        
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button 
+            onClick={onClose}
+            style={{ background: '#64748b', color: 'white', padding: '8px 20px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            {t("Close")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const num = (obj, ...keys) => {
+  for (const k of keys) {
+    if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') {
+      const n = Number(obj[k]);
+      if (!isNaN(n)) return n;
+    }
+    if (obj.stats && obj.stats[k] !== undefined && obj.stats[k] !== null && obj.stats[k] !== '') {
+      const n = Number(obj.stats[k]);
+      if (!isNaN(n)) return n;
+    }
+  }
+  return 0;
+};
 
 const ClientList = () => {
   const { t } = useTranslation();
@@ -18,7 +176,10 @@ const ClientList = () => {
   const [clients, setClients] = useState([]);
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [viewClient, setViewClient] = useState(null);
+  const [dateModalClient, setDateModalClient] = useState(null);
   
   const { get, del, patch, loading } = useApi();
 
@@ -86,13 +247,29 @@ const ClientList = () => {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
       if (selectedGroup) params.append('group', selectedGroup);
-      
+      if (fromDate) params.append('from_date', fromDate);
+      if (toDate) params.append('to_date', toDate);
+
       if (params.toString()) {
         url += `?${params.toString()}`;
       }
       
       const res = await get(url);
-      setClients(res.results || res.data || res || []);
+      const fetchedClients = res.results || res.data || res || [];
+      
+      try {
+        const statsRes = await crmService.getClientDueReport();
+        const statsData = statsRes.results || statsRes.data || statsRes || [];
+        
+        const updatedClients = fetchedClients.map(client => {
+          const clientStats = statsData.find(s => String(s.client_id || s.id || s.uuid) === String(client.id || client.uuid));
+          return { ...client, stats: clientStats || client.stats || {} };
+        });
+        setClients(updatedClients);
+      } catch (statsErr) {
+        console.error("Failed to fetch client stats", statsErr);
+        setClients(fetchedClients);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -107,7 +284,7 @@ const ClientList = () => {
       fetchClients();
     }, 300); // 300ms debounce for search
     return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, selectedGroup]);
+  }, [searchTerm, selectedGroup, fromDate, toDate]);
 
   // Use the fetched clients directly
   const filteredClients = clients;
@@ -175,10 +352,18 @@ const ClientList = () => {
           </div>
 
           <div className="form-group">
-            <button 
-              className="btn btn-outline" 
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 'bold' }}>{t("Search By Date")}</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ flex: 1, minWidth: 0, padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
+              <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ flex: 1, minWidth: 0, padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <button
+              className="btn btn-outline"
               style={{ height: '48px', width: '100%', background: '#718096', color: 'white', justifyContent: 'center' }}
-              onClick={() => { setSearchTerm(''); setSelectedGroup(''); }}
+              onClick={() => { setSearchTerm(''); setSelectedGroup(''); setFromDate(''); setToDate(''); }}
             >
               {t("Clear Filter")}
             </button>
@@ -207,12 +392,29 @@ const ClientList = () => {
           </div>
         </div>
 
+        {/* Collection Date Modal */}
+        <CollectionDateModal 
+          isOpen={!!dateModalClient} 
+          onClose={() => setDateModalClient(null)} 
+          client={dateModalClient} 
+          onUpdate={(updatedFields) => {
+            setClients(prev => prev.map(c => {
+              // Try to match by id, uuid, or object reference
+              const isMatch = c === dateModalClient ||
+                              (c.id && c.id === dateModalClient.id) || 
+                              (c.uuid && c.uuid === dateModalClient.uuid);
+              return isMatch ? { ...c, ...updatedFields } : c;
+            }));
+          }} 
+        />
+
         {/* Table */}
         <div style={{ overflowX: 'auto', border: '1px solid var(--secondary)', borderRadius: '8px' }}>
           <table className="custom-table">
             <thead>
               <tr>
                 <th width="50">{t("ID NO")}</th>
+                <th width="120" style={{ textAlign: 'center' }}>{t("IMAGE")}</th>
                 <th width="300">{t("CLIENT DETAILS")}</th>
                 <th>{t("DETAILS")}</th>
                 <th width="100">{t("ACTION")}</th>
@@ -220,36 +422,63 @@ const ClientList = () => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>{t("Loading...")}</td></tr>
+                <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>{t("Loading...")}</td></tr>
               ) : filteredClients.length === 0 ? (
-                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>{t("No clients found.")}</td></tr>
+                <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>{t("No clients found.")}</td></tr>
               ) : (
-                filteredClients.map((client) => (
-                  <tr key={client.id || client.uuid}>
-                    <td style={{ verticalAlign: 'top', paddingTop: '16px' }}>{client.id || client.uuid}</td>
+                filteredClients.map((client, index) => (
+                  <tr key={client.id || client.uuid || index}>
+                    <td style={{ verticalAlign: 'top', paddingTop: '16px', textAlign: 'center' }}>{index + 1}</td>
+                    
+                    <td style={{ verticalAlign: 'top', paddingTop: '16px' }}>
+                      <ClientImageUploader client={client} onUploadSuccess={fetchClients} />
+                    </td>
                     
                     <td style={{ verticalAlign: 'top', paddingTop: '16px', fontSize: '13px' }}>
                       <div style={{ display: 'grid', gridTemplateColumns: '80px 10px 1fr', gap: '4px', marginBottom: '4px' }}>
                         <div style={{ fontWeight: '600' }}>{t("Name")}</div><div>:</div><div>{client.name || (client.details && client.details.name)}</div>
                         <div style={{ fontWeight: '600' }}>{t("Phone")}</div><div>:</div><div>{client.phone || (client.details && client.details.phone)}</div>
-                        {(client.group || (client.details && client.details.group)) && <><div style={{ fontWeight: '600' }}>{t("Client Group")}</div><div>:</div><div>{client.group || (client.details && client.details.group)}</div></>}
+                        {(client.group || (client.details && client.details.group)) && (
+                          <>
+                            <div style={{ fontWeight: '600' }}>{t("Client Group")}</div>
+                            <div>:</div>
+                            <div>
+                              {typeof client.group === 'object' && client.group !== null 
+                                ? client.group.name 
+                                : (groups.find(g => (g.id || g.uuid) === (client.group || (client.details && client.details.group)))?.name || client.group || (client.details && client.details.group))}
+                            </div>
+                          </>
+                        )}
                         <div style={{ fontWeight: '600' }}>{t("Address")}</div><div>:</div><div>{client.address || (client.details && client.details.address)}</div>
                         <div style={{ fontWeight: '600' }}>{t("Status")}</div><div>:</div><div>{(client.status === true || client.status === 'Active' || client.status === 'Activated') ? t("Active") : t("Deactivated")}</div>
-                        <div style={{ fontWeight: '600' }}>{t("Created At")}</div><div>:</div><div>{client.created_at || (client.details && client.details.createdAt)}</div>
+                        <div style={{ fontWeight: '600' }}>{t("Created At")}</div><div>:</div><div>{client.created_at || (client.details && client.details.createdAt) ? new Date(client.created_at || (client.details && client.details.createdAt)).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}</div>
                       </div>
                     </td>
                     
                     <td style={{ verticalAlign: 'top', padding: '0' }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                         <tbody>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Previous Due")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{client.previous_due || (client.stats && client.stats.prevDue) || '0.00'}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Bill")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{client.bill || '0.00'}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Total Bill")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{client.total_bill || '0.00'}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Receive")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{client.receive || '0.00'}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Sales Return")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{client.sales_return || '0.00'}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Money Return")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{client.money_return || '0.00'}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}><span style={{ background: '#ef4444', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>{t("Due")}</span></td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0', fontWeight: 'bold' }}>{client.due || client.previous_due || '0.00'}</td></tr>
-                          <tr><td style={{ padding: '6px 12px' }}>{t("Collection Date")}</td><td style={{ padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}><Calendar size={12} style={{ marginRight: '4px', display: 'inline-block', verticalAlign: 'middle' }}/> {client.collection_date || '-'}</td></tr>
+                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Previous Due")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'previous_due', 'opening_due', 'prevDue').toFixed(2)}</td></tr>
+                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Bill")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'sales', 'sales_amount', 'total_sales', 'bill').toFixed(2)}</td></tr>
+                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Total Bill")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{(num(client, 'total_bill') || (num(client, 'previous_due', 'opening_due', 'prevDue') + num(client, 'sales', 'sales_amount', 'total_sales', 'bill'))).toFixed(2)}</td></tr>
+                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Receive")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'collection', 'receive', 'payment', 'paid', 'total_receive').toFixed(2)}</td></tr>
+                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Sales Return")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'sales_return', 'return_amount').toFixed(2)}</td></tr>
+                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Money Return")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'money_return', 'return').toFixed(2)}</td></tr>
+                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}><span style={{ background: '#ef4444', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>{t("Due")}</span></td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0', fontWeight: 'bold' }}>{num(client, 'due', 'current_due', 'balance').toFixed(2)}</td></tr>
+                          <tr 
+                            style={{ cursor: 'pointer', transition: 'background 0.2s' }} 
+                            onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                            onClick={() => setDateModalClient(client)}
+                          >
+                            <td style={{ padding: '6px 12px', borderBottom: '1px solid transparent' }}>{t("Collection Date")}</td>
+                            <td style={{ padding: '6px 12px', borderLeft: '1px solid #e2e8f0', borderBottom: '1px solid transparent' }}>
+                              <Calendar size={12} style={{ marginRight: '4px', display: 'inline-block', verticalAlign: 'middle', color: '#2563eb' }}/> 
+                              <span style={{ color: '#2563eb', fontWeight: '600', borderBottom: '1px dashed #2563eb' }}>
+                                {(client.collection_date || client.due_date) ? new Date(client.collection_date || client.due_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : t('Set Date')}
+                              </span>
+                            </td>
+                          </tr>
                         </tbody>
                       </table>
                     </td>

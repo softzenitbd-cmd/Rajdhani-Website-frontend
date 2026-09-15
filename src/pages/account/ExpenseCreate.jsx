@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { List, Plus } from 'lucide-react';
+import { List, Layers, Settings, DollarSign, Keyboard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
+import SearchableSelect from '../../components/SearchableSelect';
 import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
 
+// Mirrors the original CRM "খরচ তৈরি" form:
+// left column  → date, amount, note
+// right column → account (+), category (+)
 const ExpenseCreate = () => {
   const toast = useToast();
   const { t } = useTranslation();
@@ -39,7 +43,6 @@ const ExpenseCreate = () => {
       const catData = Array.isArray(catRes) ? catRes : (catRes?.results || []);
 
       setAccounts(accData);
-
       setCategories(catData);
     } catch (err) {
       toast.error(err?.message || t("Failed to load form data"));
@@ -49,8 +52,6 @@ const ExpenseCreate = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
-  const selectedAccount = accounts.find(a => String(a.id) === String(formData.accountId));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -83,104 +84,213 @@ const ExpenseCreate = () => {
     }
   };
 
+  const headerBtn = {
+    background: "#818cf8",
+    color: "white",
+    border: "none",
+    padding: "6px 12px",
+    borderRadius: "4px",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    fontSize: "13px",
+    cursor: "pointer",
+  };
+
+  const iconInput = {
+    display: "flex",
+    border: "1px solid #93c5fd",
+    borderRadius: "6px",
+    overflow: "hidden",
+    background: "white",
+    alignItems: "center",
+  };
+
+  const iconBox = { padding: "0 14px", display: "flex", alignItems: "center" };
+  const plainInput = { flex: 1, padding: "12px 16px", border: "none", outline: "none", fontSize: "14px" };
+
   return (
-    <div className="premium-card">
+    <div
+      className="dashboard-content"
+      style={{ paddingBottom: "100px", background: "#f1f5f9", minHeight: "100vh", padding: "24px" }}
+    >
       <PrintHeader />
-      <div className="premium-header">
-        <h2 className="premium-title" style={{ textTransform: 'uppercase' }}>{t("Add New Expense (Cost)")}</h2>
-        <div className="header-actions">
-          <button className="btn-gray-outline" onClick={() => navigate('/account/expense-list')}><List size={16} /> {t("Expense List")}</button>
-          <button className="btn-gray-outline" onClick={() => navigate('/settings/expense-category')}><List size={16} /> {t("Expense Category")}</button>
-        </div>
-      </div>
 
-      <div className="premium-body" style={{ padding: '32px' }}>
-        <form onSubmit={handleSubmit}>
-          {/* Row 1 */}
-          <div className="form-row">
-            <div className="form-col">
-              <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>{t("Payment Account (Cash/Bank) *")}</label>
-              <div className="input-with-append">
-                <select name="accountId" value={formData.accountId} onChange={handleChange} required>
-                  <option value="">{t("Select Account")}</option>
-                  {accounts.map(acc => (
-                    <option key={acc.id} value={acc.id}>
-                      {acc.name} {t("(Balance: ৳")}{Number(acc.balance || 0).toLocaleString()})
-                    </option>
-                  ))}
-                </select>
-                <button type="button" className="append-btn" onClick={() => navigate('/account/account-create')}><Plus size={20} /></button>
-              </div>
-            </div>
-
-            <div className="form-col">
-              <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>{t("Expense Category *")}</label>
-              <div className="input-with-append">
-                <select name="category" value={formData.category} onChange={handleChange} required>
-                  <option value="">{t("Select Expense Category")}</option>
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
-                </select>
-                <button type="button" className="append-btn" onClick={() => navigate('/settings/expense-category')}><Plus size={20} /></button>
-              </div>
-            </div>
-          </div>
-
-          {/* Row 2 */}
-          <div className="form-row" style={{ marginTop: '20px' }}>
-            <div className="form-col">
-              <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>{t("Expense Date *")}</label>
-              <input 
-                type="date" 
-                name="date" 
-                value={formData.date} 
-                onChange={handleChange} 
-                className="input-outline"
-                style={{ width: '100%', padding: '10px', borderRadius: '6px' }} 
-              />
-            </div>
-            <div className="form-col">
-              <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>{t("Amount (৳) *")}</label>
-              <input 
-                type="number" 
-                step="0.01" 
-                name="amount" 
-                placeholder="0.00" 
-                value={formData.amount} 
-                onChange={handleChange} 
-                required 
-                className="input-outline"
-                style={{ width: '100%', padding: '10px', borderRadius: '6px', fontWeight: 'bold' }} 
-              />
-            </div>
-          </div>
-
-          {/* Row 3 */}
-          <div style={{ marginTop: '20px' }}>
-            <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', display: 'block', color: '#374151' }}>{t("Description / Reason of Expense")}</label>
-            <textarea 
-              name="note" 
-              placeholder={t("e.g. Office electricity bill, tea and snacks, courier cost...")} 
-              value={formData.note} 
-              onChange={handleChange} 
-              className="input-outline"
-              style={{ width: '100%', height: '90px', padding: '12px', resize: 'vertical' }}
-            />
-          </div>
-
-          {/* Footer Submit */}
-          <div style={{ marginTop: '28px' }}>
-            <button 
-              type="submit" 
-              disabled={submitting} 
-              className="btn-primary" 
-              style={{ width: '100%', padding: '14px', fontSize: '16px', background: 'var(--danger)', borderColor: 'var(--danger)', fontWeight: 'bold' }}
-            >
-              {submitting ? t("Recording Expense...") : t("Confirm & Save Expense")}
+      <div
+        style={{
+          background: "white",
+          borderRadius: "8px",
+          overflow: "hidden",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          borderBottom: "6px solid #2e7d32",
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            background: "#2e7d32",
+            color: "white",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "12px 20px",
+            flexWrap: "wrap",
+            gap: "8px",
+          }}
+        >
+          <h2 style={{ margin: 0, fontSize: "16px", fontWeight: "bold" }}>{t("Add Expense")}</h2>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <button type="button" onClick={() => navigate('/settings')} style={{ ...headerBtn, padding: "6px 10px" }} title={t("Settings")}>
+              <Settings size={14} />
+            </button>
+            <button type="button" onClick={() => navigate('/crm/client-list')} style={headerBtn}>
+              <List size={14} /> {t("Client List")}
+            </button>
+            <button type="button" onClick={() => navigate('/crm/client-group')} style={headerBtn}>
+              <Layers size={14} /> {t("Client Group")}
             </button>
           </div>
-        </form>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: "30px 40px" }}>
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "30px" }}>
+              {/* Left Column */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                {/* Date */}
+                <div style={{ position: "relative" }}>
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "-10px",
+                      left: "10px",
+                      background: "#3b82f6",
+                      color: "white",
+                      padding: "2px 8px",
+                      borderRadius: "4px",
+                      fontSize: "10px",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {t("📅 Date")}
+                  </div>
+                  <input
+                    type="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={handleChange}
+                    style={{
+                      width: "100%",
+                      padding: "12px 16px",
+                      border: "1px solid #93c5fd",
+                      borderRadius: "6px",
+                      fontSize: "14px",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+
+                {/* Amount */}
+                <div style={iconInput}>
+                  <div style={iconBox}><DollarSign size={18} color="#1e293b" /></div>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="amount"
+                    placeholder={t("Amount")}
+                    value={formData.amount}
+                    onChange={handleChange}
+                    required
+                    style={plainInput}
+                  />
+                </div>
+
+                {/* Note */}
+                <div style={iconInput}>
+                  <div style={iconBox}><Keyboard size={18} color="#1e293b" /></div>
+                  <input
+                    type="text"
+                    name="note"
+                    placeholder={t("Expense Description in a short note")}
+                    value={formData.note}
+                    onChange={handleChange}
+                    style={plainInput}
+                  />
+                </div>
+              </div>
+
+              {/* Right Column */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                {/* Account */}
+                <div>
+                  <SearchableSelect
+                    options={accounts.map(acc => ({
+                      value: acc.id,
+                      label: acc.name,
+                      searchValue: acc.name
+                    }))}
+                    value={formData.accountId}
+                    onChange={(val) => setFormData(prev => ({ ...prev, accountId: val }))}
+                    placeholder={t("Select Account")}
+                    onAddClick={() => navigate('/account/account-create')}
+                  />
+                </div>
+
+                {/* Category */}
+                <div>
+                  <SearchableSelect
+                    options={categories.map(cat => ({
+                      value: cat.id,
+                      label: cat.name,
+                      searchValue: cat.name
+                    }))}
+                    value={formData.category}
+                    onChange={(val) => setFormData(prev => ({ ...prev, category: val }))}
+                    placeholder={t("Select Categories")}
+                    onAddClick={() => navigate('/settings/expense-category')}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Buttons */}
+            <div style={{ display: "flex", justifyContent: "center", gap: "16px", marginTop: "40px" }}>
+              <button
+                type="submit"
+                disabled={submitting}
+                style={{
+                  background: "#3b82f6",
+                  color: "white",
+                  border: "none",
+                  padding: "10px 24px",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                }}
+              >
+                {submitting ? t("Adding...") : t("Add New")}
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/account/expense-list')}
+                style={{
+                  background: "#ef4444",
+                  color: "white",
+                  border: "none",
+                  padding: "10px 24px",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                }}
+              >
+                {t("Close")}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

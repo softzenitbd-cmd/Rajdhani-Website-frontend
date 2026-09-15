@@ -235,9 +235,9 @@ const ProductStockList = () => {
                   <td colSpan="10" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>{t("No stock data found")}</td>
                 </tr>
               ) : (
-                filteredStocks.map((stock) => (
+                filteredStocks.map((stock, index) => (
                   <tr key={stock.id} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: '13px' }}>
-                    <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{stock.id}</td>
+                    <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{stock.date}</td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>
                       <div style={{ fontWeight: '500' }}>{stock.product}</div>

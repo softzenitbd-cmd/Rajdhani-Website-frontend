@@ -18,6 +18,7 @@ const InvoiceRoutes = () => {
         
         {/* Sales Return Group */}
         <Route path="sales-return/add-new" element={<SalesReturnCreate />} />
+        <Route path="sales-return/edit/:id" element={<SalesReturnCreate />} />
         <Route path="sales-return/list" element={<SalesReturnList />} />
       </Routes>
     </div>

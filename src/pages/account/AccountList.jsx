@@ -1,25 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import PrintHeader from '../../components/PrintHeader';
-import { ArrowLeft, Printer, RotateCcw, Trash2, Search } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Printer, RotateCcw, Edit, Plus, Play } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { accountingService } from '../../services/accountingService';
 import { exportVisibleTable } from '../../utils/tableExport';
 import { printPage } from '../../utils/printUtils';
+import QuickEditModal from '../../components/QuickEditModal';
 
+const cell = { padding: '10px', border: '1px solid #cbd5e1', textAlign: 'center' };
+
+// Mirrors the original CRM "একাউন্ট লিস্ট" card:
+// green header (back / add / youtube) → show entries + export toolbar → table with edit action
 const AccountList = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [limit, setLimit] = useState(100);
+  const [editing, setEditing] = useState(null);
 
-
-  const fetchAccounts = async (query = '') => {
+  const fetchAccounts = async () => {
     try {
       setLoading(true);
-      const res = await accountingService.getAccounts(query);
+      const res = await accountingService.getAccounts();
       const data = Array.isArray(res) ? res : (res?.results || []);
       setAccounts(data);
     } catch (error) {
@@ -34,103 +38,101 @@ const AccountList = () => {
     fetchAccounts();
   }, []);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    fetchAccounts(searchTerm);
-  };
+  const headerBtn = (bg) => ({ background: bg, color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer', fontWeight: 'bold' });
+  const toolBtn = { background: '#3b82f6', color: 'white', border: 'none', padding: '6px 14px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm(t("Are you sure you want to delete this account?"))) return;
-    try {
-      await accountingService.deleteAccount(id);
-      fetchAccounts();
-    } catch (error) {
-      console.error('Error deleting account:', error);
-      setAccounts(prev => prev.filter(a => a.id !== id));
-    }
-  };
+  const visible = accounts.slice(0, limit);
 
   return (
-    <div className="premium-card">
-      <div className="premium-header">
-        <h2 className="premium-title" style={{ textTransform: 'uppercase' }}>{t("Account List")}</h2>
-        <div className="header-actions">
-          <button className="btn-gray-outline" onClick={() => navigate(-1)}><ArrowLeft size={16} /> {t("Go Back")}</button>
-          <Link to="/account/account-create" style={{ textDecoration: 'none' }}>
-            <button className="btn-green">{t("Add New Account")}</button>
-          </Link>
-        </div>
-      </div>
-
-      <div className="premium-body" style={{ padding: '24px' }}>
-        <PrintHeader />
-        
-        {/* Search and Table Controls */}
-        <div className="table-header-controls" style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px' }}>
-            <div style={{ position: 'relative', width: '280px' }}>
-              <input
-                type="text"
-                placeholder={t("Search name or account number...")}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{ width: '100%', padding: '8px 12px 8px 34px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px', outline: 'none' }}
-              />
-              <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
-            </div>
-            <button type="submit" className="btn-blue" style={{ padding: '8px 14px', fontSize: '13px', fontWeight: 'bold' }}>
-              {t("Search")}
-            </button>
-          </form>
-
-          <div className="table-controls-right" style={{ display: 'flex', gap: '4px' }}>
-            <button className="btn-blue" onClick={() => exportVisibleTable('xlsx', 'Account_List')} style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold', background: '#059669', cursor: 'pointer' }}>{t("Excel")}</button>
-            <button onClick={() => exportVisibleTable('csv')} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>{t("CSV")}</button>
-            <button onClick={() => printPage()} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>{t("PDF")}</button>
-            <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }} onClick={() => window.print()}><Printer size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.print')}</button>
-            <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }} onClick={() => { setSearchTerm(''); fetchAccounts(''); }}><RotateCcw size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.reset')}</button>
+    <div className="dashboard-content" style={{ paddingBottom: '100px', background: '#f1f5f9', minHeight: '100vh', padding: '24px' }}>
+      <div style={{ background: 'white', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', borderBottom: '6px solid #2e7d32' }}>
+        {/* Header */}
+        <div className="no-print" style={{ background: '#2e7d32', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', flexWrap: 'wrap', gap: '8px' }}>
+          <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>{t("Account List")}</h2>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={() => navigate(-1)} style={headerBtn('#64748b')}><ArrowLeft size={14} /> {t("Go Back")}</button>
+            <button onClick={() => navigate('/account/account-create')} style={headerBtn('#16a34a')}><Plus size={14} /> {t("Add New")}</button>
+            <button style={headerBtn('#dc2626')}><Play size={14} /> {t("YouTube")}</button>
           </div>
         </div>
 
-        <table className="custom-table" style={{ border: '1px solid #d1d5db', width: '100%' }}>
-          <thead>
-            <tr style={{ background: '#718096', color: 'white' }}>
-              <th style={{ width: '80px', textAlign: 'left', padding: '12px' }}>{t("ID NO")}</th>
-              <th style={{ textAlign: 'left', padding: '12px' }}>{t("TITLE")}</th>
-              <th style={{ textAlign: 'left', padding: '12px' }}>{t("ACCOUNT NUMBER")}</th>
-              <th style={{ textAlign: 'right', padding: '12px' }}>{t("BALANCE")}</th>
-              <th style={{ width: '100px', textAlign: 'center', padding: '12px' }}>{t("ACTION")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#6b7280' }}>{t("Loading accounts...")}</td>
-              </tr>
-            ) : accounts.length === 0 ? (
-              <tr>
-                <td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#6b7280' }}>{t("No accounts found.")}</td>
-              </tr>
-            ) : (
-              accounts.map((acc, idx) => (
-                <tr key={acc.id || idx} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                  <td style={{ textAlign: 'left', padding: '12px', fontWeight: '600', color: '#4b5563' }}>#{acc.id || idx + 1}</td>
-                  <td style={{ textAlign: 'left', padding: '12px', fontWeight: '600' }}>{acc.name}</td>
-                  <td style={{ textAlign: 'left', padding: '12px', color: '#4b5563' }}>{acc.account_number || acc.accountNumber || t("Cash")}</td>
-                  <td style={{ textAlign: 'right', padding: '12px', fontWeight: 'bold', color: '#059669' }}>
-                    ৳ {Number(acc.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                  </td>
-                  <td style={{ textAlign: 'center', padding: '12px' }}>
-                    <button onClick={() => handleDelete(acc.id)} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px 8px', borderRadius: '4px', cursor: 'pointer' }} title={t("Delete")}>
-                      <Trash2 size={14} />
-                    </button>
-                  </td>
+        <div style={{ padding: '20px' }}>
+          {/* Table Controls */}
+          <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ fontSize: '14px' }}>
+              {t("Show")}
+              <input type="number" value={limit} onChange={(e) => setLimit(Number(e.target.value) || 100)} style={{ width: '60px', margin: '0 8px', padding: '4px', border: '1px solid #cbd5e1', borderRadius: '4px', textAlign: 'center' }} />
+              {t("entries")}
+            </div>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button onClick={() => exportVisibleTable('xlsx', 'Account_List')} style={toolBtn}>{t("Excel")}</button>
+              <button onClick={() => exportVisibleTable('csv', 'Account_List')} style={toolBtn}>{t("CSV")}</button>
+              <button onClick={() => printPage()} style={toolBtn}>{t("PDF")}</button>
+              <button onClick={() => window.print()} style={toolBtn}><Printer size={14} /> {t("Print")}</button>
+              <button onClick={fetchAccounts} style={toolBtn}><RotateCcw size={14} /> {t("Reset")}</button>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+              <thead>
+                <tr style={{ background: '#94a3b8', color: 'white' }}>
+                  <th style={cell}>{t("ID")}</th>
+                  <th style={cell}>{t("TITLE")}</th>
+                  <th style={cell}>{t("ACCOUNT")}</th>
+                  <th style={cell}>{t("DESCRIPTION")}</th>
+                  <th style={cell}>{t("CONTACT NUMBER")}</th>
+                  <th style={cell}>{t("PHONE NUMBER")}</th>
+                  <th style={cell} className="no-print">{t("ACTION")}</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan="7" style={{ ...cell, padding: '20px' }}>{t("Loading accounts...")}</td></tr>
+                ) : visible.length === 0 ? (
+                  <tr><td colSpan="7" style={{ ...cell, padding: '20px' }}>{t("No accounts found.")}</td></tr>
+                ) : (
+                  visible.map((acc, idx) => (
+                    <tr key={acc.id || idx}>
+                      <td style={cell}>{idx + 1}</td>
+                      <td style={{ ...cell, fontWeight: '600' }}>{acc.name}</td>
+                      <td style={cell}>{acc.account_number || acc.accountNumber || ''}</td>
+                      <td style={cell}>{acc.description || ''}</td>
+                      <td style={cell}>{acc.contact_person || ''}</td>
+                      <td style={cell}>{acc.phone || ''}</td>
+                      <td style={cell} className="no-print">
+                        <button onClick={() => setEditing(acc)} style={{ background: '#1e293b', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer' }} title={t("Edit")}>
+                          <Edit size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          <div style={{ marginTop: '10px', fontSize: '13px', color: '#475569' }}>
+            {t("Showing {{from}} to {{to}} of {{total}} entries", { from: visible.length ? 1 : 0, to: visible.length, total: accounts.length })}
+          </div>
+        </div>
       </div>
+
+      {editing && (
+        <QuickEditModal
+          title={t("Edit Account")}
+          record={editing}
+          fields={[
+            { name: 'name', label: t("Account Title") },
+            { name: 'account_number', label: t("Account Number") },
+            { name: 'contact_person', label: t("Contact Person") },
+            { name: 'phone', label: t("Phone Number") },
+            { name: 'description', label: t("Description") },
+          ]}
+          onSave={(changed) => accountingService.updateAccount(editing.id, changed)}
+          onClose={(saved) => { setEditing(null); if (saved) fetchAccounts(); }}
+        />
+      )}
     </div>
   );
 };

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Edit, Plus, Trash2 } from 'lucide-react';
+import { crmService } from '../../../services/crmService';
 import { useApi } from '../../../hooks/useApi';
 import { ENDPOINTS } from '../../../api/endpoints';
+import { useToast } from '../../../context/ToastContext';
 
 const SupplierChequeSchedule = () => {
   const { t } = useTranslation();
+  const toast = useToast();
   const [cheques, setCheques] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -77,6 +80,15 @@ const SupplierChequeSchedule = () => {
   };
 
   const handleSave = async () => {
+    if (!formData.supplier) {
+      toast.error(t("Please select a supplier"));
+      return;
+    }
+    if (!formData.amount || !formData.cheque_number || !formData.bank_name) {
+      toast.error(t("Please fill in all required fields"));
+      return;
+    }
+
     try {
       const payload = {
         ...formData,

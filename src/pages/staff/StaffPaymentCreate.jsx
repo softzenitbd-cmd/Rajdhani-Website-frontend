@@ -3,6 +3,7 @@ import { List, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
 import AddOptionModal from '../../components/AddOptionModal';
+import SearchableSelect from '../../components/SearchableSelect';
 import staffApi from '../../api/staffApi';
 import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
@@ -116,10 +117,16 @@ const StaffPaymentCreate = () => {
             </div>
             <div>
               <label style={labelStyle}>{t("Staff *")}</label>
-              <select value={form.staff} onChange={(e) => set('staff', e.target.value)} style={inputStyle} required>
-                <option value="">{t("Select staff")}</option>
-                {staff.map((s) => <option key={s.id || s.uuid} value={s.id || s.uuid}>{s.full_name || s.name}{(s.phone_number || s.phone) ? ` (${s.phone_number || s.phone})` : ''}</option>)}
-              </select>
+              <SearchableSelect
+                options={staff.map((s) => ({
+                  value: s.id || s.uuid,
+                  label: `${s.full_name || s.name}${(s.phone_number || s.phone) ? ` (${s.phone_number || s.phone})` : ''}`,
+                  searchValue: `${s.full_name || s.name} ${s.phone_number || s.phone || ''}`
+                }))}
+                value={form.staff}
+                onChange={(val) => set('staff', val)}
+                placeholder={t("Select staff")}
+              />
               {selectedStaff?.salary !== undefined && selectedStaff?.salary !== null && (
                 <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>{t("Monthly salary: ৳")} {money(selectedStaff.salary)}</div>
               )}
@@ -132,23 +139,33 @@ const StaffPaymentCreate = () => {
             </div>
             <div>
               <label style={labelStyle}>{t("Pay From Account *")}</label>
-              <select value={form.account} onChange={(e) => set('account', e.target.value)} style={inputStyle} required>
-                <option value="">{t("Select account")}</option>
-                {accounts.map((a) => <option key={a.id || a.uuid} value={a.id || a.uuid}>{a.name}</option>)}
-              </select>
+              <SearchableSelect
+                options={accounts.map((a) => ({
+                  value: a.id || a.uuid,
+                  label: a.name,
+                  searchValue: a.name
+                }))}
+                value={form.account}
+                onChange={(val) => set('account', val)}
+                placeholder={t("Select account")}
+              />
               {selectedAccount && (
                 <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>{t("Balance: ৳")} {money(selectedAccount.balance ?? selectedAccount.current_balance)}</div>
               )}
             </div>
             <div>
               <label style={labelStyle}>{t("Expense Category *")}</label>
-              <div style={{ display: 'flex' }}>
-                <select value={form.category} onChange={(e) => set('category', e.target.value)} style={{ ...inputStyle, borderRadius: '4px 0 0 4px', borderRight: 'none' }} required>
-                  <option value="">{t("Select category")}</option>
-                  {categories.map((c) => <option key={c.id || c.uuid} value={c.id || c.uuid}>{c.name}</option>)}
-                </select>
-                <button type="button" onClick={() => setCategoryModal(true)} style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '0 14px', borderRadius: '0 4px 4px 0', cursor: 'pointer' }}><Plus size={18} /></button>
-              </div>
+              <SearchableSelect
+                options={categories.map((c) => ({
+                  value: c.id || c.uuid,
+                  label: c.name,
+                  searchValue: c.name
+                }))}
+                value={form.category}
+                onChange={(val) => set('category', val)}
+                placeholder={t("Select category")}
+                onAddClick={() => setCategoryModal(true)}
+              />
             </div>
             <div>
               <label style={labelStyle}>{t("Amount *")}</label>

@@ -7,6 +7,7 @@ import AddOptionModal from '../../../components/AddOptionModal';
 import { useApi } from '../../../hooks/useApi';
 import { ENDPOINTS } from '../../../api/endpoints';
 import { exportVisibleTable } from '../../../utils/tableExport';
+import { useConfirm } from '../../../context/ConfirmContext';
 
 const SupplierGroup = () => {
   const { t } = useTranslation();
@@ -18,6 +19,7 @@ const SupplierGroup = () => {
 
   const { get, post, put, del, loading } = useApi();
   const navigate = useNavigate();
+  const confirm = useConfirm();
 
   const fetchGroups = async () => {
     try {
@@ -60,15 +62,19 @@ const SupplierGroup = () => {
     }
   };
 
-  const handleDeleteClick = async (group) => {
-    if (window.confirm(t("Are you sure you want to delete this group?"))) {
-      try {
-        await del(`${ENDPOINTS.CRM_SUPPLIER_GROUPS}${group.id || group.uuid}/`, t("Supplier Group Deleted"));
-        fetchGroups();
-      } catch (err) {
-        console.error(err);
+  const handleDeleteClick = (group) => {
+    confirm({
+      title: t("Delete Supplier Group"),
+      description: t("Are you sure you want to delete this group?"),
+      onConfirm: async () => {
+        try {
+          await del(`${ENDPOINTS.CRM_SUPPLIER_GROUPS}${group.id || group.uuid}/`, t("Supplier Group Deleted"));
+          fetchGroups();
+        } catch (err) {
+          console.error(err);
+        }
       }
-    }
+    });
   };
 
   return (
@@ -136,9 +142,13 @@ const SupplierGroup = () => {
                 ) : (
                   groups.map((group, index) => (
                     <tr key={group.id || group.uuid} style={{ background: index % 2 === 0 ? 'white' : 'var(--card-header-bg)' }}>
-                      <td style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>{group.id || group.uuid}</td>
+                      <td style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
                       <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', fontWeight: '500' }}>{group.name}</td>
-                      <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>{group.created_at || group.date}</td>
+                      <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>
+                        {(group.created_at || group.date) 
+                          ? new Date(group.created_at || group.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) 
+                          : '-'}
+                      </td>
                       <td style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #e2e8f0' }}>
                         <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
                           <button style={{ background: 'var(--info)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => handleEditClick(group)}>

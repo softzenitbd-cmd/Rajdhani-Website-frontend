@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import PrintHeader from '../../components/PrintHeader';
-import { Plus, Barcode, Calendar, Trash2 } from 'lucide-react';
+import { Calendar, Plus, Trash2, Barcode, HelpCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import PrintHeader from '../../components/PrintHeader';
+import SearchableSelect from '../../components/SearchableSelect';
 import AddOptionModal from '../../components/AddOptionModal';
 import { crmService } from '../../services/crmService';
 import { productService } from '../../services/productService';
@@ -226,15 +227,17 @@ const PurchaseCreate = () => {
 
               {/* Select Suppliers */}
               <div className="form-group" style={{ marginBottom: '0' }}>
-                <div className="input-with-append">
-                  <select name="supplier" value={formData.supplier} onChange={handleChange} style={{ padding: '14px', flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px 0 0 4px', outline: 'none', background: 'white' }}>
-                    <option value="">{t("Select Suppliers")}</option>
-                    {suppliers.map(sup => (
-                      <option key={sup.id} value={sup.id}>{sup.name}</option>
-                    ))}
-                  </select>
-                  <button type="button" onClick={() => setIsSupplierModalOpen(true)} className="append-btn" style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '0 16px', borderRadius: '0 4px 4px 0' }}><Plus size={20} /></button>
-                </div>
+                <SearchableSelect
+                  options={suppliers.map(sup => ({
+                    value: sup.id,
+                    label: sup.name,
+                    searchValue: sup.name
+                  }))}
+                  value={formData.supplier}
+                  onChange={(val) => setFormData(prev => ({ ...prev, supplier: val }))}
+                  placeholder={t("Select Suppliers")}
+                  onAddClick={() => setIsSupplierModalOpen(true)}
+                />
               </div>
 
               {/* Date */}
@@ -267,15 +270,27 @@ const PurchaseCreate = () => {
 
               {/* Select Product */}
               <div className="form-group" style={{ marginBottom: '0' }}>
-                <div className="input-with-append">
-                  <select name="product" value={formData.product} onChange={handleChange} style={{ padding: '14px', flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px 0 0 4px', outline: 'none', background: 'white' }}>
-                    <option value="">{t("Select Product")}</option>
-                    {products.map(p => (
-                      <option key={p.id} value={p.id}>{p.name || p.title} {p.code || p.barcode ? `[${p.code || p.barcode}]` : ''}</option>
-                    ))}
-                  </select>
-                  <button type="button" onClick={() => setIsProductModalOpen(true)} className="append-btn" style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '0 16px', borderRadius: '0 4px 4px 0' }}><Plus size={20} /></button>
-                </div>
+                <SearchableSelect
+                  options={products.map(p => ({
+                    value: p.id,
+                    label: `${p.name || p.title} ${p.code || p.barcode ? `[${p.code || p.barcode}]` : ''}`,
+                    searchValue: `${p.name || p.title} ${p.code || p.barcode || ''}`
+                  }))}
+                  value={formData.product}
+                  onChange={(val) => {
+                    if (val) {
+                      setFormData(prev => ({ ...prev, product: val }));
+                      // simulate handleChange logic which calls setFormData internally or triggers effect? 
+                      // Wait, in PurchaseCreate.jsx, the handleChange for 'product' just sets formData.product? 
+                      // No, wait, look at line 105:
+                      // if (name === 'product') { if (value) handleSelectProduct(value); } 
+                      handleSelectProduct(val);
+                    }
+                  }}
+                  clearOnSelect={true}
+                  placeholder={t("Select Product")}
+                  onAddClick={() => setIsProductModalOpen(true)}
+                />
               </div>
 
             </div>

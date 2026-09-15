@@ -8,6 +8,7 @@ import { useApi } from '../../../hooks/useApi';
 import { ENDPOINTS } from '../../../api/endpoints';
 import { exportVisibleTable } from '../../../utils/tableExport';
 import { printPage } from '../../../utils/printUtils';
+import { fmtDate } from '../../../utils/apiHelpers';
 import { useToast } from '../../../context/ToastContext';
 
 const ClientGroup = () => {
@@ -111,11 +112,11 @@ const ClientGroup = () => {
               </tr>
             </thead>
             <tbody>
-              {groups.map((group) => (
+              {groups.map((group, index) => (
                 <tr key={group.id} style={{ background: group.id % 2 === 0 ? 'var(--card-header-bg)' : 'white' }}>
-                  <td style={{ textAlign: 'center', padding: '8px' }}>{group.id}</td>
+                  <td style={{ textAlign: 'center', padding: '8px' }}>{index + 1}</td>
                   <td style={{ padding: '8px', textAlign: 'center' }}>{group.name}</td>
-                  <td style={{ padding: '8px' }}>{group.createdAt}</td>
+                  <td style={{ padding: '8px', textAlign: 'center' }}>{fmtDate(group.created_at || group.createdAt)}</td>
                   <td style={{ padding: '8px', textAlign: 'center' }}>
                     <button style={{ background: 'var(--info)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', marginRight: '4px' }} onClick={() => handleEditClick(group)}>
                       <Edit size={14} />

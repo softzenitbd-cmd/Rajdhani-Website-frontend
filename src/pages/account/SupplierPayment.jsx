@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { Plus, Printer, RotateCcw } from 'lucide-react';
+import { Printer, Eye, RotateCcw, Plus, Trash2, Edit } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import SearchableSelect from '../../components/SearchableSelect';
 import { accountingService } from '../../services/accountingService';
 import { crmService } from '../../services/crmService';
+import { useToast } from '../../context/ToastContext';
 
 const SupplierPayment = () => {
   const { t } = useTranslation();
+  const toast = useToast();
 
   const [suppliers, setSuppliers] = useState([]);
+  const [accounts, setAccounts] = useState([]);
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -19,12 +23,25 @@ const SupplierPayment = () => {
 
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
+  
+  const [paymentForm, setPaymentForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    supplier: '',
+    account: '',
+    amount: '',
+    reference: ''
+  });
+  const [adding, setAdding] = useState(false);
 
   const fetchPrerequisites = async () => {
     try {
       const res = await crmService.getSuppliers().catch(() => []);
       const data = Array.isArray(res) ? res : (res?.results || []);
       setSuppliers(data);
+      
+      const accRes = await accountingService.getAccounts().catch(() => []);
+      const accData = Array.isArray(accRes) ? accRes : (accRes?.results || []);
+      setAccounts(accData);
     } catch (err) {
       console.error("Error fetching suppliers:", err);
     }
@@ -64,39 +81,141 @@ const SupplierPayment = () => {
     fetchPayments({});
   };
 
+  const handleAddPayment = async (e) => {
+    e.preventDefault();
+    if (!paymentForm.supplier || !paymentForm.account || !paymentForm.amount) {
+      toast.error(t("Please fill in required fields"));
+      return;
+    }
+    try {
+      setAdding(true);
+      await accountingService.createExpense({
+        type: 'cost',
+        transaction_type: 'Supplier Payment',
+        supplier: paymentForm.supplier,
+        account: paymentForm.account,
+        amount: paymentForm.amount,
+        date: paymentForm.date,
+        reference: paymentForm.reference,
+        status: 1
+      }, t("Payment added successfully"));
+      
+      setPaymentForm({ ...paymentForm, supplier: '', amount: '', reference: '' });
+      fetchPayments();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setAdding(false);
+    }
+  };
+
   const totalAmount = payments.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
 
   return (
     <div className="premium-card">
-      <div className="premium-body" style={{ padding: '40px' }}>
-        <PrintHeader />
+      <div className="premium-body" style={{ padding: '0' }}>
         
-        {/* Title and Top Action Buttons */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: '400', color: '#4b5563', margin: 0 }}>{t("Supplier Payment List")}</h2>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <Link to="/account/expense-create" style={{ textDecoration: 'none' }}>
-              <button className="btn-green">
-                <Plus size={16} /> {t("Payment")}
+        {/* Payment Form Section matching screenshot */}
+        <div style={{ background: '#22c55e', color: 'white', padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 style={{ fontSize: '16px', margin: 0, fontWeight: '600' }}>{t("Add Supplier Payment")}</h2>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Link to="/crm/supplier-list">
+              <button className="btn-outline" style={{ padding: '6px 12px', background: '#718096', color: 'white', border: 'none', borderRadius: '4px' }}>
+                {t("Client List")}
               </button>
             </Link>
           </div>
         </div>
 
+        <div style={{ padding: '24px', background: 'white', borderBottom: '2px solid #e2e8f0' }}>
+          <form onSubmit={handleAddPayment}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '16px' }}>
+              <div>
+                <label className="form-label" style={{ display: 'block', marginBottom: '8px', background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: '12px' }}>
+                  {t("Date")}
+                </label>
+                <input type="date" className="input-outline" value={paymentForm.date} onChange={e => setPaymentForm({...paymentForm, date: e.target.value})} required />
+              </div>
+              <div>
+                <label className="form-label" style={{ display: 'block', marginBottom: '8px', background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: '12px' }}>
+                  {t("Select Account")}
+                </label>
+                <SearchableSelect
+                  options={accounts.map(a => ({
+                    value: a.id,
+                    label: a.name,
+                    searchValue: a.name
+                  }))}
+                  value={paymentForm.account}
+                  onChange={(val) => setPaymentForm({...paymentForm, account: val})}
+                  placeholder={t("Choose One")}
+                />
+              </div>
+
+              <div>
+                <label className="form-label" style={{ display: 'block', marginBottom: '8px', background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: '12px' }}>
+                  {t("Supplier Name")}
+                </label>
+                <SearchableSelect
+                  options={suppliers.map(s => ({
+                    value: s.id,
+                    label: s.name || s.company_name,
+                    searchValue: s.name || s.company_name
+                  }))}
+                  value={paymentForm.supplier}
+                  onChange={(val) => setPaymentForm({...paymentForm, supplier: val})}
+                  placeholder={t("Choose One")}
+                />
+                {paymentForm.supplier && (
+                  <div style={{ fontSize: '12px', marginTop: '4px', color: '#eab308' }}>
+                    {t("Supplier Due :")} ৳ {Number(suppliers.find(s => s.id === paymentForm.supplier || s.uuid === paymentForm.supplier)?.due || 0).toFixed(2)}
+                  </div>
+                )}
+              </div>
+              
+              <div>
+                <label className="form-label" style={{ display: 'block', marginBottom: '8px', background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: '12px' }}>
+                  {t("Amount")}
+                </label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input type="number" className="input-outline" style={{ flex: 1 }} value={paymentForm.amount} onChange={e => setPaymentForm({...paymentForm, amount: e.target.value})} required placeholder="Amount" />
+                  <button type="button" className="btn" style={{ background: '#22c55e', color: 'white', padding: '0 12px', borderRadius: '4px' }}><Plus size={16} /></button>
+                </div>
+              </div>
+
+              <div style={{ gridColumn: 'span 2' }}>
+                <label className="form-label" style={{ display: 'block', marginBottom: '8px', background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: '12px' }}>
+                  {t("Expense Description")} <span style={{ fontSize: '10px' }}>(max short note)</span>
+                </label>
+                <input type="text" className="input-outline" value={paymentForm.reference} onChange={e => setPaymentForm({...paymentForm, reference: e.target.value})} />
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '16px' }}>
+              <button type="submit" disabled={adding} className="btn" style={{ background: '#3b82f6', color: 'white', padding: '8px 24px', borderRadius: '4px' }}>{adding ? t("Adding...") : t("Add Item")}</button>
+              <button type="button" onClick={() => setPaymentForm({...paymentForm, amount: '', reference: ''})} className="btn" style={{ background: '#ef4444', color: 'white', padding: '8px 24px', borderRadius: '4px' }}>{t("Clear")}</button>
+            </div>
+          </form>
+        </div>
+
+        <div style={{ padding: '40px' }}>
+          <PrintHeader />
+          <h3 style={{ textAlign: 'center', fontSize: '16px', fontWeight: 'bold', margin: '20px 0' }}>{t("Expense List")}</h3>
+
         {/* Filter Section */}
         <div style={{ display: 'flex', gap: '20px', marginBottom: '40px', alignItems: 'end' }}>
           <div style={{ flex: 1 }}>
             <label className="filter-label">{t("Search By Supplier")}</label>
-            <select 
-              className="input-outline" 
-              value={selectedSupplier} 
-              onChange={(e) => { setSelectedSupplier(e.target.value); }}
-            >
-              <option value="">{t("Select Suppliers")}</option>
-              {suppliers.map(s => (
-                <option key={s.id} value={s.id}>{s.name || s.company_name}</option>
-              ))}
-            </select>
+            <SearchableSelect
+              options={suppliers.map(s => ({
+                value: s.id,
+                label: s.name || s.company_name,
+                searchValue: s.name || s.company_name
+              }))}
+              value={selectedSupplier}
+              onChange={(val) => setSelectedSupplier(val)}
+              placeholder={t("Select Suppliers")}
+            />
           </div>
           <div style={{ flex: 1 }}>
             <label className="filter-label">{t('common.search_by_date')}</label>
@@ -221,6 +340,7 @@ const SupplierPayment = () => {
           </div>
         </div>
 
+      </div>
       </div>
 
       {/* Printable Supplier Payment Voucher Modal */}

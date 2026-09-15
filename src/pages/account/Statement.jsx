@@ -1,43 +1,60 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { Printer, RotateCcw, Plus, ArrowLeft, Scale } from 'lucide-react';
 import PrintHeader from '../../components/PrintHeader';
-import { Printer, RotateCcw, Search } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import SearchableSelect from '../../components/SearchableSelect';
 import { accountingService } from '../../services/accountingService';
+import { crmService } from '../../services/crmService';
 
+const cell = { padding: '10px', border: '1px solid #cbd5e1', textAlign: 'center' };
+const num = (v) => {
+  if (v === undefined || v === null || v === '' || v === '--') return 0;
+  return Number(String(v).replace(/[^0-9.-]/g, '')) || 0;
+};
+const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+// Mirrors the original CRM "একাউন্ট বিবৃতি":
+// toolbar (add / balance / back) → print header → client / account / type / date filters → ledger table
 const Statement = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const [statements, setStatements] = useState([]);
   const [accounts, setAccounts] = useState([]);
+  const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedType, setSelectedType] = useState('');
-  const [selectedAccount, setSelectedAccount] = useState('');
+
+  // Filters
+  const [clientId, setClientId] = useState('');
+  const [accountId, setAccountId] = useState('');
+  const [type, setType] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
-
+  const [limit, setLimit] = useState(100);
 
   useEffect(() => {
-    loadAccounts();
-    fetchStatements();
+    (async () => {
+      try {
+        const [accRes, cliRes] = await Promise.all([
+          accountingService.getAccounts(),
+          crmService.getClients({ page_size: 1000 }),
+        ]);
+        setAccounts(Array.isArray(accRes) ? accRes : (accRes?.results || []));
+        setClients(Array.isArray(cliRes) ? cliRes : (cliRes?.results || []));
+      } catch (e) {
+        console.error('Error loading filters:', e);
+      }
+    })();
   }, []);
-
-  const loadAccounts = async () => {
-    try {
-      const res = await accountingService.getAccounts();
-      const data = Array.isArray(res) ? res : (res?.results || []);
-      setAccounts(data);
-    } catch (e) {
-      console.error('Error loading accounts:', e);
-    }
-  };
 
   const fetchStatements = async () => {
     try {
       setLoading(true);
       const filters = {};
-      if (selectedType) filters.type = selectedType;
-      if (selectedAccount) filters.account = selectedAccount;
+      if (type) filters.type = type;
+      if (clientId) filters.client = clientId;
+      if (accountId) filters.account = accountId;
       if (fromDate) filters.from_date = fromDate;
       if (toDate) filters.to_date = toDate;
 
@@ -52,151 +69,163 @@ const Statement = () => {
     }
   };
 
-  const handleFilter = (e) => {
-    e.preventDefault();
+  useEffect(() => {
     fetchStatements();
-  };
+  }, [clientId, accountId, type, fromDate, toDate]);
 
-  const handleClear = () => {
-    setSelectedType('');
-    setSelectedAccount('');
+  const handleClearFilter = () => {
+    setClientId('');
+    setAccountId('');
+    setType('');
     setFromDate('');
     setToDate('');
-    setTimeout(() => {
-      fetchStatements();
-    }, 50);
   };
 
+  // Running balance computed on the client
+  const rows = useMemo(() => {
+    let balance = 0;
+    return statements.slice(0, limit).map((row) => {
+      const credit = num(row.credit);
+      const debit = num(row.debit);
+      balance += credit - debit;
+      return { ...row, credit, debit, balance };
+    });
+  }, [statements, limit]);
+
+  const totalCredit = rows.reduce((s, r) => s + r.credit, 0);
+  const totalDebit = rows.reduce((s, r) => s + r.debit, 0);
+
+  const toolBtn = (bg) => ({ background: bg, color: 'white', border: 'none', padding: '6px 14px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' });
+  const label = { display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 'bold' };
+
   return (
-    <div className="premium-card">
-      <div className="premium-body" style={{ padding: '24px 32px 40px' }}>
-        <PrintHeader />
-        
-        {/* Top Action Buttons */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <div>
-            <h1 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>{t("Account Statement & Unified Ledger")}</h1>
-            <span style={{ fontSize: '13px', color: '#64748b' }}>{t("Complete log of all deposits, expenses, and inter-account transfers")}</span>
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <Link to="/account/account-create" style={{ textDecoration: 'none' }}>
-              <button className="btn-green" style={{ padding: '8px 16px', fontWeight: 'bold' }}>{t("Add Account")}</button>
-            </Link>
-            <Link to="/account/account-list" style={{ textDecoration: 'none' }}>
-              <button className="btn-blue" style={{ padding: '8px 16px', fontWeight: 'bold' }}>{t("Account List")}</button>
-            </Link>
+    <div style={{ background: 'white', minHeight: '100vh', padding: '20px' }}>
+      {/* Top toolbar */}
+      <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+        <button onClick={() => navigate('/account/account-create')} style={toolBtn('#059669')}><Plus size={14} /> {t("Add New")}</button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={() => navigate('/account/account-balance')} style={toolBtn('#16a34a')}><Scale size={14} /> {t("Account Balance")}</button>
+          <button onClick={() => navigate(-1)} style={toolBtn('#1e293b')}><ArrowLeft size={14} /> {t("Go Back")}</button>
+        </div>
+      </div>
+
+      <PrintHeader />
+      <h2 style={{ textAlign: 'center', fontSize: '20px', fontWeight: 'bold', margin: '12px 0 20px' }}>{t("Account Statement")}</h2>
+
+      {/* Filters */}
+      <div className="no-print" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.5fr', gap: '20px', marginBottom: '16px' }}>
+        <div>
+          <label style={label}>{t("Search By Client")}</label>
+          <SearchableSelect
+            options={clients.map((c) => ({ value: c.id, label: c.name || c.company_name, searchValue: `${c.name || ''} ${c.phone || ''}` }))}
+            value={clientId}
+            onChange={(val) => setClientId(val)}
+            placeholder={t("Select Client")}
+          />
+        </div>
+        <div>
+          <label style={label}>{t("Search By Account")}</label>
+          <SearchableSelect
+            options={accounts.map((a) => ({ value: a.id, label: a.name, searchValue: a.name }))}
+            value={accountId}
+            onChange={(val) => setAccountId(val)}
+            placeholder={t("Select Account")}
+          />
+        </div>
+        <div>
+          <label style={label}>{t("Search By Type")}</label>
+          <select value={type} onChange={(e) => setType(e.target.value)} style={{ width: '100%', padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none', background: 'white' }}>
+            <option value="">{t("Choose one")}</option>
+            <option value="deposit">{t("Deposit")}</option>
+            <option value="cost">{t("Expense")}</option>
+          </select>
+        </div>
+        <div>
+          <label style={label}>{t("Search By Date")}</label>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ flex: 1, padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
+            <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ flex: 1, padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
           </div>
         </div>
+      </div>
 
-        {/* Filter Section */}
-        <form onSubmit={handleFilter} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.5fr auto', gap: '16px', marginBottom: '24px', alignItems: 'end' }}>
-          <div>
-            <label className="filter-label">{t("Filter by Account")}</label>
-            <select className="input-outline" value={selectedAccount} onChange={(e) => setSelectedAccount(e.target.value)} style={{ width: '100%', padding: '10px' }}>
-              <option value="">{t("All Accounts")}</option>
-              {accounts.map(acc => (
-                <option key={acc.id} value={acc.id}>{acc.name}</option>
-              ))}
-            </select>
-          </div>
+      <div className="no-print" style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+        <button onClick={handleClearFilter} style={{ background: '#64748b', color: 'white', border: 'none', padding: '12px 0', width: '100%', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '15px' }}>
+          {t("Clear Filter")}
+        </button>
+      </div>
 
-          <div>
-            <label className="filter-label">{t("Filter by Type")}</label>
-            <select className="input-outline" value={selectedType} onChange={(e) => setSelectedType(e.target.value)} style={{ width: '100%', padding: '10px' }}>
-              <option value="">{t("All (Deposit & Expense)")}</option>
-              <option value="deposit">{t("Deposit Only (In)")}</option>
-              <option value="cost">{t("Cost Only (Out)")}</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="filter-label">{t("Search Date")}</label>
-            <div style={{ display: 'flex' }}>
-              <input type="date" className="input-outline" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ borderRadius: '8px 0 0 8px', borderRight: 'none', width: '50%', padding: '10px' }} />
-              <input type="date" className="input-outline" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ borderRadius: '0 8px 8px 0', width: '50%', padding: '10px' }} />
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button type="submit" className="btn-blue" style={{ padding: '10px 18px', fontWeight: 'bold' }}>
-              <Search size={14} style={{ marginRight: '4px', display: 'inline' }} /> {t("Filter")}
-            </button>
-            <button type="button" onClick={handleClear} className="btn-secondary" style={{ padding: '10px 14px' }}>
-              {t("Reset")}
-            </button>
-          </div>
-        </form>
-
-        {/* Table Controls */}
-        <div className="table-header-controls" style={{ marginBottom: '16px' }}>
-          <div className="show-entries">
-            {t("Total Statement Records:")} <strong>{statements.length}</strong>
-          </div>
-          <div className="table-controls-right" style={{ gap: '4px' }}>
-            <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }} onClick={() => window.print()}><Printer size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.print')}</button>
-            <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }} onClick={fetchStatements}><RotateCcw size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t("Reload")}</button>
-          </div>
+      {/* Table Controls */}
+      <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ fontSize: '14px' }}>
+          {t("Show")}
+          <input type="number" value={limit} onChange={(e) => setLimit(Number(e.target.value) || 100)} style={{ width: '60px', margin: '0 8px', padding: '4px', border: '1px solid #cbd5e1', borderRadius: '4px', textAlign: 'center' }} />
+          {t("entries")}
         </div>
-
-        <div className="table-responsive">
-          <table className="custom-table" style={{ border: '1px solid #d1d5db', width: '100%' }}>
-            <thead>
-              <tr style={{ background: '#718096', color: 'white' }}>
-                <th style={{ width: '50px' }}>{t("SL")}</th>
-                <th>{t("DATE")}</th>
-                <th>{t("TYPE")}</th>
-                <th>{t("ACCOUNT")}</th>
-                <th>{t("SOURCE / PARTY")}</th>
-                <th>{t("DESCRIPTION")}</th>
-                <th style={{ textAlign: 'right', color: '#86efac' }}>{t("CREDIT (+)")}</th>
-                <th style={{ textAlign: 'right', color: '#fca5a5' }}>{t("DEBIT (-)")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan="8" style={{ padding: '24px', textAlign: 'center', color: '#6b7280' }}>{t("Loading statement ledger...")}</td>
-                </tr>
-              ) : statements.length === 0 ? (
-                <tr>
-                  <td colSpan="8" style={{ padding: '24px', textAlign: 'center', color: '#6b7280' }}>{t("No records found for the selected filter.")}</td>
-                </tr>
-              ) : (
-                statements.map((row, idx) => {
-                  const isDeposit = String(row.type).toUpperCase() === 'DEPOSIT';
-                  return (
-                    <tr key={row.id || idx} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                      <td style={{ fontWeight: '600', color: '#6b7280' }}>{idx + 1}</td>
-                      <td>{row.date}</td>
-                      <td>
-                        <span style={{
-                          background: isDeposit ? '#dcfce7' : '#fee2e2',
-                          color: isDeposit ? '#15803d' : '#b91c1c',
-                          padding: '2px 8px',
-                          borderRadius: '4px',
-                          fontSize: '11px',
-                          fontWeight: 'bold'
-                        }}>
-                          {row.type} ({row.transaction_type || t("General")})
-                        </span>
-                      </td>
-                      <td style={{ fontWeight: '500' }}>{row.account_name || t("Cash Account")}</td>
-                      <td style={{ fontWeight: '500', color: '#3b82f6' }}>{row.source || '-'}</td>
-                      <td style={{ color: '#4b5563' }}>{row.description || '-'}</td>
-                      <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#059669' }}>
-                        {row.credit && row.credit !== '--' ? `৳ ${row.credit}` : '--'}
-                      </td>
-                      <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#dc2626' }}>
-                        {row.debit && row.debit !== '--' ? `৳ ${row.debit}` : '--'}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <button onClick={() => window.print()} style={toolBtn('#3b82f6')}><Printer size={14} /> {t("Print")}</button>
+          <button onClick={fetchStatements} style={toolBtn('#3b82f6')}><RotateCcw size={14} /> {t("Reset")}</button>
         </div>
+      </div>
 
+      {/* Table */}
+      <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+          <thead>
+            <tr style={{ background: '#94a3b8', color: 'white' }}>
+              <th style={cell}>{t("SL")}</th>
+              <th style={cell}>{t("DATE")}</th>
+              <th style={cell}>{t("CLIENT / SUPPLIER")}</th>
+              <th style={cell}>{t("TYPE")}</th>
+              <th style={cell}>{t("ACCOUNT")}</th>
+              <th style={cell}>{t("BANK")}</th>
+              <th style={cell}>{t("DESCRIPTION")}</th>
+              <th style={cell}>{t("CREDIT")}</th>
+              <th style={cell}>{t("DEBIT")}</th>
+              <th style={cell}>{t("BALANCE")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr><td colSpan="10" style={{ ...cell, padding: '20px' }}>{t("Loading...")}</td></tr>
+            ) : rows.length === 0 ? (
+              <tr><td colSpan="10" style={{ ...cell, padding: '20px' }}>{t("No data available in table")}</td></tr>
+            ) : (
+              rows.map((row, idx) => {
+                const isDeposit = String(row.type).toLowerCase() === 'deposit';
+                return (
+                  <tr key={row.id || idx}>
+                    <td style={cell}>{idx + 1}</td>
+                    <td style={cell}>{row.date ? String(row.date).split('T')[0] : ''}</td>
+                    <td style={cell}>{row.source || row.client_name || row.supplier_name || ''}</td>
+                    <td style={cell}>
+                      <span style={{ background: isDeposit ? '#dcfce7' : '#fee2e2', color: isDeposit ? '#15803d' : '#b91c1c', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>
+                        {row.transaction_type || row.type}
+                      </span>
+                    </td>
+                    <td style={cell}>{row.account_name || ''}</td>
+                    <td style={cell}>{row.bank_name || row.bank || ''}</td>
+                    <td style={cell}>{row.description || ''}</td>
+                    <td style={{ ...cell, color: '#059669', fontWeight: '600' }}>{row.credit ? fmt(row.credit) : '0'}</td>
+                    <td style={{ ...cell, color: '#dc2626', fontWeight: '600' }}>{row.debit ? fmt(row.debit) : '0'}</td>
+                    <td style={{ ...cell, fontWeight: 'bold' }}>{fmt(row.balance)}</td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+          <tfoot>
+            <tr style={{ fontWeight: 'bold', background: '#f8fafc' }}>
+              <td colSpan="7" style={cell}>{t("Total")}</td>
+              <td style={cell}>{fmt(totalCredit)}</td>
+              <td style={cell}>{fmt(totalDebit)}</td>
+              <td style={cell}>{fmt(totalCredit - totalDebit)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div style={{ marginTop: '10px', fontSize: '13px', color: '#475569' }}>
+        {t("Showing {{from}} to {{to}} of {{total}} entries", { from: rows.length ? 1 : 0, to: rows.length, total: statements.length })}
       </div>
     </div>
   );

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { List, Layers, Plus, X, FileText } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
-import AddOptionModal from '../../components/AddOptionModal';
+import SearchableSelect from '../../components/SearchableSelect';
+import ClientCreateModal from '../crm/client/ClientCreateModal';
 import { accountingService } from '../../services/accountingService';
 import { crmService } from '../../services/crmService';
 import { useToast } from '../../context/ToastContext';
@@ -133,25 +134,20 @@ const ReceiveCreate = () => {
                 
                 {/* Client Select */}
                 <div>
-                  <div style={{ display: 'flex', border: '1px solid #93c5fd', borderRadius: '6px', overflow: 'hidden' }}>
-                    <select 
-                      name="clientId" 
-                      value={formData.clientId} 
-                      onChange={handleChange}
-                      style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px', appearance: 'none', background: 'transparent' }}
-                    >
-                      <option value="">{t("Select Client")}</option>
-                      {(clients || []).map(c => <option key={c.id} value={c.id}>{c.name || c.company_name}</option>)}
-                    </select>
-                    {formData.clientId && (
-                      <button type="button" onClick={() => clearField('clientId')} style={{ background: 'white', border: 'none', borderLeft: '1px solid #93c5fd', padding: '0 12px', cursor: 'pointer' }}>
-                        <X size={16} />
-                      </button>
-                    )}
-                    <button type="button" onClick={() => setIsClientModalOpen(true)} style={{ background: '#22c55e', color: 'white', border: 'none', padding: '0 16px', cursor: 'pointer' }}>
-                      <Plus size={18} />
-                    </button>
-                  </div>
+                  <SearchableSelect
+                    options={(clients || []).map((c) => {
+                      const nameStr = c.name || c.company_name || '';
+                      return {
+                        value: c.id,
+                        label: `${nameStr} ${c.phone ? `(${c.phone})` : ''}`,
+                        searchValue: `${nameStr} ${c.phone || ''}`
+                      };
+                    })}
+                    value={formData.clientId}
+                    onChange={(val) => setFormData(prev => ({ ...prev, clientId: val }))}
+                    placeholder={t("Select Client")}
+                    onAddClick={() => setIsClientModalOpen(true)}
+                  />
                   <div style={{ fontSize: '12px', fontWeight: 'bold', marginTop: '6px', marginLeft: '4px' }}>{t("Due:")} {dueAmount}</div>
                 </div>
 
@@ -284,13 +280,16 @@ const ReceiveCreate = () => {
         </div>
       </div>
 
-      <AddOptionModal 
+      <ClientCreateModal 
         isOpen={isClientModalOpen}
         onClose={() => setIsClientModalOpen(false)}
-        title={t("Quick Add Client")}
-        placeholder={t("Client Name")}
-        onSave={() => {
-          setIsClientModalOpen(false);
+        onClientAdded={(newClient) => {
+          if (newClient) {
+            setClients(prev => [...prev, newClient]);
+          }
+          if (newClient?.id || newClient?.uuid) {
+            setFormData(prev => ({ ...prev, clientId: newClient.id || newClient.uuid }));
+          }
         }}
       />
     </div>

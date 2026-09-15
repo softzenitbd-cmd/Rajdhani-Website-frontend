@@ -20,7 +20,8 @@ const SupplierEdit = () => {
     phoneOptional: '',
     previousDue: '',
     reference: '',
-    group: ''
+    group: '',
+    bank_info: ''
   });
   const [groups, setGroups] = useState([]);
   const { get, patch, post, loading } = useApi();
@@ -45,7 +46,8 @@ const SupplierEdit = () => {
         phoneOptional: supplier.phoneOptional || '',
         previousDue: supplier.previous_due || '',
         reference: supplier.reference || '',
-        group: supplier.group?.id || supplier.group || ''
+        group: supplier.group?.id || supplier.group || '',
+        bank_info: supplier.bank_info || ''
       });
     } catch (err) {
       console.error("Failed to fetch supplier", err);
@@ -69,7 +71,8 @@ const SupplierEdit = () => {
       phone: formData.phone,
       address: formData.address || "",
       previous_due: formData.previousDue || "0.00",
-      group: formData.group
+      group: formData.group,
+      bank_info: formData.bank_info || ""
     };
     
     try {
@@ -180,6 +183,21 @@ const SupplierEdit = () => {
               </div>
             </div>
 
+            </div>
+
+            <div style={{ marginTop: '24px' }}>
+              <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 'bold' }}>
+                🏛️ {t("Bank Account Info")}
+              </label>
+              <textarea 
+                className="input-outline" 
+                name="bank_info" 
+                value={formData.bank_info} 
+                onChange={(e) => setFormData({...formData, bank_info: e.target.value})} 
+                rows="4"
+                placeholder={`Bank Name:\nAccount Number:\nAccount Description:`}
+                style={{ width: '100%', resize: 'vertical', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '4px' }}
+              />
             </div>
 
             <div style={{ marginTop: '32px', display: 'flex', justifyContent: 'flex-end', gap: '16px' }}>

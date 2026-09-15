@@ -201,7 +201,7 @@ const ClientCreate = () => {
         isOpen={isGroupModalOpen}
         onClose={() => setIsGroupModalOpen(false)}
         onSave={handleAddGroup}
-        title={t("Add Client Group")}
+        title={t("Add New Client Group")}
         label={t("Group Name")}
       />
     </div>

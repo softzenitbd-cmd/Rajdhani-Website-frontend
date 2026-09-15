@@ -67,7 +67,28 @@ const DueCollectionDate = () => {
       
       const res = await crmService.getClients(params);
       const data = Array.isArray(res) ? res : (res?.results || []);
-      setClients(data);
+      
+      try {
+        const statsRes = await crmService.getClientDueReport();
+        const statsData = Array.isArray(statsRes) ? statsRes : (statsRes?.results || []);
+        
+        const mergedData = data.map(client => {
+          const stats = statsData.find(s => String(s.client_id || s.id || s.uuid) === String(client.id || client.uuid)) || {};
+          return {
+            ...client,
+            previous_due: stats.previous_due !== undefined ? stats.previous_due : client.previous_due,
+            sales: stats.sales !== undefined ? stats.sales : client.sales,
+            receive: stats.receive !== undefined ? stats.receive : client.receive,
+            sales_return: stats.sales_return !== undefined ? stats.sales_return : client.sales_return,
+            due: stats.due !== undefined ? stats.due : client.due,
+            collection_date: client.collection_date || stats.collection_date
+          };
+        });
+        setClients(mergedData);
+      } catch (err) {
+        console.error("Failed to fetch client stats", err);
+        setClients(data);
+      }
     } catch (err) {
       toast.error(err?.message || t("Failed to load clients"));
       setClients([]);
@@ -229,18 +250,21 @@ const DueCollectionDate = () => {
                 </tr>
               ) : (
                 clients.slice(0, entries).map((client, index) => (
-                  <tr key={client.id || index}>
-                    <td style={{ textAlign: 'left', padding: '12px' }}>{client.id}</td>
-                    <td style={{ textAlign: 'left', padding: '12px', fontWeight: '600' }}>{client.name || client.company_name || '-'}</td>
-                    <td style={{ textAlign: 'left', padding: '12px' }}>{client.address || '-'}</td>
-                    <td style={{ textAlign: 'left', padding: '12px' }}>{client.previous_due || '0.00'}</td>
-                    <td style={{ textAlign: 'left', padding: '12px' }}>{client.sales || '0.00'}</td>
-                    <td style={{ textAlign: 'left', padding: '12px' }}>{client.receive || '0.00'}</td>
-                    <td style={{ textAlign: 'left', padding: '12px' }}>{client.sales_return || '0.00'}</td>
-                    <td style={{ textAlign: 'left', padding: '12px' }}>
-                      <input type="date" value={dateOf(client)} onChange={(e) => saveDate(client, e.target.value)} style={{ padding: '4px 6px', border: '1px solid #e2e8f0', borderRadius: '4px' }} />
+                  <tr key={client.id || index} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <td style={{ textAlign: 'left', padding: '8px 12px' }}>{index + 1}</td>
+                    <td style={{ textAlign: 'left', padding: '8px 12px' }}>Name: {client.name || client.company_name || '-'} | Phone: {client.phone || '-'}</td>
+                    <td style={{ textAlign: 'left', padding: '8px 12px' }}>{client.address || '-'}</td>
+                    <td style={{ textAlign: 'left', padding: '8px 12px' }}>{Number(client.previous_due || 0).toFixed(2)}</td>
+                    <td style={{ textAlign: 'left', padding: '8px 12px' }}>{Number(client.sales || 0).toFixed(2)}</td>
+                    <td style={{ textAlign: 'left', padding: '8px 12px' }}>{Number(client.receive || 0).toFixed(2)}</td>
+                    <td style={{ textAlign: 'left', padding: '8px 12px' }}>{Number(client.sales_return || 0).toFixed(2)}</td>
+                    <td style={{ textAlign: 'left', padding: '8px 12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <input type="date" value={dateOf(client)} readOnly style={{ padding: '2px 4px', border: '1px solid #e2e8f0', background: '#f8fafc', outline: 'none', fontSize: '12px', color: '#475569', borderRadius: '4px' }} />
+                        <button onClick={() => navigate('/crm/client-statement', { state: { clientId: client.id || client.uuid } })} style={{ background: '#059669', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>Statement</button>
+                      </div>
                     </td>
-                    <td style={{ textAlign: 'left', padding: '12px', fontWeight: 'bold', color: '#ef4444' }}>{client.due || client.previous_due || '0.00'} ৳</td>
+                    <td style={{ textAlign: 'left', padding: '8px 12px' }}>{Number(client.due || client.previous_due || 0).toFixed(2)}</td>
                   </tr>
                 ))
               )}
@@ -255,6 +279,7 @@ const DueCollectionDate = () => {
           </div>
           <div style={{ display: 'flex', border: '1px solid #e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
             <button style={{ padding: '6px 12px', background: 'var(--card-header-bg)', border: 'none', borderRight: '1px solid #e2e8f0', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '14px' }}>{t("Previous")}</button>
+            <button style={{ padding: '6px 12px', background: '#3b82f6', border: 'none', borderRight: '1px solid #e2e8f0', color: 'white', cursor: 'pointer', fontSize: '14px' }}>1</button>
             <button style={{ padding: '6px 12px', background: 'var(--card-header-bg)', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '14px' }}>{t("Next")}</button>
           </div>
         </div>

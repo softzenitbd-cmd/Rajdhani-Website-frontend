@@ -249,7 +249,7 @@ const ProductList = () => {
               ) : (
                 products.map((prod, index) => (
                   <tr key={prod.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: '12px' }}>
-                    <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.id}</td>
+                    <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
                     <td style={{ textAlign: 'left', padding: '8px', borderRight: '1px solid #e2e8f0' }}>
                       <div style={{ fontWeight: 'bold' }}>{prod.name}</div>
                       <div style={{ color: 'var(--text-muted)' }}>
