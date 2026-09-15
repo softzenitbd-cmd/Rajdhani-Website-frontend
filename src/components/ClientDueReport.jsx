@@ -142,7 +142,8 @@ const ClientDueReport = ({ mode = 'all', title = 'All Due Report' }) => {
 
           <TableToolbar entries={entries} setEntries={setEntries} total={filtered.length} excelData={excelData} excelName={title.replace(/\s+/g, '_')} onReload={() => load()} onReset={() => { setClientId(''); setGroupId(''); setSearch(''); }} />
 
-          <div className="table-responsive">
+          {/* Table View */}
+          <div className="table-responsive" style={{ width: '100%', overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
             <table className="custom-table" style={{ width: '100%', fontSize: '11px', textAlign: 'center' }}>
               <thead>
                 <tr style={{ background: '#94a3b8', color: 'white', textTransform: 'uppercase' }}>

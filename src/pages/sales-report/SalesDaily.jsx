@@ -173,24 +173,24 @@ const SalesDaily = () => {
             </div>
           </div>
 
-          {/* Table */}
-          <div className="table-responsive">
+          {/* Table View */}
+          <div className="table-responsive" style={{ width: '100%', overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
             <table className="custom-table" style={{ width: '100%', fontSize: '11px', textAlign: 'center' }}>
               <thead>
                 <tr style={{ background: '#94a3b8', color: 'white', textTransform: 'uppercase' }}>
-                  <th style={{ width: '40px', padding: '12px' }}>{t("SL ⇅")}</th>
-                  <th style={{ padding: '12px' }}>{t("ISSUED DATE ⇅")}</th>
-                  <th style={{ padding: '12px' }}>{t("VOUCHER NO ⇅")}</th>
-                  <th style={{ padding: '12px' }}>{t("CLIENT ⇅")}</th>
-                  <th style={{ padding: '12px' }}>{t("PRODUCT ⇅")}</th>
-                  <th style={{ padding: '12px' }}>{t("BARCODE ⇅")}</th>
-                  <th style={{ padding: '12px' }}>{t("UNIT ⇅")}</th>
-                  <th style={{ padding: '12px' }}>{t("QTY ⇅")}</th>
-                  <th style={{ padding: '12px' }}>{t("PRICE ⇅")}</th>
-                  <th style={{ padding: '12px' }}>{t("TOTAL ⇅")}</th>
-                  <th style={{ padding: '12px' }}>{t("RECEIVE ⇅")}</th>
-                  <th style={{ padding: '12px' }}>{t("DUE ⇅")}</th>
-                  <th style={{ padding: '12px' }}>{t("PROFIT ⇅")}</th>
+                  <th style={{ width: '40px', padding: '10px' }}>{t("SL ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("ISSUED DATE ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("VOUCHER NO ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("CLIENT ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("PRODUCT ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("BARCODE ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("UNIT ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("QTY ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("PRICE ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("TOTAL ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("RECEIVE ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("DUE ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("PROFIT ⇅")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -205,31 +205,31 @@ const SalesDaily = () => {
                 ) : (
                   reports.map((row, idx) => (
                     <tr key={row.id || idx}>
-                      <td style={{ padding: '12px' }}>{idx + 1}</td>
-                      <td style={{ padding: '12px' }}>{row.date || row.issued_date || '-'}</td>
-                      <td style={{ padding: '12px' }}>{row.voucher || row.invoice_id || '-'}</td>
-                      <td style={{ padding: '12px' }}>{row.client_name || row.client || '-'}</td>
-                      <td style={{ padding: '12px' }}>{row.product_name || row.product || '-'}</td>
-                      <td style={{ padding: '12px' }}>{row.barcode || '-'}</td>
-                      <td style={{ padding: '12px' }}>{row.unit_name || row.unit || t("PEACE")}</td>
-                      <td style={{ padding: '12px' }}>{row.qty || row.quantity || 0}</td>
-                      <td style={{ padding: '12px' }}>৳{Number(row.price || row.unit_price || 0).toFixed(2)}</td>
-                      <td style={{ padding: '12px' }}>৳{Number(row.total || row.total_amount || 0).toFixed(2)}</td>
-                      <td style={{ padding: '12px' }}>৳{Number(row.receive || row.receive_amount || 0).toFixed(2)}</td>
-                      <td style={{ padding: '12px' }}>৳{Number(row.due || row.due_amount || 0).toFixed(2)}</td>
-                      <td style={{ padding: '12px' }}>৳{Number(row.profit || 0).toFixed(2)}</td>
+                      <td style={{ padding: '8px 4px' }}>{idx + 1}</td>
+                      <td style={{ padding: '8px 4px' }}>{row.date || row.issued_date || '-'}</td>
+                      <td style={{ padding: '8px 4px' }}>{row.voucher || row.invoice_id || '-'}</td>
+                      <td style={{ padding: '8px 4px' }}>{row.client_name || row.client || '-'}</td>
+                      <td style={{ padding: '8px 4px' }}>{row.product_name || row.product || '-'}</td>
+                      <td style={{ padding: '8px 4px' }}>{row.barcode || '-'}</td>
+                      <td style={{ padding: '8px 4px' }}>{row.unit_name || row.unit || t("PEACE")}</td>
+                      <td style={{ padding: '8px 4px' }}>{row.qty || row.quantity || 0}</td>
+                      <td style={{ padding: '8px 4px' }}>৳{Number(row.price || row.unit_price || 0).toFixed(2)}</td>
+                      <td style={{ padding: '8px 4px' }}>৳{Number(row.total || row.total_amount || 0).toFixed(2)}</td>
+                      <td style={{ padding: '8px 4px' }}>৳{Number(row.receive || row.receive_amount || 0).toFixed(2)}</td>
+                      <td style={{ padding: '8px 4px' }}>৳{Number(row.due || row.due_amount || 0).toFixed(2)}</td>
+                      <td style={{ padding: '8px 4px' }}>৳{Number(row.profit || 0).toFixed(2)}</td>
                     </tr>
                   ))
                 )}
                 {/* Total Row */}
                 <tr style={{ fontWeight: 'bold', background: '#f8fafc' }}>
-                  <td colSpan="7" style={{ padding: '12px', textAlign: 'center' }}>{t('common.total')}</td>
-                  <td style={{ padding: '12px' }}>{totals.qty}</td>
-                  <td style={{ padding: '12px' }}>-</td>
-                  <td style={{ padding: '12px' }}>৳{totals.total.toFixed(2)}</td>
-                  <td style={{ padding: '12px' }}>৳{totals.receive.toFixed(2)}</td>
-                  <td style={{ padding: '12px' }}>৳{totals.due.toFixed(2)}</td>
-                  <td style={{ padding: '12px' }}>৳{totals.profit.toFixed(2)}</td>
+                  <td colSpan="7" style={{ padding: '10px', textAlign: 'center' }}>{t('common.total')}</td>
+                  <td style={{ padding: '10px' }}>{totals.qty}</td>
+                  <td style={{ padding: '10px' }}>-</td>
+                  <td style={{ padding: '10px' }}>৳{totals.total.toFixed(2)}</td>
+                  <td style={{ padding: '10px' }}>৳{totals.receive.toFixed(2)}</td>
+                  <td style={{ padding: '10px' }}>৳{totals.due.toFixed(2)}</td>
+                  <td style={{ padding: '10px' }}>৳{totals.profit.toFixed(2)}</td>
                 </tr>
               </tbody>
             </table>

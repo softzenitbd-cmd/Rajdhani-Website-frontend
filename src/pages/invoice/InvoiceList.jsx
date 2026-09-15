@@ -155,7 +155,7 @@ const InvoiceList = () => {
 
       <div className="card-body" style={{ padding: 0 }}>
         {/* Row 1 Filters: Select Client (50%) & Select Account (50%) */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '16px' }}>
+        <div className="filter-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
           <div>
             <select 
               name="client" 
@@ -185,7 +185,7 @@ const InvoiceList = () => {
         </div>
 
         {/* Row 2 Filters: From Date, To Date, Invoice No Search, Clear Filter Button */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '20px', marginBottom: '24px', alignItems: 'center' }}>
+        <div className="filter-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px', marginBottom: '20px', alignItems: 'center' }}>
           <div>
             <input 
               type="date" 
@@ -282,8 +282,8 @@ const InvoiceList = () => {
           </div>
         </div>
 
-        {/* Invoice Table matching screenshot */}
-        <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1', borderRadius: '2px' }}>
+        {/* Desktop Table View */}
+        <div className="desktop-table-view" style={{ overflowX: 'auto', border: '1px solid #cbd5e1', borderRadius: '2px' }}>
           <table className="custom-table" style={{ width: '100%', minWidth: '1200px', borderCollapse: 'collapse', fontSize: '12px' }}>
             <thead>
               <tr style={{ background: '#64748b', color: 'white' }}>

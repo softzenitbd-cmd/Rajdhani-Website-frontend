@@ -46,8 +46,8 @@ const ClientImageUploader = ({ client, onUploadSuccess }) => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-      <div style={{ width: '60px', height: '60px', borderRadius: '50%', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', background: '#f8fafc' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+      <div className="crm-compact-avatar">
         {preview ? (
           <img src={preview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
@@ -57,21 +57,19 @@ const ClientImageUploader = ({ client, onUploadSuccess }) => {
           </div>
         )}
       </div>
-      <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-        <label style={{ 
-          background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', 
-          padding: '4px 8px', fontSize: '10px', cursor: 'pointer', display: 'inline-block', fontWeight: 'bold' 
-        }}>
-          {t("Choose a file")}
+      <div className="crm-avatar-btn-group">
+        <label className="crm-avatar-btn" style={{ background: '#3b82f6', color: 'white' }}>
+          {t("Choose")}
           <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
         </label>
         <button 
           onClick={handleSave} 
           disabled={!selectedFile || uploading}
+          className="crm-avatar-btn"
           style={{ 
             background: (!selectedFile || uploading) ? '#94a3b8' : '#64748b', 
-            color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', 
-            fontSize: '10px', cursor: (!selectedFile || uploading) ? 'not-allowed' : 'pointer', fontWeight: 'bold' 
+            color: 'white',
+            cursor: (!selectedFile || uploading) ? 'not-allowed' : 'pointer'
           }}
         >
           {uploading ? t("Saving") : t("Save")}
@@ -371,22 +369,22 @@ const ClientList = () => {
         </div>
 
         {/* Table Controls */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
+        <div className="table-controls-wrapper" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ fontSize: '14px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
             {t("Show")} 
-            <select style={{ margin: '0 8px', padding: '4px', border: '1px solid var(--secondary)', borderRadius: '4px' }}>
+            <select style={{ margin: '0 4px', padding: '4px', border: '1px solid var(--secondary)', borderRadius: '4px' }}>
               <option>25</option>
             </select>
             {t("entries")}
           </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="btn" onClick={handleExportExcel} style={{ background: '#059669', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', cursor: 'pointer' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button className="btn" onClick={handleExportExcel} style={{ background: '#059669', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
               <FileSpreadsheet size={14} style={{ marginRight: '6px' }} /> {t("Excel")}
             </button>
-            <button className="btn" onClick={() => window.print()} style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
+            <button className="btn" onClick={() => window.print()} style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center' }}>
               <Printer size={14} style={{ marginRight: '6px' }} /> {t("Print")}
             </button>
-            <button onClick={() => window.location.reload()} className="btn" style={{ background: '#4318ff', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>
+            <button onClick={() => window.location.reload()} className="btn" style={{ background: '#4318ff', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center' }}>
               <RotateCcw size={14} style={{ marginRight: '6px' }} /> {t("Reset")}
             </button>
           </div>
@@ -408,16 +406,16 @@ const ClientList = () => {
           }} 
         />
 
-        {/* Table */}
-        <div style={{ overflowX: 'auto', border: '1px solid var(--secondary)', borderRadius: '8px' }}>
-          <table className="custom-table">
+        {/* Main Table */}
+        <div style={{ width: '100%', overflowX: 'hidden', border: '1px solid #d1d5db', borderRadius: '4px', background: 'white' }}>
+          <table className="custom-table crm-compact-table">
             <thead>
-              <tr>
-                <th width="50">{t("ID NO")}</th>
-                <th width="120" style={{ textAlign: 'center' }}>{t("IMAGE")}</th>
-                <th width="300">{t("CLIENT DETAILS")}</th>
-                <th>{t("DETAILS")}</th>
-                <th width="100">{t("ACTION")}</th>
+              <tr style={{ background: '#718096', color: 'white' }}>
+                <th className="col-id">{t("ID NO")}</th>
+                <th className="col-image">{t("IMAGE")}</th>
+                <th className="col-details">{t("CLIENT DETAILS")}</th>
+                <th className="col-subtable">{t("DETAILS")}</th>
+                <th className="col-action">{t("ACTION")}</th>
               </tr>
             </thead>
             <tbody>
@@ -427,16 +425,16 @@ const ClientList = () => {
                 <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>{t("No clients found.")}</td></tr>
               ) : (
                 filteredClients.map((client, index) => (
-                  <tr key={client.id || client.uuid || index}>
-                    <td style={{ verticalAlign: 'top', paddingTop: '16px', textAlign: 'center' }}>{index + 1}</td>
+                  <tr key={client.id || client.uuid || index} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <td className="col-id" style={{ textAlign: 'center', fontWeight: 'bold' }}>{index + 1}</td>
                     
-                    <td style={{ verticalAlign: 'top', paddingTop: '16px' }}>
+                    <td className="col-image">
                       <ClientImageUploader client={client} onUploadSuccess={fetchClients} />
                     </td>
                     
-                    <td style={{ verticalAlign: 'top', paddingTop: '16px', fontSize: '13px' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '80px 10px 1fr', gap: '4px', marginBottom: '4px' }}>
-                        <div style={{ fontWeight: '600' }}>{t("Name")}</div><div>:</div><div>{client.name || (client.details && client.details.name)}</div>
+                    <td className="col-details">
+                      <div className="crm-details-grid">
+                        <div style={{ fontWeight: '600' }}>{t("Name")}</div><div>:</div><div style={{ fontWeight: 'bold' }}>{client.name || (client.details && client.details.name)}</div>
                         <div style={{ fontWeight: '600' }}>{t("Phone")}</div><div>:</div><div>{client.phone || (client.details && client.details.phone)}</div>
                         {(client.group || (client.details && client.details.group)) && (
                           <>
@@ -455,26 +453,28 @@ const ClientList = () => {
                       </div>
                     </td>
                     
-                    <td style={{ verticalAlign: 'top', padding: '0' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                    <td className="col-subtable" style={{ padding: 0 }}>
+                      <table className="crm-subtable">
                         <tbody>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Previous Due")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'previous_due', 'opening_due', 'prevDue').toFixed(2)}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Bill")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'sales', 'sales_amount', 'total_sales', 'bill').toFixed(2)}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Total Bill")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{(num(client, 'total_bill') || (num(client, 'previous_due', 'opening_due', 'prevDue') + num(client, 'sales', 'sales_amount', 'total_sales', 'bill'))).toFixed(2)}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Receive")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'collection', 'receive', 'payment', 'paid', 'total_receive').toFixed(2)}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Sales Return")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'sales_return', 'return_amount').toFixed(2)}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Money Return")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'money_return', 'return').toFixed(2)}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}><span style={{ background: '#ef4444', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>{t("Due")}</span></td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0', fontWeight: 'bold' }}>{num(client, 'due', 'current_due', 'balance').toFixed(2)}</td></tr>
+                          <tr className="subtable-row"><td>{t("Previous Due")}</td><td>{num(client, 'previous_due', 'opening_due', 'prevDue').toFixed(2)}</td></tr>
+                          <tr className="subtable-row"><td>{t("Bill")}</td><td>{num(client, 'sales', 'sales_amount', 'total_sales', 'bill').toFixed(2)}</td></tr>
+                          <tr className="subtable-row"><td>{t("Total Bill")}</td><td>{(num(client, 'total_bill') || (num(client, 'previous_due', 'opening_due', 'prevDue') + num(client, 'sales', 'sales_amount', 'total_sales', 'bill'))).toFixed(2)}</td></tr>
+                          <tr className="subtable-row"><td>{t("Receive")}</td><td style={{ color: '#059669', fontWeight: '600' }}>{num(client, 'collection', 'receive', 'payment', 'paid', 'total_receive').toFixed(2)}</td></tr>
+                          <tr className="subtable-row"><td>{t("Sales Return")}</td><td>{num(client, 'sales_return', 'return_amount').toFixed(2)}</td></tr>
+                          <tr className="subtable-row"><td>{t("Money Return")}</td><td>{num(client, 'money_return', 'return').toFixed(2)}</td></tr>
+                          <tr className="subtable-row" style={{ background: '#fef2f2' }}>
+                            <td><span style={{ background: '#ef4444', color: 'white', padding: '1px 4px', borderRadius: '3px', fontWeight: 'bold' }}>{t("Due")}</span></td>
+                            <td style={{ fontWeight: 'bold', color: '#dc2626' }}>{num(client, 'due', 'current_due', 'balance').toFixed(2)}</td>
+                          </tr>
                           <tr 
-                            style={{ cursor: 'pointer', transition: 'background 0.2s' }} 
-                            onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
-                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                            className="subtable-row"
+                            style={{ cursor: 'pointer' }}
                             onClick={() => setDateModalClient(client)}
                           >
-                            <td style={{ padding: '6px 12px', borderBottom: '1px solid transparent' }}>{t("Collection Date")}</td>
-                            <td style={{ padding: '6px 12px', borderLeft: '1px solid #e2e8f0', borderBottom: '1px solid transparent' }}>
-                              <Calendar size={12} style={{ marginRight: '4px', display: 'inline-block', verticalAlign: 'middle', color: '#2563eb' }}/> 
-                              <span style={{ color: '#2563eb', fontWeight: '600', borderBottom: '1px dashed #2563eb' }}>
+                            <td>{t("Collection Date")}</td>
+                            <td>
+                              <Calendar size={10} style={{ marginRight: '2px', display: 'inline-block', verticalAlign: 'middle', color: '#2563eb' }}/> 
+                              <span style={{ color: '#2563eb', fontWeight: '600' }}>
                                 {(client.collection_date || client.due_date) ? new Date(client.collection_date || client.due_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : t('Set Date')}
                               </span>
                             </td>
@@ -483,31 +483,38 @@ const ClientList = () => {
                       </table>
                     </td>
                     
-                    <td style={{ verticalAlign: 'top', paddingTop: '16px', position: 'relative' }}>
-                      <button 
-                        onClick={() => toggleAction(client.id || client.uuid)}
-                      className="btn" 
-                      style={{ background: '#05cd99', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', width: '100%', justifyContent: 'space-between' }}
-                    >
-                      {t("Action")} <ChevronDown size={14} />
-                    </button>
-                    
-                    {activeAction === (client.id || client.uuid) && (
-                      <div style={{ position: 'absolute', top: '50px', right: '16px', background: 'white', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', borderRadius: '8px', zIndex: 10, width: '160px', padding: '8px 0', border: '1px solid #e2e8f0' }}>
-                        <div onClick={() => handleDeactivate(client.id || client.uuid, client.status)} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item">
-                          {(client.status === false || client.status === 'Deactivated') ? t("✅ Activate") : t("🚫 Deactivate")}
-                        </div>
-                        <div onClick={() => { setViewClient(client); setActiveAction(null); }} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>👁</span> {t("View")}</div>
-                        <div onClick={() => { navigate('/account/receive-create', { state: { clientId: client.id || client.uuid } }); setActiveAction(null); }} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>⬇️</span> {t("Receive")}</div>
-                        <div onClick={() => navigate(`/crm/client-edit/${client.id || client.uuid}`)} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>✏️</span> {t("Edit")}</div>
-                        <div onClick={() => handleDelete(client.id || client.uuid)} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', color: '#ef4444' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>🗑</span> {t("Delete")}</div>
-                        <div onClick={() => navigate('/crm/client-statement')} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>📄</span> {t("View Statement")}</div>
+                    <td className="col-action" style={{ position: 'relative' }}>
+                      <div className="crm-action-col">
+                        <button 
+                          onClick={() => navigate('/account/receive-create', { state: { clientId: client.id || client.uuid } })}
+                          style={{ background: '#475569', color: 'white', border: 'none', borderRadius: '3px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          {t("Update Wallet")}
+                        </button>
+                        <button 
+                          onClick={() => toggleAction(client.id || client.uuid)}
+                          style={{ background: '#05cd99', color: 'white', border: 'none', borderRadius: '3px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          {t("Action")} <ChevronDown size={11} />
+                        </button>
                       </div>
-                    )}
-                  </td>
-                </tr>
-              ))
-            )}
+                    
+                      {activeAction === (client.id || client.uuid) && (
+                        <div style={{ position: 'absolute', top: '45px', right: '0', background: 'white', boxShadow: '0 10px 25px rgba(0,0,0,0.15)', borderRadius: '6px', zIndex: 100, width: '150px', padding: '6px 0', border: '1px solid #e2e8f0' }}>
+                          <div onClick={() => handleDeactivate(client.id || client.uuid, client.status)} style={{ padding: '6px 12px', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #f1f5f9' }}>
+                            {(client.status === false || client.status === 'Deactivated') ? t("✅ Activate") : t("🚫 Deactivate")}
+                          </div>
+                          <div onClick={() => { setViewClient(client); setActiveAction(null); }} style={{ padding: '6px 12px', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #f1f5f9' }}><span style={{ width: '14px', textAlign: 'center' }}>👁</span> {t("View")}</div>
+                          <div onClick={() => { navigate('/account/receive-create', { state: { clientId: client.id || client.uuid } }); setActiveAction(null); }} style={{ padding: '6px 12px', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #f1f5f9' }}><span style={{ width: '14px', textAlign: 'center' }}>⬇️</span> {t("Receive")}</div>
+                          <div onClick={() => navigate(`/crm/client-edit/${client.id || client.uuid}`)} style={{ padding: '6px 12px', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #f1f5f9' }}><span style={{ width: '14px', textAlign: 'center' }}>✏️</span> {t("Edit")}</div>
+                          <div onClick={() => handleDelete(client.id || client.uuid)} style={{ padding: '6px 12px', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', color: '#ef4444', borderBottom: '1px solid #f1f5f9' }}><span style={{ width: '14px', textAlign: 'center' }}>🗑</span> {t("Delete")}</div>
+                          <div onClick={() => navigate('/crm/client-statement')} style={{ padding: '6px 12px', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '14px', textAlign: 'center' }}>📄</span> {t("View Statement")}</div>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

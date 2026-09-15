@@ -68,6 +68,11 @@ const AppContent = () => {
     };
   }, []);
 
+  // Auto close sidebar whenever route/pathname changes
+  React.useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [location.pathname]);
+
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };

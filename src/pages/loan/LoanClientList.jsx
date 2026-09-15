@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { loanService } from '../../services/loanService';
 import QuickEditModal from '../../components/QuickEditModal';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 import { exportVisibleTable } from '../../utils/tableExport';
 
 const LoanClientList = () => {
@@ -18,9 +19,16 @@ const LoanClientList = () => {
   const [editing, setEditing] = useState(null);
   const [viewing, setViewing] = useState(null);
   const toast = useToast();
+  const confirm = useConfirm();
 
   const handleDelete = async (client) => {
-    if (!window.confirm(t("Delete loan client \"{{v0}}\"?", { v0: client.name }))) return;
+    const isOk = await confirm({
+      title: t("Delete Loan Client"),
+      message: t("Are you sure you want to delete \"{{v0}}\"?", { v0: client.name }),
+      confirmText: t("Delete"),
+      variant: 'danger',
+    });
+    if (!isOk) return;
     try {
       await loanService.deleteLoanAccount(client.id || client.uuid);
       toast.success(t("Loan client deleted"));
@@ -109,7 +117,7 @@ const LoanClientList = () => {
         </div>
 
         {/* Table Controls */}
-        <div className="table-controls" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div className="table-controls-wrapper" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
           <div className="table-controls-left" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#000' }}>
             {t("Show")} 
             <select className="input-outline" value={entries} onChange={(e) => setEntries(Number(e.target.value))} style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #d1d5db' }}>
@@ -117,102 +125,92 @@ const LoanClientList = () => {
             </select> 
             {t("entries")}
           </div>
-          <div className="table-controls-right" style={{ display: 'flex', gap: '4px' }}>
+          <div className="table-controls-right" style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             <button onClick={() => exportVisibleTable('xlsx')} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>{t("Excel")}</button>
             <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }} onClick={() => window.print()}><Printer size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.print')}</button>
             <button onClick={() => window.location.reload()} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}><RotateCcw size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.reset')}</button>
           </div>
         </div>
 
-        {/* Main Data Table */}
-        <div style={{ overflowX: 'auto', paddingBottom: '100px' }}>
-          <table className="custom-table" style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #d1d5db' }}>
+        {/* Main Table */}
+        <div style={{ width: '100%', overflowX: 'hidden', border: '1px solid #d1d5db', borderRadius: '4px', background: 'white' }}>
+          <table className="custom-table crm-compact-table">
             <thead>
-              <tr>
-                <th style={{ background: 'var(--secondary)', color: 'white', padding: '12px', textAlign: 'center', width: '60px', borderRight: '1px solid #d1d5db' }}>{t("ID NO")}</th>
-                <th style={{ background: 'var(--secondary)', color: 'white', padding: '12px', textAlign: 'left', borderRight: '1px solid #d1d5db' }}>{t("CLIENT DETAILS")}</th>
-                <th style={{ background: 'var(--secondary)', color: 'white', padding: '12px', textAlign: 'left', width: '280px', borderRight: '1px solid #d1d5db' }}>{t("DETAILS")}</th>
-                <th style={{ background: 'var(--secondary)', color: 'white', padding: '12px', textAlign: 'center', width: '100px' }}>{t("ACTION")}</th>
+              <tr style={{ background: '#718096', color: 'white' }}>
+                <th className="col-id">{t("ID NO")}</th>
+                <th className="col-details">{t("CLIENT DETAILS")}</th>
+                <th className="col-subtable">{t("DETAILS")}</th>
+                <th className="col-action">{t("ACTION")}</th>
               </tr>
             </thead>
             <tbody>
-              {visibleClients.map((client, index) => (
-                <tr key={client.id || index} style={{ borderBottom: '1px solid #d1d5db' }}>
-                  
-                  {/* ID Column */}
-                  <td style={{ padding: '16px', textAlign: 'center', borderRight: '1px solid #d1d5db', verticalAlign: 'top' }}>
-                    {client.id ? client.id.toString().slice(-5) : index + 1}
-                  </td>
-                  
-                  {/* Client Details Column */}
-                  <td style={{ padding: '16px', borderRight: '1px solid #d1d5db', verticalAlign: 'top' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '80px 10px 1fr', gap: '4px', fontSize: '13px', color: '#000', fontWeight: '600' }}>
-                      <div>{t("Name")}</div><div>:</div><div>{client.name}</div>
-                      <div>{t("Phone")}</div><div>:</div><div>{client.phone}</div>
-                      {client.address && <><div>{t("Address")}</div><div>:</div><div>{client.address}</div></>}
-                      <div>{t("Status")}</div><div>:</div><div>{client.status === 1 ? t("Activated") : t("Deactivated")}</div>
-                    </div>
-                  </td>
-
-                  {/* Details Column (Nested Table) */}
-                  <td style={{ padding: '16px', borderRight: '1px solid #d1d5db', verticalAlign: 'top' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', color: '#000', fontWeight: '500' }}>
-                      <tbody>
-                        <tr>
-                          <td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Previous Due")}</td>
-                          <td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{client.previous_due || '0.00'} ৳</td>
-                        </tr>
-                        <tr>
-                          <td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', fontWeight: 'bold' }}>{t("Max Limit")}</td>
-                          <td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0', fontWeight: 'bold' }}>{client.max_due_limit || '0.00'} ৳</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </td>
-
-                  {/* Action Column */}
-                  <td style={{ padding: '16px', textAlign: 'center', verticalAlign: 'top', position: 'relative' }}>
-                    <button 
-                      onClick={() => toggleAction(client.id)}
-                      className="btn-green" 
-                      style={{ padding: '6px 12px', fontSize: '13px', margin: '0 auto', display: 'flex', alignItems: 'center' }}
-                    >
-                      {t("Action")} <ChevronDown size={14} style={{ marginLeft: '4px' }} />
-                    </button>
-                    {activeAction === client.id && (
-                      <div style={{ 
-                        position: 'absolute', 
-                        top: '50px', 
-                        right: '50%',
-                        transform: 'translateX(50%)',
-                        background: 'white', 
-                        border: '1px solid var(--secondary)', 
-                        borderRadius: '8px', 
-                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', 
-                        width: '160px',
-                        zIndex: 100,
-                        textAlign: 'left'
-                      }}>
-                        <div className="action-item" onClick={() => { setViewing(client); setActiveAction(null); }} style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}><Eye size={14} /> {t("View")}</div>
-                        <div className="action-item" onClick={() => { setEditing(client); setActiveAction(null); }} style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}><Edit size={14} /> {t("Edit")}</div>
-                        <div className="action-item" onClick={() => { handleDelete(client); setActiveAction(null); }} style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}><Trash2 size={14} /> {t("Delete")}</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }} onClick={() => navigate('/loan/payment-create', { state: { clientId: client.id || client.uuid } })}><DollarSign size={14} /> {t("Payment")}</div>
-                        <div className="action-item" onClick={() => { navigate('/loan/statement', { state: { clientId: client.id || client.uuid } }); setActiveAction(null); }} style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}><FileText size={14} /> {t("Statement")}</div>
+              {loading ? (
+                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '24px' }}>{t("Loading loan clients...")}</td></tr>
+              ) : visibleClients.length === 0 ? (
+                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '24px' }}>{t("No loan clients found.")}</td></tr>
+              ) : (
+                visibleClients.map((client, index) => (
+                  <tr key={client.id || index} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <td className="col-id" style={{ textAlign: 'center', fontWeight: 'bold' }}>
+                      {client.id ? client.id.toString().slice(-5) : index + 1}
+                    </td>
+                    <td className="col-details">
+                      <div className="crm-details-grid">
+                        <div style={{ fontWeight: '600' }}>{t("Name")}</div><div>:</div><div style={{ fontWeight: 'bold' }}>{client.name}</div>
+                        <div style={{ fontWeight: '600' }}>{t("Phone")}</div><div>:</div><div>{client.phone || '-'}</div>
+                        {client.address && (
+                          <>
+                            <div style={{ fontWeight: '600' }}>{t("Address")}</div><div>:</div><div>{client.address}</div>
+                          </>
+                        )}
+                        <div style={{ fontWeight: '600' }}>{t("Status")}</div><div>:</div><div>{client.status === 1 ? t("Activated") : t("Deactivated")}</div>
                       </div>
-                    )}
-                  </td>
-                  
-                </tr>
-              ))}
-              {loading && (
-                <tr>
-                  <td colSpan="4" style={{ textAlign: 'center', padding: '24px' }}>{t("Loading loan clients...")}</td>
-                </tr>
-              )}
-              {!loading && loanClients.length === 0 && (
-                <tr>
-                  <td colSpan="4" style={{ textAlign: 'center', padding: '24px' }}>{t("No loan clients found.")}</td>
-                </tr>
+                    </td>
+                    <td className="col-subtable" style={{ padding: 0 }}>
+                      <table className="crm-subtable">
+                        <tbody>
+                          <tr>
+                            <td>{t("Previous Due")}</td>
+                            <td style={{ color: '#dc2626', fontWeight: 'bold' }}>{client.previous_due || '0.00'} ৳</td>
+                          </tr>
+                          <tr>
+                            <td>{t("Max Limit")}</td>
+                            <td style={{ color: '#059669', fontWeight: 'bold' }}>{client.max_due_limit || '0.00'} ৳</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                    <td className="col-action" style={{ position: 'relative' }}>
+                      <button 
+                        onClick={() => toggleAction(client.id)}
+                        className="btn" 
+                        style={{ background: 'var(--success)', color: 'white', padding: '4px 6px', fontSize: '9px', borderRadius: '3px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '2px', width: '100%', fontWeight: 'bold' }}
+                      >
+                        {t("Action")} <ChevronDown size={11} />
+                      </button>
+                      {activeAction === client.id && (
+                        <div style={{ 
+                          position: 'absolute', 
+                          top: '36px', 
+                          right: '0',
+                          background: 'white', 
+                          border: '1px solid #e2e8f0', 
+                          borderRadius: '6px', 
+                          boxShadow: '0 10px 25px rgba(0,0,0,0.15)', 
+                          width: '150px',
+                          zIndex: 100,
+                          textAlign: 'left'
+                        }}>
+                          <div className="action-item" onClick={() => { setViewing(client); setActiveAction(null); }} style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px', borderBottom: '1px solid #f1f5f9' }}><Eye size={12} /> {t("View")}</div>
+                          <div className="action-item" onClick={() => { setEditing(client); setActiveAction(null); }} style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px', borderBottom: '1px solid #f1f5f9' }}><Edit size={12} /> {t("Edit")}</div>
+                          <div className="action-item" onClick={() => { handleDelete(client); setActiveAction(null); }} style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px', color: '#ef4444', borderBottom: '1px solid #f1f5f9' }}><Trash2 size={12} /> {t("Delete")}</div>
+                          <div className="action-item" style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px', borderBottom: '1px solid #f1f5f9' }} onClick={() => navigate('/loan/payment-create', { state: { clientId: client.id || client.uuid } })}><DollarSign size={12} /> {t("Payment")}</div>
+                          <div className="action-item" onClick={() => { navigate('/loan/statement', { state: { clientId: client.id || client.uuid } }); setActiveAction(null); }} style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px' }}><FileText size={12} /> {t("Statement")}</div>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

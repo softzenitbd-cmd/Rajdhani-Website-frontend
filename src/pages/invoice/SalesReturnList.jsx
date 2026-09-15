@@ -169,7 +169,7 @@ const SalesReturnList = () => {
 
       <div className="card-body" style={{ padding: 0 }}>
         {/* Row 1 Filters: Select Client & Select Account */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '16px' }}>
+        <div className="filter-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
           <div>
             <select 
               name="client" 
@@ -199,7 +199,7 @@ const SalesReturnList = () => {
         </div>
 
         {/* Row 2 Filters: From Date, To Date, Invoice No Search, Clear Filter Button */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '20px', marginBottom: '24px', alignItems: 'center' }}>
+        <div className="filter-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px', marginBottom: '20px', alignItems: 'center' }}>
           <div>
             <input 
               type="date" 

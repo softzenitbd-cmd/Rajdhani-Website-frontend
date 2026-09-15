@@ -39,7 +39,7 @@ const CalculatorPopup = ({ onClose }) => {
         style={{ width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '4px', textAlign: 'right', fontSize: '16px', marginBottom: '4px' }}
       />
       <div style={{ textAlign: 'right', fontSize: '18px', fontWeight: 'bold', minHeight: '24px', marginBottom: '8px', color: '#4f46e5' }}>{result}</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
+      <div className="calc-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
         {keys.map((k) => (
           <button key={k} onClick={() => setExpr((p) => p + k)} style={{ padding: '8px 0', border: '1px solid #e2e8f0', background: '#f8fafc', borderRadius: '4px', cursor: 'pointer' }}>{k}</button>
         ))}
@@ -159,7 +159,7 @@ const Header = ({ toggleSidebar }) => {
     >
       <div className="header-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
         <Menu className="mobile-menu-btn" size={24} style={{ cursor: 'pointer' }} onClick={toggleSidebar} />
-        <span style={{ fontSize: '18px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{companyName || t('app_name')}</span>
+        <span style={{ fontSize: 'clamp(14px, 2vw, 18px)', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{companyName || t('app_name')}</span>
       </div>
       
       <div className="header-nav-scroll" style={{ 
@@ -198,7 +198,7 @@ const Header = ({ toggleSidebar }) => {
         ))}
       </div>
 
-      <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+      <div className="top-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
         <button 
           onClick={toggleLanguage}
           style={{ 

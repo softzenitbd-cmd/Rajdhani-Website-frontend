@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import staffApi from '../../api/staffApi';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 import { toList, fmtDate, nameOf, money } from '../../utils/apiHelpers';
 import { useTranslation } from 'react-i18next';
 
@@ -15,6 +16,7 @@ const StaffList = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
+  const confirm = useConfirm();
 
   const [rows, setRows] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -45,7 +47,13 @@ const StaffList = () => {
 
   const handleDelete = async (row) => {
     const rid = row.id || row.uuid;
-    if (!window.confirm(t("Delete staff \"{{v0}}\"?", { v0: row.name || row.full_name }))) return;
+    const isOk = await confirm({
+      title: t("Delete Staff"),
+      message: t("Delete staff \"{{v0}}\"?", { v0: row.name || row.full_name }),
+      confirmText: t("Delete"),
+      variant: 'danger',
+    });
+    if (!isOk) return;
     try {
       await staffApi.deleteStaff(rid);
       toast.success(t("Staff deleted"));
@@ -88,7 +96,7 @@ const StaffList = () => {
           <PrintHeader />
 
           <form
-            className="no-print"
+            className="no-print filter-grid"
             onSubmit={(e) => { e.preventDefault(); load(); }}
             style={{ display: 'grid', gridTemplateColumns: '2fr 1fr auto', gap: '12px', marginBottom: '16px', alignItems: 'end' }}
           >
@@ -103,28 +111,29 @@ const StaffList = () => {
                 {departments.map((d) => <option key={d.id || d.uuid} value={d.id || d.uuid}>{d.name}</option>)}
               </select>
             </div>
-            <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '10px 18px', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '10px 18px', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'center' }}>
               <Search size={14} /> {t("Filter")}
             </button>
           </form>
 
           <TableToolbar entries={entries} setEntries={setEntries} total={rows.length} excelData={excelData} excelName="Staff_List" onReload={() => load()} onReset={reset} />
 
-          <div className="table-responsive">
-            <table className="custom-table" style={{ width: '100%', fontSize: '12px' }}>
+          {/* Table View */}
+          <div className="table-responsive" style={{ width: '100%', overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
+            <table className="custom-table" style={{ width: '100%', fontSize: '11px' }}>
               <thead>
-                <tr>
-                  <th style={{ width: '50px', textAlign: 'center' }}>{t("SL")}</th>
-                  <th style={{ textAlign: 'center' }}>{t("IMAGE")}</th>
-                  <th>{t("NAME")}</th>
-                  <th>{t("PHONE")}</th>
-                  <th>{t("E-MAIL")}</th>
-                  <th>{t("DEPARTMENT")}</th>
-                  <th>{t("DESIGNATION")}</th>
-                  <th style={{ textAlign: 'right' }}>{t("SALARY")}</th>
-                  <th>{t("JOINING")}</th>
-                  <th style={{ textAlign: 'center' }}>{t("STATUS")}</th>
-                  <th className="action-column" style={{ textAlign: 'center' }}>{t("ACTION")}</th>
+                <tr style={{ background: '#718096', color: 'white' }}>
+                  <th style={{ width: '40px', textAlign: 'center', padding: '8px 4px' }}>{t("SL")}</th>
+                  <th style={{ textAlign: 'center', padding: '8px 4px' }}>{t("IMAGE")}</th>
+                  <th style={{ padding: '8px 6px' }}>{t("NAME")}</th>
+                  <th style={{ padding: '8px 6px' }}>{t("PHONE")}</th>
+                  <th style={{ padding: '8px 6px' }}>{t("E-MAIL")}</th>
+                  <th style={{ padding: '8px 6px' }}>{t("DEPARTMENT")}</th>
+                  <th style={{ padding: '8px 6px' }}>{t("DESIGNATION")}</th>
+                  <th style={{ textAlign: 'right', padding: '8px 6px' }}>{t("SALARY")}</th>
+                  <th style={{ padding: '8px 6px' }}>{t("JOINING")}</th>
+                  <th style={{ textAlign: 'center', padding: '8px 4px' }}>{t("STATUS")}</th>
+                  <th className="action-column" style={{ textAlign: 'center', padding: '8px 4px' }}>{t("ACTION")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -136,33 +145,33 @@ const StaffList = () => {
                   visible.map((s, i) => {
                     const active = isActive(s);
                     return (
-                      <tr key={s.id || s.uuid || i}>
-                        <td style={{ textAlign: 'center', padding: '10px' }}>{i + 1}</td>
-                        <td style={{ textAlign: 'center', padding: '10px' }}>
+                      <tr key={s.id || s.uuid || i} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ textAlign: 'center', padding: '6px 4px' }}>{i + 1}</td>
+                        <td style={{ textAlign: 'center', padding: '6px 4px' }}>
                           {(s.image || s.user?.image) ? (
-                            <img src={s.image || s.user?.image} alt="" style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }} />
+                            <img src={s.image || s.user?.image} alt="" style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }} />
                           ) : (
-                            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#e0e7ff', color: '#4338ca', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                            <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#e0e7ff', color: '#4338ca', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '11px' }}>
                               {String(s.full_name || s.user?.full_name || s.name || '?').charAt(0).toUpperCase()}
                             </div>
                           )}
                         </td>
-                        <td style={{ padding: '10px', fontWeight: 600 }}>{s.full_name || s.user?.full_name || s.name}</td>
-                        <td style={{ padding: '10px' }}>{s.phone_number || s.user?.phone_number || s.phone || '-'}</td>
-                        <td style={{ padding: '10px' }}>{s.email || '-'}</td>
-                        <td style={{ padding: '10px' }}>{nameOf(s.department_name || s.department_details || s.department)}</td>
-                        <td style={{ padding: '10px' }}>{nameOf(s.designation_name || s.designation_details || s.designation)}</td>
-                        <td style={{ padding: '10px', textAlign: 'right' }}>{(s.basic_salary ?? s.salary) !== undefined && (s.basic_salary ?? s.salary) !== null ? money(s.basic_salary ?? s.salary) : '-'}</td>
-                        <td style={{ padding: '10px' }}>{fmtDate(s.joining_date || s.created_at)}</td>
-                        <td style={{ padding: '10px', textAlign: 'center' }}>
-                          <span style={{ background: active ? '#dcfce7' : '#fee2e2', color: active ? '#166534' : '#991b1b', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>
+                        <td style={{ padding: '6px', fontWeight: 600 }}>{s.full_name || s.user?.full_name || s.name}</td>
+                        <td style={{ padding: '6px' }}>{s.phone_number || s.user?.phone_number || s.phone || '-'}</td>
+                        <td style={{ padding: '6px' }}>{s.email || '-'}</td>
+                        <td style={{ padding: '6px' }}>{nameOf(s.department_name || s.department_details || s.department)}</td>
+                        <td style={{ padding: '6px' }}>{nameOf(s.designation_name || s.designation_details || s.designation)}</td>
+                        <td style={{ padding: '6px', textAlign: 'right' }}>{(s.basic_salary ?? s.salary) !== undefined && (s.basic_salary ?? s.salary) !== null ? money(s.basic_salary ?? s.salary) : '-'}</td>
+                        <td style={{ padding: '6px' }}>{fmtDate(s.joining_date || s.created_at)}</td>
+                        <td style={{ padding: '6px', textAlign: 'center' }}>
+                          <span style={{ background: active ? '#dcfce7' : '#fee2e2', color: active ? '#166534' : '#991b1b', padding: '2px 6px', borderRadius: '3px', fontSize: '10px', fontWeight: 'bold' }}>
                             {active ? t("Active") : t("Inactive")}
                           </span>
                         </td>
-                        <td className="action-column" style={{ padding: '10px' }}>
-                          <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                            <button onClick={() => navigate(`/staff/edit/${s.id || s.uuid}`)} title={t("Edit")} style={{ background: 'var(--info)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}><Pencil size={14} /></button>
-                            <button onClick={() => handleDelete(s)} title={t("Delete")} style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}><Trash2 size={14} /></button>
+                        <td className="action-column" style={{ padding: '6px' }}>
+                          <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                            <button onClick={() => navigate(`/staff/edit/${s.id || s.uuid}`)} title={t("Edit")} style={{ background: 'var(--info)', color: 'white', border: 'none', padding: '4px 6px', borderRadius: '3px', cursor: 'pointer' }}><Pencil size={12} /></button>
+                            <button onClick={() => handleDelete(s)} title={t("Delete")} style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '4px 6px', borderRadius: '3px', cursor: 'pointer' }}><Trash2 size={12} /></button>
                           </div>
                         </td>
                       </tr>

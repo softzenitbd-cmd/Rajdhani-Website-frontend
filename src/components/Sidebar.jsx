@@ -184,6 +184,13 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
     );
   };
 
+  const handleNavClick = (e) => {
+    const targetLink = e.target.closest('a');
+    if (targetLink && closeSidebar) {
+      closeSidebar();
+    }
+  };
+
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`} style={{ overflowY: 'auto' }}>
       {/* Top Banner & Profile Container */}
@@ -235,7 +242,10 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
         {/* Quick Icon Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
           <button
-            onClick={() => navigate('/settings/company-information')}
+            onClick={() => {
+              if (closeSidebar) closeSidebar();
+              navigate('/settings/company-information');
+            }}
             title={t("Settings / Profile Header")}
             style={{
               width: '36px',
@@ -255,7 +265,10 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
           </button>
 
           <button
-            onClick={() => navigate('/profile')}
+            onClick={() => {
+              if (closeSidebar) closeSidebar();
+              navigate('/profile');
+            }}
             title={t("My Profile")}
             style={{
               width: '36px',
@@ -275,7 +288,10 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
           </button>
 
           <button
-            onClick={() => forceLogout()}
+            onClick={() => {
+              if (closeSidebar) closeSidebar();
+              forceLogout();
+            }}
             title={t("Logout")}
             style={{
               width: '36px',
@@ -314,9 +330,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
         </button>
       </div>
 
-      <nav className="sidebar-nav">
-
-
+      <nav className="sidebar-nav" onClick={handleNavClick}>
         <NavLink to="/dashboard" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
           <div className="nav-item-content">
             <LayoutDashboard size={20} />

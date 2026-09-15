@@ -347,16 +347,19 @@ const InvoiceCreate = () => {
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
         <div className="premium-header" style={{ padding: '12px 24px', background: 'white' }}>
-          <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold' }}>
-            {t('invoice.top_banner_shortcut', 'ADD INVOICE | CTRL + S = SAVE | ALT + S = SAVE & PRINT | CTRL + D = SAVE AS DRAFT')}
+          <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold', margin: 0 }}>
+            <span>{t('invoice.add_invoice_title', 'ADD INVOICE')}</span>
+            <span className="desktop-shortcut-guide" style={{ fontWeight: 'normal', fontSize: '12px', color: '#64748b', marginLeft: '6px' }}>
+              | CTRL + S = SAVE | ALT + S = SAVE & PRINT | CTRL + D = SAVE AS DRAFT
+            </span>
           </h2>
         </div>
 
         <div className="premium-body" style={{ background: 'white', paddingTop: '16px' }}>
           <PrintHeader />
           <form onSubmit={(e) => e.preventDefault()}>
-            {/* Top Row */}
-            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '8px' }}>
+            {/* Top Row: Customer Selection */}
+            <div style={{ marginBottom: '12px' }}>
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <SearchableSelect
                   options={(clients || []).map((c) => {
@@ -377,8 +380,11 @@ const InvoiceCreate = () => {
                   {t('common.due', 'Due')}: ৳ {dueAmount.toFixed(2)}
                 </div>
               </div>
+            </div>
 
-              <div className="form-group" style={{ position: 'relative', marginBottom: '0' }}>
+            {/* Date & Time Row (Side-by-side on mobile & desktop) */}
+            <div className="form-row-2col" style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+              <div className="form-group" style={{ position: 'relative', flex: 1, marginBottom: 0 }}>
                 <div className="badge-date" style={{ background: 'var(--info)' }}><Calendar size={12} /> {t('invoice.issued_date', 'Issued Date')}</div>
                 <input 
                   type="date" 
@@ -388,22 +394,22 @@ const InvoiceCreate = () => {
                   onChange={handleChange}
                   onClick={(e) => { try { e.target.showPicker(); } catch (err) {} }}
                   onFocus={(e) => { try { e.target.showPicker(); } catch (err) {} }}
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: 'pointer', width: '100%' }}
                 />
               </div>
 
-              <div className="form-group" style={{ marginBottom: '0' }}>
+              <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                  <input type="text" name="time" value={formData.time} onChange={handleChange} style={{ width: '100%', padding: '12px', paddingRight: '40px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }} />
+                  <input type="text" name="time" value={formData.time} onChange={handleChange} style={{ width: '100%', padding: '12px', paddingRight: '40px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', height: '48px', boxSizing: 'border-box' }} />
                   <Clock size={16} style={{ position: 'absolute', right: '12px', color: '#94a3b8' }} />
                 </div>
               </div>
             </div>
 
-            {/* Second Row */}
-            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+            {/* Second Row: Barcode & Product Selection */}
+            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px', position: 'relative' }}>
               <div className="form-group" style={{ marginBottom: '0', position: 'relative' }}>
-                <div style={{ position: 'absolute', top: '-10px', left: '20px', background: 'var(--primary)', color: 'white', padding: '2px 8px', fontSize: '10px', borderRadius: '4px' }}>
+                <div style={{ position: 'absolute', top: '-10px', left: '20px', background: 'var(--primary)', color: 'white', padding: '2px 8px', fontSize: '10px', borderRadius: '4px', zIndex: 2 }}>
                   {t('invoice.barcode_header', 'Barcode Number')}
                 </div>
                 <div style={{ display: 'flex', border: '1px solid #e2e8f0', borderRadius: '4px', overflow: 'hidden', background: 'var(--card-border)' }}>
@@ -440,9 +446,9 @@ const InvoiceCreate = () => {
               </div>
             </div>
 
-            {/* Product Table */}
-            <div style={{ border: '1px solid #e2e8f0', marginBottom: '16px', overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+            {/* Product Table with Responsive Scroll Wrapper */}
+            <div className="table-responsive-wrapper" style={{ border: '1px solid #e2e8f0', borderRadius: '6px', marginBottom: '16px', overflowX: 'auto' }}>
+              <table style={{ width: '100%', minWidth: '580px', borderCollapse: 'collapse', fontSize: '12px' }}>
                 <thead>
                   <tr style={{ background: 'var(--secondary)', color: 'white' }}>
                     <th style={{ padding: '8px', textAlign: 'center' }}>{t('invoice.sl', 'SL')}</th>
@@ -504,14 +510,14 @@ const InvoiceCreate = () => {
               </table>
             </div>
 
-            <div style={{ textAlign: 'center', fontSize: '13px', marginBottom: '24px', fontWeight: 'bold' }}>
-              {t('invoice.total_quantity', 'Total Quantity')}: {totalQuantity}
+            <div style={{ textAlign: 'center', fontSize: '13px', marginBottom: '20px', fontWeight: 'bold', color: '#1e293b' }}>
+              {t('invoice.total_quantity', 'Total Quantity')}: <span style={{ color: 'var(--primary)' }}>{totalQuantity}</span>
             </div>
 
             {/* Bottom Section */}
-            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '40px' }}>
+            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
               {/* Left Column - Accounts */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <SearchableSelect
                   options={[
                     { value: 'TOTAL BALENCE', label: t("TOTAL BALENCE") },
@@ -544,42 +550,42 @@ const InvoiceCreate = () => {
                     value={formData.discountAmount} 
                     onChange={handleChange} 
                     placeholder="0.00"
-                    style={{ fontWeight: 'bold', fontSize: '15px', color: '#dc2626' }} 
+                    style={{ fontWeight: 'bold', fontSize: '14px', color: '#dc2626' }} 
                   />
                 </div>
 
                 <div style={{ position: 'relative' }}>
                   <div className="badge-date" style={{ background: 'var(--info)' }}>{t('invoice.receive_amount', 'Receive Amount')}</div>
-                  <input type="number" step="0.01" name="receiveAmount" className="input-date" value={formData.receiveAmount} onChange={handleChange} style={{ fontWeight: 'bold', fontSize: '15px' }} />
+                  <input type="number" step="0.01" name="receiveAmount" className="input-date" value={formData.receiveAmount} onChange={handleChange} style={{ fontWeight: 'bold', fontSize: '14px' }} />
                 </div>
               </div>
 
               {/* Right Column - Summary */}
               <div>
                 <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', marginBottom: '16px', background: '#f8fafc' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', borderBottom: '1px solid #e2e8f0', fontSize: '13px' }}>
                     <span>{t('invoice.invoice_bill', 'Invoice Bill')}</span>
                     <span style={{ fontWeight: 'bold' }}>: ৳ {invoiceBill.toFixed(2)}</span>
                   </div>
                   {discountAmt > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px', color: '#dc2626', fontWeight: 'bold' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', borderBottom: '1px solid #e2e8f0', fontSize: '13px', color: '#dc2626', fontWeight: 'bold' }}>
                       <span>{t('invoice.discount_minus', 'Discount (-)')}</span>
                       <span>: ৳ {discountAmt.toFixed(2)}</span>
                     </div>
                   )}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', borderBottom: '1px solid #e2e8f0', fontSize: '13px' }}>
                     <span>{t('invoice.previous_due', 'Previous Due')}</span>
                     <span>: ৳ {dueAmount.toFixed(2)}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px', fontWeight: 'bold' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', borderBottom: '1px solid #e2e8f0', fontSize: '13px', fontWeight: 'bold' }}>
                     <span>{t('invoice.total_bill', 'Total Bill')}</span>
                     <span style={{ color: '#2563eb' }}>: ৳ {totalBill.toFixed(2)}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', borderBottom: '1px solid #e2e8f0', fontSize: '13px' }}>
                     <span>{t('invoice.payment', 'Payment')}</span>
                     <span style={{ fontWeight: 'bold', color: '#059669' }}>: ৳ {paymentAmt.toFixed(2)}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', fontSize: '14px', fontWeight: 'bold', color: '#ef4444' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', fontSize: '13px', fontWeight: 'bold', color: '#ef4444' }}>
                     <span>{t('invoice.total_due', 'Total Due')}</span>
                     <span>: ৳ {totalDue.toFixed(2)}</span>
                   </div>
@@ -596,19 +602,19 @@ const InvoiceCreate = () => {
               </div>
             </div>
 
-            {/* Footer Buttons */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <button type="button" className="btn-danger" onClick={() => navigate('/invoice/list')} style={{ background: 'var(--danger)', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }}>
+            {/* Footer Action Buttons */}
+            <div className="form-bottom-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+              <button type="button" className="btn-danger" onClick={() => navigate('/invoice/list')} style={{ background: 'var(--danger)', padding: '10px 20px', fontSize: '13px', borderRadius: '4px' }}>
                 {t('invoice.cancel', 'Cancel')}
               </button>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button type="button" className="btn-primary" onClick={() => handleSaveInvoice(0)} style={{ background: '#64748b', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }}>
+              <div className="form-action-group" style={{ display: 'flex', gap: '8px' }}>
+                <button type="button" className="btn-primary" onClick={() => handleSaveInvoice(0)} style={{ background: '#64748b', padding: '10px 18px', fontSize: '13px', borderRadius: '4px' }}>
                   {t('invoice.save_draft', 'Save As Draft')}
                 </button>
-                <button type="button" className="btn-primary" onClick={() => handleSaveInvoice(1, true)} style={{ background: '#3b82f6', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }}>
+                <button type="button" className="btn-primary" onClick={() => handleSaveInvoice(1, true)} style={{ background: '#3b82f6', padding: '10px 18px', fontSize: '13px', borderRadius: '4px' }}>
                   {t('invoice.save_print', 'Save & Print')}
                 </button>
-                <button type="button" className="btn-primary" onClick={() => handleSaveInvoice(1)} style={{ background: 'var(--success)', padding: '10px 24px', fontSize: '14px', borderRadius: '4px', fontWeight: 'bold' }}>
+                <button type="button" className="btn-primary" onClick={() => handleSaveInvoice(1)} style={{ background: 'var(--success)', padding: '10px 20px', fontSize: '13px', borderRadius: '4px', fontWeight: 'bold' }}>
                   {t('invoice.add_invoice', 'Add Invoice')}
                 </button>
               </div>

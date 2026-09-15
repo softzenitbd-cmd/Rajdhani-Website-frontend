@@ -83,36 +83,36 @@ const PrintHeader = () => {
 
   // 4. Default: Card 2 – company name + address + phone from the API
   return (
-    <div className="receipt-header-text" style={{
+    <div className="receipt-header-text receipt-header-card" style={{
       border: '2px solid #000',
       borderRadius: '8px',
-      padding: '16px 24px',
+      padding: '12px 20px',
       background: 'white',
       textAlign: 'center',
-      margin: '0 auto 20px auto',
+      margin: '0 auto 16px auto',
       maxWidth: '850px'
     }}>
       {info.invoice_greetings && (
-        <div style={{ fontSize: '13px', fontWeight: 'bold', color: 'black', marginBottom: '8px' }}>
+        <div className="receipt-header-greetings" style={{ fontSize: 'clamp(11px, 1.2vw, 13px)', fontWeight: 'bold', color: 'black', marginBottom: '6px' }}>
           {info.invoice_greetings}
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', margin: '10px 0' }}>
-        <div style={{ width: '48px', height: '48px', borderRadius: '50%', border: '1px dashed black', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <ShoppingCart size={24} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', margin: '6px 0' }}>
+        <div className="receipt-header-logo" style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px dashed black', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <ShoppingCart size={20} />
         </div>
         <div style={{ textAlign: 'left' }}>
-          <h2 style={{ margin: 0, fontSize: '28px', fontWeight: '900', color: 'black' }}>
+          <h2 className="receipt-header-title" style={{ margin: 0, fontSize: 'clamp(18px, 2.2vw, 26px)', fontWeight: '900', color: 'black', lineHeight: '1.2' }}>
             {info.company_name || ''}
           </h2>
           {(info.address || info.present_address) && (
-            <p style={{ margin: '4px 0 0 0', fontSize: '11px', fontWeight: 'bold', color: 'black' }}>
+            <p className="receipt-header-subtext" style={{ margin: '3px 0 0 0', fontSize: 'clamp(10px, 1.1vw, 11px)', fontWeight: 'bold', color: 'black' }}>
               {info.address || info.present_address}
             </p>
           )}
           {(info.phone_number || info.phone) && (
-            <p style={{ margin: '2px 0 0 0', fontSize: '11px', fontWeight: 'bold', color: 'black' }}>
+            <p className="receipt-header-subtext" style={{ margin: '2px 0 0 0', fontSize: 'clamp(10px, 1.1vw, 11px)', fontWeight: 'bold', color: 'black' }}>
               {info.phone_number || info.phone}
             </p>
           )}
