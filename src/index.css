@@ -59,7 +59,7 @@ body {
   color: var(--text-main);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
-  font-size: clamp(14px, 1vw + 10px, 16px);
+  font-size: 13px;
 }
 
 /* Bangla UI: <html lang="bn"> is set by src/i18n.js when the language switches */
@@ -133,7 +133,7 @@ html[lang="bn"] textarea {
 .profile-name {
   color: white;
   font-weight: 600;
-  font-size: clamp(14px, 1.5vw, 16px);
+  font-size: 13px;
 }
 
 .profile-role {
@@ -160,7 +160,7 @@ html[lang="bn"] textarea {
   transition: var(--transition);
   cursor: pointer;
   font-weight: 500;
-  font-size: clamp(13px, 1.4vw, 15px);
+  font-size: 12px;
 }
 
 .nav-item-content {
@@ -235,7 +235,7 @@ html[lang="bn"] textarea {
 }
 
 .header-title {
-  font-size: clamp(18px, 2.5vw, 24px);
+  font-size: 18px;
   font-weight: 700;
   color: var(--text-main);
   letter-spacing: -0.5px;
@@ -256,7 +256,7 @@ html[lang="bn"] textarea {
   padding: 10px 20px;
   border-radius: var(--radius-full);
   font-weight: 600;
-  font-size: clamp(13px, 1.4vw, 14px);
+  font-size: 12px;
   cursor: pointer;
   border: none;
   transition: var(--transition);
@@ -347,7 +347,7 @@ html[lang="bn"] textarea {
 }
 
 .stat-value {
-  font-size: clamp(20px, 2.5vw, 24px);
+  font-size: 18px;
   font-weight: 700;
   color: var(--text-main);
   display: flex;
@@ -379,7 +379,7 @@ html[lang="bn"] textarea {
 }
 
 .chart-title {
-  font-size: clamp(16px, 1.8vw, 18px);
+  font-size: 14px;
   font-weight: 700;
   color: var(--text-main);
 }
@@ -831,5 +831,30 @@ html[lang="bn"] textarea {
   }
   50% {
     opacity: 0.5;
+  }
+}
+
+/* Responsive Enhancements */
+@media (max-width: 768px) {
+  .dashboard-content {
+    padding: 10px !important;
+  }
+  .card-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+  .card-actions {
+    width: 100% !important;
+    justify-content: flex-start !important;
+  }
+  .table-responsive, [style*="overflow-x: auto"], [style*="overflowX: 'auto'"] {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Override inline grid styles for filters */
+  div[style*="grid-template-columns"], div[style*="gridTemplateColumns"] {
+    grid-template-columns: 1fr !important;
   }
 }
