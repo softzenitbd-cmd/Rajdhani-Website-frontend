@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { Printer, RotateCcw } from 'lucide-react';
 import { loanService } from '../../services/loanService';
+import SearchableSelect from '../../components/SearchableSelect';
 
 const LoanStatement = () => {
   const { t } = useTranslation();
@@ -92,12 +93,14 @@ const LoanStatement = () => {
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1.3fr 1fr', marginBottom: '24px', alignItems: 'flex-end', gap: '16px', maxWidth: '840px', margin: '0 auto 24px auto' }}>
           <div className="form-group">
             <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px', color: '#334155', display: 'block' }}>{t('common.search_by_client')}</label>
-            <select style={{ width: '100%', height: '44px', padding: '0 12px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: '14px', outline: 'none', background: 'white', color: '#1e293b' }} value={selectedClient} onChange={(e) => setSelectedClient(e.target.value)}>
-              <option value="">{t('common.select_client')}</option>
-              {(clients || []).map((c) => (
-                <option key={c.id} value={c.id}>{c.name} ({c.phone || '-'})</option>
-              ))}
-            </select>
+            <div style={{ height: '44px' }}>
+              <SearchableSelect
+                options={(clients || []).map(c => ({ value: c.id, label: `${c.name} (${c.phone || '-'})`, searchValue: `${c.name} ${c.phone}` }))}
+                value={selectedClient}
+                onChange={(val) => setSelectedClient(val)}
+                placeholder={t('common.select_client')}
+              />
+            </div>
           </div>
 
           <div className="form-group">
@@ -155,7 +158,7 @@ const LoanStatement = () => {
                 <tr key={statement.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0' }}>
                   <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
                   <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0' }}>{statement.date || statement.created_at?.split('T')[0] || '-'}</td>
-                  <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0' }}>{statement.receiptNo || statement.receipt_no || (statement.id ? String(statement.id).slice(-6) : '-')}</td>
+                  <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0' }}>{statement.receiptNo || statement.receipt_no || (index + 1).toString().padStart(4, '0')}</td>
                   <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0', fontSize: '13px' }}>
                     {statement.source || (
                       <>

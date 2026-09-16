@@ -217,7 +217,7 @@ const ExpenseList = () => {
                   <td style={cell}>{idx + 1}</td>
                   <td style={cell}>{row.date ? String(row.date).split('T')[0] : ''}</td>
                   <td style={cell}>{receiptFor(row)}</td>
-                  <td style={cell}>{row.reference || row.idNo || row.id}</td>
+                  <td style={cell}>{row.reference || row.idNo || (idx + 1).toString().padStart(4, '0')}</td>
                   <td style={cell}>{row.category_name || row.category || ''}</td>
                   <td style={cell}>{row.account_name || row.account || ''}</td>
                   <td style={cell}>{row.cheque_no || ''}</td>

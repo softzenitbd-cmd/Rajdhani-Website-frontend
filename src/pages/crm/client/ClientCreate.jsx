@@ -15,9 +15,12 @@ const ClientCreate = () => {
   const [newGroupName, setNewGroupName] = useState('');
   const [formData, setFormData] = useState({
     clientName: '',
+    fathersName: '',
+    companyName: '',
     address: '',
     phone: '',
     phoneOptional: '',
+    email: '',
     previousDue: '',
     reference: '',
     group: ''
@@ -48,7 +51,12 @@ const ClientCreate = () => {
     // API Body format: { name, phone, address, previous_due, group }
     const payload = {
       name: formData.clientName,
+      fathers_name: formData.fathersName || "",
+      company_name: formData.companyName || "",
       phone: formData.phone,
+      phone_optional: formData.phoneOptional || "",
+      email: formData.email || "",
+      reference: formData.reference || "",
       address: formData.address || "",
       previous_due: formData.previousDue || "0.00",
       group: formData.group // assuming formData.group is holding the group_uuid now
@@ -111,6 +119,23 @@ const ClientCreate = () => {
               
               <div className="form-group">
                 <div className="form-input floating-label" style={{ background: 'white' }}>
+                  <User size={18} className="input-icon" />
+                  <input type="text" placeholder=" " value={formData.fathersName} onChange={(e) => setFormData({...formData, fathersName: e.target.value})} />
+                  <label>{t("Father's Name")}</label>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <div className="form-input floating-label" style={{ background: 'white' }}>
+                  <User size={18} className="input-icon" />
+                  <input type="text" placeholder=" " value={formData.companyName} onChange={(e) => setFormData({...formData, companyName: e.target.value})} />
+                  <label>{t("Company Name")}</label>
+                </div>
+              </div>
+
+              {/* Row 2 */}
+              <div className="form-group">
+                <div className="form-input floating-label" style={{ background: 'white' }}>
                   <MapPin size={18} className="input-icon" />
                   <input type="text" placeholder=" " value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
                   <label>{t("Address")}</label>
@@ -125,7 +150,6 @@ const ClientCreate = () => {
                 </div>
               </div>
 
-              {/* Row 2 */}
               <div className="form-group">
                 <div className="form-input floating-label" style={{ background: 'white' }}>
                   <Phone size={18} className="input-icon" />
@@ -134,11 +158,20 @@ const ClientCreate = () => {
                 </div>
               </div>
 
+              {/* Row 3 */}
               <div className="form-group">
                 <div className="form-input floating-label" style={{ background: 'white' }}>
                   <Hash size={18} className="input-icon" />
                   <input type="number" placeholder=" " value={formData.previousDue} onChange={(e) => setFormData({...formData, previousDue: e.target.value})} />
                   <label>{t("Previous Due")}</label>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <div className="form-input floating-label" style={{ background: 'white' }}>
+                  <User size={18} className="input-icon" />
+                  <input type="email" placeholder=" " value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
+                  <label>{t("E-mail")}</label>
                 </div>
               </div>
 
@@ -150,7 +183,7 @@ const ClientCreate = () => {
                 </div>
               </div>
 
-            {/* Row 3 */}
+            {/* Row 4 */}
             <div className="form-group" style={{ gridColumn: 'span 1' }}>
               <div className="input-group">
                 <div className="form-input floating-label">

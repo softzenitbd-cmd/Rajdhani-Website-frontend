@@ -680,13 +680,6 @@ input:checked + .slider:before {
 }
 
 @media (max-width: 768px) {
-  .form-grid, .filter-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .form-row {
-    flex-direction: column;
-    gap: 16px;
-  }
   .premium-header {
     flex-direction: column;
     align-items: flex-start;

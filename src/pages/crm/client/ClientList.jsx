@@ -90,7 +90,7 @@ const CollectionDateModal = ({ isOpen, onClose, client, onUpdate }) => {
 
   useEffect(() => {
     if (client && isOpen) {
-      const d = client.collection_date ? String(client.collection_date).split('T')[0] : '';
+      const d = client.due_date ? String(client.due_date).split('T')[0] : '';
       setDate(d);
     }
   }, [client, isOpen]);
@@ -100,8 +100,8 @@ const CollectionDateModal = ({ isOpen, onClose, client, onUpdate }) => {
   const handleUpdate = async () => {
     setLoading(true);
     try {
-      await patch(`${ENDPOINTS.CRM_CLIENTS}${client.id || client.uuid}/`, { collection_date: date || null }, t("Collection date updated"));
-      onUpdate({ collection_date: date || null });
+      await patch(`${ENDPOINTS.CRM_CLIENTS}${client.id || client.uuid}/`, { due_date: date || null }, t("Collection date updated"));
+      onUpdate({ due_date: date || null });
       onClose();
     } catch (err) {
       console.error(err);
@@ -475,7 +475,7 @@ const ClientList = () => {
                             <td style={{ padding: '6px 12px', borderLeft: '1px solid #e2e8f0', borderBottom: '1px solid transparent' }}>
                               <Calendar size={12} style={{ marginRight: '4px', display: 'inline-block', verticalAlign: 'middle', color: '#2563eb' }}/> 
                               <span style={{ color: '#2563eb', fontWeight: '600', borderBottom: '1px dashed #2563eb' }}>
-                                {(client.collection_date || client.due_date) ? new Date(client.collection_date || client.due_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : t('Set Date')}
+                                {client.due_date ? new Date(client.due_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : t('Set Date')}
                               </span>
                             </td>
                           </tr>

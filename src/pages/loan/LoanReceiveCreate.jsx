@@ -7,6 +7,7 @@ import { accountingService } from '../../services/accountingService';
 import PrintHeader from '../../components/PrintHeader';
 import SearchableSelect from '../../components/SearchableSelect';
 import AddOptionModal from '../../components/AddOptionModal';
+import AddClientModal from '../../components/AddClientModal';
 import { useToast } from '../../context/ToastContext';
 
 const LoanReceiveCreate = () => {
@@ -230,12 +231,15 @@ const LoanReceiveCreate = () => {
         </div>
       </div>
 
-      <AddOptionModal 
+      <AddClientModal 
         isOpen={isClientModalOpen}
         onClose={() => setIsClientModalOpen(false)}
-        onSave={handleAddLoanClient}
-        title={t("Add Client")}
-        label={t("Client Name")}
+        isLoan={true}
+        onSuccess={(newClient) => {
+          const row = { id: newClient.id, name: newClient.name, phone: newClient.phone };
+          setLoanAccounts(prev => [row, ...prev]);
+          setFormData(prev => ({ ...prev, clientId: row.id }));
+        }}
       />
       <AddOptionModal 
         isOpen={isAccountModalOpen}

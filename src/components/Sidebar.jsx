@@ -188,18 +188,18 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
     <aside className={`sidebar ${isOpen ? 'open' : ''}`} style={{ overflowY: 'auto' }}>
       {/* Top Banner & Profile Container */}
       <div style={{
-        background: 'linear-gradient(180deg, #15803d 0%, #166534 60%, #14532d 100%)',
+        background: 'transparent',
         padding: '16px 14px 16px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         position: 'relative',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.15)'
+        borderBottom: '1px solid var(--card-border)'
       }}>
         <button 
           className="mobile-close-btn" 
           onClick={closeSidebar}
-          style={{ position: 'absolute', top: '12px', right: '12px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'white', zIndex: 2 }}
+          style={{ position: 'absolute', top: '12px', right: '12px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-sidebar)', zIndex: 2 }}
         >
           <X size={20} />
         </button>
@@ -223,11 +223,11 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
         </div>
 
         {/* User Info */}
-        <div style={{ textAlign: 'center', color: 'white', marginBottom: '12px' }}>
-          <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold', letterSpacing: '-0.2px', color: '#ffffff' }}>
+        <div style={{ textAlign: 'center', color: 'var(--text-sidebar)', marginBottom: '12px' }}>
+          <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold', letterSpacing: '-0.2px', color: 'var(--text-sidebar)' }}>
             {username}
           </h3>
-          <span style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-sidebar)', opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             {role || t("ADMIN")}
           </span>
         </div>
@@ -241,9 +241,9 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
               width: '36px',
               height: '36px',
               borderRadius: '50%',
-              background: 'rgba(255, 255, 255, 0.2)',
-              border: '1px solid rgba(255, 255, 255, 0.4)',
-              color: 'white',
+              background: 'transparent',
+              border: '1px solid var(--card-border)',
+              color: 'var(--text-sidebar)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -261,9 +261,9 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
               width: '36px',
               height: '36px',
               borderRadius: '50%',
-              background: 'rgba(255, 255, 255, 0.2)',
-              border: '1px solid rgba(255, 255, 255, 0.4)',
-              color: 'white',
+              background: 'transparent',
+              border: '1px solid var(--card-border)',
+              color: 'var(--text-sidebar)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -281,9 +281,9 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
               width: '36px',
               height: '36px',
               borderRadius: '50%',
-              background: 'rgba(255, 255, 255, 0.2)',
-              border: '1px solid rgba(255, 255, 255, 0.4)',
-              color: 'white',
+              background: 'transparent',
+              border: '1px solid var(--card-border)',
+              color: 'var(--danger)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -314,7 +314,11 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
         </button>
       </div>
 
-      <nav className="sidebar-nav">
+      <nav className="sidebar-nav" onClick={(e) => {
+        if (e.target.closest('a') && (window.innerWidth <= 768 || (window.innerWidth <= 1100 && window.matchMedia('(hover: none) and (pointer: coarse)').matches))) {
+          closeSidebar();
+        }
+      }}>
 
 
         <NavLink to="/dashboard" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>

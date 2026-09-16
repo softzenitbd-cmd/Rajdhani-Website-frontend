@@ -274,7 +274,7 @@ const SupplierChequeSchedule = () => {
                   return (
                     <React.Fragment key={cId}>
                       <tr style={{ borderBottom: '1px solid #e2e8f0', background: index % 2 === 0 ? 'white' : '#f8fafc' }}>
-                        <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{cId.toString().substring(0, 8)}</td>
+                        <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{index + 1}</td>
                         <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{cheque.cheque_number || cheque.chequeNo || '-'}</td>
                         <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{cheque.date || '-'}</td>
                         <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{getSupplierName(cheque.supplier)}</td>
