@@ -101,7 +101,7 @@ const SupplierStatement = () => {
 
         {/* Title and Action */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '500', color: 'var(--text-main)' }}>{t("Supplier Statement")}</h2>
+          <h2 style={{ fontSize: 'var(--fs-20, 20px)', fontWeight: '500', color: 'var(--text-main)' }}>{t("Supplier Statement")}</h2>
           <button
             className="btn btn-primary"
             onClick={() => navigate('/product/purchase/add-new')}
@@ -114,7 +114,7 @@ const SupplierStatement = () => {
         {/* Filters */}
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr auto', marginBottom: '24px', alignItems: 'flex-end', gap: '16px' }}>
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>{t("Search By Supplier")}</label>
+            <label style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: '600', marginBottom: '8px' }}>{t("Search By Supplier")}</label>
             <div className="form-input floating-label">
               <select name="supplier" value={filters.supplier} onChange={handleInputChange}>
                 <option value="">{t("Select Suppliers")}</option>
@@ -126,7 +126,7 @@ const SupplierStatement = () => {
           </div>
 
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>{t("Search By Date")}</label>
+            <label style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: '600', marginBottom: '8px' }}>{t("Search By Date")}</label>
             <div style={{ display: 'flex', gap: '12px' }}>
               <div className="form-input floating-label" style={{ flex: 1 }}>
                 <input
@@ -161,7 +161,7 @@ const SupplierStatement = () => {
         </div>
 
         {summary?.supplier && (
-          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', padding: '12px 16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', marginBottom: '16px', fontSize: '13px' }}>
+          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', padding: '12px 16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', marginBottom: '16px', fontSize: 'var(--fs-13, 13px)' }}>
             <div><b>{t("Supplier:")}</b> {summary.supplier.name}</div>
             {summary.supplier.phone && <div><b>{t("Phone:")}</b> {summary.supplier.phone}</div>}
             <div style={{ marginLeft: 'auto' }}><b>{t("Current Due:")}</b> <span style={{ color: '#dc2626', fontWeight: 700 }}>৳ {Number(summary.supplier.current_due || 0).toFixed(2)}</span></div>
@@ -170,7 +170,7 @@ const SupplierStatement = () => {
 
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
+          <div style={{ fontSize: 'var(--fs-14, 14px)', color: 'var(--text-main)' }}>
             {t("Show")}
             <select
               value={entries}
@@ -186,10 +186,10 @@ const SupplierStatement = () => {
             {loading && <span style={{ marginLeft: '16px', color: '#3b82f6' }}>{t("Loading...")}</span>}
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="btn" onClick={() => window.print()} style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
+            <button className="btn" onClick={() => window.print()} style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', borderRadius: '4px' }}>
               <Printer size={16} style={{ marginRight: '6px' }}/> {t("Print")}
             </button>
-            <button className="btn" onClick={handleReset} style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
+            <button className="btn" onClick={handleReset} style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', borderRadius: '4px' }}>
               <RotateCcw size={16} style={{ marginRight: '6px' }}/> {t("Reset")}
             </button>
           </div>
@@ -200,13 +200,13 @@ const SupplierStatement = () => {
           <table className="custom-table" style={{ borderCollapse: 'collapse', width: '100%', minWidth: '900px' }}>
             <thead>
               <tr style={{ background: '#718096', color: 'white' }}>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("SL")}</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("DATE")}</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("TYPE")}</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("REFERENCE")}</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'right', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("PURCHASE (DEBIT)")}</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'right', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("PAYMENT / RETURN (CREDIT)")}</th>
-                <th style={{ padding: '12px 8px', fontSize: '11px', textAlign: 'right' }}>{t("BALANCE")}</th>
+                <th style={{ padding: '12px 8px', fontSize: 'var(--fs-11, 11px)', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("SL")}</th>
+                <th style={{ padding: '12px 8px', fontSize: 'var(--fs-11, 11px)', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("DATE")}</th>
+                <th style={{ padding: '12px 8px', fontSize: 'var(--fs-11, 11px)', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("TYPE")}</th>
+                <th style={{ padding: '12px 8px', fontSize: 'var(--fs-11, 11px)', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("REFERENCE")}</th>
+                <th style={{ padding: '12px 8px', fontSize: 'var(--fs-11, 11px)', textAlign: 'right', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("PURCHASE (DEBIT)")}</th>
+                <th style={{ padding: '12px 8px', fontSize: 'var(--fs-11, 11px)', textAlign: 'right', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("PAYMENT / RETURN (CREDIT)")}</th>
+                <th style={{ padding: '12px 8px', fontSize: 'var(--fs-11, 11px)', textAlign: 'right' }}>{t("BALANCE")}</th>
               </tr>
             </thead>
             <tbody>

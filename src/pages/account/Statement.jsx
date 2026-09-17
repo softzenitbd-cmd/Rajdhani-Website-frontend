@@ -95,8 +95,8 @@ const Statement = () => {
   const totalCredit = rows.reduce((s, r) => s + r.credit, 0);
   const totalDebit = rows.reduce((s, r) => s + r.debit, 0);
 
-  const toolBtn = (bg) => ({ background: bg, color: 'white', border: 'none', padding: '6px 14px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' });
-  const label = { display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 'bold' };
+  const toolBtn = (bg) => ({ background: bg, color: 'white', border: 'none', padding: '6px 14px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: 'var(--fs-13, 13px)' });
+  const label = { display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold' };
 
   return (
     <div style={{ background: 'white', minHeight: '100vh', padding: '20px' }}>
@@ -110,7 +110,7 @@ const Statement = () => {
       </div>
 
       <PrintHeader />
-      <h2 style={{ textAlign: 'center', fontSize: '20px', fontWeight: 'bold', margin: '12px 0 20px' }}>{t("Account Statement")}</h2>
+      <h2 style={{ textAlign: 'center', fontSize: 'var(--fs-20, 20px)', fontWeight: 'bold', margin: '12px 0 20px' }}>{t("Account Statement")}</h2>
 
       {/* Filters */}
       <div className="no-print" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.5fr', gap: '20px', marginBottom: '16px' }}>
@@ -150,14 +150,14 @@ const Statement = () => {
       </div>
 
       <div className="no-print" style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-        <button onClick={handleClearFilter} style={{ background: '#64748b', color: 'white', border: 'none', padding: '12px 0', width: '100%', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '15px' }}>
+        <button onClick={handleClearFilter} style={{ background: '#64748b', color: 'white', border: 'none', padding: '12px 0', width: '100%', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: 'var(--fs-15, 15px)' }}>
           {t("Clear Filter")}
         </button>
       </div>
 
       {/* Table Controls */}
       <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-        <div style={{ fontSize: '14px' }}>
+        <div style={{ fontSize: 'var(--fs-14, 14px)' }}>
           {t("Show")}
           <input type="number" value={limit} onChange={(e) => setLimit(Number(e.target.value) || 100)} style={{ width: '60px', margin: '0 8px', padding: '4px', border: '1px solid #cbd5e1', borderRadius: '4px', textAlign: 'center' }} />
           {t("entries")}
@@ -170,7 +170,7 @@ const Statement = () => {
 
       {/* Table */}
       <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-13, 13px)' }}>
           <thead>
             <tr style={{ background: '#94a3b8', color: 'white' }}>
               <th style={cell}>{t("SL")}</th>
@@ -199,7 +199,7 @@ const Statement = () => {
                     <td style={cell}>{row.date ? String(row.date).split('T')[0] : ''}</td>
                     <td style={cell}>{row.source || row.client_name || row.supplier_name || ''}</td>
                     <td style={cell}>
-                      <span style={{ background: isDeposit ? '#dcfce7' : '#fee2e2', color: isDeposit ? '#15803d' : '#b91c1c', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>
+                      <span style={{ background: isDeposit ? '#dcfce7' : '#fee2e2', color: isDeposit ? '#15803d' : '#b91c1c', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>
                         {row.transaction_type || row.type}
                       </span>
                     </td>
@@ -224,7 +224,7 @@ const Statement = () => {
           </tfoot>
         </table>
       </div>
-      <div style={{ marginTop: '10px', fontSize: '13px', color: '#475569' }}>
+      <div style={{ marginTop: '10px', fontSize: 'var(--fs-13, 13px)', color: '#475569' }}>
         {t("Showing {{from}} to {{to}} of {{total}} entries", { from: rows.length ? 1 : 0, to: rows.length, total: statements.length })}
       </div>
     </div>

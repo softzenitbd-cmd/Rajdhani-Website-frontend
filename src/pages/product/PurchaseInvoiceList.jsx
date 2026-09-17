@@ -32,17 +32,29 @@ const PurchaseInvoiceList = () => {
         crmService.getSuppliers().catch(() => null)
       ]);
 
+      let sList = [];
+      if (supRes) {
+        sList = Array.isArray(supRes) ? supRes : (supRes?.results || []);
+        setSuppliers(sList);
+      }
+
       if (purRes) {
         const list = Array.isArray(purRes) ? purRes : (purRes?.results || []);
         if (list.length > 0) {
           const flatItems = [];
           list.forEach((item, idx) => {
+            let supName = item.supplier_name || item.supplier?.name;
+            if (!supName && item.supplier) {
+               const s = sList.find(x => String(x.id) === String(item.supplier));
+               supName = s ? (s.name || s.company_name) : String(item.supplier);
+            }
+
             if (Array.isArray(item.items) && item.items.length > 0) {
               item.items.forEach((subItem, sIdx) => {
                 flatItems.push({
                   id: `${item.id || idx}-${sIdx}`,
-                  date: item.created_at ? new Date(item.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '24 Aug 2026',
-                  supplier: item.supplier_name || item.supplier || 'ROKSANA TOPS BONGO',
+                  date: item.created_at ? new Date(item.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-',
+                  supplier: supName || '-',
                   product: subItem.product_name || subItem.name || 'Product',
                   buy: parseFloat(subItem.purchase_price || subItem.buying_price || 0).toFixed(2),
                   sell: parseFloat(subItem.sales_price || subItem.selling_price || 0).toFixed(2),
@@ -54,8 +66,8 @@ const PurchaseInvoiceList = () => {
             } else {
               flatItems.push({
                 id: item.id || idx + 1,
-                date: item.created_at ? new Date(item.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '24 Aug 2026',
-                supplier: item.supplier_name || item.supplier || 'ROKSANA TOPS BONGO',
+                date: item.created_at ? new Date(item.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-',
+                supplier: supName || '-',
                 product: item.product_name || item.product || 'Product',
                 buy: parseFloat(item.purchase_price || 0).toFixed(2),
                 sell: parseFloat(item.sales_price || 0).toFixed(2),
@@ -69,11 +81,6 @@ const PurchaseInvoiceList = () => {
         } else {
           setPurchases([]);
         }
-      }
-
-      if (supRes) {
-        const sList = Array.isArray(supRes) ? supRes : (supRes?.results || []);
-        setSuppliers(sList);
       }
     } catch (err) {
       console.error("Error fetching purchase items:", err);
@@ -113,7 +120,7 @@ const PurchaseInvoiceList = () => {
       
       {/* Center Title */}
       <div style={{ textAlign: 'center', marginBottom: '40px', marginTop: '20px', position: 'relative' }}>
-        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>{t("Product Wise Purchase List")}</h2>
+        <h2 style={{ fontFamily: 'monospace', fontSize: 'var(--fs-24, 24px)', fontWeight: 'bold' }}>{t("Product Wise Purchase List")}</h2>
         <button 
           onClick={() => navigate('/product/purchase/add-new')}
           className="btn" 
@@ -127,11 +134,11 @@ const PurchaseInvoiceList = () => {
         {/* Filters */}
         <div className="form-grid" style={{ gridTemplateColumns: '1.5fr 1fr 1fr 2fr 1fr', gap: '16px', marginBottom: '24px', alignItems: 'end' }}>
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t("Supplier")}</div>
+            <div style={{ fontSize: 'var(--fs-12, 12px)', marginBottom: '4px' }}>{t("Supplier")}</div>
             <select 
               value={filters.supplier}
               onChange={(e) => handleFilterChange('supplier', e.target.value)}
-              style={{ padding: '10px', width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', background: 'white' }}
+              style={{ padding: '10px', width: '100%', border: '1px solid #38bdf8', borderRadius: '4px', outline: 'none', background: 'white' }}
             >
               <option value="">{t("Select Supplier")}</option>
               {suppliers.map(s => (
@@ -141,47 +148,47 @@ const PurchaseInvoiceList = () => {
           </div>
           
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t("Product Name")}</div>
+            <div style={{ fontSize: 'var(--fs-12, 12px)', marginBottom: '4px' }}>{t("Product Name")}</div>
             <input 
               type="text" 
               placeholder={t("Product Name...")} 
               value={filters.productName}
               onChange={(e) => handleFilterChange('productName', e.target.value)}
-              style={{ padding: '10px', width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }} 
+              style={{ padding: '10px', width: '100%', border: '1px solid #38bdf8', borderRadius: '4px', outline: 'none' }} 
             />
           </div>
 
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t("Barcode")}</div>
+            <div style={{ fontSize: 'var(--fs-12, 12px)', marginBottom: '4px' }}>{t("Barcode")}</div>
             <input 
               type="text" 
               placeholder={t("Barcode...")} 
               value={filters.barcode}
               onChange={(e) => handleFilterChange('barcode', e.target.value)}
-              style={{ padding: '10px', width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }} 
+              style={{ padding: '10px', width: '100%', border: '1px solid #38bdf8', borderRadius: '4px', outline: 'none' }} 
             />
           </div>
 
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t('common.search_by_date')}</div>
+            <div style={{ fontSize: 'var(--fs-12, 12px)', marginBottom: '4px' }}>{t('common.search_by_date')}</div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input 
                 type="date" 
                 value={filters.from_date}
                 onChange={(e) => handleFilterChange('from_date', e.target.value)}
-                style={{ padding: '10px', width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }} 
+                style={{ padding: '10px', width: '100%', border: '1px solid #38bdf8', borderRadius: '4px', outline: 'none', color: '#64748b' }} 
               />
               <input 
                 type="date" 
                 value={filters.to_date}
                 onChange={(e) => handleFilterChange('to_date', e.target.value)}
-                style={{ padding: '10px', width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }} 
+                style={{ padding: '10px', width: '100%', border: '1px solid #38bdf8', borderRadius: '4px', outline: 'none', color: '#64748b' }} 
               />
             </div>
           </div>
 
           <div>
-            <button onClick={clearFilters} className="btn" style={{ background: 'var(--text-muted)', color: 'white', padding: '12px', borderRadius: '4px', fontSize: '14px', width: '100%', cursor: 'pointer' }}>
+            <button onClick={clearFilters} className="btn" style={{ background: '#64748b', color: 'white', padding: '12px', borderRadius: '4px', fontSize: 'var(--fs-14, 14px)', width: '100%', cursor: 'pointer', border: 'none' }}>
               {t("Clear Filter")}
             </button>
           </div>
@@ -189,36 +196,48 @@ const PurchaseInvoiceList = () => {
 
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
-            {t("Showing")} {filteredPurchases.length} {t("entries")}
+          <div style={{ fontSize: 'var(--fs-14, 14px)', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>{t("Show")}</span>
+            <select style={{ border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '4px', outline: 'none' }}>
+              <option>100</option>
+              <option>50</option>
+              <option>25</option>
+            </select>
+            <span>{t("entries")}</span>
           </div>
-          <div style={{ display: 'flex', gap: '4px' }}>
-            <button onClick={() => window.print()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              {t("Print")}
+          <div style={{ display: 'flex' }}>
+            <button className="btn" style={{ background: '#3b82f6', color: 'white', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', border: 'none', borderRight: '1px solid rgba(255,255,255,0.2)' }}>
+              Excel
             </button>
-            <button onClick={clearFilters} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <RotateCcw size={14} /> {t("Reset")}
+            <button className="btn" style={{ background: '#3b82f6', color: 'white', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', border: 'none', borderRight: '1px solid rgba(255,255,255,0.2)' }}>
+              CSV
             </button>
-            <button onClick={fetchData} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <RefreshCw size={14} className={loading ? "spin" : ""} /> {t("Reload")}
+            <button className="btn" style={{ background: '#3b82f6', color: 'white', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', border: 'none', borderRight: '1px solid rgba(255,255,255,0.2)' }}>
+              PDF
+            </button>
+            <button onClick={() => window.print()} className="btn" style={{ background: '#3b82f6', color: 'white', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', border: 'none', borderRight: '1px solid rgba(255,255,255,0.2)' }}>
+              Print
+            </button>
+            <button onClick={clearFilters} className="btn" style={{ background: '#3b82f6', color: 'white', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', border: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <RotateCcw size={14} /> Reset
             </button>
           </div>
         </div>
 
         {/* Table */}
-        <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0' }}>
-          <table className="custom-table" style={{ width: '100%', minWidth: '1200px', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="custom-table" style={{ width: '100%', minWidth: '1200px', borderCollapse: 'collapse', border: '1px solid #cbd5e1' }}>
             <thead>
-              <tr style={{ background: 'var(--secondary)', color: 'white' }}>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '60px' }}>{t("ID NO ↕")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("DATE")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("SUPPLIER")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("PRODUCT")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("BUYING")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("SELLING")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("QUANTITY")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("TOTAL")}</th>
-                <th style={{ textAlign: 'center', padding: '12px', fontSize: '11px' }}>{t("DESCRIPTION")}</th>
+              <tr style={{ background: '#94a3b8', color: 'black' }}>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)', width: '60px' }}>{t("ID NO ↕")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("DATE")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("SUPPLIER")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("PRODUCT")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("BUYING")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("SELLING")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("QUANTITY")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("TOTAL")}</th>
+                <th style={{ textAlign: 'center', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("DESCRIPTION")}</th>
               </tr>
             </thead>
             <tbody>
@@ -228,7 +247,7 @@ const PurchaseInvoiceList = () => {
                 </tr>
               ) : (
                 filteredPurchases.map((purchase, index) => (
-                  <tr key={purchase.id} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: '13px' }}>
+                  <tr key={purchase.id} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-13, 13px)' }}>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{purchase.date}</td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{purchase.supplier}</td>

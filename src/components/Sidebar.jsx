@@ -10,7 +10,7 @@ import {
   Settings, LogOut, ChevronDown, ChevronRight, X, ShoppingCart
 } from 'lucide-react';
 
-const Sidebar = ({ isOpen, closeSidebar }) => {
+const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -141,10 +141,10 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
     if (activeCard === 'card1') {
       return (
         <div style={{ textAlign: 'center', padding: '4px 8px' }}>
-          <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: '22px', color: 'black', fontWeight: 'bold', lineHeight: 1.1 }}>
+          <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-22, 22px)', color: 'black', fontWeight: 'bold', lineHeight: 1.1 }}>
             {info.company_name || t("Rajdhani")}
           </h2>
-          <h3 style={{ fontFamily: 'cursive', margin: '-4px 0 0 20px', fontSize: '14px', color: 'black' }}>
+          <h3 style={{ fontFamily: 'cursive', margin: '-4px 0 0 20px', fontSize: 'var(--fs-14, 14px)', color: 'black' }}>
             {info.company_type || t("Garments")}
           </h3>
         </div>
@@ -154,10 +154,10 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
     if (activeCard === 'card3') {
       return (
         <div style={{ textAlign: 'center', padding: '4px 8px' }}>
-          <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: '22px', color: 'black', fontWeight: 'bold', lineHeight: 1.1 }}>
+          <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-22, 22px)', color: 'black', fontWeight: 'bold', lineHeight: 1.1 }}>
             {info.company_name || t("Rajdhani")}
           </h2>
-          <h3 style={{ fontFamily: 'cursive', margin: '-4px 0 0 20px', fontSize: '14px', color: 'black' }}>
+          <h3 style={{ fontFamily: 'cursive', margin: '-4px 0 0 20px', fontSize: 'var(--fs-14, 14px)', color: 'black' }}>
             {t("Super Shop")}
           </h3>
         </div>
@@ -171,11 +171,11 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
           <ShoppingCart size={16} color="black" />
         </div>
         <div style={{ textAlign: 'left' }}>
-          <h2 style={{ margin: 0, fontSize: '16px', fontWeight: '900', color: 'black', lineHeight: 1.1 }}>
+          <h2 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', fontWeight: '900', color: 'black', lineHeight: 1.1 }}>
             {info.company_name || 'রাজধানী'} <span style={{ fontWeight: 'normal' }}>সুপার শপ</span>
           </h2>
           {(info.address || info.present_address) && (
-            <p style={{ margin: '2px 0 0 0', fontSize: '9px', fontWeight: 'bold', color: 'black', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }}>
+            <p style={{ margin: '2px 0 0 0', fontSize: 'var(--fs-9, 9px)', fontWeight: 'bold', color: 'black', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }}>
               {info.address || info.present_address}
             </p>
           )}
@@ -184,8 +184,59 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
     );
   };
 
+  const [sidebarWidth, setSidebarWidth] = useState(280);
+  const [isResizing, setIsResizing] = useState(false);
+
+  const startResizing = React.useCallback((e) => {
+    e.preventDefault();
+    setIsResizing(true);
+    
+    const handleMouseMove = (mouseMoveEvent) => {
+      const newWidth = mouseMoveEvent.clientX;
+      if (newWidth >= 200 && newWidth <= 600) {
+        setSidebarWidth(newWidth);
+      }
+    };
+    
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, []);
+
   return (
-    <aside className={`sidebar ${isOpen ? 'open' : ''}`} style={{ overflowY: 'auto' }}>
+    <aside 
+      className={`sidebar ${isOpen ? 'open' : ''} ${isCollapsed ? 'collapsed' : ''}`} 
+      style={{ 
+        overflowY: 'auto', 
+        width: isCollapsed ? undefined : sidebarWidth, 
+        transition: isResizing ? 'none' : undefined,
+        position: 'relative'
+      }}
+    >
+      {/* Resizer Handle */}
+      {!isCollapsed && window.innerWidth > 1100 && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            width: '5px',
+            height: '100%',
+            cursor: 'col-resize',
+            zIndex: 100,
+            backgroundColor: isResizing ? 'rgba(79, 70, 229, 0.5)' : 'transparent',
+            transition: 'background-color 0.2s',
+          }}
+          onMouseDown={startResizing}
+          onMouseEnter={(e) => { if (!isResizing) e.target.style.backgroundColor = 'rgba(0,0,0,0.1)'; }}
+          onMouseLeave={(e) => { if (!isResizing) e.target.style.backgroundColor = 'transparent'; }}
+        />
+      )}
       {/* Top Banner & Profile Container */}
       <div style={{
         background: 'transparent',
@@ -224,10 +275,10 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
 
         {/* User Info */}
         <div style={{ textAlign: 'center', color: 'var(--text-sidebar)', marginBottom: '12px' }}>
-          <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold', letterSpacing: '-0.2px', color: 'var(--text-sidebar)' }}>
+          <h3 style={{ margin: 0, fontSize: 'var(--fs-15, 15px)', fontWeight: 'bold', letterSpacing: '-0.2px', color: 'var(--text-sidebar)' }}>
             {username}
           </h3>
-          <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-sidebar)', opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <span style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: '600', color: 'var(--text-sidebar)', opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             {role || t("ADMIN")}
           </span>
         </div>
@@ -303,7 +354,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
             border: '1px solid #34d399', 
             padding: '8px 20px', 
             borderRadius: '6px', 
-            fontSize: '13px', 
+            fontSize: 'var(--fs-13, 13px)', 
             fontWeight: 'bold', 
             cursor: 'pointer',
             boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
@@ -359,7 +410,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                     if (!clientOpen) setSupplierOpen(false);
                   }}
                 >
-                  <div className="nav-item-content" style={{ fontSize: '14px' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.client')}
                   </div>
                   {clientOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -408,7 +459,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                     cursor: 'pointer' 
                   }}
                 >
-                  <div className="nav-item-content" style={{ fontSize: '14px' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.supplier')}
                   </div>
                   {supplierOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -456,7 +507,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: receiveOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setReceiveOpen(!receiveOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: '14px' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.receive')}
                   </div>
                   {receiveOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -481,7 +532,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: expenseOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setExpenseOpen(!expenseOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: '14px' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.expense')}
                   </div>
                   {expenseOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -511,7 +562,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: subAccountOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setSubAccountOpen(!subAccountOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: '14px' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.account')}
                   </div>
                   {subAccountOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -541,7 +592,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: transferOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setTransferOpen(!transferOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: '14px' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.transfer')}
                   </div>
                   {transferOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -624,7 +675,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: salesReturnOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setSalesReturnOpen(!salesReturnOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: '14px' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.sales_return')}
                   </div>
                   {salesReturnOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -663,7 +714,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: subProductOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setSubProductOpen(!subProductOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: '14px' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.product')}
                   </div>
                   {subProductOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -688,7 +739,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                         style={{ paddingLeft: '48px', marginBottom: '0', background: productAssetOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                         onClick={() => setProductAssetOpen(!productAssetOpen)}
                       >
-                        <div className="nav-item-content" style={{ fontSize: '14px' }}>
+                        <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
                           <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.product_asset')}
                         </div>
                         {productAssetOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -716,7 +767,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: purchaseOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setPurchaseOpen(!purchaseOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: '14px' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.purchase')}
                   </div>
                   {purchaseOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -747,7 +798,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: purchaseReturnOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setPurchaseReturnOpen(!purchaseReturnOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: '14px' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.purchase_return')}
                   </div>
                   {purchaseReturnOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -834,7 +885,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: staffPaymentOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setStaffPaymentOpen(!staffPaymentOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: '14px' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.staff_payment')}
                   </div>
                   {staffPaymentOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -859,7 +910,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: staffSalaryOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setStaffSalaryOpen(!staffSalaryOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: '14px' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.staff_salary')}
                   </div>
                   {staffSalaryOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -884,7 +935,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: staffAttendanceOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setStaffAttendanceOpen(!staffAttendanceOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: '14px' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.staff_attendance')}
                   </div>
                   {staffAttendanceOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -1049,7 +1100,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: incomeCategoryOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setIncomeCategoryOpen(!incomeCategoryOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: '14px' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.income_category')}
                   </div>
                   {incomeCategoryOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -1074,7 +1125,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: expenseCategorySettingOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setExpenseCategorySettingOpen(!expenseCategorySettingOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: '14px' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.expense_category')}
                   </div>
                   {expenseCategorySettingOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}

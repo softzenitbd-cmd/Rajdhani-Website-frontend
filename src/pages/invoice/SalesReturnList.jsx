@@ -142,26 +142,26 @@ const SalesReturnList = () => {
       
       {/* Date Top Right Header */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
-        <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#000' }}>
+        <div style={{ fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold', color: '#000' }}>
           Date : 15 Sep 2026
         </div>
       </div>
 
       {/* Monospace Center Title matching screenshot */}
       <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold', margin: 0 }}>
+        <h2 style={{ fontFamily: 'monospace', fontSize: 'var(--fs-24, 24px)', fontWeight: 'bold', margin: 0 }}>
           {t("Sales Return List")}
         </h2>
       </div>
 
       {/* Sub-header with Title left & Green Invoice Create button right */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 'normal', color: '#1e293b', margin: 0 }}>
+        <h2 style={{ fontSize: 'var(--fs-20, 20px)', fontWeight: 'normal', color: '#1e293b', margin: 0 }}>
           {t("Sales Return List")}
         </h2>
         <button 
           onClick={() => navigate('/invoice/sales-return/add-new')} 
-          style={{ background: '#10b981', color: 'white', border: 'none', padding: '8px 20px', fontSize: '13px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+          style={{ background: '#10b981', color: 'white', border: 'none', padding: '8px 20px', fontSize: 'var(--fs-13, 13px)', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
         >
           {t("Invoice Create")}
         </button>
@@ -175,7 +175,7 @@ const SalesReturnList = () => {
               name="client" 
               value={filters.client} 
               onChange={handleFilterChange} 
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '13px', outline: 'none', color: '#334155' }}
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none', color: '#334155' }}
             >
               <option value="">{t("Select Client")}</option>
               {clients.map(c => (
@@ -188,7 +188,7 @@ const SalesReturnList = () => {
               name="account_id" 
               value={filters.account_id} 
               onChange={handleFilterChange} 
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '13px', outline: 'none', color: '#334155' }}
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none', color: '#334155' }}
             >
               <option value="">{t("Select Account")}</option>
               {accounts.map(a => (
@@ -209,7 +209,7 @@ const SalesReturnList = () => {
               placeholder="DD/MM/YYYY"
               onClick={(e) => { try { e.target.showPicker(); } catch (err) {} }}
               onFocus={(e) => { try { e.target.showPicker(); } catch (err) {} }}
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '13px', color: '#334155', outline: 'none', cursor: 'pointer' }} 
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', color: '#334155', outline: 'none', cursor: 'pointer' }} 
             />
           </div>
 
@@ -222,7 +222,7 @@ const SalesReturnList = () => {
               placeholder="DD/MM/YYYY"
               onClick={(e) => { try { e.target.showPicker(); } catch (err) {} }}
               onFocus={(e) => { try { e.target.showPicker(); } catch (err) {} }}
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '13px', color: '#334155', outline: 'none', cursor: 'pointer' }} 
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', color: '#334155', outline: 'none', cursor: 'pointer' }} 
             />
           </div>
 
@@ -233,7 +233,7 @@ const SalesReturnList = () => {
               placeholder={t("Invoice No")}
               value={filters.search}
               onChange={handleFilterChange}
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '13px', outline: 'none' }} 
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none' }} 
             />
           </div>
 
@@ -241,7 +241,7 @@ const SalesReturnList = () => {
             <button 
               type="button"
               onClick={handleClearFilters}
-              style={{ width: '100%', background: '#10b981', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
+              style={{ width: '100%', background: '#10b981', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '4px', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', cursor: 'pointer' }}
             >
               {t("Clear Filter")}
             </button>
@@ -250,12 +250,12 @@ const SalesReturnList = () => {
 
         {/* Toolbar Row: Show entries left, Export buttons right */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ fontSize: '13px', color: '#334155', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ fontSize: 'var(--fs-13, 13px)', color: '#334155', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span>Show</span>
             <select 
               value={entriesLimit} 
               onChange={(e) => setEntriesLimit(e.target.value)}
-              style={{ padding: '4px 8px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '13px', outline: 'none', cursor: 'pointer' }}
+              style={{ padding: '4px 8px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none', cursor: 'pointer' }}
             >
               <option value="100">100</option>
               <option value="50">50</option>
@@ -270,28 +270,28 @@ const SalesReturnList = () => {
             <button 
               type="button" 
               onClick={() => exportVisibleTable('xlsx', 'Sales_Return_List')}
-              style={{ background: '#2563eb', color: 'white', border: 'none', padding: '6px 16px', fontSize: '12px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+              style={{ background: '#2563eb', color: 'white', border: 'none', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
             >
               Excel
             </button>
             <button 
               type="button" 
               onClick={() => window.print()}
-              style={{ background: '#2563eb', color: 'white', border: 'none', padding: '6px 16px', fontSize: '12px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+              style={{ background: '#2563eb', color: 'white', border: 'none', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
             >
               PDF
             </button>
             <button 
               type="button" 
               onClick={() => window.print()}
-              style={{ background: '#2563eb', color: 'white', border: 'none', padding: '6px 16px', fontSize: '12px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+              style={{ background: '#2563eb', color: 'white', border: 'none', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
             >
               Print
             </button>
             <button 
               type="button" 
               onClick={() => { handleClearFilters(); fetchReturns(); }}
-              style={{ background: '#2563eb', color: 'white', border: 'none', padding: '6px 16px', fontSize: '12px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+              style={{ background: '#2563eb', color: 'white', border: 'none', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
             >
               <RotateCcw size={13} /> Reset
             </button>
@@ -300,24 +300,24 @@ const SalesReturnList = () => {
 
         {/* Return Table matching screenshot */}
         <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1', borderRadius: '2px' }}>
-          <table className="custom-table" style={{ width: '100%', minWidth: '1200px', borderCollapse: 'collapse', fontSize: '12px' }}>
+          <table className="custom-table" style={{ width: '100%', minWidth: '1200px', borderCollapse: 'collapse', fontSize: 'var(--fs-12, 12px)' }}>
             <thead>
               <tr style={{ background: '#64748b', color: 'white' }}>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>
                   SL <ArrowUp size={11} style={{ display: 'inline', marginLeft: '2px' }} />
                 </th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t("ISSUED DATE")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t("CLIENT")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t("INVOICE ID NO")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t("CATEGORY")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t("RETURN QUANTITY")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t("BILL AMOUNT")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t("DISCOUNT")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t("RECEIVE AMOUNT")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t("DUE AMOUNT")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t("TYPE")}</th>
-                <th className="no-print" style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t("PRINTABLE")}</th>
-                <th className="no-print" style={{ textAlign: 'center', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t("ACTION")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("ISSUED DATE")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("CLIENT")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("INVOICE ID NO")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("CATEGORY")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("RETURN QUANTITY")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("BILL AMOUNT")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("DISCOUNT")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("RECEIVE AMOUNT")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("DUE AMOUNT")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("TYPE")}</th>
+                <th className="no-print" style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("PRINTABLE")}</th>
+                <th className="no-print" style={{ textAlign: 'center', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("ACTION")}</th>
               </tr>
             </thead>
             <tbody>
@@ -333,12 +333,12 @@ const SalesReturnList = () => {
                 const invIdNo = ret.invoice_no || ret.return_invoice_id || ret.invoiceNo || (ret.id ? `Invoice ID: ${ret.id}` : 'Invoice ID: 163873');
 
                 return (
-                  <tr key={ret.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: '12px' }}>
+                  <tr key={ret.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-12, 12px)' }}>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{dateStr}</td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', lineHeight: '1.4' }}>
                       <div style={{ fontWeight: '500' }}>Name: {clientName}</div>
-                      <div style={{ color: '#000', fontSize: '11px' }}>Number: {clientPhone}</div>
+                      <div style={{ color: '#000', fontSize: 'var(--fs-11, 11px)' }}>Number: {clientPhone}</div>
                     </td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', fontWeight: '500' }}>
                       {invIdNo.startsWith('Invoice ID:') ? invIdNo : `Invoice ID: ${invIdNo}`}
@@ -350,7 +350,7 @@ const SalesReturnList = () => {
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{Number(ret.receive_amount || ret.paid_amount || 0).toFixed(2)}</td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{Number(ret.total_due || ret.due_amount || ret.dueAmount || 0).toFixed(2)}</td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>
-                      <span style={{ padding: '3px 10px', borderRadius: '4px', background: '#f59e0b', color: 'white', fontSize: '11px', fontWeight: 'bold' }}>
+                      <span style={{ padding: '3px 10px', borderRadius: '4px', background: '#f59e0b', color: 'white', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>
                         {t("Return")}
                       </span>
                     </td>
@@ -358,15 +358,15 @@ const SalesReturnList = () => {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
                         <button 
                           onClick={() => { setSelectedReturn(ret); setViewModalType('pos'); }}
-                          style={{ width: '90px', background: '#10b981', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                          style={{ width: '90px', background: '#10b981', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                         >
-                          <span style={{ fontSize: '9px' }}>■</span> {t("Pos View")}
+                          <span style={{ fontSize: 'var(--fs-9, 9px)' }}>■</span> {t("Pos View")}
                         </button>
                         <button 
                           onClick={() => { setSelectedReturn(ret); setViewModalType('invoice'); }}
-                          style={{ width: '90px', background: '#10b981', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                          style={{ width: '90px', background: '#10b981', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                         >
-                          <span style={{ fontSize: '9px' }}>■</span> {t("Invoice View")}
+                          <span style={{ fontSize: 'var(--fs-9, 9px)' }}>■</span> {t("Invoice View")}
                         </button>
                       </div>
                     </td>
@@ -374,7 +374,7 @@ const SalesReturnList = () => {
                       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '4px' }}>
                         <button 
                           onClick={() => navigate(`/invoice/sales-return/edit/${ret.id}`, { state: { returnData: ret } })} 
-                          style={{ background: '#000000', border: 'none', borderRadius: '4px', padding: '5px 8px', color: 'white', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: 'bold' }} 
+                          style={{ background: '#000000', border: 'none', borderRadius: '4px', padding: '5px 8px', color: 'white', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }} 
                           title={t("Edit Return")}
                         >
                           <Edit size={12} /> {t("Edit Return")}
@@ -410,24 +410,24 @@ const SalesReturnList = () => {
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '2px solid #0ea5e9', paddingBottom: '12px' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#0f172a' }}>
+                <h3 style={{ margin: 0, fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', color: '#0f172a' }}>
                   {viewModalType === 'pos' ? t("Sales Return POS Voucher") : t("Sales Return Invoice Memo")}
                 </h3>
-                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '600' }}>
+                <span style={{ fontSize: 'var(--fs-13, 13px)', color: '#64748b', fontWeight: '600' }}>
                   {selectedReturn.invoice_no || selectedReturn.return_invoice_id || `SR-${selectedReturn.id}`}
                 </span>
               </div>
               <button onClick={() => { setViewModalType(null); setSelectedReturn(null); }} className="no-print" style={{ border: 'none', background: '#f1f5f9', padding: '6px 12px', borderRadius: '50%', cursor: 'pointer', color: '#64748b', fontWeight: 'bold' }}>✕</button>
             </div>
 
-            <div style={{ marginBottom: '16px', fontSize: '13px', color: '#334155' }}>
+            <div style={{ marginBottom: '16px', fontSize: 'var(--fs-13, 13px)', color: '#334155' }}>
               <div><strong>Client:</strong> {selectedReturn.client_name || selectedReturn.client || 'C.CASTOMER'}</div>
               <div><strong>Phone:</strong> {selectedReturn.client_phone || '01'}</div>
               <div><strong>Date:</strong> {selectedReturn.created_at || selectedReturn.date || '2026-09-15 11:28:09'}</div>
               <div><strong>Category:</strong> {selectedReturn.category || 'MALL FEROT'}</div>
             </div>
 
-            <div style={{ borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', padding: '12px 0', marginBottom: '16px', fontSize: '13px' }}>
+            <div style={{ borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', padding: '12px 0', marginBottom: '16px', fontSize: 'var(--fs-13, 13px)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <span>Bill Amount:</span>
                 <strong>৳ {Number(selectedReturn.bill_amount || selectedReturn.grand_total || 0).toFixed(2)}</strong>
@@ -447,10 +447,10 @@ const SalesReturnList = () => {
             </div>
 
             <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-              <button onClick={() => window.print()} style={{ background: '#2563eb', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}>
+              <button onClick={() => window.print()} style={{ background: '#2563eb', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: 'var(--fs-13, 13px)' }}>
                 {t("Print")}
               </button>
-              <button onClick={() => { setViewModalType(null); setSelectedReturn(null); }} style={{ background: '#64748b', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}>
+              <button onClick={() => { setViewModalType(null); setSelectedReturn(null); }} style={{ background: '#64748b', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: 'var(--fs-13, 13px)' }}>
                 {t("Close")}
               </button>
             </div>

@@ -103,15 +103,15 @@ const StaffSalaryReport = () => {
       <div className="premium-card">
         <div className="premium-header no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'white' }}>
           <div>
-            <h2 className="premium-title" style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>{t("Salary Report")}</h2>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>{t(MONTHS[month - 1])} {year}</span>
+            <h2 className="premium-title" style={{ fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', margin: 0 }}>{t("Salary Report")}</h2>
+            <span style={{ fontSize: 'var(--fs-12, 12px)', color: '#64748b' }}>{t(MONTHS[month - 1])} {year}</span>
           </div>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '11px', color: '#64748b' }}>{t("Total Paid")}</div>
-              <div style={{ fontSize: '18px', fontWeight: 800, color: '#dc2626' }}>৳ {money(total)}</div>
+              <div style={{ fontSize: 'var(--fs-11, 11px)', color: '#64748b' }}>{t("Total Paid")}</div>
+              <div style={{ fontSize: 'var(--fs-18, 18px)', fontWeight: 800, color: '#dc2626' }}>৳ {money(total)}</div>
             </div>
-            <button onClick={() => navigate('/staff/salary/create')} style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+            <button onClick={() => navigate('/staff/salary/create')} style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
               <Plus size={16} /> {t("Add Salary")}
             </button>
           </div>
@@ -145,7 +145,7 @@ const StaffSalaryReport = () => {
           <TableToolbar entries={entries} setEntries={setEntries} total={rows.length} excelData={excelData} excelName={`Salary_${MONTHS[month - 1]}_${year}`} onReload={load} onReset={() => { setStaffId(''); setMonth(now.getMonth() + 1); setYear(now.getFullYear()); setTimeout(load, 0); }} />
 
           <div className="table-responsive">
-            <table className="custom-table" style={{ width: '100%', fontSize: '12px' }}>
+            <table className="custom-table" style={{ width: '100%', fontSize: 'var(--fs-12, 12px)' }}>
               <thead>
                 <tr style={{ background: '#718096', color: 'white', textTransform: 'uppercase' }}>
                   <th style={{ width: '50px', textAlign: 'center' }}>{t("SL")}</th>
@@ -175,7 +175,7 @@ const StaffSalaryReport = () => {
                         {isPaid(r) ? (
                           <span style={{ color: '#16a34a', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}><CheckCircle size={14} /> {t("Paid")}</span>
                         ) : (
-                          <button type="button" onClick={() => markPaid(r)} disabled={marking === r.id} style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 700 }}>
+                          <button type="button" onClick={() => markPaid(r)} disabled={marking === r.id} style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-11, 11px)', fontWeight: 700 }}>
                             {marking === r.id ? '…' : t("Mark Paid")}
                           </button>
                         )}

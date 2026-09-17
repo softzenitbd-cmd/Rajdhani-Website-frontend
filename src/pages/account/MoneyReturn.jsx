@@ -136,7 +136,7 @@ const MoneyReturn = () => {
             padding: "12px 20px",
           }}
         >
-          <h2 style={{ margin: 0, fontSize: "16px", fontWeight: "bold" }}>
+          <h2 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', fontWeight: "bold" }}>
             {t("Money Return")}
           </h2>
           <div style={{ display: "flex", gap: "8px" }}>
@@ -151,7 +151,7 @@ const MoneyReturn = () => {
                 display: "flex",
                 alignItems: "center",
                 gap: "6px",
-                fontSize: "13px",
+                fontSize: 'var(--fs-13, 13px)',
                 cursor: "pointer",
               }}
             >
@@ -168,7 +168,7 @@ const MoneyReturn = () => {
                 display: "flex",
                 alignItems: "center",
                 gap: "6px",
-                fontSize: "13px",
+                fontSize: 'var(--fs-13, 13px)',
                 cursor: "pointer",
               }}
             >
@@ -206,7 +206,7 @@ const MoneyReturn = () => {
                       color: "white",
                       padding: "2px 8px",
                       borderRadius: "4px",
-                      fontSize: "10px",
+                      fontSize: 'var(--fs-10, 10px)',
                       fontWeight: "bold",
                       display: "flex",
                       alignItems: "center",
@@ -225,7 +225,7 @@ const MoneyReturn = () => {
                       padding: "12px 16px",
                       border: "1px solid #93c5fd",
                       borderRadius: "6px",
-                      fontSize: "14px",
+                      fontSize: 'var(--fs-14, 14px)',
                       outline: "none",
                     }}
                   />
@@ -326,7 +326,7 @@ const MoneyReturn = () => {
                       padding: "12px 16px",
                       border: "none",
                       outline: "none",
-                      fontSize: "14px",
+                      fontSize: 'var(--fs-14, 14px)',
                     }}
                   />
                 </div>
@@ -362,7 +362,7 @@ const MoneyReturn = () => {
                       padding: "12px 16px",
                       border: "none",
                       outline: "none",
-                      fontSize: "14px",
+                      fontSize: 'var(--fs-14, 14px)',
                     }}
                   />
                 </div>
@@ -387,7 +387,7 @@ const MoneyReturn = () => {
                   border: "none",
                   padding: "10px 24px",
                   borderRadius: "4px",
-                  fontSize: "14px",
+                  fontSize: 'var(--fs-14, 14px)',
                   fontWeight: "bold",
                   cursor: "pointer",
                 }}
@@ -403,7 +403,7 @@ const MoneyReturn = () => {
                   border: "none",
                   padding: "10px 24px",
                   borderRadius: "4px",
-                  fontSize: "14px",
+                  fontSize: 'var(--fs-14, 14px)',
                   fontWeight: "bold",
                   cursor: "pointer",
                 }}

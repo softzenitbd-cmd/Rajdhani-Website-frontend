@@ -179,7 +179,7 @@ const Login = () => {
               border: '1px solid #fecaca',
               borderRadius: '12px',
               padding: '12px 16px',
-              fontSize: '13px',
+              fontSize: 'var(--fs-13, 13px)',
               fontWeight: 500,
               marginBottom: '20px'
             }}>

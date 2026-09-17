@@ -69,8 +69,8 @@ const ShortcutMenu = () => {
         <PrintHeader />
         <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px', marginBottom: '24px' }}>
           <div>
-            <h2 style={{ fontSize: '18px', color: 'var(--text-main)', margin: 0 }}>{t("Shortcut Menu List")}</h2>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>{t("These buttons appear in the top header for quick access.")}</span>
+            <h2 style={{ fontSize: 'var(--fs-18, 18px)', color: 'var(--text-main)', margin: 0 }}>{t("Shortcut Menu List")}</h2>
+            <span style={{ fontSize: 'var(--fs-12, 12px)', color: '#64748b' }}>{t("These buttons appear in the top header for quick access.")}</span>
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button disabled={saving} onClick={async () => { if (await persist(DEFAULT_SHORTCUTS)) toast.success(t("Shortcuts reset")); }} style={{ background: '#64748b', color: 'white', padding: '8px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -83,7 +83,7 @@ const ShortcutMenu = () => {
         </div>
 
         <div className="table-responsive">
-          <table className="custom-table" style={{ width: '100%', fontSize: '12px', textAlign: 'center' }}>
+          <table className="custom-table" style={{ width: '100%', fontSize: 'var(--fs-12, 12px)', textAlign: 'center' }}>
             <thead>
               <tr style={{ background: '#94a3b8', color: 'white', textTransform: 'uppercase' }}>
                 <th style={{ width: '60px', padding: '12px' }}>{t("SL")}</th>
@@ -122,16 +122,16 @@ const ShortcutMenu = () => {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
           <div style={{ background: 'white', borderRadius: '8px', width: '420px', maxWidth: '95vw' }}>
             <div style={{ padding: '16px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, fontSize: '16px' }}>{t("Add Shortcut")}</h3>
+              <h3 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)' }}>{t("Add Shortcut")}</h3>
               <button onClick={() => setModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             <div style={{ padding: '24px' }}>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px' }}>{t("Menu")}</label>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: 'var(--fs-13, 13px)' }}>{t("Menu")}</label>
               <select value={pick} onChange={(e) => setPick(e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '4px', marginBottom: '16px' }}>
                 <option value="">{t("Select a menu")}</option>
                 {ALL_MENU_LINKS.map((l) => <option key={l.path} value={l.path}>{t(l.title)}</option>)}
               </select>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px' }}>{t("Button Title (optional)")}</label>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: 'var(--fs-13, 13px)' }}>{t("Button Title (optional)")}</label>
               <input value={customTitle} onChange={(e) => setCustomTitle(e.target.value)} placeholder={t("Custom label")} style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '4px' }} />
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
                 <button onClick={() => setModal(false)} style={{ padding: '8px 16px', background: '#f1f5f9', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t("Cancel")}</button>

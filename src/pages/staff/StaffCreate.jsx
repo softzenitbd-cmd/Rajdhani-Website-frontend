@@ -8,7 +8,7 @@ import AddOptionModal from '../../components/AddOptionModal';
 import { useTranslation } from 'react-i18next';
 
 const inputStyle = { width: '100%', padding: '12px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none' };
-const labelStyle = { display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--label-color)', marginBottom: '6px' };
+const labelStyle = { display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '6px' };
 
 const DEFAULT_DEPARTMENTS = [
   { id: 'Management', name: 'Management' },
@@ -259,8 +259,8 @@ const StaffCreate = () => {
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
         <div className="premium-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'white' }}>
-          <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold' }}>{id ? t("EDIT STAFF") : t("STAFF CREATE")}</h2>
-          <button type="button" onClick={() => navigate('/staff/list')} style={{ background: '#64748b', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+          <h2 className="premium-title" style={{ fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold' }}>{id ? t("EDIT STAFF") : t("STAFF CREATE")}</h2>
+          <button type="button" onClick={() => navigate('/staff/list')} style={{ background: '#64748b', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
             <List size={14} /> {t("Staff List")}
           </button>
         </div>
@@ -295,7 +295,7 @@ const StaffCreate = () => {
                 <button
                   type="button"
                   onClick={() => setAddDeptModal(true)}
-                  style={{ background: 'none', border: 'none', color: '#0ea5e9', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px', padding: 0 }}
+                  style={{ background: 'none', border: 'none', color: '#0ea5e9', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px', padding: 0 }}
                 >
                   <Plus size={12} /> {t("Add New")}
                 </button>
@@ -317,7 +317,7 @@ const StaffCreate = () => {
                 <button
                   type="button"
                   onClick={() => setAddDesigModal(true)}
-                  style={{ background: 'none', border: 'none', color: '#0ea5e9', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px', padding: 0 }}
+                  style={{ background: 'none', border: 'none', color: '#0ea5e9', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px', padding: 0 }}
                 >
                   <Plus size={12} /> {t("Add New")}
                 </button>
@@ -360,7 +360,7 @@ const StaffCreate = () => {
             </div>
           </div>
 
-          <button type="submit" disabled={saving} style={{ width: '100%', background: 'var(--success)', color: 'white', padding: '14px', border: 'none', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', opacity: saving ? 0.7 : 1 }}>
+          <button type="submit" disabled={saving} style={{ width: '100%', background: 'var(--success)', color: 'white', padding: '14px', border: 'none', borderRadius: '4px', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', cursor: 'pointer', opacity: saving ? 0.7 : 1 }}>
             {saving ? t("Saving...") : id ? t("Update Staff") : t("Add Staff")}
           </button>
         </form>

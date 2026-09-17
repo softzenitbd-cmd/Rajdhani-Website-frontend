@@ -167,7 +167,7 @@ const SupplierCreate = () => {
           </div>
 
           <div className="form-group" style={{ marginBottom: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', color: 'var(--text-main)', fontSize: '14px', fontWeight: '500' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', color: 'var(--text-main)', fontSize: 'var(--fs-14, 14px)', fontWeight: '500' }}>
               <span style={{ marginRight: '8px' }}>🏦</span> {t("Bank Account info")}
             </div>
             <textarea 

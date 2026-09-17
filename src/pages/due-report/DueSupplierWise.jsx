@@ -47,7 +47,7 @@ const DueSupplierWise = () => {
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
         <div style={{ padding: '16px', background: 'white', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>{t("Supplier Due Report")}</h2>
+          <h2 style={{ fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', margin: 0 }}>{t("Supplier Due Report")}</h2>
         </div>
 
         <div className="premium-body" style={{ background: 'white', padding: '24px' }}>
@@ -55,29 +55,29 @@ const DueSupplierWise = () => {
 
           <div className="no-print" style={{ display: 'flex', justifyContent: 'center', gap: '24px', alignItems: 'flex-end', marginBottom: '24px', flexWrap: 'wrap' }}>
             <div style={{ width: '300px' }}>
-              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Search By Supplier")}</label>
+              <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Search By Supplier")}</label>
               <select value={supplierId} onChange={(e) => setSupplierId(e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }}>
                 <option value="">{t("All Suppliers")}</option>
                 {suppliers.map((s) => <option key={s.id || s.uuid} value={s.id || s.uuid}>{s.name}</option>)}
               </select>
             </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', paddingBottom: '10px', cursor: 'pointer' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'var(--fs-13, 13px)', paddingBottom: '10px', cursor: 'pointer' }}>
               <input type="checkbox" checked={onlyDue} onChange={(e) => setOnlyDue(e.target.checked)} /> {t("Only with due")}
             </label>
-            <button onClick={() => { setSupplierId(''); setOnlyDue(true); }} style={{ background: '#7e8a9f', color: 'white', padding: '10px 32px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', height: '42px', minWidth: '150px' }}>
+            <button onClick={() => { setSupplierId(''); setOnlyDue(true); }} style={{ background: '#7e8a9f', color: 'white', padding: '10px 32px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', height: '42px', minWidth: '150px' }}>
               {t("Clear Filter")}
             </button>
           </div>
 
           <div style={{ textAlign: 'center', marginBottom: '24px', border: '1px solid #94a3b8' }}>
-            <div style={{ background: '#94a3b8', color: 'white', padding: '8px', fontSize: '11px', fontWeight: 'bold' }}>{t("TOTAL DUE")}</div>
-            <div style={{ padding: '12px', fontSize: '18px', fontWeight: 'bold', color: '#dc2626' }}>৳ {money(totalDue)}</div>
+            <div style={{ background: '#94a3b8', color: 'white', padding: '8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("TOTAL DUE")}</div>
+            <div style={{ padding: '12px', fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', color: '#dc2626' }}>৳ {money(totalDue)}</div>
           </div>
 
           <TableToolbar entries={entries} setEntries={setEntries} total={data.length} excelData={excelData} excelName="Supplier_Due_Report" onReload={fetchData} onReset={() => { setSupplierId(''); setOnlyDue(true); }} />
 
           <div className="table-responsive">
-            <table className="custom-table" style={{ width: '100%', fontSize: '11px', textAlign: 'center' }}>
+            <table className="custom-table" style={{ width: '100%', fontSize: 'var(--fs-11, 11px)', textAlign: 'center' }}>
               <thead>
                 <tr style={{ background: '#94a3b8', color: 'white', textTransform: 'uppercase' }}>
                   <th style={{ width: '40px', padding: '12px' }}>{t("SL")}</th>

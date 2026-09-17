@@ -97,7 +97,7 @@ const ClientEdit = () => {
       <div className="chart-card" style={{ background: 'white', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
         {/* Header */}
         <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid #e2e8f0' }}>
-          <h2 style={{ fontSize: '14px', fontWeight: '800', color: '#1e293b', margin: 0, textTransform: 'uppercase' }}>{t("CLIENT CREATE")}</h2>
+          <h2 style={{ fontSize: 'var(--fs-14, 14px)', fontWeight: '800', color: '#1e293b', margin: 0, textTransform: 'uppercase' }}>{t("CLIENT CREATE")}</h2>
           <div className="card-actions" style={{ display: 'flex', gap: '8px' }}>
             <button className="btn btn-outline" onClick={() => navigate('/crm/client-list')} style={{ padding: '6px 12px', background: '#64748b', color: 'white', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <List size={14} /> {t("Client List")}

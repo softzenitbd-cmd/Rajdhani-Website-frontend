@@ -54,12 +54,12 @@ input[type="date"] {
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--main-font, 'Inter', sans-serif);
   background-color: var(--bg-app);
   color: var(--text-main);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
-  font-size: 13px;
+  font-size: var(--main-font-size, 13px);
 }
 
 /* Bangla UI: <html lang="bn"> is set by src/i18n.js when the language switches */
@@ -68,7 +68,7 @@ html[lang="bn"] button,
 html[lang="bn"] input,
 html[lang="bn"] select,
 html[lang="bn"] textarea {
-  font-family: 'Hind Siliguri', 'Inter', 'Noto Sans Bengali', sans-serif;
+  font-family: var(--main-font, 'Hind Siliguri', 'Inter', 'Noto Sans Bengali', sans-serif);
 }
 
 /* Layout */
@@ -85,9 +85,17 @@ html[lang="bn"] textarea {
   background-color: var(--bg-sidebar);
   display: flex;
   flex-direction: column;
-  transition: var(--transition);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 10;
   box-shadow: var(--shadow-md);
+  white-space: nowrap;
+}
+
+@media (min-width: 1101px) {
+  .sidebar.collapsed {
+    width: 0 !important;
+    overflow: hidden !important;
+  }
 }
 
 .sidebar-brand {
@@ -106,7 +114,7 @@ html[lang="bn"] textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: var(--fs-24, 24px);
   font-weight: 700;
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
@@ -133,7 +141,7 @@ html[lang="bn"] textarea {
 .profile-name {
   color: white;
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--fs-13, 13px);
 }
 
 .profile-role {
@@ -160,7 +168,7 @@ html[lang="bn"] textarea {
   transition: var(--transition);
   cursor: pointer;
   font-weight: 500;
-  font-size: 12px;
+  font-size: var(--fs-12, 12px);
 }
 
 .nav-item-content {
@@ -235,7 +243,7 @@ html[lang="bn"] textarea {
 }
 
 .header-title {
-  font-size: 18px;
+  font-size: var(--fs-18, 18px);
   font-weight: 700;
   color: var(--text-main);
   letter-spacing: -0.5px;
@@ -256,7 +264,7 @@ html[lang="bn"] textarea {
   padding: 10px 20px;
   border-radius: var(--radius-full);
   font-weight: 600;
-  font-size: 12px;
+  font-size: var(--fs-12, 12px);
   cursor: pointer;
   border: none;
   transition: var(--transition);
@@ -317,7 +325,7 @@ html[lang="bn"] textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: var(--fs-24, 24px);
 }
 
 .icon-box.sales {
@@ -341,13 +349,13 @@ html[lang="bn"] textarea {
 
 .stat-label {
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: var(--fs-14, 14px);
   font-weight: 500;
   margin-bottom: 4px;
 }
 
 .stat-value {
-  font-size: 18px;
+  font-size: var(--fs-18, 18px);
   font-weight: 700;
   color: var(--text-main);
   display: flex;
@@ -379,9 +387,19 @@ html[lang="bn"] textarea {
 }
 
 .chart-title {
-  font-size: 14px;
+  font-size: var(--fs-14, 14px);
   font-weight: 700;
   color: var(--text-main);
+}
+
+.print-only {
+  display: none !important;
+}
+
+@media print {
+  .print-only {
+    display: block !important;
+  }
 }
 
 .chart-subtitle {
@@ -506,7 +524,7 @@ html[lang="bn"] textarea {
   html, body {
     background: white !important;
     color: #000000 !important;
-    font-size: 11px !important;
+    font-size: var(--fs-11, 11px) !important;
     width: 100% !important;
     height: auto !important;
     margin: 0 !important;
@@ -661,7 +679,7 @@ html[lang="bn"] textarea {
   }
 
   th, td {
-    font-size: 11px !important;
+    font-size: var(--fs-11, 11px) !important;
     padding: 6px 8px !important;
     color: #000000 !important;
     border: 1px solid #475569 !important;
@@ -811,7 +829,7 @@ html[lang="bn"] textarea {
 }
 
 .loader-text {
-  font-size: 14px;
+  font-size: var(--fs-14, 14px);
   font-weight: 600;
   color: var(--text-main);
   letter-spacing: 1px;

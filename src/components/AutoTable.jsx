@@ -33,7 +33,7 @@ const AutoTable = ({ rows = [], columns, loading, emptyText = 'No data available
 
   return (
     <div className="table-responsive">
-      <table className="custom-table" style={{ width: '100%', fontSize: '12px' }}>
+      <table className="custom-table" style={{ width: '100%', fontSize: 'var(--fs-12, 12px)' }}>
         <thead>
           <tr style={{ background: '#718096', color: 'white', textTransform: 'uppercase' }}>
             {showSl && <th style={{ width: '50px', textAlign: 'center', padding: '10px' }}>{t("SL")}</th>}

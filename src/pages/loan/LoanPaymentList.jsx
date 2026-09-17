@@ -140,12 +140,20 @@ const LoanPaymentList = () => {
                     onChange={(val) => setEditFormData(prev => ({ ...prev, clientId: val }))}
                     placeholder={t('common.select_client')}
                   />
+                  {editFormData.clientId && (
+                    <div style={{ fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold', marginTop: '4px', paddingLeft: '4px', color: '#1e293b' }}>
+                      Advance: {(() => {
+                        const selectedClientObj = clients.find(c => String(c.id) === String(editFormData.clientId) || String(c.uuid) === String(editFormData.clientId));
+                        return selectedClientObj ? (selectedClientObj.previous_due || selectedClientObj.balance || selectedClientObj.advance || 0) : 0;
+                      })()}
+                    </div>
+                  )}
                 </div>
                 <div className="form-col" style={{ position: 'relative' }}>
-                  <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
+                  <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
                     <Calendar size={12} /> {t("Date")}
                   </div>
-                  <input type="date" name="date" value={editFormData.date} onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })} style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: '14px', outline: 'none', background: 'white' }} />
+                  <input type="date" name="date" value={editFormData.date} onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })} style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: 'var(--fs-14, 14px)', outline: 'none', background: 'white' }} />
                 </div>
               </div>
 
@@ -163,7 +171,7 @@ const LoanPaymentList = () => {
                     <div style={{ padding: '0 12px', display: 'flex', alignItems: 'center' }}>
                       <FileText size={18} color="#1e293b" />
                     </div>
-                    <input type="text" name="note" placeholder={t("Receive Description in a short note")} value={editFormData.note} onChange={(e) => setEditFormData({ ...editFormData, note: e.target.value })} style={{ flex: 1, padding: '12px 16px 12px 0', border: 'none', outline: 'none', fontSize: '14px' }} />
+                    <input type="text" name="note" placeholder={t("Receive Description in a short note")} value={editFormData.note} onChange={(e) => setEditFormData({ ...editFormData, note: e.target.value })} style={{ flex: 1, padding: '12px 16px 12px 0', border: 'none', outline: 'none', fontSize: 'var(--fs-14, 14px)' }} />
                   </div>
                 </div>
               </div>
@@ -174,7 +182,7 @@ const LoanPaymentList = () => {
                     <div style={{ padding: '0 16px', fontWeight: 'bold', color: '#1e293b' }}>
                       <DollarSign size={18} color="#1e293b" />
                     </div>
-                    <input type="number" name="amount" placeholder={t("Amount")} value={editFormData.amount} onChange={(e) => setEditFormData({ ...editFormData, amount: e.target.value })} required style={{ flex: 1, padding: '12px 16px 12px 0', border: 'none', outline: 'none', fontSize: '14px' }} />
+                    <input type="number" name="amount" placeholder={t("Amount")} value={editFormData.amount} onChange={(e) => setEditFormData({ ...editFormData, amount: e.target.value })} required style={{ flex: 1, padding: '12px 16px 12px 0', border: 'none', outline: 'none', fontSize: 'var(--fs-14, 14px)' }} />
                   </div>
                 </div>
                 <div className="form-col">
@@ -190,7 +198,7 @@ const LoanPaymentList = () => {
               <div className="form-row">
                 <div className="form-col" style={{ flex: 'none', width: '50%' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #93c5fd', borderRadius: '6px', padding: '12px 16px', background: 'white', height: '48px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '500', color: '#334155' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 'var(--fs-14, 14px)', fontWeight: '500', color: '#334155' }}>
                       <MessageSquare size={18} color="#1e293b" />
                       {t("SMS")}
                     </div>
@@ -205,10 +213,10 @@ const LoanPaymentList = () => {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '24px' }}>
-                <button type="submit" className="btn-primary" style={{ background: '#0ea5e9', padding: '8px 24px', fontSize: '14px', borderRadius: '4px' }} disabled={saving}>
+                <button type="submit" className="btn-primary" style={{ background: '#0ea5e9', padding: '8px 24px', fontSize: 'var(--fs-14, 14px)', borderRadius: '4px' }} disabled={saving}>
                   {saving ? t("Processing...") : t("Update Payment")}
                 </button>
-                <button type="button" className="btn-danger" onClick={() => { setEditing(null); setEditFormData(null); }} style={{ background: '#ef4444', padding: '8px 24px', fontSize: '14px', borderRadius: '4px' }}>
+                <button type="button" className="btn-danger" onClick={() => { setEditing(null); setEditFormData(null); }} style={{ background: '#ef4444', padding: '8px 24px', fontSize: 'var(--fs-14, 14px)', borderRadius: '4px' }}>
                   {t("close")}
                 </button>
               </div>
@@ -220,13 +228,13 @@ const LoanPaymentList = () => {
       <PrintHeader />
       <div className="premium-card" style={{ padding: '0' }}>
       <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>{t("Loan Payment List")}</h2>
+        <h2 style={{ fontFamily: 'monospace', fontSize: 'var(--fs-24, 24px)', fontWeight: 'bold' }}>{t("Loan Payment List")}</h2>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '18px', fontWeight: 'normal', color: '#333' }}>{t("Loan Payment List")}</h2>
+        <h2 style={{ fontSize: 'var(--fs-18, 18px)', fontWeight: 'normal', color: '#333' }}>{t("Loan Payment List")}</h2>
         <div className="card-actions" style={{ display: 'flex', gap: '8px' }}>
-          <button className="btn btn-primary" onClick={() => navigate('/loan/payment-create')} style={{ background: 'var(--success)', padding: '6px 12px', fontSize: '14px', borderRadius: '4px' }}>
+          <button className="btn btn-primary" onClick={() => navigate('/loan/payment-create')} style={{ background: 'var(--success)', padding: '6px 12px', fontSize: 'var(--fs-14, 14px)', borderRadius: '4px' }}>
             <Plus size={14} /> {t("Add Loan Payment")}
           </button>
         </div>
@@ -236,7 +244,7 @@ const LoanPaymentList = () => {
         {/* Filters */}
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1.3fr 1fr', marginBottom: '24px', alignItems: 'flex-end', gap: '16px', maxWidth: '840px', margin: '0 auto 24px auto' }}>
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px', color: '#334155', display: 'block' }}>{t('common.search_by_client')}</label>
+            <label style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: '600', marginBottom: '8px', color: '#334155', display: 'block' }}>{t('common.search_by_client')}</label>
             <div style={{ height: '44px' }}>
               <SearchableSelect
                 options={(clients || []).map(c => ({ value: c.id, label: `${c.name} (${c.phone || '-'})`, searchValue: `${c.name} ${c.phone}` }))}
@@ -248,15 +256,15 @@ const LoanPaymentList = () => {
           </div>
 
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px', color: '#334155', display: 'block' }}>{t('common.search_by_date')}</label>
+            <label style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: '600', marginBottom: '8px', color: '#334155', display: 'block' }}>{t('common.search_by_date')}</label>
             <div style={{ display: 'flex', border: '1px solid #93c5fd', borderRadius: '6px', overflow: 'hidden', background: 'white', height: '44px', alignItems: 'center' }}>
-              <input type="date" style={{ width: '50%', border: 'none', borderRight: '1px solid #cbd5e1', padding: '0 10px', fontSize: '13px', color: '#1e293b', outline: 'none', height: '100%' }} value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
-              <input type="date" style={{ width: '50%', border: 'none', padding: '0 10px', fontSize: '13px', color: '#1e293b', outline: 'none', height: '100%' }} value={toDate} onChange={(e) => setToDate(e.target.value)} />
+              <input type="date" style={{ width: '50%', border: 'none', borderRight: '1px solid #cbd5e1', padding: '0 10px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', outline: 'none', height: '100%' }} value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+              <input type="date" style={{ width: '50%', border: 'none', padding: '0 10px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', outline: 'none', height: '100%' }} value={toDate} onChange={(e) => setToDate(e.target.value)} />
             </div>
           </div>
 
           <div className="form-group">
-            <button className="btn btn-outline" onClick={handleClearFilter} style={{ height: '44px', width: '100%', background: '#64748b', color: 'white', justifyContent: 'center', borderRadius: '6px', border: 'none', fontWeight: 'bold', fontSize: '14px' }}>
+            <button className="btn btn-outline" onClick={handleClearFilter} style={{ height: '44px', width: '100%', background: '#64748b', color: 'white', justifyContent: 'center', borderRadius: '6px', border: 'none', fontWeight: 'bold', fontSize: 'var(--fs-14, 14px)' }}>
               {t("Clear Filter")}
             </button>
           </div>
@@ -264,7 +272,7 @@ const LoanPaymentList = () => {
 
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
+          <div style={{ fontSize: 'var(--fs-14, 14px)', color: 'var(--text-main)' }}>
             {t("Show")} 
             <select style={{ margin: '0 8px', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
               <option>100</option>
@@ -272,10 +280,10 @@ const LoanPaymentList = () => {
             {t("entries")}
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="btn" onClick={() => window.print()} style={{ background: '#4F46E5', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
+            <button className="btn" onClick={() => window.print()} style={{ background: '#4F46E5', color: 'white', padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', borderRadius: '4px' }}>
               <Printer size={16} style={{ marginRight: '6px' }} /> {t("Print")}
             </button>
-            <button className="btn" onClick={handleClearFilter} style={{ background: '#4F46E5', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
+            <button className="btn" onClick={handleClearFilter} style={{ background: '#4F46E5', color: 'white', padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', borderRadius: '4px' }}>
               <RotateCcw size={16} style={{ marginRight: '6px' }} /> {t("Reset")}
             </button>
           </div>
@@ -310,8 +318,8 @@ const LoanPaymentList = () => {
                   <tr key={loan.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0' }}>
                     <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
                     <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0' }}>{loan.date || loan.created_at?.split('T')[0] || '-'}</td>
-                    <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0', fontFamily: 'monospace', fontSize: '12px' }} title={rawReceipt}>{receiptDisplay}</td>
-                    <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0', fontSize: '13px' }}>
+                    <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0', fontFamily: 'monospace', fontSize: 'var(--fs-12, 12px)' }} title={rawReceipt}>{receiptDisplay}</td>
+                    <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0', fontSize: 'var(--fs-13, 13px)' }}>
                       <div>{t("Name:")} {clientName}</div>
                       <div>{t("Number:")} {clientPhone}</div>
                     </td>

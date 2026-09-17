@@ -98,15 +98,20 @@ const PurchaseReturnCreate = () => {
   const handleBarcodeKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      const code = formData.barcode.trim();
+      const code = e.target.value.trim();
       if (!code) return;
-      const prod = products.find(p => String(p.code || p.barcode || p.id) === code);
+      const prod = products.find(p => 
+        String(p.code) === code || 
+        String(p.barcode) === code || 
+        String(p.id) === code ||
+        String(p.product_code) === code
+      );
       if (prod) {
         handleSelectProduct(prod.id);
-        setFormData(prev => ({ ...prev, barcode: '' }));
       } else {
         toast.error(t("Product with barcode \"{{v0}}\" not found.", { v0: code }));
       }
+      setFormData(prev => ({ ...prev, barcode: '' }));
     }
   };
 
@@ -186,11 +191,11 @@ const PurchaseReturnCreate = () => {
       <PrintHeader />
       <div className="premium-card" style={{ background: 'white', borderRadius: '8px', overflow: 'hidden' }}>
         <div className="premium-header" style={{ padding: '16px 24px', background: 'white', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold', textTransform: 'uppercase', color: '#1e293b', margin: 0 }}>
+          <h2 className="premium-title" style={{ fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', textTransform: 'uppercase', color: '#1e293b', margin: 0 }}>
             {t("Purchase Return Create")}
           </h2>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button type="button" onClick={() => navigate('/product/purchase-return/list')} className="btn" style={{ background: 'var(--text-muted)', color: 'white', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+            <button type="button" onClick={() => navigate('/product/purchase-return/list')} className="btn" style={{ background: 'var(--text-muted)', color: 'white', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'var(--fs-13, 13px)' }}>
               <List size={16} /> {t("Return List")}
             </button>
             <button type="button" onClick={fetchPrerequisites} className="btn" style={{ background: '#64748b', color: 'white', padding: '8px', borderRadius: '4px' }}>
@@ -221,7 +226,7 @@ const PurchaseReturnCreate = () => {
               {/* Date */}
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <div style={{ position: 'relative' }}>
-                  <div style={{ position: 'absolute', top: '-10px', left: '16px', background: 'var(--info)', color: 'white', fontSize: '11px', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ position: 'absolute', top: '-10px', left: '16px', background: 'var(--info)', color: 'white', fontSize: 'var(--fs-11, 11px)', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Calendar size={12} /> {t("Date")}
                   </div>
                   <input type="date" name="date" value={formData.date} onChange={handleChange} style={{ width: '100%', padding: '14px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none' }} />
@@ -262,6 +267,7 @@ const PurchaseReturnCreate = () => {
                     }
                   }}
                   clearOnSelect={true}
+                  hideOptionsUntilSearch={true}
                   placeholder={t("Select Product to Return")}
                   onAddClick={() => setIsProductModalOpen(true)}
                 />
@@ -274,15 +280,15 @@ const PurchaseReturnCreate = () => {
               <table className="custom-table" style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ background: 'var(--secondary)', color: 'white' }}>
-                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '50px' }}>{t("SL")}</th>
-                    <th style={{ textAlign: 'left', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("PRODUCT")}</th>
-                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '90px' }}>{t("QUANTITY")}</th>
-                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '120px' }}>{t("BUYING PRICE")}</th>
-                    <th style={{ textAlign: 'right', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("TOTAL BUYING PRICE")}</th>
-                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '120px' }}>{t("SALE PRICE")}</th>
-                    <th style={{ textAlign: 'right', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("TOTAL SALE PRICE")}</th>
-                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("BARCODE")}</th>
-                    <th style={{ textAlign: 'center', padding: '12px', fontSize: '11px' }}>{t("ACTION")}</th>
+                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)', width: '50px' }}>{t("SL")}</th>
+                    <th style={{ textAlign: 'left', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("PRODUCT")}</th>
+                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)', width: '90px' }}>{t("QUANTITY")}</th>
+                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)', width: '120px' }}>{t("BUYING PRICE")}</th>
+                    <th style={{ textAlign: 'right', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("TOTAL BUYING PRICE")}</th>
+                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)', width: '120px' }}>{t("SALE PRICE")}</th>
+                    <th style={{ textAlign: 'right', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("TOTAL SALE PRICE")}</th>
+                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("BARCODE")}</th>
+                    <th style={{ textAlign: 'center', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("ACTION")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -294,13 +300,24 @@ const PurchaseReturnCreate = () => {
                     </tr>
                   ) : (
                     items.map((item, idx) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0', fontSize: '13px' }}>
+                      <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-13, 13px)' }}>
                         <td style={{ textAlign: 'center', padding: '10px' }}>{idx + 1}</td>
                         <td style={{ textAlign: 'left', padding: '10px', fontWeight: '600' }}>{item.name}</td>
                         <td style={{ textAlign: 'center', padding: '10px' }}>
                           <input
+                            data-qty-idx={idx}
                             type="number"
                             value={item.quantity}
+                            onFocus={(e) => e.target.select()}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Tab' && !e.shiftKey) {
+                                const nextInput = document.querySelector(`input[data-qty-idx="${idx + 1}"]`);
+                                if (nextInput) {
+                                  e.preventDefault();
+                                  nextInput.focus();
+                                }
+                              }
+                            }}
                             onChange={(e) => updateItemField(idx, 'quantity', e.target.value)}
                             style={{ width: '60px', padding: '6px', textAlign: 'center', border: '1px solid #cbd5e1', borderRadius: '4px' }}
                           />
@@ -309,6 +326,7 @@ const PurchaseReturnCreate = () => {
                           <input
                             type="number"
                             value={item.buyingPrice}
+                            onFocus={(e) => e.target.select()}
                             onChange={(e) => updateItemField(idx, 'buyingPrice', e.target.value)}
                             style={{ width: '90px', padding: '6px', textAlign: 'right', border: '1px solid #cbd5e1', borderRadius: '4px' }}
                           />
@@ -320,6 +338,7 @@ const PurchaseReturnCreate = () => {
                           <input
                             type="number"
                             value={item.salePrice}
+                            onFocus={(e) => e.target.select()}
                             onChange={(e) => updateItemField(idx, 'salePrice', e.target.value)}
                             style={{ width: '90px', padding: '6px', textAlign: 'right', border: '1px solid #cbd5e1', borderRadius: '4px' }}
                           />
@@ -327,7 +346,7 @@ const PurchaseReturnCreate = () => {
                         <td style={{ textAlign: 'right', padding: '10px', fontWeight: 'bold' }}>
                           ৳ {(item.quantity * item.salePrice).toFixed(2)}
                         </td>
-                        <td style={{ textAlign: 'center', padding: '10px', fontSize: '12px', color: '#64748b' }}>{item.barcode}</td>
+                        <td style={{ textAlign: 'center', padding: '10px', fontSize: 'var(--fs-12, 12px)', color: '#64748b' }}>{item.barcode}</td>
                         <td style={{ textAlign: 'center', padding: '10px' }}>
                           <button
                             type="button"
@@ -361,7 +380,7 @@ const PurchaseReturnCreate = () => {
                 type="submit" 
                 disabled={submitting} 
                 className="btn-primary" 
-                style={{ padding: '14px 48px', background: 'var(--success)', color: 'white', border: 'none', borderRadius: '4px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer' }}
+                style={{ padding: '14px 48px', background: 'var(--success)', color: 'white', border: 'none', borderRadius: '4px', fontSize: 'var(--fs-15, 15px)', fontWeight: 'bold', cursor: 'pointer' }}
               >
                 {submitting ? t("Submitting...") : t("Purchase Return")}
               </button>

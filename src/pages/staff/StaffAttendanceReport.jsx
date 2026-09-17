@@ -61,13 +61,13 @@ const StaffAttendanceReport = () => {
   }));
 
   const selectStyle = { width: '180px', padding: '10px 12px', borderRadius: '4px', border: '1px solid #0ea5e9', outline: 'none', background: 'white' };
-  const searchBtn = { background: 'var(--success)', color: 'white', padding: '10px 32px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 500 };
+  const searchBtn = { background: 'var(--success)', color: 'white', padding: '10px 32px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', fontWeight: 500 };
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
         <div className="premium-header" style={{ padding: '24px', background: 'white', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>
-          <h2 className="premium-title" style={{ fontSize: '18px', fontWeight: 'bold' }}>{t("Staff Attendance")}</h2>
+          <h2 className="premium-title" style={{ fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold' }}>{t("Staff Attendance")}</h2>
         </div>
 
         <div className="premium-body" style={{ background: 'white', padding: '24px' }}>
@@ -93,7 +93,7 @@ const StaffAttendanceReport = () => {
           <TableToolbar entries={entries} setEntries={setEntries} total={rows.length} excelData={excelData} excelName="Staff_Attendance" onReload={load} onReset={() => { setMode('date'); setDate(today()); setTimeout(load, 0); }} />
 
           <div className="table-responsive">
-            <table className="custom-table" style={{ width: '100%', fontSize: '12px', textAlign: 'center' }}>
+            <table className="custom-table" style={{ width: '100%', fontSize: 'var(--fs-12, 12px)', textAlign: 'center' }}>
               <thead>
                 <tr style={{ background: '#94a3b8', color: 'white' }}>
                   <th style={{ width: '50px' }}>{t("SL")}</th>
@@ -120,7 +120,7 @@ const StaffAttendanceReport = () => {
                       <td style={{ padding: '10px' }}>{fmtTime(r.in_time)}</td>
                       <td style={{ padding: '10px' }}>{fmtTime(r.out_time)}</td>
                       <td style={{ padding: '10px' }}>
-                        <span style={{ padding: '4px 12px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', textTransform: 'capitalize', ...badge(r.status || r.attendance) }}>
+                        <span style={{ padding: '4px 12px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', textTransform: 'capitalize', ...badge(r.status || r.attendance) }}>
                           {r.status || r.attendance || '-'}
                         </span>
                       </td>

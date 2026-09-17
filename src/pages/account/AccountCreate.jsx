@@ -59,17 +59,17 @@ const AccountCreate = () => {
       <div style={{ background: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
         {/* Header */}
         <div style={{ padding: '20px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9' }}>
-          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#0f172a', letterSpacing: '0.5px' }}>{t("ADD NEW ACCOUNT")}</h2>
+          <h2 style={{ margin: 0, fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', color: '#0f172a', letterSpacing: '0.5px' }}>{t("ADD NEW ACCOUNT")}</h2>
           <div style={{ display: 'flex', gap: '10px' }}>
             <button 
               onClick={() => navigate('/account/account-list')}
-              style={{ background: '#94a3b8', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+              style={{ background: '#94a3b8', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'var(--fs-13, 13px)', fontWeight: '500', cursor: 'pointer' }}
             >
               <List size={15} /> {t("Account List")}
             </button>
             <button 
               onClick={() => navigate(-1)}
-              style={{ background: '#94a3b8', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+              style={{ background: '#94a3b8', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'var(--fs-13, 13px)', fontWeight: '500', cursor: 'pointer' }}
             >
               <ArrowLeft size={15} /> {t("Go Back")}
             </button>
@@ -91,10 +91,10 @@ const AccountCreate = () => {
                     value={formData.name} 
                     onChange={handleChange} 
                     required 
-                    style={{ flex: 1, border: 'none', outline: 'none', paddingLeft: '12px', fontSize: '14px', color: '#1e293b' }} 
+                    style={{ flex: 1, border: 'none', outline: 'none', paddingLeft: '12px', fontSize: 'var(--fs-14, 14px)', color: '#1e293b' }} 
                   />
                 </div>
-                <div style={{ fontSize: '13px', color: '#3b82f6', marginTop: '6px', fontWeight: '500' }}>
+                <div style={{ fontSize: 'var(--fs-13, 13px)', color: '#3b82f6', marginTop: '6px', fontWeight: '500' }}>
                   {t("Account Title (e.g. Cash, DBBL, Brac Bank) *")}
                 </div>
               </div>
@@ -110,10 +110,10 @@ const AccountCreate = () => {
                     value={formData.balance} 
                     onChange={handleChange} 
                     required 
-                    style={{ flex: 1, border: 'none', outline: 'none', paddingLeft: '12px', fontSize: '14px', color: '#1e293b' }} 
+                    style={{ flex: 1, border: 'none', outline: 'none', paddingLeft: '12px', fontSize: 'var(--fs-14, 14px)', color: '#1e293b' }} 
                   />
                 </div>
-                <div style={{ fontSize: '13px', color: '#3b82f6', marginTop: '6px', fontWeight: '500' }}>
+                <div style={{ fontSize: 'var(--fs-13, 13px)', color: '#3b82f6', marginTop: '6px', fontWeight: '500' }}>
                   {t("Initial Balance *")}
                 </div>
               </div>
@@ -127,10 +127,10 @@ const AccountCreate = () => {
                     name="accountNumber" 
                     value={formData.accountNumber} 
                     onChange={handleChange} 
-                    style={{ flex: 1, border: 'none', outline: 'none', paddingLeft: '12px', fontSize: '14px', color: '#1e293b' }} 
+                    style={{ flex: 1, border: 'none', outline: 'none', paddingLeft: '12px', fontSize: 'var(--fs-14, 14px)', color: '#1e293b' }} 
                   />
                 </div>
-                <div style={{ fontSize: '13px', color: '#475569', marginTop: '6px', fontWeight: '500' }}>
+                <div style={{ fontSize: 'var(--fs-13, 13px)', color: '#475569', marginTop: '6px', fontWeight: '500' }}>
                   {t("Account Number")}
                 </div>
               </div>
@@ -144,10 +144,10 @@ const AccountCreate = () => {
                     name="contactPerson" 
                     value={formData.contactPerson} 
                     onChange={handleChange} 
-                    style={{ flex: 1, border: 'none', outline: 'none', paddingLeft: '12px', fontSize: '14px', color: '#1e293b' }} 
+                    style={{ flex: 1, border: 'none', outline: 'none', paddingLeft: '12px', fontSize: 'var(--fs-14, 14px)', color: '#1e293b' }} 
                   />
                 </div>
-                <div style={{ fontSize: '13px', color: '#475569', marginTop: '6px', fontWeight: '500' }}>
+                <div style={{ fontSize: 'var(--fs-13, 13px)', color: '#475569', marginTop: '6px', fontWeight: '500' }}>
                   {t("Contact Person")}
                 </div>
               </div>
@@ -161,10 +161,10 @@ const AccountCreate = () => {
                     name="phone" 
                     value={formData.phone} 
                     onChange={handleChange} 
-                    style={{ flex: 1, border: 'none', outline: 'none', paddingLeft: '12px', fontSize: '14px', color: '#1e293b' }} 
+                    style={{ flex: 1, border: 'none', outline: 'none', paddingLeft: '12px', fontSize: 'var(--fs-14, 14px)', color: '#1e293b' }} 
                   />
                 </div>
-                <div style={{ fontSize: '13px', color: '#475569', marginTop: '6px', fontWeight: '500' }}>
+                <div style={{ fontSize: 'var(--fs-13, 13px)', color: '#475569', marginTop: '6px', fontWeight: '500' }}>
                   {t("Phone Number")}
                 </div>
               </div>
@@ -173,7 +173,7 @@ const AccountCreate = () => {
 
             {/* Field 6: Description */}
             <div style={{ marginTop: '20px' }}>
-              <div style={{ fontSize: '13px', color: '#475569', marginBottom: '8px', fontWeight: '500' }}>{t("Description")}</div>
+              <div style={{ fontSize: 'var(--fs-13, 13px)', color: '#475569', marginBottom: '8px', fontWeight: '500' }}>{t("Description")}</div>
               <textarea 
                 name="description" 
                 placeholder={t("Account Description")} 
@@ -186,7 +186,7 @@ const AccountCreate = () => {
                   borderRadius: '6px', 
                   padding: '12px 14px', 
                   outline: 'none', 
-                  fontSize: '14px', 
+                  fontSize: 'var(--fs-14, 14px)', 
                   color: '#1e293b', 
                   resize: 'vertical',
                   fontFamily: 'inherit'
@@ -206,7 +206,7 @@ const AccountCreate = () => {
                   color: 'white', 
                   border: 'none', 
                   borderRadius: '6px', 
-                  fontSize: '15px', 
+                  fontSize: 'var(--fs-15, 15px)', 
                   fontWeight: 'bold', 
                   cursor: 'pointer',
                   transition: 'background 0.2s'

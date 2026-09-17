@@ -64,7 +64,7 @@ const CenteredNestedPopup = ({ isOpen, onClose, onSave, title, label }) => {
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold', color: '#1e293b' }}>
+          <h4 style={{ margin: 0, fontSize: 'var(--fs-15, 15px)', fontWeight: 'bold', color: '#1e293b' }}>
             {title}
           </h4>
           <button
@@ -87,7 +87,7 @@ const CenteredNestedPopup = ({ isOpen, onClose, onSave, title, label }) => {
               color: 'white',
               padding: '2px 8px',
               borderRadius: '4px',
-              fontSize: '11px',
+              fontSize: 'var(--fs-11, 11px)',
               fontWeight: 'bold',
               display: 'flex',
               alignItems: 'center',
@@ -108,7 +108,7 @@ const CenteredNestedPopup = ({ isOpen, onClose, onSave, title, label }) => {
                 border: '1px solid #38bdf8',
                 borderRadius: '8px',
                 outline: 'none',
-                fontSize: '13px',
+                fontSize: 'var(--fs-13, 13px)',
                 background: 'white'
               }}
             />
@@ -126,7 +126,7 @@ const CenteredNestedPopup = ({ isOpen, onClose, onSave, title, label }) => {
                 padding: '8px 20px',
                 borderRadius: '6px',
                 fontWeight: 'bold',
-                fontSize: '13px',
+                fontSize: 'var(--fs-13, 13px)',
                 cursor: 'pointer'
               }}
             >
@@ -143,7 +143,7 @@ const CenteredNestedPopup = ({ isOpen, onClose, onSave, title, label }) => {
                 padding: '8px 20px',
                 borderRadius: '6px',
                 fontWeight: 'bold',
-                fontSize: '13px',
+                fontSize: 'var(--fs-13, 13px)',
                 cursor: 'pointer'
               }}
             >
@@ -312,7 +312,7 @@ const AddClientModal = ({ isOpen, onClose, onSuccess, isLoan = false }) => {
             justifyContent: 'space-between',
             alignItems: 'center'
           }}>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: '#1e293b' }}>
+            <h3 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', fontWeight: 'bold', color: '#1e293b' }}>
               {t('client_modal.add_new_client', 'Add New Client')}
             </h3>
             <button
@@ -333,65 +333,65 @@ const AddClientModal = ({ isOpen, onClose, onSuccess, isLoan = false }) => {
             }}>
               {/* Row 1 */}
               <div style={{ position: 'relative' }}>
-                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
+                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
                   <User size={11} /> {t('client_modal.client_name', 'Client Name')}
                 </label>
-                <input type="text" name="name" value={formData.name} onChange={handleChange} required style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: '13px', background: 'white' }} />
+                <input type="text" name="name" value={formData.name} onChange={handleChange} required style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: 'var(--fs-13, 13px)', background: 'white' }} />
               </div>
 
               <div style={{ position: 'relative' }}>
-                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
+                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
                   <User size={11} /> {t('client_modal.fathers_name', "Father's Name")}
                 </label>
-                <input type="text" name="fathers_name" value={formData.fathers_name} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: '13px', background: 'white' }} />
+                <input type="text" name="fathers_name" value={formData.fathers_name} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: 'var(--fs-13, 13px)', background: 'white' }} />
               </div>
 
               <div style={{ position: 'relative' }}>
-                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
+                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
                   <Building size={11} /> {t('client_modal.company_name', 'Company Name')}
                 </label>
-                <input type="text" name="company_name" value={formData.company_name} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: '13px', background: 'white' }} />
+                <input type="text" name="company_name" value={formData.company_name} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: 'var(--fs-13, 13px)', background: 'white' }} />
               </div>
 
               {/* Row 2 */}
               <div style={{ position: 'relative' }}>
-                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
+                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
                   <Building size={11} /> {t('client_modal.address', 'Address')}
                 </label>
-                <input type="text" name="address" value={formData.address} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: '13px', background: 'white' }} />
+                <input type="text" name="address" value={formData.address} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: 'var(--fs-13, 13px)', background: 'white' }} />
               </div>
 
               <div style={{ position: 'relative' }}>
-                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
+                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
                   <User size={11} /> {t('client_modal.phone', 'Phone')}
                 </label>
-                <input type="text" name="phone" value={formData.phone} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: '13px', background: 'white' }} />
+                <input type="text" name="phone" value={formData.phone} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: 'var(--fs-13, 13px)', background: 'white' }} />
               </div>
 
               <div style={{ position: 'relative' }}>
-                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
+                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
                   <Smartphone size={11} /> {t('client_modal.phone_optional', 'Phone (Optional)')}
                 </label>
-                <input type="text" name="secondary_phone" value={formData.secondary_phone} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: '13px', background: 'white' }} />
+                <input type="text" name="secondary_phone" value={formData.secondary_phone} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: 'var(--fs-13, 13px)', background: 'white' }} />
               </div>
 
               {/* Row 3 */}
               <div style={{ position: 'relative' }}>
-                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
+                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
                   <CreditCard size={11} /> {t('client_modal.previous_due', 'Previous Due')}
                 </label>
-                <input type="number" step="0.01" name="previous_due" value={formData.previous_due} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: '13px', background: 'white' }} />
+                <input type="number" step="0.01" name="previous_due" value={formData.previous_due} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: 'var(--fs-13, 13px)', background: 'white' }} />
               </div>
 
               <div style={{ position: 'relative' }}>
-                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
+                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> {t('client_modal.email', 'E-mail')}
                 </label>
-                <input type="email" name="email" value={formData.email} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: '13px', background: 'white' }} />
+                <input type="email" name="email" value={formData.email} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: 'var(--fs-13, 13px)', background: 'white' }} />
               </div>
 
               <div style={{ display: 'flex', border: '1px solid #38bdf8', borderRadius: '8px', overflow: 'hidden' }}>
-                <select name="group" value={formData.group} onChange={handleChange} style={{ flex: 1, padding: '12px 14px', border: 'none', outline: 'none', fontSize: '13px', background: 'white', color: '#0f172a' }}>
+                <select name="group" value={formData.group} onChange={handleChange} style={{ flex: 1, padding: '12px 14px', border: 'none', outline: 'none', fontSize: 'var(--fs-13, 13px)', background: 'white', color: '#0f172a' }}>
                   <option value="">{t('client_modal.select_group', 'Select Group')}</option>
                   {groups.map((g) => (
                     <option key={g.id} value={g.id}>{g.name}</option>
@@ -405,10 +405,10 @@ const AddClientModal = ({ isOpen, onClose, onSuccess, isLoan = false }) => {
 
             {/* Footer Buttons */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-              <button type="submit" disabled={saving} style={{ background: '#10b981', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+              <button type="submit" disabled={saving} style={{ background: '#10b981', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '6px', fontWeight: 'bold', fontSize: 'var(--fs-13, 13px)', cursor: 'pointer' }}>
                 {saving ? '...' : t('client_modal.client_add', 'Client Add')}
               </button>
-              <button type="button" onClick={onClose} disabled={saving} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+              <button type="button" onClick={onClose} disabled={saving} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '6px', fontWeight: 'bold', fontSize: 'var(--fs-13, 13px)', cursor: 'pointer' }}>
                 {t('client_modal.cancel', 'Cancel')}
               </button>
             </div>

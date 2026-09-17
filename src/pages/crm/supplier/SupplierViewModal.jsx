@@ -11,7 +11,7 @@ const SupplierViewModal = ({ supplier, onClose }) => {
     <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
       <div className="modal-content" style={{ background: 'white', borderRadius: '8px', width: '500px', maxWidth: '90%', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
         <div className="modal-header" style={{ padding: '16px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ margin: 0, fontSize: '18px', color: '#4a5568', fontWeight: 'bold' }}>
+          <h3 style={{ margin: 0, fontSize: 'var(--fs-18, 18px)', color: '#4a5568', fontWeight: 'bold' }}>
             Supplier View | {supplier.name?.toUpperCase() || supplier.company_name?.toUpperCase() || '-'}
           </h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} color="#a0aec0" /></button>
@@ -55,7 +55,7 @@ const SupplierViewModal = ({ supplier, onClose }) => {
           </table>
         </div>
         <div className="modal-footer" style={{ padding: '16px 24px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end' }}>
-          <button onClick={onClose} style={{ background: '#718096', color: 'white', padding: '8px 24px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>Close</button>
+          <button onClick={onClose} style={{ background: '#718096', color: 'white', padding: '8px 24px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold' }}>Close</button>
         </div>
       </div>
     </div>

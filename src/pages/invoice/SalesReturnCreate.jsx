@@ -203,15 +203,20 @@ const SalesReturnCreate = () => {
   const handleBarcodeKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      const code = formData.barcode.trim();
+      const code = e.target.value.trim();
       if (!code) return;
-      const prod = products.find(p => String(p.code || p.barcode || p.id) === code);
+      const prod = products.find(p => 
+        String(p.code) === code || 
+        String(p.barcode) === code || 
+        String(p.id) === code ||
+        String(p.product_code) === code
+      );
       if (prod) {
         handleSelectProduct(prod.id);
-        setFormData(prev => ({ ...prev, barcode: '' }));
       } else {
         toast.error(t("Product with barcode \"{{v0}}\" not found.", { v0: code }));
       }
+      setFormData(prev => ({ ...prev, barcode: '' }));
     }
   };
 
@@ -324,7 +329,7 @@ const SalesReturnCreate = () => {
                   placeholder={t("Select Customer / Client")}
                   onAddClick={() => setIsClientModalOpen(true)}
                 />
-                <div style={{ fontSize: '12px', fontWeight: 'bold', marginTop: '4px', color: '#0ea5e9' }}>
+                <div style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', marginTop: '4px', color: '#0ea5e9' }}>
                   {t("Due: ৳")} {dueAmount.toFixed(2)}
                 </div>
               </div>
@@ -354,7 +359,7 @@ const SalesReturnCreate = () => {
             {/* Second Row */}
             <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px', position: 'relative' }}>
               <div className="form-group" style={{ marginBottom: '0', position: 'relative' }}>
-                <div style={{ position: 'absolute', top: '-10px', left: '20px', background: 'var(--primary)', color: 'white', padding: '2px 8px', fontSize: '10px', borderRadius: '4px' }}>{t("Barcode Number")}</div>
+                <div style={{ position: 'absolute', top: '-10px', left: '20px', background: 'var(--primary)', color: 'white', padding: '2px 8px', fontSize: 'var(--fs-10, 10px)', borderRadius: '4px' }}>{t("Barcode Number")}</div>
                 <div style={{ display: 'flex', border: '1px solid #e2e8f0', borderRadius: '4px', overflow: 'hidden', background: 'var(--card-border)' }}>
                   <div style={{ padding: '12px', borderRight: '1px solid #cbd5e1', display: 'flex', alignItems: 'center' }}>
                     <Barcode size={24} style={{ color: 'var(--text-muted)' }} />
@@ -383,6 +388,7 @@ const SalesReturnCreate = () => {
                     if (val) handleSelectProduct(val);
                   }}
                   clearOnSelect={true}
+                  hideOptionsUntilSearch={true}
                   placeholder={t("Select Product")}
                   onAddClick={() => setIsProductModalOpen(true)}
                 />
@@ -391,7 +397,7 @@ const SalesReturnCreate = () => {
 
             {/* Product Table */}
             <div style={{ border: '1px solid #e2e8f0', marginBottom: '16px', overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-12, 12px)' }}>
                 <thead>
                   <tr style={{ background: 'var(--secondary)', color: 'white' }}>
                     <th style={{ padding: '8px', textAlign: 'center' }}>{t("SL")}</th>
@@ -421,14 +427,26 @@ const SalesReturnCreate = () => {
                           <input
                             type="number"
                             value={item.price}
+                            onFocus={(e) => e.target.select()}
                             onChange={(e) => updateItemField(idx, 'price', e.target.value)}
                             style={{ width: '80px', padding: '4px', textAlign: 'right', border: '1px solid #cbd5e1', borderRadius: '4px' }}
                           />
                         </td>
                         <td style={{ padding: '8px', textAlign: 'center' }}>
                           <input
+                            data-qty-idx={idx}
                             type="number"
                             value={item.quantity}
+                            onFocus={(e) => e.target.select()}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Tab' && !e.shiftKey) {
+                                const nextInput = document.querySelector(`input[data-qty-idx="${idx + 1}"]`);
+                                if (nextInput) {
+                                  e.preventDefault();
+                                  nextInput.focus();
+                                }
+                              }
+                            }}
                             onChange={(e) => updateItemField(idx, 'quantity', e.target.value)}
                             style={{ width: '60px', padding: '4px', textAlign: 'center', border: '1px solid #cbd5e1', borderRadius: '4px' }}
                           />
@@ -453,7 +471,7 @@ const SalesReturnCreate = () => {
               </table>
             </div>
 
-            <div style={{ textAlign: 'center', fontSize: '13px', marginBottom: '24px', fontWeight: 'bold' }}>
+            <div style={{ textAlign: 'center', fontSize: 'var(--fs-13, 13px)', marginBottom: '24px', fontWeight: 'bold' }}>
               {t("Total Quantity:")} {totalQuantity}
             </div>
 
@@ -492,23 +510,23 @@ const SalesReturnCreate = () => {
               {/* Right Column - Summary */}
               <div>
                 <div style={{ border: '1px solid #e2e8f0', borderRadius: '4px', marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-14, 14px)' }}>
                     <span>{t("Invoice Return")}</span>
                     <span>: ৳ {returnBill.toFixed(2)}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-14, 14px)' }}>
                     <span>{t("Previous Due")}</span>
                     <span>: ৳ {dueAmount.toFixed(2)}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px', fontWeight: 'bold' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold' }}>
                     <span>{t("Upcoming Due")}</span>
                     <span>: ৳ {upcomingDue.toFixed(2)}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-14, 14px)' }}>
                     <span>{t("Payment")}</span>
                     <span>: ৳ {receiveAmt.toFixed(2)}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', fontSize: '14px', fontWeight: 'bold', color: '#ef4444' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', color: '#ef4444' }}>
                     <span>{t("Total Remaining Due", "সর্বশেষ বাকি")}</span>
                     <span>: ৳ {upcomingDue.toFixed(2)}</span>
                   </div>
@@ -527,17 +545,17 @@ const SalesReturnCreate = () => {
 
             {/* Footer Buttons */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <button type="button" className="btn-danger" onClick={() => navigate('/invoice/sales-return/list')} style={{ background: 'var(--danger)', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }}>
+              <button type="button" className="btn-danger" onClick={() => navigate('/invoice/sales-return/list')} style={{ background: 'var(--danger)', padding: '10px 24px', fontSize: 'var(--fs-14, 14px)', borderRadius: '4px' }}>
                 {t("Cancel")}
               </button>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <button type="button" className="btn-primary" onClick={() => handleSaveReturn(0)} style={{ background: '#64748b', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }}>
+                <button type="button" className="btn-primary" onClick={() => handleSaveReturn(0)} style={{ background: '#64748b', padding: '10px 24px', fontSize: 'var(--fs-14, 14px)', borderRadius: '4px' }}>
                   {t("Save As Draft")}
                 </button>
-                <button type="button" className="btn-primary" onClick={() => handleSaveReturn(1, true)} style={{ background: '#3b82f6', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }}>
+                <button type="button" className="btn-primary" onClick={() => handleSaveReturn(1, true)} style={{ background: '#3b82f6', padding: '10px 24px', fontSize: 'var(--fs-14, 14px)', borderRadius: '4px' }}>
                   {t("Save & Print")}
                 </button>
-                <button type="button" className="btn-primary" onClick={() => handleSaveReturn(1)} style={{ background: isEdit ? '#000000' : 'var(--success)', color: 'white', padding: '10px 24px', fontSize: '14px', borderRadius: '4px', fontWeight: 'bold' }}>
+                <button type="button" className="btn-primary" onClick={() => handleSaveReturn(1)} style={{ background: isEdit ? '#000000' : 'var(--success)', color: 'white', padding: '10px 24px', fontSize: 'var(--fs-14, 14px)', borderRadius: '4px', fontWeight: 'bold' }}>
                   {isEdit ? t("Update Return") : t("Return Invoice")}
                 </button>
               </div>

@@ -134,7 +134,7 @@ const SupplierChequeSchedule = () => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1.5fr', gap: '20px', marginBottom: '20px' }}>
         {/* Date Field */}
         <div style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>
+          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
              {t("Date")}
           </div>
           <input 
@@ -142,20 +142,20 @@ const SupplierChequeSchedule = () => {
             name="date"
             value={formData.date}
             onChange={handleChange}
-            style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: '13px', color: '#1e293b' }} 
+            style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b' }} 
           />
         </div>
         
         {/* Supplier Field */}
         <div style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>
+          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
              {t("Supplier")}
           </div>
           <select 
             name="supplier"
             value={formData.supplier}
             onChange={handleChange}
-            style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: '13px', color: '#1e293b', background: 'white' }}
+            style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', background: 'white' }}
           >
             <option value="">{t("Select Supplier")}</option>
             {suppliers.map(s => (
@@ -166,7 +166,7 @@ const SupplierChequeSchedule = () => {
 
         {/* Bank Name Field */}
         <div style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>
+          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
              {t("Bank Name")}
           </div>
           <input 
@@ -175,7 +175,7 @@ const SupplierChequeSchedule = () => {
             value={formData.bank_name}
             onChange={handleChange}
             placeholder={t("e.g. IFIC Bank")}
-            style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: '13px', color: '#1e293b' }} 
+            style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b' }} 
           />
         </div>
       </div>
@@ -183,7 +183,7 @@ const SupplierChequeSchedule = () => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1.5fr', gap: '20px', marginBottom: '20px' }}>
         {/* Cheque Number Field */}
         <div style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>
+          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
              {t("Cheque Number")}
           </div>
           <input 
@@ -192,13 +192,13 @@ const SupplierChequeSchedule = () => {
             value={formData.cheque_number}
             onChange={handleChange}
             placeholder={t("e.g. 8572056")}
-            style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: '13px', color: '#1e293b' }} 
+            style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b' }} 
           />
         </div>
 
         {/* Amount Field */}
         <div style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>
+          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
              {t("Amount")}
           </div>
           <input 
@@ -207,7 +207,7 @@ const SupplierChequeSchedule = () => {
             value={formData.amount}
             onChange={handleChange}
             placeholder="0.00"
-            style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: '13px', color: '#1e293b' }} 
+            style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b' }} 
           />
         </div>
         
@@ -215,12 +215,12 @@ const SupplierChequeSchedule = () => {
           <button 
             onClick={handleSave}
             disabled={loading}
-            style={{ flex: 1, background: '#10b981', color: 'white', border: 'none', padding: '12px', borderRadius: '6px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}>
+            style={{ flex: 1, background: '#10b981', color: 'white', border: 'none', padding: '12px', borderRadius: '6px', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', cursor: 'pointer' }}>
             {loading ? t("Saving...") : (isAdding ? t("Save Cheque") : t("Update Cheque"))}
           </button>
           <button 
             onClick={() => { setIsAdding(false); setEditingId(null); }}
-            style={{ background: '#ef4444', color: 'white', border: 'none', padding: '12px 16px', borderRadius: '6px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}>
+            style={{ background: '#ef4444', color: 'white', border: 'none', padding: '12px 16px', borderRadius: '6px', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', cursor: 'pointer' }}>
             {t("Cancel")}
           </button>
         </div>
@@ -232,8 +232,8 @@ const SupplierChequeSchedule = () => {
     <div className="dashboard-content" style={{ paddingBottom: '50px' }}>
       <div className="card" style={{ border: 'none', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
         <div className="card-header" style={{ background: '#22c55e', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px' }}>
-          <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>{t("Supplier Cheque Schedule")}</h2>
-          <button onClick={handleAddClick} className="btn" style={{ background: '#10b981', color: 'white', border: '1px solid rgba(255,255,255,0.3)', padding: '6px 16px', borderRadius: '4px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <h2 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', fontWeight: 'bold' }}>{t("Supplier Cheque Schedule")}</h2>
+          <button onClick={handleAddClick} className="btn" style={{ background: '#10b981', color: 'white', border: '1px solid rgba(255,255,255,0.3)', padding: '6px 16px', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Plus size={16} /> {t("Add")}
           </button>
         </div>
@@ -241,7 +241,7 @@ const SupplierChequeSchedule = () => {
         <div className="card-body" style={{ padding: '24px', background: 'white' }}>
           {/* Table */}
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', minWidth: '800px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-12, 12px)', minWidth: '800px' }}>
               <thead>
                 <tr style={{ background: '#cbd5e1', color: '#334155' }}>
                   <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #e2e8f0' }}>{t("ID NO")}</th>

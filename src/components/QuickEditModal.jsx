@@ -46,13 +46,13 @@ const QuickEditModal = ({ title = 'Edit', fields, record, onSave, onClose }) => 
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
       <div style={{ background: 'white', borderRadius: '8px', width: '440px', maxWidth: '95vw', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
         <div style={{ padding: '16px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--text-main)' }}>{title}</h3>
+          <h3 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', color: 'var(--text-main)' }}>{title}</h3>
           <button onClick={() => onClose()} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={20} /></button>
         </div>
         <div style={{ padding: '24px' }}>
           {fields.map((fl) => (
             <div key={fl.name} style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: 'var(--label-color)', fontWeight: 600 }}>{fl.label}</label>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', fontWeight: 600 }}>{fl.label}</label>
               {fl.type === 'textarea' ? (
                 <textarea value={form[fl.name]} onChange={(e) => setForm({ ...form, [fl.name]: e.target.value })} style={{ ...input, minHeight: '70px' }} />
               ) : fl.type === 'select' ? (

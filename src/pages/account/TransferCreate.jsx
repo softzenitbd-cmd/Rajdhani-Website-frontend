@@ -89,7 +89,7 @@ const TransferCreate = () => {
     alignItems: "center",
   };
   const iconBox = { padding: "0 14px", display: "flex", alignItems: "center" };
-  const plainInput = { flex: 1, padding: "12px 16px", border: "none", outline: "none", fontSize: "14px" };
+  const plainInput = { flex: 1, padding: "12px 16px", border: "none", outline: "none", fontSize: 'var(--fs-14, 14px)' };
 
   return (
     <div
@@ -118,18 +118,18 @@ const TransferCreate = () => {
             gap: "8px",
           }}
         >
-          <h2 style={{ margin: 0, fontSize: "16px", fontWeight: "bold" }}>{t("Add New Transfer")}</h2>
+          <h2 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', fontWeight: "bold" }}>{t("Add New Transfer")}</h2>
           <div style={{ display: "flex", gap: "8px" }}>
             <button
               type="button"
               onClick={() => navigate('/account/transfer-list')}
-              style={{ background: "#818cf8", color: "white", border: "none", padding: "6px 12px", borderRadius: "4px", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", cursor: "pointer" }}
+              style={{ background: "#818cf8", color: "white", border: "none", padding: "6px 12px", borderRadius: "4px", display: "flex", alignItems: "center", gap: "6px", fontSize: 'var(--fs-13, 13px)', cursor: "pointer" }}
             >
               <List size={14} /> {t("Transfer List")}
             </button>
             <button
               type="button"
-              style={{ background: "#dc2626", color: "white", border: "none", padding: "6px 12px", borderRadius: "4px", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", cursor: "pointer" }}
+              style={{ background: "#dc2626", color: "white", border: "none", padding: "6px 12px", borderRadius: "4px", display: "flex", alignItems: "center", gap: "6px", fontSize: 'var(--fs-13, 13px)', cursor: "pointer" }}
             >
               <Play size={14} /> {t("YouTube")}
             </button>
@@ -168,7 +168,7 @@ const TransferCreate = () => {
                   color: "white",
                   padding: "2px 8px",
                   borderRadius: "4px",
-                  fontSize: "10px",
+                  fontSize: 'var(--fs-10, 10px)',
                   fontWeight: "bold",
                 }}
               >
@@ -179,7 +179,7 @@ const TransferCreate = () => {
                 name="date"
                 value={formData.date}
                 onChange={handleChange}
-                style={{ width: "100%", padding: "12px 16px", border: "1px solid #93c5fd", borderRadius: "6px", fontSize: "14px", outline: "none" }}
+                style={{ width: "100%", padding: "12px 16px", border: "1px solid #93c5fd", borderRadius: "6px", fontSize: 'var(--fs-14, 14px)', outline: "none" }}
               />
             </div>
 
@@ -221,7 +221,7 @@ const TransferCreate = () => {
                 border: "none",
                 padding: "12px",
                 borderRadius: "4px",
-                fontSize: "15px",
+                fontSize: 'var(--fs-15, 15px)',
                 fontWeight: "bold",
                 cursor: "pointer",
               }}

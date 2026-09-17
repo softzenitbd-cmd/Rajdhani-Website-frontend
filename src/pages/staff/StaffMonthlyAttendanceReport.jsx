@@ -111,7 +111,7 @@ const StaffMonthlyAttendanceReport = () => {
           <select value={year} onChange={(e) => setYear(Number(e.target.value))} style={selectStyle}>
             {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
-          <button type="submit" style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 500 }}>
+          <button type="submit" style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', fontWeight: 500 }}>
             {t("Search")}
           </button>
         </div>
@@ -119,7 +119,7 @@ const StaffMonthlyAttendanceReport = () => {
 
       <div className="premium-card" style={{ background: 'white', padding: '24px', borderRadius: '8px' }}>
         <PrintHeader />
-        <h3 style={{ textAlign: 'center', margin: '0 0 16px', fontSize: '16px', color: 'var(--text-main)' }}>
+        <h3 style={{ textAlign: 'center', margin: '0 0 16px', fontSize: 'var(--fs-16, 16px)', color: 'var(--text-main)' }}>
           {t("Monthly Attendance Report —")} {t(MONTHS[month - 1])} {year}
         </h3>
 
@@ -129,7 +129,7 @@ const StaffMonthlyAttendanceReport = () => {
           <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>{t("Select month & year then press Search.")}</div>
         ) : isMatrix ? (
           <div className="table-responsive">
-            <table className="custom-table" style={{ width: '100%', fontSize: '11px', textAlign: 'center' }}>
+            <table className="custom-table" style={{ width: '100%', fontSize: 'var(--fs-11, 11px)', textAlign: 'center' }}>
               <thead>
                 <tr style={{ background: '#718096', color: 'white' }}>
                   <th style={{ textAlign: 'left', padding: '8px', minWidth: '140px' }}>{t("STAFF")}</th>

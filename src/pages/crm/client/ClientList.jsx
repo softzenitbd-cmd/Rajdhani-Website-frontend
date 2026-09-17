@@ -60,7 +60,7 @@ const ClientImageUploader = ({ client, onUploadSuccess }) => {
       <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
         <label style={{ 
           background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', 
-          padding: '4px 8px', fontSize: '10px', cursor: 'pointer', display: 'inline-block', fontWeight: 'bold' 
+          padding: '4px 8px', fontSize: 'var(--fs-10, 10px)', cursor: 'pointer', display: 'inline-block', fontWeight: 'bold' 
         }}>
           {t("Choose a file")}
           <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
@@ -71,7 +71,7 @@ const ClientImageUploader = ({ client, onUploadSuccess }) => {
           style={{ 
             background: (!selectedFile || uploading) ? '#94a3b8' : '#64748b', 
             color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', 
-            fontSize: '10px', cursor: (!selectedFile || uploading) ? 'not-allowed' : 'pointer', fontWeight: 'bold' 
+            fontSize: 'var(--fs-10, 10px)', cursor: (!selectedFile || uploading) ? 'not-allowed' : 'pointer', fontWeight: 'bold' 
           }}
         >
           {uploading ? t("Saving") : t("Save")}
@@ -118,7 +118,7 @@ const CollectionDateModal = ({ isOpen, onClose, client, onUpdate }) => {
           <div className="form-input floating-label" style={{ position: 'relative' }}>
             <label style={{ 
               position: 'absolute', top: '-12px', left: '12px', background: '#258b88', color: 'white', 
-              padding: '2px 10px', borderRadius: '4px', fontSize: '13px', fontWeight: 'bold', zIndex: 10
+              padding: '2px 10px', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold', zIndex: 10
             }}>
               {t("Due Collection Date", "বাকি গ্রহণের তারিখ")}
             </label>
@@ -126,7 +126,7 @@ const CollectionDateModal = ({ isOpen, onClose, client, onUpdate }) => {
               type="date" 
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              style={{ width: '100%', padding: '16px 12px', border: '1px solid #93c5fd', borderRadius: '8px', fontSize: '14px', outline: 'none' }}
+              style={{ width: '100%', padding: '16px 12px', border: '1px solid #93c5fd', borderRadius: '8px', fontSize: 'var(--fs-14, 14px)', outline: 'none' }}
             />
           </div>
         </div>
@@ -134,7 +134,7 @@ const CollectionDateModal = ({ isOpen, onClose, client, onUpdate }) => {
         <button 
           onClick={handleUpdate}
           disabled={loading}
-          style={{ width: '100%', background: '#059669', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', fontWeight: 'bold', fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer', marginBottom: '16px' }}
+          style={{ width: '100%', background: '#059669', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', fontWeight: 'bold', fontSize: 'var(--fs-14, 14px)', cursor: loading ? 'not-allowed' : 'pointer', marginBottom: '16px' }}
         >
           {loading ? t("Updating...") : t("Update")}
         </button>
@@ -352,7 +352,7 @@ const ClientList = () => {
           </div>
 
           <div className="form-group">
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 'bold' }}>{t("Search By Date")}</label>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold' }}>{t("Search By Date")}</label>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ flex: 1, minWidth: 0, padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
               <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ flex: 1, minWidth: 0, padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
@@ -372,7 +372,7 @@ const ClientList = () => {
 
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
+          <div style={{ fontSize: 'var(--fs-14, 14px)', color: 'var(--text-main)' }}>
             {t("Show")} 
             <select style={{ margin: '0 8px', padding: '4px', border: '1px solid var(--secondary)', borderRadius: '4px' }}>
               <option>25</option>
@@ -380,13 +380,13 @@ const ClientList = () => {
             {t("entries")}
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="btn" onClick={handleExportExcel} style={{ background: '#059669', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', cursor: 'pointer' }}>
+            <button className="btn" onClick={handleExportExcel} style={{ background: '#059669', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', cursor: 'pointer' }}>
               <FileSpreadsheet size={14} style={{ marginRight: '6px' }} /> {t("Excel")}
             </button>
-            <button className="btn" onClick={() => window.print()} style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px' }}>
+            <button className="btn" onClick={() => window.print()} style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', borderRadius: '4px' }}>
               <Printer size={14} style={{ marginRight: '6px' }} /> {t("Print")}
             </button>
-            <button onClick={() => window.location.reload()} className="btn" style={{ background: '#4318ff', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>
+            <button onClick={() => window.location.reload()} className="btn" style={{ background: '#4318ff', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px' }}>
               <RotateCcw size={14} style={{ marginRight: '6px' }} /> {t("Reset")}
             </button>
           </div>
@@ -434,7 +434,7 @@ const ClientList = () => {
                       <ClientImageUploader client={client} onUploadSuccess={fetchClients} />
                     </td>
                     
-                    <td style={{ verticalAlign: 'top', paddingTop: '16px', fontSize: '13px' }}>
+                    <td style={{ verticalAlign: 'top', paddingTop: '16px', fontSize: 'var(--fs-13, 13px)' }}>
                       <div style={{ display: 'grid', gridTemplateColumns: '80px 10px 1fr', gap: '4px', marginBottom: '4px' }}>
                         <div style={{ fontWeight: '600' }}>{t("Name")}</div><div>:</div><div>{client.name || (client.details && client.details.name)}</div>
                         <div style={{ fontWeight: '600' }}>{t("Phone")}</div><div>:</div><div>{client.phone || (client.details && client.details.phone)}</div>
@@ -456,7 +456,7 @@ const ClientList = () => {
                     </td>
                     
                     <td style={{ verticalAlign: 'top', padding: '0' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-12, 12px)' }}>
                         <tbody>
                           <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Previous Due")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'previous_due', 'opening_due', 'prevDue').toFixed(2)}</td></tr>
                           <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Bill")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'sales', 'sales_amount', 'total_sales', 'bill').toFixed(2)}</td></tr>
@@ -487,21 +487,21 @@ const ClientList = () => {
                       <button 
                         onClick={() => toggleAction(client.id || client.uuid)}
                       className="btn" 
-                      style={{ background: '#05cd99', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', width: '100%', justifyContent: 'space-between' }}
+                      style={{ background: '#05cd99', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', width: '100%', justifyContent: 'space-between' }}
                     >
                       {t("Action")} <ChevronDown size={14} />
                     </button>
                     
                     {activeAction === (client.id || client.uuid) && (
                       <div style={{ position: 'absolute', top: '50px', right: '16px', background: 'white', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', borderRadius: '8px', zIndex: 10, width: '160px', padding: '8px 0', border: '1px solid #e2e8f0' }}>
-                        <div onClick={() => handleDeactivate(client.id || client.uuid, client.status)} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item">
+                        <div onClick={() => handleDeactivate(client.id || client.uuid, client.status)} style={{ padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item">
                           {(client.status === false || client.status === 'Deactivated') ? t("✅ Activate") : t("🚫 Deactivate")}
                         </div>
-                        <div onClick={() => { setViewClient(client); setActiveAction(null); }} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>👁</span> {t("View")}</div>
-                        <div onClick={() => { navigate('/account/receive-create', { state: { clientId: client.id || client.uuid } }); setActiveAction(null); }} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>⬇️</span> {t("Receive")}</div>
-                        <div onClick={() => navigate(`/crm/client-edit/${client.id || client.uuid}`)} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>✏️</span> {t("Edit")}</div>
-                        <div onClick={() => handleDelete(client.id || client.uuid)} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', color: '#ef4444' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>🗑</span> {t("Delete")}</div>
-                        <div onClick={() => navigate('/crm/client-statement')} style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>📄</span> {t("View Statement")}</div>
+                        <div onClick={() => { setViewClient(client); setActiveAction(null); }} style={{ padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>👁</span> {t("View")}</div>
+                        <div onClick={() => { navigate('/account/receive-create', { state: { clientId: client.id || client.uuid } }); setActiveAction(null); }} style={{ padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>⬇️</span> {t("Receive")}</div>
+                        <div onClick={() => navigate(`/crm/client-edit/${client.id || client.uuid}`)} style={{ padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>✏️</span> {t("Edit")}</div>
+                        <div onClick={() => handleDelete(client.id || client.uuid)} style={{ padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', color: '#ef4444' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>🗑</span> {t("Delete")}</div>
+                        <div onClick={() => navigate('/crm/client-statement')} style={{ padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>📄</span> {t("View Statement")}</div>
                       </div>
                     )}
                   </td>
@@ -520,21 +520,21 @@ const ClientList = () => {
           <div className="printable-modal-content" style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '550px', maxWidth: '90vw', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
             <PrintHeader />
             
-            <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '18px', fontWeight: 'bold', borderBottom: '2px solid #0ea5e9', paddingBottom: '8px' }}>{t("Customer Profile / Ledger Info")}</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '12px', fontSize: '14px', background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+            <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', borderBottom: '2px solid #0ea5e9', paddingBottom: '8px' }}>{t("Customer Profile / Ledger Info")}</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '12px', fontSize: 'var(--fs-14, 14px)', background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
               <div style={{ fontWeight: '600' }}>{t("Customer ID:")}</div><div>{viewClient.id || viewClient.uuid}</div>
               <div style={{ fontWeight: '600' }}>{t("Name:")}</div><div style={{ fontWeight: 'bold' }}>{viewClient.name}</div>
               <div style={{ fontWeight: '600' }}>{t("Phone:")}</div><div>{viewClient.phone}</div>
               <div style={{ fontWeight: '600' }}>{t("Group:")}</div><div>{viewClient.group || '-'}</div>
               <div style={{ fontWeight: '600' }}>{t("Address:")}</div><div>{viewClient.address || '-'}</div>
-              <div style={{ fontWeight: '600' }}>{t("Total Due:")}</div><div style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '16px' }}>৳ {viewClient.due || viewClient.previous_due || '0.00'}</div>
+              <div style={{ fontWeight: '600' }}>{t("Total Due:")}</div><div style={{ color: '#ef4444', fontWeight: 'bold', fontSize: 'var(--fs-16, 16px)' }}>৳ {viewClient.due || viewClient.previous_due || '0.00'}</div>
             </div>
 
             <div className="print-only" style={{ display: 'none', justifyContent: 'space-between', marginTop: '60px', paddingTop: '20px' }}>
-              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '160px', paddingTop: '4px', fontSize: '12px' }}>
+              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '160px', paddingTop: '4px', fontSize: 'var(--fs-12, 12px)' }}>
                 {t("Customer Signature")}
               </div>
-              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '160px', paddingTop: '4px', fontSize: '12px' }}>
+              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '160px', paddingTop: '4px', fontSize: 'var(--fs-12, 12px)' }}>
                 {t("Authorized Signature")}
               </div>
             </div>

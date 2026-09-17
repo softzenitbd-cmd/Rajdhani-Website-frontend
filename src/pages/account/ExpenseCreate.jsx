@@ -93,7 +93,7 @@ const ExpenseCreate = () => {
     display: "flex",
     alignItems: "center",
     gap: "6px",
-    fontSize: "13px",
+    fontSize: 'var(--fs-13, 13px)',
     cursor: "pointer",
   };
 
@@ -107,7 +107,7 @@ const ExpenseCreate = () => {
   };
 
   const iconBox = { padding: "0 14px", display: "flex", alignItems: "center" };
-  const plainInput = { flex: 1, padding: "12px 16px", border: "none", outline: "none", fontSize: "14px" };
+  const plainInput = { flex: 1, padding: "12px 16px", border: "none", outline: "none", fontSize: 'var(--fs-14, 14px)' };
 
   return (
     <div
@@ -138,7 +138,7 @@ const ExpenseCreate = () => {
             gap: "8px",
           }}
         >
-          <h2 style={{ margin: 0, fontSize: "16px", fontWeight: "bold" }}>{t("Add Expense")}</h2>
+          <h2 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', fontWeight: "bold" }}>{t("Add Expense")}</h2>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             <button type="button" onClick={() => navigate('/settings')} style={{ ...headerBtn, padding: "6px 10px" }} title={t("Settings")}>
               <Settings size={14} />
@@ -169,7 +169,7 @@ const ExpenseCreate = () => {
                       color: "white",
                       padding: "2px 8px",
                       borderRadius: "4px",
-                      fontSize: "10px",
+                      fontSize: 'var(--fs-10, 10px)',
                       fontWeight: "bold",
                     }}
                   >
@@ -185,7 +185,7 @@ const ExpenseCreate = () => {
                       padding: "12px 16px",
                       border: "1px solid #93c5fd",
                       borderRadius: "6px",
-                      fontSize: "14px",
+                      fontSize: 'var(--fs-14, 14px)',
                       outline: "none",
                     }}
                   />
@@ -265,7 +265,7 @@ const ExpenseCreate = () => {
                   border: "none",
                   padding: "10px 24px",
                   borderRadius: "4px",
-                  fontSize: "14px",
+                  fontSize: 'var(--fs-14, 14px)',
                   fontWeight: "bold",
                   cursor: "pointer",
                 }}
@@ -281,7 +281,7 @@ const ExpenseCreate = () => {
                   border: "none",
                   padding: "10px 24px",
                   borderRadius: "4px",
-                  fontSize: "14px",
+                  fontSize: 'var(--fs-14, 14px)',
                   fontWeight: "bold",
                   cursor: "pointer",
                 }}

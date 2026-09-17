@@ -62,7 +62,12 @@ const ProductList = () => {
       
       // Filter if search query exists
       const finalProducts = filters.search 
-        ? combined.filter(p => p.name?.toLowerCase().includes(filters.search.toLowerCase()))
+        ? combined.filter(p => {
+            const query = filters.search.toLowerCase();
+            const nameMatch = p.name?.toLowerCase().includes(query);
+            const barcodeMatch = p.custom_barcode_no?.toLowerCase().includes(query) || p.barcode?.toLowerCase().includes(query) || p.code?.toLowerCase().includes(query);
+            return nameMatch || barcodeMatch;
+          })
         : combined;
         
       setProducts(finalProducts);
@@ -116,14 +121,14 @@ const ProductList = () => {
       
       {/* Center Title */}
       <div style={{ textAlign: 'center', marginBottom: '40px', marginTop: '20px' }}>
-        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>{t("Product List")}</h2>
+        <h2 style={{ fontFamily: 'monospace', fontSize: 'var(--fs-24, 24px)', fontWeight: 'bold' }}>{t("Product List")}</h2>
       </div>
 
       <div className="card-body">
         {/* Filters */}
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px', marginBottom: '24px' }}>
           <div>
-            <div style={{ fontSize: '12px', background: 'var(--info)', color: 'white', display: 'inline-block', padding: '2px 8px', borderRadius: '4px', marginBottom: '4px' }}>{t("Search All")}</div>
+            <div style={{ fontSize: 'var(--fs-12, 12px)', background: 'var(--info)', color: 'white', display: 'inline-block', padding: '2px 8px', borderRadius: '4px', marginBottom: '4px' }}>{t("Search All")}</div>
             <div className="form-input floating-label" style={{ borderRadius: '4px' }}>
               <input 
                 type="text" 
@@ -137,7 +142,7 @@ const ProductList = () => {
           </div>
           
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t("Search By Group")}</div>
+            <div style={{ fontSize: 'var(--fs-12, 12px)', marginBottom: '4px' }}>{t("Search By Group")}</div>
             <div className="form-input floating-label" style={{ borderRadius: '4px' }}>
               <select 
                 name="group"
@@ -154,7 +159,7 @@ const ProductList = () => {
           </div>
 
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t("Search By Brand")}</div>
+            <div style={{ fontSize: 'var(--fs-12, 12px)', marginBottom: '4px' }}>{t("Search By Brand")}</div>
             <div className="form-input floating-label" style={{ borderRadius: '4px' }}>
               <select 
                 name="brand"
@@ -171,7 +176,7 @@ const ProductList = () => {
           </div>
 
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t('common.search_by_date')}</div>
+            <div style={{ fontSize: 'var(--fs-12, 12px)', marginBottom: '4px' }}>{t('common.search_by_date')}</div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <div className="form-input floating-label" style={{ borderRadius: '4px', flex: 1 }}>
                 <input 
@@ -199,7 +204,7 @@ const ProductList = () => {
           <button 
             onClick={handleClearFilters}
             className="btn" 
-            style={{ background: 'var(--text-muted)', color: 'white', padding: '12px 48px', borderRadius: '4px', fontSize: '16px', width: '40%', cursor: 'pointer' }}
+            style={{ background: 'var(--text-muted)', color: 'white', padding: '12px 48px', borderRadius: '4px', fontSize: 'var(--fs-16, 16px)', width: '40%', cursor: 'pointer' }}
           >
             {t("Clear Filter")}
           </button>
@@ -207,17 +212,17 @@ const ProductList = () => {
 
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
+          <div style={{ fontSize: 'var(--fs-14, 14px)', color: 'var(--text-main)' }}>
             {t("Showing")} {products.length} {t("entries")}
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>
-            <button className="btn" onClick={handleExportExcel} style={{ background: '#059669', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+            <button className="btn" onClick={handleExportExcel} style={{ background: '#059669', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
               {t("📊 Excel")}
             </button>
-            <button className="btn" onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+            <button className="btn" onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
               {t("Print")}
             </button>
-            <button className="btn" onClick={fetchProducts} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+            <button className="btn" onClick={fetchProducts} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
               <RotateCcw size={14} /> {t("Reset")}
             </button>
           </div>
@@ -228,13 +233,13 @@ const ProductList = () => {
           <table className="custom-table" style={{ width: '100%', minWidth: '1200px', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--secondary)', color: 'white' }}>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("ID NO ↕")}</th>
-                <th style={{ textAlign: 'left', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("PRODUCT DETAILS ↕")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("BARCODE NUMBER")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("STOCK WARNING")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("OPENING STOCK")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("CREATED AT ↕")}</th>
-                <th style={{ textAlign: 'center', padding: '12px', fontSize: '11px' }}>{t("ACTION")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("ID NO ↕")}</th>
+                <th style={{ textAlign: 'left', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("PRODUCT DETAILS ↕")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("BARCODE NUMBER")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("STOCK WARNING")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("OPENING STOCK")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("CREATED AT ↕")}</th>
+                <th style={{ textAlign: 'center', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("ACTION")}</th>
               </tr>
             </thead>
             <tbody>
@@ -248,7 +253,7 @@ const ProductList = () => {
                 </tr>
               ) : (
                 products.map((prod, index) => (
-                  <tr key={prod.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: '12px' }}>
+                  <tr key={prod.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-12, 12px)' }}>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
                     <td style={{ textAlign: 'left', padding: '8px', borderRight: '1px solid #e2e8f0' }}>
                       <div style={{ fontWeight: 'bold' }}>{prod.name}</div>

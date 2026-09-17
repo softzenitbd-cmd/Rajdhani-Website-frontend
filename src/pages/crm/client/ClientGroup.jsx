@@ -70,7 +70,7 @@ const ClientGroup = () => {
       <div className="chart-card">
         {/* Header */}
         <div className="card-header">
-          <h2 className="card-title" style={{ textTransform: 'none', fontSize: '20px' }}>{t("Client Group")}</h2>
+          <h2 className="card-title" style={{ textTransform: 'none', fontSize: 'var(--fs-20, 20px)' }}>{t("Client Group")}</h2>
           <div className="card-actions">
             <button className="btn btn-outline" style={{ padding: '6px 12px', background: 'var(--table-header-bg)', color: 'white' }} onClick={() => navigate('/crm/client-list')}>
               <List size={14} /> {t("Client List")}
@@ -83,7 +83,7 @@ const ClientGroup = () => {
 
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
+          <div style={{ fontSize: 'var(--fs-14, 14px)', color: 'var(--text-main)' }}>
             {t("Show")} 
             <select style={{ margin: '0 8px', padding: '4px', border: '1px solid var(--secondary)', borderRadius: '4px' }}>
               <option>50</option>
@@ -91,12 +91,12 @@ const ClientGroup = () => {
             {t("entries")}
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>
-            <button onClick={() => exportVisibleTable('xlsx')} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>{t("Excel")}</button>
-            <button onClick={() => exportVisibleTable('csv')} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>{t("CSV")}</button>
-            <button onClick={() => printPage()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>{t("PDF")}</button>
-            <button className="btn" onClick={window.print} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}><Printer size={14} style={{ marginRight: '4px' }} /> {t('common.print')}</button>
-            <button onClick={() => window.location.reload()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}><RotateCcw size={14} style={{ marginRight: '4px' }} /> {t('common.reset')}</button>
-            <button onClick={() => window.location.reload()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>{t("Reload")}</button>
+            <button onClick={() => exportVisibleTable('xlsx')} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px' }}>{t("Excel")}</button>
+            <button onClick={() => exportVisibleTable('csv')} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px' }}>{t("CSV")}</button>
+            <button onClick={() => printPage()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px' }}>{t("PDF")}</button>
+            <button className="btn" onClick={window.print} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px' }}><Printer size={14} style={{ marginRight: '4px' }} /> {t('common.print')}</button>
+            <button onClick={() => window.location.reload()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px' }}><RotateCcw size={14} style={{ marginRight: '4px' }} /> {t('common.reset')}</button>
+            <button onClick={() => window.location.reload()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px' }}>{t("Reload")}</button>
           </div>
         </div>
 
@@ -105,9 +105,9 @@ const ClientGroup = () => {
           <table className="custom-table">
             <thead style={{ background: 'var(--table-header-bg)', color: 'white' }}>
               <tr>
-                <th width="80" style={{ textAlign: 'center' }}>{t("ID NO")} <span style={{ opacity: 0.5, fontSize: '8px', verticalAlign: 'middle' }}>▼</span></th>
-                <th>{t("NAME")} <span style={{ opacity: 0.5, fontSize: '8px', verticalAlign: 'middle' }}>▼</span></th>
-                <th>{t("CREATED AT")} <span style={{ opacity: 0.5, fontSize: '8px', verticalAlign: 'middle' }}>▼</span></th>
+                <th width="80" style={{ textAlign: 'center' }}>{t("ID NO")} <span style={{ opacity: 0.5, fontSize: 'var(--fs-8, 8px)', verticalAlign: 'middle' }}>▼</span></th>
+                <th>{t("NAME")} <span style={{ opacity: 0.5, fontSize: 'var(--fs-8, 8px)', verticalAlign: 'middle' }}>▼</span></th>
+                <th>{t("CREATED AT")} <span style={{ opacity: 0.5, fontSize: 'var(--fs-8, 8px)', verticalAlign: 'middle' }}>▼</span></th>
                 <th width="100" style={{ textAlign: 'center' }}>{t("ACTION")}</th>
               </tr>
             </thead>

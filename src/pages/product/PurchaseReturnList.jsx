@@ -49,14 +49,33 @@ const PurchaseReturnList = () => {
 
       const combined = apiList;
       if (combined.length > 0) {
-        setReturns(combined.map(item => ({
-          id: item.id,
-          date: item.date || item.created_at || '2026-08-25',
-          invoice: item.invoice || item.invoice_no || `RET-${item.id}`,
-          supplier: item.supplier_name || item.supplier?.name || item.supplier || 'Supplier',
-          total: parseFloat(item.total || item.total_amount || 0).toFixed(2),
-          items: item.items || []
-        })));
+        setReturns(combined.map(item => {
+          let supName = item.supplier_name || item.supplier?.name;
+          if (!supName) {
+            const foundSup = sList.find(s => String(s.id) === String(item.supplier));
+            supName = foundSup ? (foundSup.name || foundSup.company_name) : String(item.supplier || 'Supplier');
+          }
+          
+          let invoiceNo = item.invoice || item.invoice_no;
+          if (!invoiceNo) {
+            const shortId = typeof item.id === 'string' && item.id.length > 8 ? item.id.split('-')[0] : item.id;
+            invoiceNo = `RET-${shortId}`;
+          }
+
+          let formattedDate = item.date || item.created_at || '2026-08-25';
+          if (formattedDate && formattedDate.includes('T')) {
+            formattedDate = formattedDate.split('T')[0];
+          }
+
+          return {
+            id: item.id,
+            date: formattedDate,
+            invoice: invoiceNo,
+            supplier: supName,
+            total: parseFloat(item.total || item.total_amount || 0).toFixed(2),
+            items: item.items || []
+          };
+        }));
       } else {
         setReturns([]);
       }
@@ -126,7 +145,7 @@ const PurchaseReturnList = () => {
       
       {/* Center Title */}
       <div style={{ textAlign: 'center', marginBottom: '40px', marginTop: '20px', position: 'relative' }}>
-        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>{t("Purchase Return List")}</h2>
+        <h2 style={{ fontFamily: 'monospace', fontSize: 'var(--fs-24, 24px)', fontWeight: 'bold' }}>{t("Purchase Return List")}</h2>
         <button 
           onClick={() => navigate('/product/purchase-return/add-new')}
           className="btn" 
@@ -140,7 +159,7 @@ const PurchaseReturnList = () => {
         {/* Filters */}
         <div className="form-grid" style={{ gridTemplateColumns: '1.5fr 1fr 1fr 1fr 2fr', gap: '16px', marginBottom: '24px', alignItems: 'end' }}>
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t("Supplier")}</div>
+            <div style={{ fontSize: 'var(--fs-12, 12px)', marginBottom: '4px' }}>{t("Supplier")}</div>
             <select 
               value={filters.supplier}
               onChange={(e) => handleFilterChange('supplier', e.target.value)}
@@ -154,7 +173,7 @@ const PurchaseReturnList = () => {
           </div>
           
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t("Product Name")}</div>
+            <div style={{ fontSize: 'var(--fs-12, 12px)', marginBottom: '4px' }}>{t("Product Name")}</div>
             <input 
               type="text" 
               placeholder={t("Product Name")} 
@@ -165,7 +184,7 @@ const PurchaseReturnList = () => {
           </div>
 
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t("Invoice No")}</div>
+            <div style={{ fontSize: 'var(--fs-12, 12px)', marginBottom: '4px' }}>{t("Invoice No")}</div>
             <input 
               type="text" 
               placeholder={t("Invoice No")} 
@@ -176,7 +195,7 @@ const PurchaseReturnList = () => {
           </div>
 
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t("Barcode")}</div>
+            <div style={{ fontSize: 'var(--fs-12, 12px)', marginBottom: '4px' }}>{t("Barcode")}</div>
             <input 
               type="text" 
               placeholder={t("Barcode")} 
@@ -187,7 +206,7 @@ const PurchaseReturnList = () => {
           </div>
 
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t('common.search_by_date')}</div>
+            <div style={{ fontSize: 'var(--fs-12, 12px)', marginBottom: '4px' }}>{t('common.search_by_date')}</div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input 
                 type="date" 
@@ -206,14 +225,14 @@ const PurchaseReturnList = () => {
         </div>
 
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <button onClick={clearFilters} className="btn" style={{ background: 'var(--text-muted)', color: 'white', padding: '12px 48px', borderRadius: '4px', fontSize: '16px', width: '40%', cursor: 'pointer' }}>
+          <button onClick={clearFilters} className="btn" style={{ background: 'var(--text-muted)', color: 'white', padding: '12px 48px', borderRadius: '4px', fontSize: 'var(--fs-16, 16px)', width: '40%', cursor: 'pointer' }}>
             {t("Clear Filter")}
           </button>
         </div>
 
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
+          <div style={{ fontSize: 'var(--fs-14, 14px)', color: 'var(--text-main)' }}>
             {t("Show")} 
             <select style={{ margin: '0 8px', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
               <option>100</option>
@@ -221,13 +240,13 @@ const PurchaseReturnList = () => {
             {t("entries")}
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>
-            <button onClick={handleExportExcel} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+            <button onClick={handleExportExcel} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
               <Download size={14} /> {t("Excel")}
             </button>
-            <button onClick={clearFilters} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+            <button onClick={clearFilters} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
               <RotateCcw size={14} /> {t("Reset")}
             </button>
-            <button onClick={fetchData} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+            <button onClick={fetchData} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
               <RefreshCw size={14} className={loading ? "spin" : ""} /> {t("Reload")}
             </button>
           </div>
@@ -238,12 +257,12 @@ const PurchaseReturnList = () => {
           <table className="custom-table" style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--secondary)', color: 'white' }}>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '60px' }}>{t("ID NO ↕")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("DATE")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("INVOICE")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("SUPPLIER")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("TOTAL")}</th>
-                <th style={{ textAlign: 'center', padding: '12px', fontSize: '11px', width: '120px' }}>{t("ACTION")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)', width: '60px' }}>{t("ID NO ↕")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("DATE")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("INVOICE")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("SUPPLIER")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("TOTAL")}</th>
+                <th style={{ textAlign: 'center', padding: '12px', fontSize: 'var(--fs-11, 11px)', width: '120px' }}>{t("ACTION")}</th>
               </tr>
             </thead>
             <tbody>
@@ -255,7 +274,7 @@ const PurchaseReturnList = () => {
                 </tr>
               ) : (
                 filteredReturns.map((ret, index) => (
-                  <tr key={ret.id} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: '13px' }}>
+                  <tr key={ret.id} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-13, 13px)' }}>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{ret.date}</td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{ret.invoice}</td>
@@ -307,13 +326,13 @@ const PurchaseReturnList = () => {
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '2px solid #0ea5e9', paddingBottom: '12px' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#0f172a' }}>{t("Purchase Return Voucher")}</h3>
-                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '600' }}>{t("Invoice #")}{selectedReturn.invoice}</span>
+                <h3 style={{ margin: 0, fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', color: '#0f172a' }}>{t("Purchase Return Voucher")}</h3>
+                <span style={{ fontSize: 'var(--fs-13, 13px)', color: '#64748b', fontWeight: '600' }}>{t("Invoice #")}{selectedReturn.invoice}</span>
               </div>
               <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#f1f5f9', padding: '6px', borderRadius: '50%', cursor: 'pointer', color: '#64748b' }}><X size={20} /></button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px', marginBottom: '20px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: 'var(--fs-13, 13px)', marginBottom: '20px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
               <div><strong>{t("Supplier Name:")}</strong> {selectedReturn.supplier}</div>
               <div><strong>{t("Return Date:")}</strong> {selectedReturn.date}</div>
               <div><strong>{t("Invoice Number:")}</strong> {selectedReturn.invoice}</div>
@@ -321,7 +340,7 @@ const PurchaseReturnList = () => {
             </div>
 
             {selectedReturn.items && selectedReturn.items.length > 0 ? (
-              <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px', fontSize: '13px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px', fontSize: 'var(--fs-13, 13px)' }}>
                 <thead>
                   <tr style={{ background: '#1e293b', color: 'white' }}>
                     <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', width: '40px' }}>{t("SL")}</th>
@@ -349,7 +368,7 @@ const PurchaseReturnList = () => {
                       {selectedReturn.items.reduce((s, i) => s + (Number(i.quantity) || 0), 0)}
                     </td>
                     <td style={{ border: '1px solid #cbd5e1' }}></td>
-                    <td style={{ padding: '10px', textAlign: 'right', border: '1px solid #cbd5e1', color: '#059669', fontSize: '14px' }}>৳ {selectedReturn.total}</td>
+                    <td style={{ padding: '10px', textAlign: 'right', border: '1px solid #cbd5e1', color: '#059669', fontSize: 'var(--fs-14, 14px)' }}>৳ {selectedReturn.total}</td>
                   </tr>
                 </tfoot>
               </table>
@@ -361,10 +380,10 @@ const PurchaseReturnList = () => {
 
             {/* Signature Footer for Print */}
             <div className="print-only" style={{ display: 'none', justifyContent: 'space-between', marginTop: '60px', paddingTop: '20px' }}>
-              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: '12px' }}>
+              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: 'var(--fs-12, 12px)' }}>
                 {t("Supplier / Receiver Signature")}
               </div>
-              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: '12px' }}>
+              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: 'var(--fs-12, 12px)' }}>
                 {t("Authorized Signature")}
               </div>
             </div>

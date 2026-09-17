@@ -135,19 +135,19 @@ const InvoiceList = () => {
       
       {/* Monospace Center Title matching screenshot */}
       <div style={{ textAlign: 'center', marginBottom: '20px', marginTop: '10px' }}>
-        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold', margin: 0 }}>
+        <h2 style={{ fontFamily: 'monospace', fontSize: 'var(--fs-24, 24px)', fontWeight: 'bold', margin: 0 }}>
           {t('invoice.invoice_list_title', 'Bill Invoice List')}
         </h2>
       </div>
 
       {/* Sub-header with Title left & Green Invoice Create button right */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2 style={{ fontSize: '18px', fontWeight: 'normal', color: '#1e293b', margin: 0 }}>
+        <h2 style={{ fontSize: 'var(--fs-18, 18px)', fontWeight: 'normal', color: '#1e293b', margin: 0 }}>
           {t('invoice.invoice_list_title', 'Bill Invoice List')}
         </h2>
         <button 
           onClick={() => navigate('/invoice/add-new')} 
-          style={{ background: '#10b981', color: 'white', border: 'none', padding: '8px 20px', fontSize: '13px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+          style={{ background: '#10b981', color: 'white', border: 'none', padding: '8px 20px', fontSize: 'var(--fs-13, 13px)', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
         >
           {t('invoice.invoice_create', 'Invoice Create')}
         </button>
@@ -161,7 +161,7 @@ const InvoiceList = () => {
               name="client" 
               value={filters.client} 
               onChange={handleFilterChange} 
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '13px', outline: 'none', color: '#334155' }}
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none', color: '#334155' }}
             >
               <option value="">{t('invoice.select_customer', 'Select Client')}</option>
               {clients.map(c => (
@@ -174,7 +174,7 @@ const InvoiceList = () => {
               name="account_id" 
               value={filters.account_id} 
               onChange={handleFilterChange} 
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '13px', outline: 'none', color: '#334155' }}
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none', color: '#334155' }}
             >
               <option value="">{t('invoice.total_balance_acc', 'Select Account')}</option>
               {accounts.map(a => (
@@ -194,7 +194,7 @@ const InvoiceList = () => {
               onChange={handleFilterChange}
               onClick={(e) => { try { e.target.showPicker(); } catch (err) {} }}
               onFocus={(e) => { try { e.target.showPicker(); } catch (err) {} }}
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '13px', color: '#334155', outline: 'none', cursor: 'pointer' }} 
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', color: '#334155', outline: 'none', cursor: 'pointer' }} 
             />
           </div>
 
@@ -206,7 +206,7 @@ const InvoiceList = () => {
               onChange={handleFilterChange}
               onClick={(e) => { try { e.target.showPicker(); } catch (err) {} }}
               onFocus={(e) => { try { e.target.showPicker(); } catch (err) {} }}
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '13px', color: '#334155', outline: 'none', cursor: 'pointer' }} 
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', color: '#334155', outline: 'none', cursor: 'pointer' }} 
             />
           </div>
 
@@ -217,7 +217,7 @@ const InvoiceList = () => {
               placeholder={t('invoice.search_placeholder', 'Invoice No')}
               value={filters.search}
               onChange={handleFilterChange}
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '13px', outline: 'none' }} 
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none' }} 
             />
           </div>
 
@@ -225,7 +225,7 @@ const InvoiceList = () => {
             <button 
               type="button"
               onClick={handleClearFilters}
-              style={{ width: '100%', background: '#10b981', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
+              style={{ width: '100%', background: '#10b981', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '4px', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', cursor: 'pointer' }}
             >
               {t('invoice.clear_filter', 'Clear Filter')}
             </button>
@@ -234,12 +234,12 @@ const InvoiceList = () => {
 
         {/* Toolbar Row: Show entries left, Export buttons right */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ fontSize: '13px', color: '#334155', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ fontSize: 'var(--fs-13, 13px)', color: '#334155', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span>Show</span>
             <select 
               value={entriesLimit} 
               onChange={(e) => setEntriesLimit(e.target.value)}
-              style={{ padding: '4px 8px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '13px', outline: 'none', cursor: 'pointer' }}
+              style={{ padding: '4px 8px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none', cursor: 'pointer' }}
             >
               <option value="All">All</option>
               <option value="10">10</option>
@@ -254,28 +254,28 @@ const InvoiceList = () => {
             <button 
               type="button" 
               onClick={() => exportVisibleTable('xlsx', 'Invoice_List')}
-              style={{ background: '#2563eb', color: 'white', border: 'none', padding: '6px 16px', fontSize: '12px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+              style={{ background: '#2563eb', color: 'white', border: 'none', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
             >
               Excel
             </button>
             <button 
               type="button" 
               onClick={() => window.print()}
-              style={{ background: '#2563eb', color: 'white', border: 'none', padding: '6px 16px', fontSize: '12px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+              style={{ background: '#2563eb', color: 'white', border: 'none', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
             >
               PDF
             </button>
             <button 
               type="button" 
               onClick={() => window.print()}
-              style={{ background: '#2563eb', color: 'white', border: 'none', padding: '6px 16px', fontSize: '12px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+              style={{ background: '#2563eb', color: 'white', border: 'none', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
             >
               Print
             </button>
             <button 
               type="button" 
               onClick={() => { handleClearFilters(); fetchInvoices(); }}
-              style={{ background: '#2563eb', color: 'white', border: 'none', padding: '6px 16px', fontSize: '12px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+              style={{ background: '#2563eb', color: 'white', border: 'none', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
             >
               <RotateCcw size={13} /> Reset
             </button>
@@ -284,24 +284,24 @@ const InvoiceList = () => {
 
         {/* Invoice Table matching screenshot */}
         <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1', borderRadius: '2px' }}>
-          <table className="custom-table" style={{ width: '100%', minWidth: '1200px', borderCollapse: 'collapse', fontSize: '12px' }}>
+          <table className="custom-table" style={{ width: '100%', minWidth: '1200px', borderCollapse: 'collapse', fontSize: 'var(--fs-12, 12px)' }}>
             <thead>
               <tr style={{ background: '#64748b', color: 'white' }}>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>
                   SL <ArrowUp size={11} style={{ display: 'inline', marginLeft: '2px' }} />
                 </th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t('invoice.issued_date', 'ISSUED DATE')}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t('invoice.client_header', 'CLIENT')}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t('invoice.invoice_id_no', 'INVOICE ID NO')}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t('invoice.category_header', 'CATEGORY')}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t('invoice.return_qty', 'RETURN QUANTITY')}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t('invoice.bill_amount', 'BILL AMOUNT')}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t('invoice.discount_header', 'DISCOUNT')}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t('invoice.receive_amount', 'RECEIVE AMOUNT')}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t('invoice.total_due', 'DUE AMOUNT')}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t('invoice.type_header', 'TYPE')}</th>
-                <th className="no-print" style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t('invoice.printable', 'PRINTABLE')}</th>
-                <th className="no-print" style={{ textAlign: 'center', padding: '10px 8px', fontSize: '11px', fontWeight: 'bold' }}>{t('invoice.action', 'ACTION')}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t('invoice.issued_date', 'ISSUED DATE')}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t('invoice.client_header', 'CLIENT')}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t('invoice.invoice_id_no', 'INVOICE ID NO')}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t('invoice.category_header', 'CATEGORY')}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t('invoice.return_qty', 'RETURN QUANTITY')}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t('invoice.bill_amount', 'BILL AMOUNT')}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t('invoice.discount_header', 'DISCOUNT')}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t('invoice.receive_amount', 'RECEIVE AMOUNT')}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t('invoice.total_due', 'DUE AMOUNT')}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t('invoice.type_header', 'TYPE')}</th>
+                <th className="no-print" style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t('invoice.printable', 'PRINTABLE')}</th>
+                <th className="no-print" style={{ textAlign: 'center', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t('invoice.action', 'ACTION')}</th>
               </tr>
             </thead>
             <tbody>
@@ -318,12 +318,12 @@ const InvoiceList = () => {
                 const invIdNo = inv.invoice_id || inv.invoiceNo || (inv.id ? `Invoice ID: ${inv.id}` : 'Invoice ID: 163725');
 
                 return (
-                  <tr key={inv.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: '12px' }}>
+                  <tr key={inv.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-12, 12px)' }}>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{formattedDate}</td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', lineHeight: '1.4' }}>
                       <div style={{ fontWeight: '500' }}>Name: {clientName}</div>
-                      <div style={{ color: '#64748b', fontSize: '11px' }}>Number: {clientPhone}</div>
+                      <div style={{ color: '#64748b', fontSize: 'var(--fs-11, 11px)' }}>Number: {clientPhone}</div>
                     </td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', fontWeight: '500' }}>
                       {invIdNo.startsWith('Invoice ID:') ? invIdNo : `Invoice ID: ${invIdNo}`}
@@ -335,14 +335,14 @@ const InvoiceList = () => {
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{Number(inv.receive_amount || inv.receiveAmount || 0).toFixed(2)}</td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{Number(inv.total_due || inv.dueAmount || 0).toFixed(2)}</td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>
-                      <span style={{ padding: '3px 10px', borderRadius: '4px', background: '#10b981', color: 'white', fontSize: '11px', fontWeight: 'bold' }}>
+                      <span style={{ padding: '3px 10px', borderRadius: '4px', background: '#10b981', color: 'white', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>
                         General
                       </span>
                     </td>
                     <td className="no-print" style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>
                       <button 
                         onClick={() => { setSelectedInvoice(inv); setShowViewModal(true); }}
-                        style={{ background: '#10b981', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}
+                        style={{ background: '#10b981', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', cursor: 'pointer' }}
                       >
                         Pos View
                       </button>
@@ -387,8 +387,8 @@ const InvoiceList = () => {
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '2px solid #0ea5e9', paddingBottom: '12px' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#0f172a' }}>{t('invoice.sales_cash_memo', 'Sales Cash Memo')}</h3>
-                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '600' }}>{t("Invoice #")}{selectedInvoice.invoice_id || selectedInvoice.invoiceNo || `INV-${selectedInvoice.id}`}</span>
+                <h3 style={{ margin: 0, fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', color: '#0f172a' }}>{t('invoice.sales_cash_memo', 'Sales Cash Memo')}</h3>
+                <span style={{ fontSize: 'var(--fs-13, 13px)', color: '#64748b', fontWeight: '600' }}>{t("Invoice #")}{selectedInvoice.invoice_id || selectedInvoice.invoiceNo || `INV-${selectedInvoice.id}`}</span>
               </div>
               <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#f1f5f9', padding: '6px', borderRadius: '50%', cursor: 'pointer', color: '#64748b' }}>✕</button>
             </div>
@@ -406,7 +406,7 @@ const InvoiceList = () => {
               ));
 
               return (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px', marginBottom: '20px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: 'var(--fs-13, 13px)', marginBottom: '20px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                   <div><strong>{t('invoice.customer_name', 'Customer Name')}:</strong> {clientDisplay}</div>
                   <div><strong>{t('invoice.invoice_date', 'Invoice Date')}:</strong> {selectedInvoice.created_at ? new Date(selectedInvoice.created_at).toLocaleDateString() : (selectedInvoice.date || '-')}</div>
                   <div><strong>{t('invoice.category', 'Category')}:</strong> {categoryDisplay}</div>
@@ -415,7 +415,7 @@ const InvoiceList = () => {
               );
             })()}
 
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px', fontSize: '13px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px', fontSize: 'var(--fs-13, 13px)' }}>
               <thead>
                 <tr style={{ background: '#1e293b', color: 'white' }}>
                   <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', width: '40px' }}>{t('invoice.sl', 'SL')}</th>
@@ -532,7 +532,7 @@ const InvoiceList = () => {
                 {/* Total Due / Net Due */}
                 <tr style={{ background: '#fef2f2', fontWeight: 'bold', color: '#dc2626' }}>
                   <td colSpan="4" style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>{t('invoice.total_due', 'Total Due')}:</td>
-                  <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1', fontSize: '14px' }}>
+                  <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1', fontSize: 'var(--fs-14, 14px)' }}>
                     ৳ {Number(
                       selectedInvoice.total_due !== undefined ? selectedInvoice.total_due :
                       (selectedInvoice.dueAmount !== undefined ? selectedInvoice.dueAmount :
@@ -546,10 +546,10 @@ const InvoiceList = () => {
 
             {/* Signature Footer */}
             <div className="print-only" style={{ display: 'none', justifyContent: 'space-between', marginTop: '60px', paddingTop: '20px' }}>
-              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: '12px' }}>
+              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: 'var(--fs-12, 12px)' }}>
                 {t("Customer Signature")}
               </div>
-              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: '12px' }}>
+              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: 'var(--fs-12, 12px)' }}>
                 {t("Authorized Signature")}
               </div>
             </div>

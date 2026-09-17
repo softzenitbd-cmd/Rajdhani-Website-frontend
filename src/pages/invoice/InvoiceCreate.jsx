@@ -227,15 +227,21 @@ const InvoiceCreate = () => {
   const handleBarcodeKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      const code = formData.barcode.trim();
+      const code = e.target.value.trim();
       if (!code) return;
-      const prod = products.find(p => String(p.code || p.barcode || p.id) === code);
+      const prod = products.find(p => 
+        String(p.code) === code || 
+        String(p.barcode) === code || 
+        String(p.custom_barcode_no) === code ||
+        String(p.id) === code ||
+        String(p.product_code) === code
+      );
       if (prod) {
         handleSelectProduct(prod.id);
-        setFormData(prev => ({ ...prev, barcode: '' }));
       } else {
         toast.error(t("Product with barcode \"{{v0}}\" not found.", { v0: code }));
       }
+      setFormData(prev => ({ ...prev, barcode: '' }));
     }
   };
 
@@ -347,7 +353,7 @@ const InvoiceCreate = () => {
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
         <div className="premium-header" style={{ padding: '12px 24px', background: 'white' }}>
-          <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold' }}>
+          <h2 className="premium-title" style={{ fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold' }}>
             {t('invoice.top_banner_shortcut', 'ADD INVOICE | CTRL + S = SAVE | ALT + S = SAVE & PRINT | CTRL + D = SAVE AS DRAFT')}
           </h2>
         </div>
@@ -373,7 +379,7 @@ const InvoiceCreate = () => {
                   placeholder={t('invoice.select_customer', 'Select Customer / Client')}
                   onAddClick={() => setIsClientModalOpen(true)}
                 />
-                <div style={{ fontSize: '12px', fontWeight: 'bold', marginTop: '4px', color: '#0ea5e9' }}>
+                <div style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', marginTop: '4px', color: '#0ea5e9' }}>
                   {t('common.due', 'Due')}: ৳ {dueAmount.toFixed(2)}
                 </div>
               </div>
@@ -403,7 +409,7 @@ const InvoiceCreate = () => {
             {/* Second Row */}
             <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
               <div className="form-group" style={{ marginBottom: '0', position: 'relative' }}>
-                <div style={{ position: 'absolute', top: '-10px', left: '20px', background: 'var(--primary)', color: 'white', padding: '2px 8px', fontSize: '10px', borderRadius: '4px' }}>
+                <div style={{ position: 'absolute', top: '-10px', left: '20px', background: 'var(--primary)', color: 'white', padding: '2px 8px', fontSize: 'var(--fs-10, 10px)', borderRadius: '4px' }}>
                   {t('invoice.barcode_header', 'Barcode Number')}
                 </div>
                 <div style={{ display: 'flex', border: '1px solid #e2e8f0', borderRadius: '4px', overflow: 'hidden', background: 'var(--card-border)' }}>
@@ -424,16 +430,20 @@ const InvoiceCreate = () => {
 
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <SearchableSelect
-                  options={(products || []).map((p) => ({
-                    value: p.id,
-                    label: `${p.name || p.title} ${p.code || p.barcode ? `[${p.code || p.barcode}]` : ''} - ৳${p.sales_price || p.price || 0}`,
-                    searchValue: `${p.name || p.title} ${p.code || p.barcode || ''}`
-                  }))}
+                  options={(products || []).map((p) => {
+                    const barcode = p.custom_barcode_no || p.code || p.barcode || '';
+                    return {
+                      value: p.id,
+                      label: `${p.name || p.title} ${barcode ? `[${barcode}]` : ''} - ৳${p.sales_price || p.price || 0}`,
+                      searchValue: `${p.name || p.title} ${barcode}`
+                    };
+                  })}
                   value={formData.productId}
                   onChange={(val) => {
                     if (val) handleSelectProduct(val);
                   }}
                   clearOnSelect={true}
+                  hideOptionsUntilSearch={true}
                   placeholder={t('invoice.select_product', 'Select Product')}
                   onAddClick={() => setIsProductModalOpen(true)}
                 />
@@ -442,7 +452,7 @@ const InvoiceCreate = () => {
 
             {/* Product Table */}
             <div style={{ border: '1px solid #e2e8f0', marginBottom: '16px', overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-12, 12px)' }}>
                 <thead>
                   <tr style={{ background: 'var(--secondary)', color: 'white' }}>
                     <th style={{ padding: '8px', textAlign: 'center' }}>{t('invoice.sl', 'SL')}</th>
@@ -472,14 +482,26 @@ const InvoiceCreate = () => {
                           <input
                             type="number"
                             value={item.price}
+                            onFocus={(e) => e.target.select()}
                             onChange={(e) => updateItemField(idx, 'price', e.target.value)}
                             style={{ width: '80px', padding: '4px', textAlign: 'right', border: '1px solid #cbd5e1', borderRadius: '4px' }}
                           />
                         </td>
                         <td style={{ padding: '8px', textAlign: 'center' }}>
                           <input
+                            data-qty-idx={idx}
                             type="number"
                             value={item.quantity}
+                            onFocus={(e) => e.target.select()}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Tab' && !e.shiftKey) {
+                                const nextInput = document.querySelector(`input[data-qty-idx="${idx + 1}"]`);
+                                if (nextInput) {
+                                  e.preventDefault();
+                                  nextInput.focus();
+                                }
+                              }
+                            }}
                             onChange={(e) => updateItemField(idx, 'quantity', e.target.value)}
                             style={{ width: '60px', padding: '4px', textAlign: 'center', border: '1px solid #cbd5e1', borderRadius: '4px' }}
                           />
@@ -504,7 +526,7 @@ const InvoiceCreate = () => {
               </table>
             </div>
 
-            <div style={{ textAlign: 'center', fontSize: '13px', marginBottom: '24px', fontWeight: 'bold' }}>
+            <div style={{ textAlign: 'center', fontSize: 'var(--fs-13, 13px)', marginBottom: '24px', fontWeight: 'bold' }}>
               {t('invoice.total_quantity', 'Total Quantity')}: {totalQuantity}
             </div>
 
@@ -544,42 +566,42 @@ const InvoiceCreate = () => {
                     value={formData.discountAmount} 
                     onChange={handleChange} 
                     placeholder="0.00"
-                    style={{ fontWeight: 'bold', fontSize: '15px', color: '#dc2626' }} 
+                    style={{ fontWeight: 'bold', fontSize: 'var(--fs-15, 15px)', color: '#dc2626' }} 
                   />
                 </div>
 
                 <div style={{ position: 'relative' }}>
                   <div className="badge-date" style={{ background: 'var(--info)' }}>{t('invoice.receive_amount', 'Receive Amount')}</div>
-                  <input type="number" step="0.01" name="receiveAmount" className="input-date" value={formData.receiveAmount} onChange={handleChange} style={{ fontWeight: 'bold', fontSize: '15px' }} />
+                  <input type="number" step="0.01" name="receiveAmount" className="input-date" value={formData.receiveAmount} onChange={handleChange} style={{ fontWeight: 'bold', fontSize: 'var(--fs-15, 15px)' }} />
                 </div>
               </div>
 
               {/* Right Column - Summary */}
               <div>
                 <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', marginBottom: '16px', background: '#f8fafc' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-14, 14px)' }}>
                     <span>{t('invoice.invoice_bill', 'Invoice Bill')}</span>
                     <span style={{ fontWeight: 'bold' }}>: ৳ {invoiceBill.toFixed(2)}</span>
                   </div>
                   {discountAmt > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px', color: '#dc2626', fontWeight: 'bold' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-14, 14px)', color: '#dc2626', fontWeight: 'bold' }}>
                       <span>{t('invoice.discount_minus', 'Discount (-)')}</span>
                       <span>: ৳ {discountAmt.toFixed(2)}</span>
                     </div>
                   )}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-14, 14px)' }}>
                     <span>{t('invoice.previous_due', 'Previous Due')}</span>
                     <span>: ৳ {dueAmount.toFixed(2)}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px', fontWeight: 'bold' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold' }}>
                     <span>{t('invoice.total_bill', 'Total Bill')}</span>
                     <span style={{ color: '#2563eb' }}>: ৳ {totalBill.toFixed(2)}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-14, 14px)' }}>
                     <span>{t('invoice.payment', 'Payment')}</span>
                     <span style={{ fontWeight: 'bold', color: '#059669' }}>: ৳ {paymentAmt.toFixed(2)}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', fontSize: '14px', fontWeight: 'bold', color: '#ef4444' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', color: '#ef4444' }}>
                     <span>{t('invoice.total_due', 'Total Due')}</span>
                     <span>: ৳ {totalDue.toFixed(2)}</span>
                   </div>
@@ -598,17 +620,17 @@ const InvoiceCreate = () => {
 
             {/* Footer Buttons */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <button type="button" className="btn-danger" onClick={() => navigate('/invoice/list')} style={{ background: 'var(--danger)', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }}>
+              <button type="button" className="btn-danger" onClick={() => navigate('/invoice/list')} style={{ background: 'var(--danger)', padding: '10px 24px', fontSize: 'var(--fs-14, 14px)', borderRadius: '4px' }}>
                 {t('invoice.cancel', 'Cancel')}
               </button>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <button type="button" className="btn-primary" onClick={() => handleSaveInvoice(0)} style={{ background: '#64748b', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }}>
+                <button type="button" className="btn-primary" onClick={() => handleSaveInvoice(0)} style={{ background: '#64748b', padding: '10px 24px', fontSize: 'var(--fs-14, 14px)', borderRadius: '4px' }}>
                   {t('invoice.save_draft', 'Save As Draft')}
                 </button>
-                <button type="button" className="btn-primary" onClick={() => handleSaveInvoice(1, true)} style={{ background: '#3b82f6', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }}>
+                <button type="button" className="btn-primary" onClick={() => handleSaveInvoice(1, true)} style={{ background: '#3b82f6', padding: '10px 24px', fontSize: 'var(--fs-14, 14px)', borderRadius: '4px' }}>
                   {t('invoice.save_print', 'Save & Print')}
                 </button>
-                <button type="button" className="btn-primary" onClick={() => handleSaveInvoice(1)} style={{ background: 'var(--success)', padding: '10px 24px', fontSize: '14px', borderRadius: '4px', fontWeight: 'bold' }}>
+                <button type="button" className="btn-primary" onClick={() => handleSaveInvoice(1)} style={{ background: 'var(--success)', padding: '10px 24px', fontSize: 'var(--fs-14, 14px)', borderRadius: '4px', fontWeight: 'bold' }}>
                   {t('invoice.add_invoice', 'Add Invoice')}
                 </button>
               </div>

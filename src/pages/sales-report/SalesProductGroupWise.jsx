@@ -91,7 +91,7 @@ const SalesProductGroupWise = () => {
           
           <button 
             onClick={handleSearch}
-            style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}
+            style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', fontWeight: '500' }}
           >
             {t("Search")}
           </button>
@@ -104,17 +104,17 @@ const SalesProductGroupWise = () => {
             <PrintHeader />
             
             <div style={{ textAlign: 'center', margin: '20px 0', fontFamily: 'monospace' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>{t("Product Group Wise Sales Report")}</h2>
+              <h2 style={{ fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', margin: 0 }}>{t("Product Group Wise Sales Report")}</h2>
             </div>
             
             {/* Header row with Title and Go Back */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '12px', fontWeight: 'bold', margin: '0', textTransform: 'uppercase' }}>
+              <h3 style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', margin: '0', textTransform: 'uppercase' }}>
                 {t("PRODUCT GROUP WISE SALES REPORT | FROM (")}{filters.from_date}{t(") TO (")}{filters.to_date})
               </h3>
               <button 
                 onClick={() => navigate('/invoice/list')}
-                style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#7e8a9f', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#7e8a9f', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)' }}
               >
                  <ArrowLeft size={14} /> {t("Go Back")}
               </button>
@@ -122,15 +122,15 @@ const SalesProductGroupWise = () => {
 
             {/* Controls */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+              <div style={{ fontSize: 'var(--fs-12, 12px)', color: 'var(--text-muted)' }}>
                 {t("Showing")} {reports.length} {t("entries")}
               </div>
               
               <div style={{ display: 'flex', gap: '2px' }}>
-                <button onClick={() => window.print()} style={{ background: '#3b82f6', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px 0 0 4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}>
+                <button onClick={() => window.print()} style={{ background: '#3b82f6', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px 0 0 4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)', fontWeight: '500' }}>
                   <Printer size={14} /> {t("Print")}
                 </button>
-                <button onClick={handleSearch} style={{ background: '#3b82f6', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '0 4px 4px 0', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}>
+                <button onClick={handleSearch} style={{ background: '#3b82f6', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '0 4px 4px 0', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)', fontWeight: '500' }}>
                   <RefreshCcw size={14} /> {t("Reset")}
                 </button>
               </div>
@@ -138,7 +138,7 @@ const SalesProductGroupWise = () => {
 
             {/* Table */}
             <div className="table-responsive">
-              <table style={{ width: '100%', fontSize: '11px', textAlign: 'center', borderCollapse: 'collapse', border: '1px solid #94a3b8' }}>
+              <table style={{ width: '100%', fontSize: 'var(--fs-11, 11px)', textAlign: 'center', borderCollapse: 'collapse', border: '1px solid #94a3b8' }}>
                 <thead>
                   <tr style={{ background: '#94a3b8', color: 'white', textTransform: 'uppercase' }}>
                     <th style={{ width: '40px', padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("SL ⇅")}</th>

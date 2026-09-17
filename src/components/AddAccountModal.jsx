@@ -110,7 +110,7 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
             background: '#ffffff'
           }}
         >
-          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: '#1e293b' }}>
+          <h3 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', fontWeight: 'bold', color: '#1e293b' }}>
             {t('account_modal.title', 'Add New Account')}
           </h3>
           <button
@@ -151,7 +151,7 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
                   color: 'white',
                   padding: '2px 8px',
                   borderRadius: '4px',
-                  fontSize: '11px',
+                  fontSize: 'var(--fs-11, 11px)',
                   fontWeight: 'bold',
                   display: 'flex',
                   alignItems: 'center',
@@ -173,7 +173,7 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
                   border: '1px solid #38bdf8',
                   borderRadius: '8px',
                   outline: 'none',
-                  fontSize: '13px',
+                  fontSize: 'var(--fs-13, 13px)',
                   background: 'white'
                 }}
               />
@@ -190,7 +190,7 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
                   color: 'white',
                   padding: '2px 8px',
                   borderRadius: '4px',
-                  fontSize: '11px',
+                  fontSize: 'var(--fs-11, 11px)',
                   fontWeight: 'bold',
                   display: 'flex',
                   alignItems: 'center',
@@ -213,7 +213,7 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
                   border: '1px solid #38bdf8',
                   borderRadius: '8px',
                   outline: 'none',
-                  fontSize: '13px',
+                  fontSize: 'var(--fs-13, 13px)',
                   background: 'white'
                 }}
               />
@@ -230,7 +230,7 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
                   color: 'white',
                   padding: '2px 8px',
                   borderRadius: '4px',
-                  fontSize: '11px',
+                  fontSize: 'var(--fs-11, 11px)',
                   fontWeight: 'bold',
                   display: 'flex',
                   alignItems: 'center',
@@ -252,7 +252,7 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
                   border: '1px solid #38bdf8',
                   borderRadius: '8px',
                   outline: 'none',
-                  fontSize: '13px',
+                  fontSize: 'var(--fs-13, 13px)',
                   background: 'white'
                 }}
               />
@@ -269,7 +269,7 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
                   color: 'white',
                   padding: '2px 8px',
                   borderRadius: '4px',
-                  fontSize: '11px',
+                  fontSize: 'var(--fs-11, 11px)',
                   fontWeight: 'bold',
                   display: 'flex',
                   alignItems: 'center',
@@ -291,7 +291,7 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
                   border: '1px solid #38bdf8',
                   borderRadius: '8px',
                   outline: 'none',
-                  fontSize: '13px',
+                  fontSize: 'var(--fs-13, 13px)',
                   background: 'white'
                 }}
               />
@@ -308,7 +308,7 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
                   color: 'white',
                   padding: '2px 8px',
                   borderRadius: '4px',
-                  fontSize: '11px',
+                  fontSize: 'var(--fs-11, 11px)',
                   fontWeight: 'bold',
                   display: 'flex',
                   alignItems: 'center',
@@ -330,7 +330,7 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
                   border: '1px solid #38bdf8',
                   borderRadius: '8px',
                   outline: 'none',
-                  fontSize: '13px',
+                  fontSize: 'var(--fs-13, 13px)',
                   background: 'white'
                 }}
               />
@@ -347,7 +347,7 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
                   color: 'white',
                   padding: '2px 8px',
                   borderRadius: '4px',
-                  fontSize: '11px',
+                  fontSize: 'var(--fs-11, 11px)',
                   fontWeight: 'bold',
                   display: 'flex',
                   alignItems: 'center',
@@ -369,7 +369,7 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
                   border: '1px solid #38bdf8',
                   borderRadius: '8px',
                   outline: 'none',
-                  fontSize: '13px',
+                  fontSize: 'var(--fs-13, 13px)',
                   background: 'white'
                 }}
               />
@@ -388,7 +388,7 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
                 padding: '9px 20px',
                 borderRadius: '6px',
                 fontWeight: 'bold',
-                fontSize: '13px',
+                fontSize: 'var(--fs-13, 13px)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -409,7 +409,7 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
                 padding: '9px 20px',
                 borderRadius: '6px',
                 fontWeight: 'bold',
-                fontSize: '13px',
+                fontSize: 'var(--fs-13, 13px)',
                 cursor: 'pointer'
               }}
             >

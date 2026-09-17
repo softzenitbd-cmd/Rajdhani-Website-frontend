@@ -20,13 +20,13 @@ const MODULES = ['dashboard', 'crm', 'account', 'loan', 'invoice', 'product', 'p
 const ACTIONS = ['view', 'create', 'edit', 'delete'];
 
 const input = { width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' };
-const lbl = { display: 'block', marginBottom: '6px', fontSize: '13px', color: 'var(--label-color)', fontWeight: 600 };
+const lbl = { display: 'block', marginBottom: '6px', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', fontWeight: 600 };
 
 const Modal = ({ title, onClose, children, width = 520 }) => (
   <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
     <div style={{ background: 'white', borderRadius: '8px', width, maxWidth: '95vw', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
       <div style={{ padding: '16px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: 'white' }}>
-        <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--text-main)' }}>{title}</h3>
+        <h3 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', color: 'var(--text-main)' }}>{title}</h3>
         <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={20} /></button>
       </div>
       <div style={{ padding: '24px' }}>{children}</div>
@@ -159,8 +159,8 @@ const UserManagement = () => {
         <PrintHeader />
         <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px', marginBottom: '24px' }}>
           <div>
-            <h2 style={{ fontSize: '18px', color: 'var(--text-main)', margin: 0 }}>{t("Users, Roles & Permissions")}</h2>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>{t("Only admin / superadmin can manage users. Permissions require superadmin.")}</span>
+            <h2 style={{ fontSize: 'var(--fs-18, 18px)', color: 'var(--text-main)', margin: 0 }}>{t("Users, Roles & Permissions")}</h2>
+            <span style={{ fontSize: 'var(--fs-12, 12px)', color: '#64748b' }}>{t("Only admin / superadmin can manage users. Permissions require superadmin.")}</span>
           </div>
           <button onClick={() => setUserModal({ ...emptyUser })} style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', borderRadius: '4px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
             <Plus size={16} /> {t("Add User")}
@@ -170,7 +170,7 @@ const UserManagement = () => {
         <TableToolbar entries={entries} setEntries={setEntries} total={users.length} excelData={excelData} excelName="Users" onReload={load} />
 
         <div className="table-responsive">
-          <table className="custom-table" style={{ width: '100%', fontSize: '12px' }}>
+          <table className="custom-table" style={{ width: '100%', fontSize: 'var(--fs-12, 12px)' }}>
             <thead>
               <tr style={{ background: '#718096', color: 'white', textTransform: 'uppercase' }}>
                 <th style={{ width: '50px', textAlign: 'center', padding: '10px' }}>{t("SL")}</th>
@@ -196,9 +196,9 @@ const UserManagement = () => {
                   <td style={{ padding: '10px' }}>{u.full_name || '-'}</td>
                   <td style={{ padding: '10px' }}>{u.phone || '-'}</td>
                   <td style={{ padding: '10px' }}>{u.email || '-'}</td>
-                  <td style={{ padding: '10px', textAlign: 'center' }}><span style={{ background: '#e0e7ff', color: '#3730a3', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase' }}>{u.role || '-'}</span></td>
+                  <td style={{ padding: '10px', textAlign: 'center' }}><span style={{ background: '#e0e7ff', color: '#3730a3', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', textTransform: 'uppercase' }}>{u.role || '-'}</span></td>
                   <td style={{ padding: '10px', textAlign: 'center' }}>
-                    <span style={{ background: u.is_active === false ? '#fee2e2' : '#dcfce7', color: u.is_active === false ? '#991b1b' : '#166534', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>{u.is_active === false ? t("Inactive") : t("Active")}</span>
+                    <span style={{ background: u.is_active === false ? '#fee2e2' : '#dcfce7', color: u.is_active === false ? '#991b1b' : '#166534', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{u.is_active === false ? t("Inactive") : t("Active")}</span>
                   </td>
                   <td style={{ padding: '10px' }}>{fmtDate(u.created_at || u.date_joined)}</td>
                   <td className="action-column" style={{ padding: '10px' }}>
@@ -257,7 +257,7 @@ const UserManagement = () => {
 
       {permModal && (
         <Modal title={t("Permissions — {{v0}}", { v0: permModal.username })} onClose={() => setPermModal(null)} width={640}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-13, 13px)' }}>
             <thead>
               <tr style={{ background: '#f1f5f9' }}>
                 <th style={{ textAlign: 'left', padding: '8px' }}>{t("Module")}</th>

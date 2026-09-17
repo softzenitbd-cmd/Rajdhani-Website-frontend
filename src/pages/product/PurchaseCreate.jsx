@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, Plus, Trash2, Barcode, HelpCircle } from 'lucide-react';
+import { Calendar, Plus, Trash2, Barcode, HelpCircle, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
 import SearchableSelect from '../../components/SearchableSelect';
 import AddOptionModal from '../../components/AddOptionModal';
+import AddProductModal from '../../components/AddProductModal';
+import FormSettingsModal from '../../components/FormSettingsModal';
 import { crmService } from '../../services/crmService';
 import { productService } from '../../services/productService';
 import { purchaseService } from '../../services/purchaseService';
+import settingService from '../../services/settingService';
 import { useToast } from '../../context/ToastContext';
 
 const PurchaseCreate = () => {
@@ -16,13 +19,17 @@ const PurchaseCreate = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
+    invoice_id: '',
     supplier: '',
     date: new Date().toISOString().split('T')[0],
     barcode: '',
     product: '',
-    discount: '0',
-    transport_fare: '0',
-    receive_amount: '0',
+    discount: '',
+    discount_type: 'Percentage (%)',
+    transport_fare: '',
+    vat: '',
+    vat_type: 'Percentage (%)',
+    receive_amount: '',
   });
 
   const [suppliers, setSuppliers] = useState([]);
@@ -51,12 +58,38 @@ const PurchaseCreate = () => {
     }
   };
 
-  useEffect(() => {
-    fetchPrerequisites();
-  }, []);
-
   const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  
+  const [visibleFields, setVisibleFields] = useState({
+    invoice_id: true,
+    date: true,
+    supplier: true,
+    warehouse: true,
+    discount: true,
+    transport_fare: true,
+    vat: true,
+    accounts: true,
+    category: true,
+    receive_amount: true
+  });
+
+  const loadFormSettings = async () => {
+    try {
+      const saved = await settingService.getFormSettings('purchase_create');
+      if (saved && Object.keys(saved).length > 0) {
+        setVisibleFields(prev => ({ ...prev, ...saved }));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchPrerequisites();
+    loadFormSettings();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -98,15 +131,20 @@ const PurchaseCreate = () => {
   const handleBarcodeKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      const code = formData.barcode.trim();
+      const code = e.target.value.trim();
       if (!code) return;
-      const prod = products.find(p => String(p.code || p.barcode || p.id) === code);
+      const prod = products.find(p => 
+        String(p.code) === code || 
+        String(p.barcode) === code || 
+        String(p.id) === code ||
+        String(p.product_code) === code
+      );
       if (prod) {
         handleSelectProduct(prod.id);
-        setFormData(prev => ({ ...prev, barcode: '' }));
       } else {
         toast.error(t("Product with barcode \"{{v0}}\" not found.", { v0: code }));
       }
+      setFormData(prev => ({ ...prev, barcode: '' }));
     }
   };
 
@@ -167,10 +205,10 @@ const PurchaseCreate = () => {
         supplier: formData.supplier,
         date: formData.date,
         discount: discountAmt.toFixed(2),
-        discount_type: 'flat',
+        discount_type: formData.discount_type === 'Flat' ? 'flat' : 'percentage',
         transport_fare: transportAmt.toFixed(2),
-        vat: '0.00',
-        vat_type: 'percentage',
+        vat: Number(formData.vat || 0).toFixed(2),
+        vat_type: formData.vat_type === 'Flat' ? 'flat' : 'percentage',
         purchase_bill: totalBuying.toFixed(2),
         total_vat: '0.00',
         total_discount: discountAmt.toFixed(2),
@@ -203,57 +241,85 @@ const PurchaseCreate = () => {
   const totalQty = items.reduce((sum, i) => sum + Number(i.quantity || 0), 0);
   const totalBuying = items.reduce((sum, i) => sum + (Number(i.quantity || 0) * Number(i.buyingPrice || 0)), 0);
   const totalSale = items.reduce((sum, i) => sum + (Number(i.quantity || 0) * Number(i.salePrice || 0)), 0);
-  const discountAmt = Math.max(0, Number(formData.discount || 0));
+  const discountAmt = Math.max(0, Number(formData.discount || 0)); // Note: if percentage, need to calc properly based on totalBuying
   const transportAmt = Math.max(0, Number(formData.transport_fare || 0));
-  const grandTotal = Math.max(0, totalBuying - discountAmt + transportAmt);
+  const vatAmt = Math.max(0, Number(formData.vat || 0));
+  const grandTotal = Math.max(0, totalBuying - discountAmt + transportAmt + vatAmt);
   const paidAmt = Math.max(0, Number(formData.receive_amount || 0));
   const totalDue = Math.max(0, grandTotal - paidAmt);
+
+  const BadgeLabel = ({ icon, text }) => (
+    <div style={{ position: 'absolute', top: '-10px', left: '16px', background: 'var(--info, #38bdf8)', color: 'white', fontSize: 'var(--fs-11, 11px)', padding: '2px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+      {icon} {text}
+    </div>
+  );
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
         <div className="premium-header" style={{ padding: '16px 24px', background: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold', textTransform: 'uppercase' }}>
+          <h2 className="premium-title" style={{ fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', textTransform: 'uppercase' }}>
             {t("Purchase Create")}
           </h2>
           <div style={{ display: 'flex', gap: '8px' }}>
+            <button 
+              onClick={() => setIsSettingsOpen(true)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+              title={t("Form Settings")}
+            >
+              <Settings size={20} />
+            </button>
           </div>
         </div>
 
         <div className="premium-body" style={{ background: 'white', padding: '24px' }}>
           <PrintHeader />
           <form onSubmit={(e) => e.preventDefault()}>
-            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-
-              {/* Select Suppliers */}
-              <div className="form-group" style={{ marginBottom: '0' }}>
-                <SearchableSelect
-                  options={suppliers.map(sup => ({
-                    value: sup.id,
-                    label: sup.name,
-                    searchValue: sup.name
-                  }))}
-                  value={formData.supplier}
-                  onChange={(val) => setFormData(prev => ({ ...prev, supplier: val }))}
-                  placeholder={t("Select Suppliers")}
-                  onAddClick={() => setIsSupplierModalOpen(true)}
-                />
-              </div>
-
-              {/* Date */}
-              <div className="form-group" style={{ marginBottom: '0' }}>
-                <div style={{ position: 'relative' }}>
-                  <div style={{ position: 'absolute', top: '-10px', left: '16px', background: 'var(--info)', color: 'white', fontSize: '11px', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Calendar size={12} /> {t("Date")}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+              {/* Left Column (Select Suppliers) */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {visibleFields.supplier !== false && (
+                  <div className="form-group" style={{ marginBottom: '0', height: '100%' }}>
+                    <div style={{ height: '100%', display: 'flex', border: '1px solid #0ea5e9', borderRadius: '8px', padding: '16px' }}>
+                      <SearchableSelect
+                        options={suppliers.map(sup => ({
+                          value: sup.id,
+                          label: sup.name,
+                          searchValue: sup.name
+                        }))}
+                        value={formData.supplier}
+                        onChange={(val) => setFormData(prev => ({ ...prev, supplier: val }))}
+                        placeholder={t("Select Suppliers")}
+                        onAddClick={() => setIsSupplierModalOpen(true)}
+                      />
+                    </div>
                   </div>
-                  <input type="date" name="date" value={formData.date} onChange={handleChange} style={{ width: '100%', padding: '14px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none' }} />
-                </div>
+                )}
               </div>
 
+              {/* Right Column (Date and Invoice ID) */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {visibleFields.date !== false && (
+                  <div className="form-group" style={{ marginBottom: '0', position: 'relative', border: '1px solid #0ea5e9', borderRadius: '8px' }}>
+                    <BadgeLabel icon={<Calendar size={12} />} text={t("Date")} />
+                    <input type="date" name="date" value={formData.date} onChange={handleChange} style={{ width: '100%', padding: '16px', border: 'none', background: 'transparent', outline: 'none' }} />
+                  </div>
+                )}
+                {visibleFields.invoice_id !== false && (
+                  <div className="form-group" style={{ marginBottom: '0', position: 'relative', border: '1px solid #0ea5e9', borderRadius: '8px' }}>
+                    <BadgeLabel icon={<Calendar size={12} />} text={t("Invoice ID No")} />
+                    <input type="text" name="invoice_id" value={formData.invoice_id} onChange={handleChange} placeholder="Invoice Id" style={{ width: '100%', padding: '16px', border: 'none', background: 'transparent', outline: 'none' }} />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
               {/* Barcode Number */}
-              <div className="form-group" style={{ marginBottom: '0' }}>
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
-                  <div style={{ padding: '12px', color: 'var(--text-muted)' }}>
+              <div className="form-group" style={{ marginBottom: '0', position: 'relative', border: '1px solid #cbd5e1', borderRadius: '8px', background: '#e2e8f0' }}>
+                <BadgeLabel text={t("Barcode Number")} />
+                <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                  <div style={{ padding: '0 16px', color: 'var(--text-muted)' }}>
                     <Barcode size={24} />
                   </div>
                   <input
@@ -262,16 +328,17 @@ const PurchaseCreate = () => {
                     value={formData.barcode}
                     onChange={handleChange}
                     onKeyDown={handleBarcodeKeyDown}
-                    placeholder={t("Scan Barcode & Press Enter")}
-                    style={{ flex: 1, padding: '12px', border: 'none', outline: 'none', color: '#334155' }}
+                    placeholder="Barcode Number"
+                    style={{ flex: 1, padding: '16px 16px 16px 0', border: 'none', outline: 'none', background: 'transparent', color: '#334155' }}
                   />
                 </div>
               </div>
 
               {/* Select Product */}
-              <div className="form-group" style={{ marginBottom: '0' }}>
+              <div className="form-group" style={{ marginBottom: '0', position: 'relative', border: '1px solid #0ea5e9', borderRadius: '8px', padding: '8px 16px' }}>
+                <BadgeLabel text={t("Product Name")} />
                 <SearchableSelect
-                  options={products.map(p => ({
+                  options={(products || []).map(p => ({
                     value: p.id,
                     label: `${p.name || p.title} ${p.code || p.barcode ? `[${p.code || p.barcode}]` : ''}`,
                     searchValue: `${p.name || p.title} ${p.code || p.barcode || ''}`
@@ -280,10 +347,6 @@ const PurchaseCreate = () => {
                   onChange={(val) => {
                     if (val) {
                       setFormData(prev => ({ ...prev, product: val }));
-                      // simulate handleChange logic which calls setFormData internally or triggers effect? 
-                      // Wait, in PurchaseCreate.jsx, the handleChange for 'product' just sets formData.product? 
-                      // No, wait, look at line 105:
-                      // if (name === 'product') { if (value) handleSelectProduct(value); } 
                       handleSelectProduct(val);
                     }
                   }}
@@ -292,7 +355,6 @@ const PurchaseCreate = () => {
                   onAddClick={() => setIsProductModalOpen(true)}
                 />
               </div>
-
             </div>
 
             {/* Table */}
@@ -300,15 +362,15 @@ const PurchaseCreate = () => {
               <table className="custom-table" style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ background: 'var(--secondary)', color: 'white' }}>
-                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '50px' }}>{t("SL")}</th>
-                    <th style={{ textAlign: 'left', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("PRODUCT")}</th>
-                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '90px' }}>{t("QUANTITY")}</th>
-                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '120px' }}>{t("BUYING PRICE")}</th>
-                    <th style={{ textAlign: 'right', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("TOTAL BUYING PRICE")}</th>
-                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '120px' }}>{t("SALE PRICE")}</th>
-                    <th style={{ textAlign: 'right', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("TOTAL SALE PRICE")}</th>
-                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("BARCODE")}</th>
-                    <th style={{ textAlign: 'center', padding: '12px', fontSize: '11px' }}>{t("ACTION")}</th>
+                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)', width: '50px' }}>{t("SL")}</th>
+                    <th style={{ textAlign: 'left', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("PRODUCT")}</th>
+                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)', width: '90px' }}>{t("QUANTITY")}</th>
+                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)', width: '120px' }}>{t("BUYING PRICE")}</th>
+                    <th style={{ textAlign: 'right', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("TOTAL BUYING PRICE")}</th>
+                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)', width: '120px' }}>{t("SALE PRICE")}</th>
+                    <th style={{ textAlign: 'right', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("TOTAL SALE PRICE")}</th>
+                    <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("BARCODE")}</th>
+                    <th style={{ textAlign: 'center', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("ACTION")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -325,8 +387,19 @@ const PurchaseCreate = () => {
                         <td style={{ textAlign: 'left', padding: '10px', fontWeight: '500' }}>{item.name}</td>
                         <td style={{ textAlign: 'center', padding: '10px' }}>
                           <input
+                            data-qty-idx={idx}
                             type="number"
                             value={item.quantity}
+                            onFocus={(e) => e.target.select()}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Tab' && !e.shiftKey) {
+                                const nextInput = document.querySelector(`input[data-qty-idx="${idx + 1}"]`);
+                                if (nextInput) {
+                                  e.preventDefault();
+                                  nextInput.focus();
+                                }
+                              }
+                            }}
                             onChange={(e) => updateItemField(idx, 'quantity', e.target.value)}
                             style={{ width: '60px', padding: '4px', textAlign: 'center', border: '1px solid #cbd5e1', borderRadius: '4px' }}
                           />
@@ -335,6 +408,7 @@ const PurchaseCreate = () => {
                           <input
                             type="number"
                             value={item.buyingPrice}
+                            onFocus={(e) => e.target.select()}
                             onChange={(e) => updateItemField(idx, 'buyingPrice', e.target.value)}
                             style={{ width: '90px', padding: '4px', textAlign: 'right', border: '1px solid #cbd5e1', borderRadius: '4px' }}
                           />
@@ -346,6 +420,7 @@ const PurchaseCreate = () => {
                           <input
                             type="number"
                             value={item.salePrice}
+                            onFocus={(e) => e.target.select()}
                             onChange={(e) => updateItemField(idx, 'salePrice', e.target.value)}
                             style={{ width: '90px', padding: '4px', textAlign: 'right', border: '1px solid #cbd5e1', borderRadius: '4px' }}
                           />
@@ -353,7 +428,7 @@ const PurchaseCreate = () => {
                         <td style={{ textAlign: 'right', padding: '10px', fontWeight: 'bold' }}>
                           ৳ {(item.quantity * item.salePrice).toFixed(2)}
                         </td>
-                        <td style={{ textAlign: 'center', padding: '10px', fontSize: '11px', color: '#64748b' }}>{item.barcode}</td>
+                        <td style={{ textAlign: 'center', padding: '10px', fontSize: 'var(--fs-11, 11px)', color: '#64748b' }}>{item.barcode}</td>
                         <td style={{ textAlign: 'center', padding: '10px' }}>
                           <button
                             type="button"
@@ -381,32 +456,69 @@ const PurchaseCreate = () => {
               </table>
             </div>
 
-            {/* Bill summary */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '24px', maxWidth: '900px', marginLeft: 'auto' }}>
-              {[
-                { label: t("Purchase Bill"), value: `৳ ${totalBuying.toFixed(2)}` },
-              ].map((r) => (
-                <div key={r.label} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '10px 12px' }}>
-                  <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>{r.label}</div>
-                  <div style={{ fontWeight: 'bold', fontSize: '15px' }}>{r.value}</div>
-                </div>
-              ))}
-              <label style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>{t("Discount")}
-                <input type="number" step="0.01" name="discount" value={formData.discount} onChange={handleChange} style={{ padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '14px', textTransform: 'none' }} />
-              </label>
-              <label style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>{t("Transport Fare")}
-                <input type="number" step="0.01" name="transport_fare" value={formData.transport_fare} onChange={handleChange} style={{ padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '14px' }} />
-              </label>
-              <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '6px', padding: '10px 12px' }}>
-                <div style={{ fontSize: '11px', color: '#047857', textTransform: 'uppercase' }}>{t("Grand Total")}</div>
-                <div style={{ fontWeight: 'bold', fontSize: '15px' }}>৳ {grandTotal.toFixed(2)}</div>
+            {/* Bill summary and Bottom fields */}
+            <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', marginBottom: '24px' }}>
+              {/* Left Column Form fields */}
+              <div style={{ flex: '1 1 500px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {visibleFields.discount !== false && (
+                  <div style={{ display: 'flex', gap: '16px' }}>
+                    <div style={{ flex: 1, position: 'relative', border: '1px solid #0ea5e9', borderRadius: '8px' }}>
+                      <BadgeLabel icon={<HelpCircle size={12}/>} text={t("Discount")} />
+                      <input type="number" step="0.01" name="discount" value={formData.discount} onChange={handleChange} placeholder="0" style={{ width: '100%', padding: '16px', border: 'none', outline: 'none', background: 'transparent' }} />
+                    </div>
+                    <div style={{ flex: 1, border: '1px solid #0ea5e9', borderRadius: '8px' }}>
+                      <select name="discount_type" value={formData.discount_type} onChange={handleChange} style={{ width: '100%', padding: '16px', border: 'none', outline: 'none', background: 'transparent' }}>
+                        <option>Percentage (%)</option>
+                        <option>Flat</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+                
+                {visibleFields.transport_fare !== false && (
+                  <div style={{ position: 'relative', border: '1px solid #0ea5e9', borderRadius: '8px' }}>
+                    <BadgeLabel icon={<HelpCircle size={12}/>} text={t("Transport Fare")} />
+                    <input type="number" step="0.01" name="transport_fare" value={formData.transport_fare} onChange={handleChange} placeholder="0" style={{ width: '100%', padding: '16px', border: 'none', outline: 'none', background: 'transparent' }} />
+                  </div>
+                )}
+
+                {visibleFields.vat !== false && (
+                  <div style={{ display: 'flex', gap: '16px' }}>
+                    <div style={{ flex: 1, position: 'relative', border: '1px solid #0ea5e9', borderRadius: '8px' }}>
+                      <BadgeLabel icon={<HelpCircle size={12}/>} text={t("Vat")} />
+                      <input type="number" step="0.01" name="vat" value={formData.vat} onChange={handleChange} placeholder="0" style={{ width: '100%', padding: '16px', border: 'none', outline: 'none', background: 'transparent' }} />
+                    </div>
+                    <div style={{ flex: 1, border: '1px solid #0ea5e9', borderRadius: '8px' }}>
+                      <select name="vat_type" value={formData.vat_type} onChange={handleChange} style={{ width: '100%', padding: '16px', border: 'none', outline: 'none', background: 'transparent' }}>
+                        <option>Percentage (%)</option>
+                        <option>Flat</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {visibleFields.receive_amount !== false && (
+                  <div style={{ position: 'relative', border: '1px solid #0ea5e9', borderRadius: '8px' }}>
+                    <BadgeLabel icon={<HelpCircle size={12}/>} text={t("Payment Amount")} />
+                    <input type="number" step="0.01" name="receive_amount" value={formData.receive_amount} onChange={handleChange} placeholder="0" style={{ width: '100%', padding: '16px', border: 'none', outline: 'none', background: 'transparent' }} />
+                  </div>
+                )}
               </div>
-              <label style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>{t("Paid Amount")}
-                <input type="number" step="0.01" name="receive_amount" value={formData.receive_amount} onChange={handleChange} style={{ padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '14px' }} />
-              </label>
-              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', padding: '10px 12px' }}>
-                <div style={{ fontSize: '11px', color: '#b91c1c', textTransform: 'uppercase' }}>{t("Due")}</div>
-                <div style={{ fontWeight: 'bold', fontSize: '15px' }}>৳ {totalDue.toFixed(2)}</div>
+
+              {/* Right Column totals */}
+              <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '10px 12px' }}>
+                  <div style={{ fontSize: 'var(--fs-11, 11px)', color: '#64748b', textTransform: 'uppercase' }}>{t("Purchase Bill")}</div>
+                  <div style={{ fontWeight: 'bold', fontSize: 'var(--fs-15, 15px)' }}>৳ {totalBuying.toFixed(2)}</div>
+                </div>
+                <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '6px', padding: '10px 12px' }}>
+                  <div style={{ fontSize: 'var(--fs-11, 11px)', color: '#047857', textTransform: 'uppercase' }}>{t("Grand Total")}</div>
+                  <div style={{ fontWeight: 'bold', fontSize: 'var(--fs-15, 15px)' }}>৳ {grandTotal.toFixed(2)}</div>
+                </div>
+                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', padding: '10px 12px' }}>
+                  <div style={{ fontSize: 'var(--fs-11, 11px)', color: '#b91c1c', textTransform: 'uppercase' }}>{t("Due")}</div>
+                  <div style={{ fontWeight: 'bold', fontSize: 'var(--fs-15, 15px)' }}>৳ {totalDue.toFixed(2)}</div>
+                </div>
               </div>
             </div>
 
@@ -416,7 +528,7 @@ const PurchaseCreate = () => {
                 disabled={submitting}
                 onClick={handleSubmitPurchase}
                 className="btn-primary"
-                style={{ padding: '12px 32px', background: 'var(--success)', border: 'none', borderRadius: '4px', fontSize: '14px', cursor: 'pointer' }}
+                style={{ padding: '12px 32px', background: 'var(--success)', border: 'none', borderRadius: '4px', fontSize: 'var(--fs-14, 14px)', cursor: 'pointer' }}
               >
                 {submitting ? t("Processing...") : t("Buy Product")}
               </button>
@@ -433,12 +545,42 @@ const PurchaseCreate = () => {
         label={t("Supplier Name")}
       />
 
-      <AddOptionModal
+      <AddProductModal 
         isOpen={isProductModalOpen}
         onClose={() => setIsProductModalOpen(false)}
-        onSave={handleAddProduct}
-        title={t("Add Product")}
-        label={t("Product Name")}
+        onSuccess={(newProd) => { 
+          if (newProd) {
+            setProducts(prev => [...prev, newProd]);
+            handleSelectProduct(newProd.id);
+          }
+          setIsProductModalOpen(false); 
+        }}
+      />
+
+      <FormSettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        title={t("Receive Form Settings")}
+        fields={[
+          { key: 'invoice_id', label: t("Invoice ID") },
+          { key: 'date', label: t("Issued Date") },
+          { key: 'supplier', label: t("Supplier") },
+          { key: 'warehouse', label: t("Warehouse") },
+          { key: 'discount', label: t("Discount") },
+          { key: 'transport_fare', label: t("Transport Fare") },
+          { key: 'vat', label: t("Vat") },
+          { key: 'accounts', label: t("Accounts") },
+          { key: 'category', label: t("Category") },
+          { key: 'receive_amount', label: t("Receive Amount") }
+        ]}
+        initialSettings={visibleFields}
+        onSave={async (newSettings) => {
+          setVisibleFields(newSettings);
+          await settingService.updateFormSettings('purchase_create', newSettings);
+          setIsSettingsOpen(false);
+          toast.success(t("Settings saved successfully!"));
+          window.location.reload();
+        }}
       />
     </div>
   );

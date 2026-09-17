@@ -145,7 +145,7 @@ const DueCollectionDate = () => {
       <div className="chart-card">
         {/* Header */}
         <div className="card-header">
-          <h2 className="card-title" style={{ fontSize: '18px' }}>বাকি সংগ্রহের তারিখ</h2>
+          <h2 className="card-title" style={{ fontSize: 'var(--fs-18, 18px)' }}>বাকি সংগ্রহের তারিখ</h2>
           <div className="card-actions">
             <button className="btn btn-outline" onClick={() => navigate(-1)} style={{ padding: '6px 12px', background: 'var(--table-header-bg)', color: 'white' }}>
               <ArrowLeft size={14} /> {t("Go Back")}
@@ -162,7 +162,7 @@ const DueCollectionDate = () => {
         {/* Filters */}
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1.5fr 1.5fr 1fr', marginBottom: '24px', alignItems: 'flex-end' }}>
           <div className="form-group" style={{ position: 'relative' }}>
-            <div style={{ position: 'absolute', top: '-10px', left: '12px', background: 'var(--info)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', zIndex: 1 }}>{t("Search All")}</div>
+            <div style={{ position: 'absolute', top: '-10px', left: '12px', background: 'var(--info)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', zIndex: 1 }}>{t("Search All")}</div>
             <div className="form-input floating-label">
               <input type="text" name="searchAll" value={filters.searchAll} onChange={handleInputChange} placeholder=" " style={{ paddingLeft: '8px' }} />
               <label>{t("Search All")}</label>
@@ -170,7 +170,7 @@ const DueCollectionDate = () => {
           </div>
           
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>{t("Search By Client Group")}</label>
+            <label style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: '600', marginBottom: '8px' }}>{t("Search By Client Group")}</label>
             <div className="form-input floating-label">
               <select name="clientGroup" value={filters.clientGroup} onChange={handleInputChange}>
                 <option value="">{t("Select client group")}</option>
@@ -182,13 +182,13 @@ const DueCollectionDate = () => {
           </div>
 
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>{t('common.search_by_date')}</label>
+            <label style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: '600', marginBottom: '8px' }}>{t('common.search_by_date')}</label>
             <div style={{ display: 'flex', gap: '12px' }}>
               <div className="form-input floating-label" style={{ flex: 1 }}>
-                <input type="date" name="startDate" value={filters.startDate} onChange={handleInputChange} style={{ fontSize: '13px' }} />
+                <input type="date" name="startDate" value={filters.startDate} onChange={handleInputChange} style={{ fontSize: 'var(--fs-13, 13px)' }} />
               </div>
               <div className="form-input floating-label" style={{ flex: 1 }}>
-                <input type="date" name="endDate" value={filters.endDate} onChange={handleInputChange} style={{ fontSize: '13px' }} />
+                <input type="date" name="endDate" value={filters.endDate} onChange={handleInputChange} style={{ fontSize: 'var(--fs-13, 13px)' }} />
               </div>
             </div>
           </div>
@@ -202,7 +202,7 @@ const DueCollectionDate = () => {
 
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
+          <div style={{ fontSize: 'var(--fs-14, 14px)', color: 'var(--text-main)' }}>
             {t("Show")} 
             <select value={entries} onChange={(e) => setEntries(Number(e.target.value))} style={{ margin: '0 8px', padding: '4px', border: '1px solid var(--secondary)', borderRadius: '4px' }}>
               <option value={10}>10</option>
@@ -213,9 +213,9 @@ const DueCollectionDate = () => {
             {t("entries")}
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>
-            <button className="btn" onClick={handleExportExcel} style={{ background: '#059669', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', cursor: 'pointer' }}><FileSpreadsheet size={14} style={{ marginRight: '4px' }}/> {t("Excel")}</button>
-            <button className="btn" onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}><Printer size={14} style={{ marginRight: '4px' }}/> {t('common.print')}</button>
-            <button className="btn" onClick={handleReset} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}><RotateCcw size={14} style={{ marginRight: '4px' }}/> {t('common.reset')}</button>
+            <button className="btn" onClick={handleExportExcel} style={{ background: '#059669', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', cursor: 'pointer' }}><FileSpreadsheet size={14} style={{ marginRight: '4px' }}/> {t("Excel")}</button>
+            <button className="btn" onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px' }}><Printer size={14} style={{ marginRight: '4px' }}/> {t('common.print')}</button>
+            <button className="btn" onClick={handleReset} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px' }}><RotateCcw size={14} style={{ marginRight: '4px' }}/> {t('common.reset')}</button>
           </div>
         </div>
 
@@ -224,15 +224,15 @@ const DueCollectionDate = () => {
           <table className="custom-table" style={{ borderCollapse: 'collapse', width: '100%' }}>
             <thead>
               <tr style={{ background: 'var(--table-header-bg)', color: 'white' }}>
-                <th style={{ padding: '12px', fontSize: '11px', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("ID NO ↕")}</th>
-                <th style={{ padding: '12px', fontSize: '11px', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("NAME ↕")}</th>
-                <th style={{ padding: '12px', fontSize: '11px', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("ADDRESS ↕")}</th>
-                <th style={{ padding: '12px', fontSize: '11px', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("PREVIOUS DUE ↕")}</th>
-                <th style={{ padding: '12px', fontSize: '11px', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("SALES ↕")}</th>
-                <th style={{ padding: '12px', fontSize: '11px', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("RECEIVE ↕")}</th>
-                <th style={{ padding: '12px', fontSize: '11px', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("RETURN ↕")}</th>
-                <th style={{ padding: '12px', fontSize: '11px', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>বাকি সংগ্রহের তারিখ ↕</th>
-                <th style={{ padding: '12px', fontSize: '11px', textAlign: 'left' }}>{t("DUE ↕")}</th>
+                <th style={{ padding: '12px', fontSize: 'var(--fs-11, 11px)', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("ID NO ↕")}</th>
+                <th style={{ padding: '12px', fontSize: 'var(--fs-11, 11px)', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("NAME ↕")}</th>
+                <th style={{ padding: '12px', fontSize: 'var(--fs-11, 11px)', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("ADDRESS ↕")}</th>
+                <th style={{ padding: '12px', fontSize: 'var(--fs-11, 11px)', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("PREVIOUS DUE ↕")}</th>
+                <th style={{ padding: '12px', fontSize: 'var(--fs-11, 11px)', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("SALES ↕")}</th>
+                <th style={{ padding: '12px', fontSize: 'var(--fs-11, 11px)', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("RECEIVE ↕")}</th>
+                <th style={{ padding: '12px', fontSize: 'var(--fs-11, 11px)', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>{t("RETURN ↕")}</th>
+                <th style={{ padding: '12px', fontSize: 'var(--fs-11, 11px)', textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.2)' }}>বাকি সংগ্রহের তারিখ ↕</th>
+                <th style={{ padding: '12px', fontSize: 'var(--fs-11, 11px)', textAlign: 'left' }}>{t("DUE ↕")}</th>
               </tr>
             </thead>
             <tbody>
@@ -260,8 +260,8 @@ const DueCollectionDate = () => {
                     <td style={{ textAlign: 'left', padding: '8px 12px' }}>{Number(client.sales_return || 0).toFixed(2)}</td>
                     <td style={{ textAlign: 'left', padding: '8px 12px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <input type="date" value={dateOf(client)} readOnly style={{ padding: '2px 4px', border: '1px solid #e2e8f0', background: '#f8fafc', outline: 'none', fontSize: '12px', color: '#475569', borderRadius: '4px' }} />
-                        <button onClick={() => navigate('/crm/client-statement', { state: { clientId: client.id || client.uuid } })} style={{ background: '#059669', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>Statement</button>
+                        <input type="date" value={dateOf(client)} readOnly style={{ padding: '2px 4px', border: '1px solid #e2e8f0', background: '#f8fafc', outline: 'none', fontSize: 'var(--fs-12, 12px)', color: '#475569', borderRadius: '4px' }} />
+                        <button onClick={() => navigate('/crm/client-statement', { state: { clientId: client.id || client.uuid } })} style={{ background: '#059669', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>Statement</button>
                       </div>
                     </td>
                     <td style={{ textAlign: 'left', padding: '8px 12px' }}>{Number(client.due || client.previous_due || 0).toFixed(2)}</td>
@@ -274,13 +274,13 @@ const DueCollectionDate = () => {
 
         {/* Footer / Pagination */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
+          <div style={{ fontSize: 'var(--fs-14, 14px)', color: 'var(--text-main)' }}>
             {t("Showing {{from}} to {{to}} of {{total}} entries", { from: clients.length > 0 ? 1 : 0, to: Math.min(clients.length, entries), total: clients.length })}
           </div>
           <div style={{ display: 'flex', border: '1px solid #e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-            <button style={{ padding: '6px 12px', background: 'var(--card-header-bg)', border: 'none', borderRight: '1px solid #e2e8f0', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '14px' }}>{t("Previous")}</button>
-            <button style={{ padding: '6px 12px', background: '#3b82f6', border: 'none', borderRight: '1px solid #e2e8f0', color: 'white', cursor: 'pointer', fontSize: '14px' }}>1</button>
-            <button style={{ padding: '6px 12px', background: 'var(--card-header-bg)', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '14px' }}>{t("Next")}</button>
+            <button style={{ padding: '6px 12px', background: 'var(--card-header-bg)', border: 'none', borderRight: '1px solid #e2e8f0', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)' }}>{t("Previous")}</button>
+            <button style={{ padding: '6px 12px', background: '#3b82f6', border: 'none', borderRight: '1px solid #e2e8f0', color: 'white', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)' }}>1</button>
+            <button style={{ padding: '6px 12px', background: 'var(--card-header-bg)', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)' }}>{t("Next")}</button>
           </div>
         </div>
 

@@ -25,7 +25,7 @@ const btn = (bg) => ({
   alignItems: 'center',
   gap: '4px',
   cursor: 'pointer',
-  fontSize: '12px',
+  fontSize: 'var(--fs-12, 12px)',
   fontWeight: 600,
 });
 
@@ -43,7 +43,7 @@ const TableToolbar = ({
   const { t } = useTranslation();
   return (
     <div className="table-header-controls no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-      <div style={{ fontSize: '13px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div style={{ fontSize: 'var(--fs-13, 13px)', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px' }}>
         {setEntries ? (
           <>
             {t("Show")}

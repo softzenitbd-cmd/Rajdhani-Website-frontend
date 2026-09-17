@@ -38,8 +38,8 @@ const AccountList = () => {
     fetchAccounts();
   }, []);
 
-  const headerBtn = (bg) => ({ background: bg, color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer', fontWeight: 'bold' });
-  const toolBtn = { background: '#3b82f6', color: 'white', border: 'none', padding: '6px 14px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' };
+  const headerBtn = (bg) => ({ background: bg, color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'var(--fs-13, 13px)', cursor: 'pointer', fontWeight: 'bold' });
+  const toolBtn = { background: '#3b82f6', color: 'white', border: 'none', padding: '6px 14px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: 'var(--fs-13, 13px)' };
 
   const visible = accounts.slice(0, limit);
 
@@ -48,7 +48,7 @@ const AccountList = () => {
       <div style={{ background: 'white', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', borderBottom: '6px solid #2e7d32' }}>
         {/* Header */}
         <div className="no-print" style={{ background: '#2e7d32', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', flexWrap: 'wrap', gap: '8px' }}>
-          <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>{t("Account List")}</h2>
+          <h2 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', fontWeight: 'bold' }}>{t("Account List")}</h2>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={() => navigate(-1)} style={headerBtn('#64748b')}><ArrowLeft size={14} /> {t("Go Back")}</button>
             <button onClick={() => navigate('/account/account-create')} style={headerBtn('#16a34a')}><Plus size={14} /> {t("Add New")}</button>
@@ -59,7 +59,7 @@ const AccountList = () => {
         <div style={{ padding: '20px' }}>
           {/* Table Controls */}
           <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-            <div style={{ fontSize: '14px' }}>
+            <div style={{ fontSize: 'var(--fs-14, 14px)' }}>
               {t("Show")}
               <input type="number" value={limit} onChange={(e) => setLimit(Number(e.target.value) || 100)} style={{ width: '60px', margin: '0 8px', padding: '4px', border: '1px solid #cbd5e1', borderRadius: '4px', textAlign: 'center' }} />
               {t("entries")}
@@ -75,7 +75,7 @@ const AccountList = () => {
 
           {/* Table */}
           <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-13, 13px)' }}>
               <thead>
                 <tr style={{ background: '#94a3b8', color: 'white' }}>
                   <th style={cell}>{t("ID")}</th>
@@ -112,7 +112,7 @@ const AccountList = () => {
               </tbody>
             </table>
           </div>
-          <div style={{ marginTop: '10px', fontSize: '13px', color: '#475569' }}>
+          <div style={{ marginTop: '10px', fontSize: 'var(--fs-13, 13px)', color: '#475569' }}>
             {t("Showing {{from}} to {{to}} of {{total}} entries", { from: visible.length ? 1 : 0, to: visible.length, total: accounts.length })}
           </div>
         </div>
