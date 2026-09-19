@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Printer, RotateCcw, Edit, X, Play, FileText } from 'lucide-react';
 import PrintHeader from '../../components/PrintHeader';
 import SearchableSelect from '../../components/SearchableSelect';
+import ExpenseEditModal from './ExpenseEditModal';
 import { accountingService } from '../../services/accountingService';
 import { crmService } from '../../services/crmService';
 import { useToast } from '../../context/ToastContext';
@@ -28,11 +29,8 @@ const ExpenseList = () => {
   const [toDate, setToDate] = useState('');
   const [limit, setLimit] = useState(100);
 
-  // Inline edit drawer
+  // Edit Modal State
   const [editingExpense, setEditingExpense] = useState(null);
-  const [editAmount, setEditAmount] = useState('');
-  const [editDesc, setEditDesc] = useState('');
-  const [savingEdit, setSavingEdit] = useState(false);
 
   const fetchClients = async () => {
     try {
@@ -85,28 +83,6 @@ const ExpenseList = () => {
 
   const startEdit = (row) => {
     setEditingExpense(row);
-    setEditAmount(row.amount);
-    setEditDesc(row.description || '');
-  };
-
-  const handleSaveEdit = async (e) => {
-    e.preventDefault();
-    if (!editingExpense) return;
-    try {
-      setSavingEdit(true);
-      await accountingService.updateExpense(editingExpense.id, {
-        amount: String(editAmount),
-        description: editDesc
-      });
-      toast.success(t("Expense updated successfully! Balances and ledgers have been auto-adjusted."));
-      setEditingExpense(null);
-      fetchExpenses();
-    } catch (error) {
-      console.error('Error updating expense:', error);
-      toast.error(t("Update failed. Please try again."));
-    } finally {
-      setSavingEdit(false);
-    }
   };
 
   const receiptFor = (row) =>
@@ -231,7 +207,7 @@ const ExpenseList = () => {
                     </button>
                   </td>
                   <td style={cell}>
-                    <button onClick={() => startEdit(row)} style={{ background: '#0ea5e9', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer' }} title={t("Edit Expense & Re-adjust")}>
+                    <button onClick={() => startEdit(row)} style={{ background: '#0ea5e9', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer' }} title={t("Edit Expense")}>
                       <Edit size={16} />
                     </button>
                   </td>
@@ -242,47 +218,16 @@ const ExpenseList = () => {
         </table>
       </div>
 
-      {/* Edit Expense Drawer */}
-      {editingExpense && (
-        <div
-          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(2px)', zIndex: 9999, display: 'flex', justifyContent: 'flex-end' }}
-          onClick={() => setEditingExpense(null)}
-        >
-          <div
-            style={{ width: '440px', maxWidth: '92vw', height: '100vh', background: 'white', boxShadow: '-10px 0 30px rgba(0,0,0,0.18)', display: 'flex', flexDirection: 'column', animation: 'slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1)', overflow: 'hidden' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ background: '#2563eb', color: 'white', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', fontWeight: 'bold' }}>
-                {t("Edit Expense • Ref:")} {editingExpense.reference || editingExpense.id}
-              </h3>
-              <button onClick={() => setEditingExpense(null)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <X size={18} />
-              </button>
-            </div>
-            <form onSubmit={handleSaveEdit} style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', fontWeight: '600', color: '#1e293b', marginBottom: '8px' }}>{t("Amount (৳) *")}</label>
-                <input type="number" step="0.01" value={editAmount} onChange={(e) => setEditAmount(e.target.value)} required style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 'bold', fontSize: 'var(--fs-15, 15px)' }} />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', fontWeight: '600', color: '#1e293b', marginBottom: '8px' }}>{t("Description / Note")}</label>
-                <textarea rows="4" value={editDesc} onChange={(e) => setEditDesc(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: 'var(--fs-14, 14px)', outline: 'none' }} />
-              </div>
-              <div style={{ marginTop: 'auto', display: 'flex', gap: '12px', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
-                <button type="button" onClick={() => setEditingExpense(null)} style={{ padding: '10px 18px', border: '1px solid #cbd5e1', background: 'white', borderRadius: '6px', cursor: 'pointer' }}>
-                  {t("Cancel")}
-                </button>
-                <button type="submit" disabled={savingEdit} style={{ padding: '10px 22px', background: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>
-                  {savingEdit ? t("Saving...") : t("Update & Re-adjust")}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Edit Expense Modal Popup */}
+      <ExpenseEditModal
+        isOpen={Boolean(editingExpense)}
+        expense={editingExpense}
+        onClose={() => setEditingExpense(null)}
+        onSuccess={fetchExpenses}
+      />
     </div>
   );
 };
 
 export default ExpenseList;
+

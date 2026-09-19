@@ -1436,7 +1436,12 @@
   "Delete Expense Category": "খরচ ক্যাটাগরি মুছুন",
   "Are you sure you want to delete this expense category: {{v0}}?": "আপনি কি নিশ্চিত যে আপনি এই খরচ ক্যাটাগরি মুছতে চান: {{v0}}?",
   "Category created successfully!": "ক্যাটাগরি সফলভাবে তৈরি হয়েছে!",
-  "Expense category deleted successfully!": "খরচ ক্যাটাগরি সফলভাবে মুছে ফেলা হয়েছে!"
+  "Expense category deleted successfully!": "খরচ ক্যাটাগরি সফলভাবে মুছে ফেলা হয়েছে!",
+  "Update Expense | ID No:": "খরচ আপডেট করুন | আইডি নং:",
+  "Update Expense": "খরচ আপডেট করুন",
+  "Add New Expense Category": "নতুন খরচ ক্যাটাগরি যোগ করুন",
+  "Failed to update expense": "খরচ আপডেট করতে ব্যর্থ হয়েছে"
 }
+
 
 
