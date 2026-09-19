@@ -1427,6 +1427,16 @@
   "SMS Notification": "এসএমএস নোটিফিকেশন",
   "SMS Enabled": "এসএমএস সক্রিয়",
   "SMS Disabled": "এসএমএস নিষ্ক্রিয়",
-  "Send SMS Notification": "এসএমএস নোটিফিকেশন পাঠান"
+  "Send SMS Notification": "এসএমএস নোটিফিকেশন পাঠান",
+  "Edit Receive Category": "রিসিভ ক্যাটাগরি সম্পাদনা করুন",
+  "Edit Expense Category": "খরচ ক্যাটাগরি সম্পাদনা করুন",
+  "Category Name *": "ক্যাটাগরির নাম *",
+  "Delete Category": "ক্যাটাগরি মুছুন",
+  "Are you sure you want to delete this category: {{v0}}?": "আপনি কি নিশ্চিত যে আপনি এই ক্যাটাগরি মুছতে চান: {{v0}}?",
+  "Delete Expense Category": "খরচ ক্যাটাগরি মুছুন",
+  "Are you sure you want to delete this expense category: {{v0}}?": "আপনি কি নিশ্চিত যে আপনি এই খরচ ক্যাটাগরি মুছতে চান: {{v0}}?",
+  "Category created successfully!": "ক্যাটাগরি সফলভাবে তৈরি হয়েছে!",
+  "Expense category deleted successfully!": "খরচ ক্যাটাগরি সফলভাবে মুছে ফেলা হয়েছে!"
 }
+
 

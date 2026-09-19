@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { Printer, RefreshCcw, Trash2, Plus, Search, X } from 'lucide-react';
+import { Printer, RefreshCcw, Trash2, Edit2, Plus, Search, X } from 'lucide-react';
 import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 import { exportVisibleTable } from '../../utils/tableExport';
 import { printPage } from '../../utils/printUtils';
 
 const IncomeCategory = () => {
   const { t } = useTranslation();
   const toast = useToast();
+  const confirm = useConfirm();
 
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
   const [categoryName, setCategoryName] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -41,29 +44,59 @@ const IncomeCategory = () => {
     fetchCategories(searchTerm);
   };
 
-  const handleCreate = async (e) => {
+  const handleOpenCreateModal = () => {
+    setEditingCategory(null);
+    setCategoryName('');
+    setShowModal(true);
+  };
+
+  const handleOpenEditModal = (cat) => {
+    setEditingCategory(cat);
+    setCategoryName(cat.name || '');
+    setShowModal(true);
+  };
+
+  const handleSave = async (e) => {
     e.preventDefault();
     if (!categoryName.trim()) return;
     try {
       setSubmitting(true);
-      await accountingService.createIncomeCategory({ name: categoryName.trim() });
+      if (editingCategory) {
+        await accountingService.updateIncomeCategory(editingCategory.id, { name: categoryName.trim() });
+        toast.success(t("Category updated successfully!"));
+      } else {
+        await accountingService.createIncomeCategory({ name: categoryName.trim() });
+        toast.success(t("Category created successfully!"));
+      }
       setCategoryName('');
+      setEditingCategory(null);
       setShowModal(false);
-      fetchCategories();
+      fetchCategories(searchTerm);
     } catch (error) {
-      console.error('Error creating income category:', error);
+      console.error('Error saving income category:', error);
       toast.error(error?.message || t("Failed to save category"));
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm(t("Are you sure you want to delete this category?"))) return;
+  const handleDelete = async (cat) => {
+    const isConfirmed = await confirm({
+      title: t("Delete Category"),
+      message: t("Are you sure you want to delete this category: {{v0}}?", { v0: cat.name || '' }),
+      confirmText: t("Delete"),
+      cancelText: t("Cancel"),
+      variant: 'danger'
+    });
+
+    if (!isConfirmed) return;
+
     try {
-      await accountingService.deleteIncomeCategory(id);
-      fetchCategories();
+      await accountingService.deleteIncomeCategory(cat.id);
+      toast.success(t("Category deleted successfully!"));
+      fetchCategories(searchTerm);
     } catch (error) {
+      console.error('Error deleting income category:', error);
       toast.error(error?.message || t("Failed to delete category"));
     }
   };
@@ -73,13 +106,13 @@ const IncomeCategory = () => {
       <div className="premium-card" style={{ background: 'white', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
         <PrintHeader />
         
-        <div style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0' }}>
+        <div style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <h2 style={{ fontSize: 'var(--fs-20, 20px)', fontWeight: 'bold', margin: '0 0 4px', color: 'var(--text-main)' }}>{t("Receive Category List")}</h2>
             <span style={{ fontSize: 'var(--fs-13, 13px)', color: '#64748b' }}>{t("Manage your deposit & income categories")}</span>
           </div>
           <button 
-            onClick={() => setShowModal(true)}
+            onClick={handleOpenCreateModal}
             style={{ background: 'var(--success)', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}
           >
             <Plus size={16} /> {t("Add Receive Category")}
@@ -123,7 +156,7 @@ const IncomeCategory = () => {
             <table className="custom-table" style={{ width: '100%', fontSize: 'var(--fs-13, 13px)', textAlign: 'center' }}>
               <thead>
                 <tr style={{ background: '#718096', color: 'white', textTransform: 'uppercase' }}>
-                  <th style={{ width: '80px', padding: '12px', textAlign: 'center' }}>{t("ID NO")}</th>
+                  <th style={{ width: '80px', padding: '12px', textAlign: 'center' }}>{t("SL NO")}</th>
                   <th style={{ padding: '12px', textAlign: 'left' }}>{t("CATEGORY NAME")}</th>
                   <th style={{ padding: '12px', textAlign: 'center' }}>{t("CREATED AT")}</th>
                   <th style={{ width: '120px', padding: '12px', textAlign: 'center' }}>{t("ACTION")}</th>
@@ -141,12 +174,29 @@ const IncomeCategory = () => {
                 ) : (
                   categories.map((row, index) => (
                     <tr key={row.id || index} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '12px', fontWeight: '600', color: '#64748b' }}>#{row.id || index + 1}</td>
-                      <td style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: 'var(--text-main)' }}>{row.name}</td>
-                      <td style={{ padding: '12px', color: '#64748b' }}>{row.created_at ? new Date(row.created_at).toLocaleDateString() : t("Active")}</td>
+                      <td style={{ padding: '12px', fontWeight: '600', color: '#64748b', textAlign: 'center' }}>
+                        #{index + 1}
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: 'var(--text-main)' }}>
+                        {row.name}
+                      </td>
+                      <td style={{ padding: '12px', color: '#64748b' }}>
+                        {row.created_at ? new Date(row.created_at).toLocaleDateString() : t("Active")}
+                      </td>
                       <td style={{ padding: '12px' }}>
                         <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
-                          <button onClick={() => handleDelete(row.id)} style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '6px 8px', borderRadius: '4px', cursor: 'pointer' }} title={t("Delete")}>
+                          <button 
+                            onClick={() => handleOpenEditModal(row)} 
+                            style={{ background: '#0284c7', color: 'white', border: 'none', padding: '6px 8px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
+                            title={t("Edit")}
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(row)} 
+                            style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '6px 8px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
+                            title={t("Delete")}
+                          >
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -164,30 +214,37 @@ const IncomeCategory = () => {
         </div>
       </div>
 
-      {/* Modal for Add Category */}
+      {/* Modal for Add/Edit Category */}
       {showModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px' }}>
           <div style={{ background: 'white', borderRadius: '12px', padding: '28px', width: '100%', maxWidth: '440px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ margin: 0, fontSize: 'var(--fs-18, 18px)', fontWeight: '700' }}>{t("Add Receive Category")}</h3>
+              <h3 style={{ margin: 0, fontSize: 'var(--fs-18, 18px)', fontWeight: '700', color: '#1e293b' }}>
+                {editingCategory ? t("Edit Receive Category") : t("Add Receive Category")}
+              </h3>
               <button onClick={() => setShowModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={20} /></button>
             </div>
-            <form onSubmit={handleCreate}>
+            <form onSubmit={handleSave}>
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', fontWeight: '600', marginBottom: '8px', color: '#334155' }}>{t("Category Name *")}</label>
+                <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', fontWeight: '600', marginBottom: '8px', color: '#334155' }}>
+                  {t("Category Name *")}
+                </label>
                 <input
                   type="text"
                   required
                   placeholder={t("e.g. CASH SELL, TAGADA")}
                   value={categoryName}
                   onChange={(e) => setCategoryName(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: 'var(--fs-14, 14px)', outline: 'none' }}
+                  style={{ width: '100%', padding: '10px 14px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: 'var(--fs-14, 14px)', outline: 'none', boxSizing: 'border-box' }}
+                  autoFocus
                 />
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                <button type="button" onClick={() => setShowModal(false)} style={{ padding: '8px 16px', border: '1px solid #cbd5e1', background: 'white', borderRadius: '6px', cursor: 'pointer' }}>{t("Cancel")}</button>
+                <button type="button" onClick={() => setShowModal(false)} style={{ padding: '8px 16px', border: '1px solid #cbd5e1', background: 'white', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>
+                  {t("Cancel")}
+                </button>
                 <button type="submit" disabled={submitting} style={{ padding: '8px 18px', background: 'var(--success)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
-                  {submitting ? t("Saving...") : t("Save Category")}
+                  {submitting ? t("Saving...") : (editingCategory ? t("Update") : t("Save Category"))}
                 </button>
               </div>
             </form>
@@ -199,3 +256,4 @@ const IncomeCategory = () => {
 };
 
 export default IncomeCategory;
+
