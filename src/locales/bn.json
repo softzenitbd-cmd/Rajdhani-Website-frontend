@@ -1417,5 +1417,16 @@
   "Update Receive | ID No:": "রিসিভ আপডেট করুন | আইডি নং:",
   "Update Receive": "রিসিভ আপডেট করুন",
   "Receive updated successfully!": "রিসিভ সফলভাবে আপডেট হয়েছে!",
-  "Failed to update receive": "রিসিভ আপডেট করতে ব্যর্থ হয়েছে"
+  "Failed to update receive": "রিসিভ আপডেট করতে ব্যর্থ হয়েছে",
+  "Account / Payment Method": "অ্যাকাউন্ট / পেমেন্ট মাধ্যম",
+  "Receive Description in a short note": "সংক্ষিপ্ত নোটে রিসিভ বর্ণনা লিখুন",
+  "Add New Income Category": "নতুন আয় ক্যাটাগরি যোগ করুন",
+  "Category Name": "ক্যাটাগরির নাম",
+  "Enter category name": "ক্যাটাগরির নাম লিখুন",
+  "Category added successfully!": "ক্যাটাগরি সফলভাবে যুক্ত হয়েছে!",
+  "SMS Notification": "এসএমএস নোটিফিকেশন",
+  "SMS Enabled": "এসএমএস সক্রিয়",
+  "SMS Disabled": "এসএমএস নিষ্ক্রিয়",
+  "Send SMS Notification": "এসএমএস নোটিফিকেশন পাঠান"
 }
+
