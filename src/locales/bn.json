@@ -1393,5 +1393,6 @@
   "Year": "বছর",
   "Yes": "হ্যাঁ",
   "Your Info": "আপনার তথ্য",
-  "Zip Code": "জিপ কোড"
+  "Zip Code": "জিপ কোড",
+  "Failed to load supplier statement": "সাপ্লায়ার স্টেটমেন্ট লোড করতে ব্যর্থ হয়েছে"
 }
