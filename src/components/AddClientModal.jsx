@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Plus, User, Building, Phone, Smartphone, CreditCard } from 'lucide-react';
+import { X, Plus, User, Building, Phone, CreditCard, Mail, Users, UserPlus } from 'lucide-react';
 import { crmService } from '../services/crmService';
 import { loanService } from '../services/loanService';
 import { useToast } from '../context/ToastContext';
 
 /**
- * Centered Nested Popup Modal for Client Group creation (Modal on top of Modal)
+ * Sleek Centered Nested Popup Modal for Client Group creation
  */
 const CenteredNestedPopup = ({ isOpen, onClose, onSave, title, label }) => {
   const { t } = useTranslation();
@@ -23,93 +23,95 @@ const CenteredNestedPopup = ({ isOpen, onClose, onSave, title, label }) => {
   const handleSave = async (e) => {
     if (e) e.preventDefault();
     if (!val.trim()) {
-      toast.error(`Please enter ${label ? label.toLowerCase() : 'a value'}`);
+      toast.error(t("Please enter {{v0}}", { v0: label ? label.toLowerCase() : t("a value") }));
       return;
     }
     try {
       setSaving(true);
       await onSave(val.trim());
     } catch (err) {
-      toast.error(err?.message || 'Save failed');
+      toast.error(err?.message || t("Save failed"));
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(0, 0, 0, 0.45)',
-      backdropFilter: 'blur(2px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 10050,
-      padding: '16px'
-    }} onClick={onClose}>
-      <div style={{
-        background: 'white',
-        borderRadius: '8px',
-        width: '460px',
-        maxWidth: '92vw',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-        overflow: 'hidden'
-      }} onClick={(e) => e.stopPropagation()}>
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(15, 23, 42, 0.6)',
+        backdropFilter: 'blur(4px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10050,
+        padding: '16px'
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: 'white',
+          borderRadius: '12px',
+          width: '420px',
+          maxWidth: '92vw',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+          overflow: 'hidden'
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div style={{
-          padding: '14px 20px',
-          borderBottom: '1px solid #e2e8f0',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <h4 style={{ margin: 0, fontSize: 'var(--fs-15, 15px)', fontWeight: 'bold', color: '#1e293b' }}>
-            {title}
-          </h4>
+        <div
+          style={{
+            padding: '16px 20px',
+            borderBottom: '1px solid #e2e8f0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            background: '#f8fafc'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ width: '28px', height: '28px', borderRadius: '6px', background: '#dcfce7', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Plus size={16} />
+            </div>
+            <h4 style={{ margin: 0, fontSize: 'var(--fs-15, 15px)', fontWeight: '700', color: '#1e293b' }}>
+              {title}
+            </h4>
+          </div>
           <button
             type="button"
             onClick={onClose}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '2px' }}
+            style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', cursor: 'pointer', color: '#64748b', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 
         {/* Body */}
-        <form onSubmit={handleSave} style={{ padding: '24px 20px' }}>
-          <div style={{ position: 'relative', marginBottom: '24px' }}>
-            <label style={{
-              position: 'absolute',
-              top: '-11px',
-              left: '12px',
-              background: '#0ea5e9',
-              color: 'white',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              fontSize: 'var(--fs-11, 11px)',
-              fontWeight: 'bold',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              zIndex: 1
-            }}>
-              🎓 {label}
+        <form onSubmit={handleSave} style={{ padding: '20px' }}>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>
+              {label} <span style={{ color: '#ef4444' }}>*</span>
             </label>
             <input
               type="text"
               value={val}
               onChange={(e) => setVal(e.target.value)}
-              placeholder={`${label}...`}
+              placeholder={t("Enter group name")}
               autoFocus
               style={{
                 width: '100%',
-                padding: '14px 16px 10px 16px',
-                border: '1px solid #38bdf8',
-                borderRadius: '8px',
+                padding: '10px 12px',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
                 outline: 'none',
                 fontSize: 'var(--fs-13, 13px)',
-                background: 'white'
+                color: '#1e293b',
+                background: '#f8fafc',
+                boxSizing: 'border-box'
               }}
             />
           </div>
@@ -117,37 +119,38 @@ const CenteredNestedPopup = ({ isOpen, onClose, onSave, title, label }) => {
           {/* Footer Buttons */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
             <button
-              type="submit"
-              disabled={saving}
-              style={{
-                background: '#10b981',
-                color: 'white',
-                border: 'none',
-                padding: '8px 20px',
-                borderRadius: '6px',
-                fontWeight: 'bold',
-                fontSize: 'var(--fs-13, 13px)',
-                cursor: 'pointer'
-              }}
-            >
-              {saving ? '...' : t('client_modal.save', 'Save')}
-            </button>
-            <button
               type="button"
               onClick={onClose}
               disabled={saving}
               style={{
-                background: '#ef4444',
-                color: 'white',
-                border: 'none',
-                padding: '8px 20px',
+                background: 'white',
+                color: '#475569',
+                border: '1px solid #cbd5e1',
+                padding: '8px 18px',
                 borderRadius: '6px',
-                fontWeight: 'bold',
+                fontWeight: '600',
                 fontSize: 'var(--fs-13, 13px)',
                 cursor: 'pointer'
               }}
             >
-              {t('client_modal.cancel', 'Cancel')}
+              {t("Cancel")}
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              style={{
+                background: '#059669',
+                color: 'white',
+                border: 'none',
+                padding: '8px 22px',
+                borderRadius: '6px',
+                fontWeight: '600',
+                fontSize: 'var(--fs-13, 13px)',
+                cursor: saving ? 'not-allowed' : 'pointer',
+                boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)'
+              }}
+            >
+              {saving ? t("Saving...") : t("Save")}
             </button>
           </div>
         </form>
@@ -157,10 +160,10 @@ const CenteredNestedPopup = ({ isOpen, onClose, onSave, title, label }) => {
 };
 
 /**
- * Add New Client Modal Component matching user screenshot:
- * - 6 fields (3 columns x 2 rows)
- * - Pill badges with icons
- * - Client Group selection with nested creation popup
+ * Modern Add New Client Modal Component:
+ * - Clean 2-column responsive layout
+ * - Dedicated labels with icons
+ * - Instant Client Group creation
  * - Connected to crmService API
  */
 const AddClientModal = ({ isOpen, onClose, onSuccess, isLoan = false }) => {
@@ -227,9 +230,9 @@ const AddClientModal = ({ isOpen, onClose, onSuccess, isLoan = false }) => {
       const newGroup = { ...(res && typeof res === 'object' ? res : {}), id: res?.id || res?.uuid, name: res?.name || name.trim() };
       setGroups((prev) => [...prev, newGroup]);
       setFormData((prev) => ({ ...prev, group: newGroup.id }));
-      toast.success(t("client_modal.group_created", "Client Group created successfully!"));
+      toast.success(t("Client Group created successfully!"));
     } catch (err) {
-      toast.error(err?.message || "Failed to create client group");
+      toast.error(err?.message || t("Failed to create client group"));
     } finally {
       setIsGroupModalOpen(false);
     }
@@ -238,7 +241,11 @@ const AddClientModal = ({ isOpen, onClose, onSuccess, isLoan = false }) => {
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     if (!formData.name?.trim()) {
-      toast.error(t("client_modal.name_required", "Please enter a client name"));
+      toast.error(t("Please enter client name"));
+      return;
+    }
+    if (!formData.phone?.trim()) {
+      toast.error(t("Please enter phone number"));
       return;
     }
 
@@ -249,7 +256,7 @@ const AddClientModal = ({ isOpen, onClose, onSuccess, isLoan = false }) => {
         fathers_name: formData.fathers_name || '',
         company_name: formData.company_name || '',
         address: formData.address || '',
-        phone: formData.phone || '',
+        phone: formData.phone.trim(),
         phone_optional: formData.secondary_phone || '',
         email: formData.email || '',
         previous_due: formData.previous_due ? Number(formData.previous_due).toFixed(2) : '0.00',
@@ -263,7 +270,7 @@ const AddClientModal = ({ isOpen, onClose, onSuccess, isLoan = false }) => {
       } else {
         created = await crmService.createClient(payload);
       }
-      toast.success(t("client_modal.created_success", "Client added successfully!"));
+      toast.success(t("Client Added Successfully!"));
 
       const newClient = {
         ...created,
@@ -277,7 +284,7 @@ const AddClientModal = ({ isOpen, onClose, onSuccess, isLoan = false }) => {
       onClose();
     } catch (err) {
       console.error("Error creating client:", err);
-      toast.error(err?.message || "Failed to create client via API.");
+      toast.error(err?.message || t("Failed to create client via API."));
     } finally {
       setSaving(false);
     }
@@ -285,131 +292,323 @@ const AddClientModal = ({ isOpen, onClose, onSuccess, isLoan = false }) => {
 
   return (
     <>
-      <div style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0, 0, 0, 0.5)',
-        backdropFilter: 'blur(2px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 9999,
-        padding: '16px'
-      }}>
-        <div style={{
-          background: 'white',
-          borderRadius: '8px',
-          width: '900px',
-          maxWidth: '95vw',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-          overflow: 'hidden'
-        }}>
-          {/* Header */}
-          <div style={{
-            padding: '16px 24px',
-            borderBottom: '1px solid #e2e8f0',
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '16px'
+        }}
+        onClick={onClose}
+      >
+        <div
+          style={{
+            background: 'white',
+            borderRadius: '12px',
+            width: '740px',
+            maxWidth: '96vw',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+            overflow: 'hidden',
             display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <h3 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', fontWeight: 'bold', color: '#1e293b' }}>
-              {t('client_modal.add_new_client', 'Add New Client')}
-            </h3>
+            flexDirection: 'column'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div
+            style={{
+              padding: '16px 24px',
+              background: '#f8fafc',
+              borderBottom: '1px solid #e2e8f0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '8px',
+                  background: '#e0f2fe',
+                  color: '#0284c7',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <UserPlus size={20} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', fontWeight: '700', color: '#1e293b' }}>
+                  {t("Add New Client")}
+                </h3>
+                <p style={{ margin: 0, fontSize: 'var(--fs-12, 12px)', color: '#64748b' }}>
+                  {t("Create a new client profile with contact and due information")}
+                </p>
+              </div>
+            </div>
             <button
+              type="button"
               onClick={onClose}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: '4px' }}
+              style={{
+                background: '#f1f5f9',
+                border: 'none',
+                borderRadius: '6px',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: '#64748b',
+                transition: 'all 0.2s'
+              }}
             >
-              <X size={20} />
+              <X size={18} />
             </button>
           </div>
 
-          {/* Body */}
-          <form onSubmit={handleSubmit} style={{ padding: '28px 24px' }}>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr 1fr',
-              gap: '24px 20px',
-              marginBottom: '32px'
-            }}>
-              {/* Row 1 */}
-              <div style={{ position: 'relative' }}>
-                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
-                  <User size={11} /> {t('client_modal.client_name', 'Client Name')}
+          {/* Form Body */}
+          <form onSubmit={handleSubmit} style={{ padding: '24px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: '16px 20px',
+                marginBottom: '24px'
+              }}
+            >
+              {/* Client Name */}
+              <div>
+                <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>
+                  {t("Client Name")} <span style={{ color: '#ef4444' }}>*</span>
                 </label>
-                <input type="text" name="name" value={formData.name} onChange={handleChange} required style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: 'var(--fs-13, 13px)', background: 'white' }} />
+                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '6px', background: '#f8fafc', overflow: 'hidden' }}>
+                  <div style={{ padding: '0 12px', color: '#64748b', display: 'flex', alignItems: 'center' }}>
+                    <User size={16} />
+                  </div>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder={t("Enter client name")}
+                    required
+                    style={{ flex: 1, height: '40px', border: 'none', background: 'transparent', outline: 'none', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', paddingRight: '12px' }}
+                  />
+                </div>
               </div>
 
-              <div style={{ position: 'relative' }}>
-                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
-                  <User size={11} /> {t('client_modal.fathers_name', "Father's Name")}
+              {/* Company / Shop Name */}
+              <div>
+                <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>
+                  {t("Company / Shop Name")}
                 </label>
-                <input type="text" name="fathers_name" value={formData.fathers_name} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: 'var(--fs-13, 13px)', background: 'white' }} />
+                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '6px', background: '#f8fafc', overflow: 'hidden' }}>
+                  <div style={{ padding: '0 12px', color: '#64748b', display: 'flex', alignItems: 'center' }}>
+                    <Building size={16} />
+                  </div>
+                  <input
+                    type="text"
+                    name="company_name"
+                    value={formData.company_name}
+                    onChange={handleChange}
+                    placeholder={t("Enter company or shop name")}
+                    style={{ flex: 1, height: '40px', border: 'none', background: 'transparent', outline: 'none', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', paddingRight: '12px' }}
+                  />
+                </div>
               </div>
 
-              <div style={{ position: 'relative' }}>
-                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
-                  <Building size={11} /> {t('client_modal.company_name', 'Company Name')}
+              {/* Phone */}
+              <div>
+                <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>
+                  {t("Phone Number")} <span style={{ color: '#ef4444' }}>*</span>
                 </label>
-                <input type="text" name="company_name" value={formData.company_name} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: 'var(--fs-13, 13px)', background: 'white' }} />
+                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '6px', background: '#f8fafc', overflow: 'hidden' }}>
+                  <div style={{ padding: '0 12px', color: '#64748b', display: 'flex', alignItems: 'center' }}>
+                    <Phone size={16} />
+                  </div>
+                  <input
+                    type="text"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder={t("e.g. 01711000000")}
+                    required
+                    style={{ flex: 1, height: '40px', border: 'none', background: 'transparent', outline: 'none', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', paddingRight: '12px' }}
+                  />
+                </div>
               </div>
 
-              {/* Row 2 */}
-              <div style={{ position: 'relative' }}>
-                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
-                  <Building size={11} /> {t('client_modal.address', 'Address')}
+              {/* Alternative Phone */}
+              <div>
+                <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>
+                  {t("Alternative Phone (Optional)")}
                 </label>
-                <input type="text" name="address" value={formData.address} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: 'var(--fs-13, 13px)', background: 'white' }} />
+                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '6px', background: '#f8fafc', overflow: 'hidden' }}>
+                  <div style={{ padding: '0 12px', color: '#64748b', display: 'flex', alignItems: 'center' }}>
+                    <Phone size={16} />
+                  </div>
+                  <input
+                    type="text"
+                    name="secondary_phone"
+                    value={formData.secondary_phone}
+                    onChange={handleChange}
+                    placeholder={t("e.g. 01811000000")}
+                    style={{ flex: 1, height: '40px', border: 'none', background: 'transparent', outline: 'none', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', paddingRight: '12px' }}
+                  />
+                </div>
               </div>
 
-              <div style={{ position: 'relative' }}>
-                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
-                  <User size={11} /> {t('client_modal.phone', 'Phone')}
+              {/* Client Group */}
+              <div>
+                <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>
+                  {t("Client Group")}
                 </label>
-                <input type="text" name="phone" value={formData.phone} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: 'var(--fs-13, 13px)', background: 'white' }} />
+                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '6px', background: '#f8fafc', overflow: 'hidden' }}>
+                  <div style={{ padding: '0 12px', color: '#64748b', display: 'flex', alignItems: 'center' }}>
+                    <Users size={16} />
+                  </div>
+                  <select
+                    name="group"
+                    value={formData.group}
+                    onChange={handleChange}
+                    style={{ flex: 1, height: '40px', border: 'none', background: 'transparent', outline: 'none', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', cursor: 'pointer' }}
+                  >
+                    <option value="">{t("Select Group")}</option>
+                    {groups.map((g) => (
+                      <option key={g.id} value={g.id}>{g.name}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setIsGroupModalOpen(true)}
+                    title={t("Add New Group")}
+                    style={{
+                      height: '40px',
+                      padding: '0 14px',
+                      background: '#059669',
+                      color: 'white',
+                      border: 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'background 0.2s'
+                    }}
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
               </div>
 
-              <div style={{ position: 'relative' }}>
-                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
-                  <Smartphone size={11} /> {t('client_modal.phone_optional', 'Phone (Optional)')}
+              {/* Previous Due */}
+              <div>
+                <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>
+                  {t("Previous Due")}
                 </label>
-                <input type="text" name="secondary_phone" value={formData.secondary_phone} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: 'var(--fs-13, 13px)', background: 'white' }} />
+                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '6px', background: '#f8fafc', overflow: 'hidden' }}>
+                  <div style={{ padding: '0 12px', color: '#64748b', display: 'flex', alignItems: 'center' }}>
+                    <CreditCard size={16} />
+                  </div>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="previous_due"
+                    value={formData.previous_due}
+                    onChange={handleChange}
+                    placeholder="0.00"
+                    style={{ flex: 1, height: '40px', border: 'none', background: 'transparent', outline: 'none', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', paddingRight: '12px' }}
+                  />
+                </div>
               </div>
 
-              {/* Row 3 */}
-              <div style={{ position: 'relative' }}>
-                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
-                  <CreditCard size={11} /> {t('client_modal.previous_due', 'Previous Due')}
+              {/* Address */}
+              <div>
+                <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>
+                  {t("Address")}
                 </label>
-                <input type="number" step="0.01" name="previous_due" value={formData.previous_due} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: 'var(--fs-13, 13px)', background: 'white' }} />
+                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '6px', background: '#f8fafc', overflow: 'hidden' }}>
+                  <div style={{ padding: '0 12px', color: '#64748b', display: 'flex', alignItems: 'center' }}>
+                    <Building size={16} />
+                  </div>
+                  <input
+                    type="text"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    placeholder={t("Enter address / city")}
+                    style={{ flex: 1, height: '40px', border: 'none', background: 'transparent', outline: 'none', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', paddingRight: '12px' }}
+                  />
+                </div>
               </div>
 
-              <div style={{ position: 'relative' }}>
-                <label style={{ position: 'absolute', top: '-11px', left: '12px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> {t('client_modal.email', 'E-mail')}
+              {/* E-mail */}
+              <div>
+                <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>
+                  {t("E-mail")}
                 </label>
-                <input type="email" name="email" value={formData.email} onChange={handleChange} style={{ width: '100%', padding: '14px 16px 10px 16px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none', fontSize: 'var(--fs-13, 13px)', background: 'white' }} />
+                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '6px', background: '#f8fafc', overflow: 'hidden' }}>
+                  <div style={{ padding: '0 12px', color: '#64748b', display: 'flex', alignItems: 'center' }}>
+                    <Mail size={16} />
+                  </div>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder={t("Enter email address")}
+                    style={{ flex: 1, height: '40px', border: 'none', background: 'transparent', outline: 'none', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', paddingRight: '12px' }}
+                  />
+                </div>
               </div>
 
-              <div style={{ display: 'flex', border: '1px solid #38bdf8', borderRadius: '8px', overflow: 'hidden' }}>
-                <select name="group" value={formData.group} onChange={handleChange} style={{ flex: 1, padding: '12px 14px', border: 'none', outline: 'none', fontSize: 'var(--fs-13, 13px)', background: 'white', color: '#0f172a' }}>
-                  <option value="">{t('client_modal.select_group', 'Select Group')}</option>
-                  {groups.map((g) => (
-                    <option key={g.id} value={g.id}>{g.name}</option>
-                  ))}
-                </select>
-                <button type="button" onClick={() => setIsGroupModalOpen(true)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '0 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Plus size={18} />
-                </button>
-              </div>
             </div>
 
             {/* Footer Buttons */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-              <button type="submit" disabled={saving} style={{ background: '#10b981', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '6px', fontWeight: 'bold', fontSize: 'var(--fs-13, 13px)', cursor: 'pointer' }}>
-                {saving ? '...' : t('client_modal.client_add', 'Client Add')}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={saving}
+                style={{
+                  padding: '9px 20px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  background: 'white',
+                  color: '#475569',
+                  fontWeight: '600',
+                  fontSize: 'var(--fs-13, 13px)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {t("Cancel")}
               </button>
-              <button type="button" onClick={onClose} disabled={saving} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '6px', fontWeight: 'bold', fontSize: 'var(--fs-13, 13px)', cursor: 'pointer' }}>
-                {t('client_modal.cancel', 'Cancel')}
+              <button
+                type="submit"
+                disabled={saving}
+                style={{
+                  padding: '9px 24px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: '#059669',
+                  color: 'white',
+                  fontWeight: '600',
+                  fontSize: 'var(--fs-13, 13px)',
+                  cursor: saving ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {saving ? t("Adding...") : t("Add Client")}
               </button>
             </div>
           </form>
@@ -420,8 +619,8 @@ const AddClientModal = ({ isOpen, onClose, onSuccess, isLoan = false }) => {
         isOpen={isGroupModalOpen}
         onClose={() => setIsGroupModalOpen(false)}
         onSave={handleAddGroup}
-        title={t('client_modal.create_group_title', 'Add New Client Group')}
-        label={t('client_modal.group_name', 'Group Name')}
+        title={t("Add New Client Group")}
+        label={t("Group Name")}
       />
     </>
   );
