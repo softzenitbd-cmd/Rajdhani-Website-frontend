@@ -169,13 +169,14 @@ html[lang="bn"] textarea {
   transition: var(--transition);
   cursor: pointer;
   font-weight: 500;
-  font-size: var(--fs-12, 12px);
+  font-size: var(--sidebar-font-size, var(--fs-14, 14px));
 }
 
 .nav-item-content {
   display: flex;
   align-items: center;
   gap: 12px;
+  font-size: inherit;
 }
 
 .nav-item:hover {
@@ -202,7 +203,7 @@ html[lang="bn"] textarea {
   padding: 10px 16px;
   color: var(--text-muted);
   text-decoration: none;
-  font-size: clamp(12px, 1.2vw, 13px);
+  font-size: var(--sidebar-submenu-font-size, var(--fs-13, 13px));
   border-radius: var(--radius-md);
   margin-bottom: 4px;
   transition: var(--transition);

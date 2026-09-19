@@ -416,7 +416,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
                     if (!clientOpen) setSupplierOpen(false);
                   }}
                 >
-                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--sidebar-font-size, var(--fs-14, 14px))' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.client')}
                   </div>
                   {clientOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -465,7 +465,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
                     cursor: 'pointer' 
                   }}
                 >
-                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--sidebar-font-size, var(--fs-14, 14px))' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.supplier')}
                   </div>
                   {supplierOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -513,7 +513,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: receiveOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setReceiveOpen(!receiveOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--sidebar-font-size, var(--fs-14, 14px))' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.receive')}
                   </div>
                   {receiveOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -538,7 +538,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: expenseOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setExpenseOpen(!expenseOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--sidebar-font-size, var(--fs-14, 14px))' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.expense')}
                   </div>
                   {expenseOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -568,7 +568,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: subAccountOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setSubAccountOpen(!subAccountOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--sidebar-font-size, var(--fs-14, 14px))' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.account')}
                   </div>
                   {subAccountOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -598,7 +598,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: transferOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setTransferOpen(!transferOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--sidebar-font-size, var(--fs-14, 14px))' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.transfer')}
                   </div>
                   {transferOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -681,7 +681,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: salesReturnOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setSalesReturnOpen(!salesReturnOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--sidebar-font-size, var(--fs-14, 14px))' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.sales_return')}
                   </div>
                   {salesReturnOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -720,7 +720,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: subProductOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setSubProductOpen(!subProductOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--sidebar-font-size, var(--fs-14, 14px))' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.product')}
                   </div>
                   {subProductOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -745,7 +745,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
                         style={{ paddingLeft: '48px', marginBottom: '0', background: productAssetOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                         onClick={() => setProductAssetOpen(!productAssetOpen)}
                       >
-                        <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
+                        <div className="nav-item-content" style={{ fontSize: 'var(--sidebar-font-size, var(--fs-14, 14px))' }}>
                           <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.product_asset')}
                         </div>
                         {productAssetOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -773,7 +773,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: purchaseOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setPurchaseOpen(!purchaseOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--sidebar-font-size, var(--fs-14, 14px))' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.purchase')}
                   </div>
                   {purchaseOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -804,7 +804,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: purchaseReturnOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setPurchaseReturnOpen(!purchaseReturnOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--sidebar-font-size, var(--fs-14, 14px))' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.purchase_return')}
                   </div>
                   {purchaseReturnOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -891,7 +891,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: staffPaymentOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setStaffPaymentOpen(!staffPaymentOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--sidebar-font-size, var(--fs-14, 14px))' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.staff_payment')}
                   </div>
                   {staffPaymentOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -916,7 +916,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: staffSalaryOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setStaffSalaryOpen(!staffSalaryOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--sidebar-font-size, var(--fs-14, 14px))' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.staff_salary')}
                   </div>
                   {staffSalaryOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -941,7 +941,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: staffAttendanceOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setStaffAttendanceOpen(!staffAttendanceOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--sidebar-font-size, var(--fs-14, 14px))' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.staff_attendance')}
                   </div>
                   {staffAttendanceOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -1106,7 +1106,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: incomeCategoryOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setIncomeCategoryOpen(!incomeCategoryOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--sidebar-font-size, var(--fs-14, 14px))' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.income_category')}
                   </div>
                   {incomeCategoryOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -1131,7 +1131,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
                   style={{ paddingLeft: '32px', marginBottom: '0', background: expenseCategorySettingOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
                   onClick={() => setExpenseCategorySettingOpen(!expenseCategorySettingOpen)}
                 >
-                  <div className="nav-item-content" style={{ fontSize: 'var(--fs-14, 14px)' }}>
+                  <div className="nav-item-content" style={{ fontSize: 'var(--sidebar-font-size, var(--fs-14, 14px))' }}>
                     <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.expense_category')}
                   </div>
                   {expenseCategorySettingOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}

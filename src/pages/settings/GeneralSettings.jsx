@@ -373,7 +373,7 @@ const GeneralSettings = () => {
                     <>
                       <div>
                         <h4 style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("TYPOGRAPHY")}</h4>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', maxWidth: '600px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', maxWidth: '850px' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                             <label style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: '600', color: 'var(--label-color)', textTransform: 'uppercase' }}>{t("Global Font Family")}</label>
                             <select value={localTheme['--main-font'] || "'Inter', sans-serif"} onChange={(e) => handleColorChange('--main-font', e.target.value)} style={{ padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none' }}>
@@ -399,6 +399,34 @@ const GeneralSettings = () => {
                               <option value="20px">20px</option>
                               <option value="22px">22px</option>
                               <option value="24px">24px</option>
+                            </select>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <label style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: '600', color: 'var(--label-color)', textTransform: 'uppercase' }}>{t("Sidebar Menu Font Size")}</label>
+                            <select value={localTheme['--sidebar-font-size'] || "14px"} onChange={(e) => handleColorChange('--sidebar-font-size', e.target.value)} style={{ padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none' }}>
+                              <option value="11px">11px</option>
+                              <option value="12px">12px</option>
+                              <option value="13px">13px</option>
+                              <option value="14px">14px (Default)</option>
+                              <option value="15px">15px</option>
+                              <option value="16px">16px</option>
+                              <option value="18px">18px</option>
+                              <option value="20px">20px</option>
+                            </select>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <label style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: '600', color: 'var(--label-color)', textTransform: 'uppercase' }}>{t("Sidebar Submenu Font Size")}</label>
+                            <select value={localTheme['--sidebar-submenu-font-size'] || "13px"} onChange={(e) => handleColorChange('--sidebar-submenu-font-size', e.target.value)} style={{ padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none' }}>
+                              <option value="10px">10px</option>
+                              <option value="11px">11px</option>
+                              <option value="12px">12px</option>
+                              <option value="13px">13px (Default)</option>
+                              <option value="14px">14px</option>
+                              <option value="15px">15px</option>
+                              <option value="16px">16px</option>
+                              <option value="18px">18px</option>
                             </select>
                           </div>
                         </div>
