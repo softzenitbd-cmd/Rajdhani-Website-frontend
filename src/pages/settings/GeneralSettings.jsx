@@ -21,14 +21,14 @@ const ToggleItem = ({ label, defaultChecked = false, hasInput = false, inputValu
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '8px', background: 'white' }}>
       {hasInput ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
-          <label style={{ fontSize: '11px', color: 'white', background: 'var(--primary)', padding: '2px 8px', borderRadius: '4px', width: 'fit-content' }}>
+          <label style={{ fontSize: 'var(--fs-11, 11px)', color: 'white', background: 'var(--primary)', padding: '2px 8px', borderRadius: '4px', width: 'fit-content' }}>
             {label}
           </label>
-          <input type="text" value={value} onChange={(e) => setSetting(key, e.target.value)} style={{ border: 'none', borderBottom: '1px solid #e2e8f0', outline: 'none', padding: '4px 0', fontSize: '14px' }} />
+          <input type="text" value={value} onChange={(e) => setSetting(key, e.target.value)} style={{ border: 'none', borderBottom: '1px solid #e2e8f0', outline: 'none', padding: '4px 0', fontSize: 'var(--fs-14, 14px)' }} />
         </div>
       ) : (
         <>
-          <label style={{ fontSize: '14px', color: '#1f2937', cursor: 'pointer', flex: 1 }} onClick={() => setChecked(!checked)}>
+          <label style={{ fontSize: 'var(--fs-14, 14px)', color: '#1f2937', cursor: 'pointer', flex: 1 }} onClick={() => setChecked(!checked)}>
             {label}
           </label>
           <div 
@@ -145,7 +145,7 @@ const GeneralSettings = () => {
       <div className="premium-card" style={{ background: 'white', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
         
         <div style={{ padding: '24px' }}>
-          <h2 style={{ fontSize: '13px', fontWeight: 'bold', margin: '0 0 16px 0', color: 'var(--text-main)', textTransform: 'uppercase' }}>{t('settings_tabs.title')}</h2>
+          <h2 style={{ fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold', margin: '0 0 16px 0', color: 'var(--text-main)', textTransform: 'uppercase' }}>{t('settings_tabs.title')}</h2>
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -161,7 +161,7 @@ const GeneralSettings = () => {
                     background: activeTab === tab ? 'var(--primary)' : 'white',
                     color: activeTab === tab ? 'white' : 'var(--text-muted)',
                     cursor: 'pointer',
-                    fontSize: '14px',
+                    fontSize: 'var(--fs-14, 14px)',
                     fontWeight: activeTab === tab ? 'bold' : 'normal'
                   }}
                 >
@@ -170,7 +170,7 @@ const GeneralSettings = () => {
               ))}
             </div>
             
-            <button style={{ background: 'var(--primary)', color: 'white', padding: '8px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
+            <button style={{ background: 'var(--primary)', color: 'white', padding: '8px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold' }}>
               {t('settings_tabs.user_permissions')}
             </button>
           </div>
@@ -180,7 +180,7 @@ const GeneralSettings = () => {
             {activeTab === 'General' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '600px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px' }}>{t("Language")}</label>
+                  <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px' }}>{t("Language")}</label>
                   <select value={i18n.language === 'bn' ? 'bn' : 'en'} onChange={(e) => i18n.changeLanguage(e.target.value)} style={{ width: '100%', padding: '12px', border: '1px solid #93c5fd', borderRadius: '8px', outline: 'none' }}>
                     <option value="en">{t("English")}</option>
                     <option value="bn">{t("Bengali")}</option>
@@ -188,7 +188,7 @@ const GeneralSettings = () => {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px' }}>{t("Menu Size")}</label>
+                  <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px' }}>{t("Menu Size")}</label>
                   <select value={settings.menu_size || 'Medium'} onChange={(e) => setSetting('menu_size', e.target.value)} style={{ width: '100%', padding: '12px', border: '1px solid #93c5fd', borderRadius: '8px', outline: 'none' }}>
                     <option>{t("Large")}</option>
                     <option>{t("Medium")}</option>
@@ -315,34 +315,34 @@ const GeneralSettings = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <label style={{ fontSize: '13px', color: 'var(--label-color)', fontWeight: '500' }}>{t("Receive SMS")}</label>
-                      <label style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                      <label style={{ fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', fontWeight: '500' }}>{t("Receive SMS")}</label>
+                      <label style={{ fontSize: 'var(--fs-12, 12px)', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                         <input type="checkbox" checked={!!smsSettings.receive_sms_status} onChange={(e) => setSmsSettings((p) => ({ ...p, receive_sms_status: e.target.checked }))} />
                         {t("Send automatically")}
                       </label>
                     </div>
                     <textarea
-                      style={{ width: '100%', height: '200px', padding: '16px', border: '1px solid #10b981', borderRadius: '4px', outline: 'none', resize: 'none', fontSize: '14px', color: 'var(--text-main)' }}
+                      style={{ width: '100%', height: '200px', padding: '16px', border: '1px solid #10b981', borderRadius: '4px', outline: 'none', resize: 'none', fontSize: 'var(--fs-14, 14px)', color: 'var(--text-main)' }}
                       value={smsSettings.receive_sms_body} onChange={(e) => setSmsSettings((p) => ({ ...p, receive_sms_body: e.target.value }))}
                     />
                     <small style={{ color: '#64748b' }}>{t("Variables:")} {'{client_name} {receive_amount} {due_amount} {description} {company_mobile}'}</small>
                   </div>
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <label style={{ fontSize: '13px', color: 'var(--label-color)', fontWeight: '500' }}>{t("Invoice SMS")}</label>
-                      <label style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                      <label style={{ fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', fontWeight: '500' }}>{t("Invoice SMS")}</label>
+                      <label style={{ fontSize: 'var(--fs-12, 12px)', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                         <input type="checkbox" checked={!!smsSettings.invoice_sms_status} onChange={(e) => setSmsSettings((p) => ({ ...p, invoice_sms_status: e.target.checked }))} />
                         {t("Send automatically")}
                       </label>
                     </div>
                     <textarea
-                      style={{ width: '100%', height: '200px', padding: '16px', border: '1px solid #10b981', borderRadius: '4px', outline: 'none', resize: 'none', fontSize: '14px', color: 'var(--text-main)' }}
+                      style={{ width: '100%', height: '200px', padding: '16px', border: '1px solid #10b981', borderRadius: '4px', outline: 'none', resize: 'none', fontSize: 'var(--fs-14, 14px)', color: 'var(--text-main)' }}
                       value={smsSettings.invoice_sms_body} onChange={(e) => setSmsSettings((p) => ({ ...p, invoice_sms_body: e.target.value }))}
                     />
                     <small style={{ color: '#64748b' }}>{t("Variables:")} {'{client_name} {total_bill} {total_payment} {invoice_due} {client_total_due} {company_mobile}'}</small>
                   </div>
                 </div>
-                <button onClick={saveSms} disabled={smsSaving} style={{ width: '100%', background: 'var(--success)', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
+                <button onClick={saveSms} disabled={smsSaving} style={{ width: '100%', background: 'var(--success)', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold' }}>
                   {smsSaving ? t("Saving...") : t("Save")}
                 </button>
               </div>
@@ -350,7 +350,7 @@ const GeneralSettings = () => {
 
             {activeTab === 'E-mail' && (
               <div style={{ padding: '24px', border: '1px solid #93c5fd', borderRadius: '8px', background: 'white' }}>
-                <span style={{ fontSize: '14px', color: '#1f2937' }}>{t("E-mail")}</span>
+                <span style={{ fontSize: 'var(--fs-14, 14px)', color: '#1f2937' }}>{t("E-mail")}</span>
               </div>
             )}
 
@@ -361,10 +361,10 @@ const GeneralSettings = () => {
                 {(() => {
                   const ColorInput = ({ label, themeKey }) => (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '11px', fontWeight: '600', color: 'var(--label-color)', textTransform: 'uppercase' }}>{label}</label>
+                      <label style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: '600', color: 'var(--label-color)', textTransform: 'uppercase' }}>{label}</label>
                       <div style={{ display: 'flex', height: '36px', border: '1px solid #cbd5e1', borderRadius: '4px', overflow: 'hidden' }}>
                         <input type="color" value={localTheme[themeKey] || '#ffffff'} onChange={(e) => handleColorChange(themeKey, e.target.value)} style={{ width: '40px', height: '100%', padding: '0', border: 'none', cursor: 'pointer' }} />
-                        <input type="text" value={localTheme[themeKey] || ''} onChange={(e) => handleColorChange(themeKey, e.target.value)} style={{ flex: 1, border: 'none', padding: '0 12px', fontSize: '13px', outline: 'none' }} />
+                        <input type="text" value={localTheme[themeKey] || ''} onChange={(e) => handleColorChange(themeKey, e.target.value)} style={{ flex: 1, border: 'none', padding: '0 12px', fontSize: 'var(--fs-13, 13px)', outline: 'none' }} />
                       </div>
                     </div>
                   );
@@ -372,14 +372,47 @@ const GeneralSettings = () => {
                   return (
                     <>
                       <div>
-                        <h4 style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("LAYOUT COLOR")}</h4>
+                        <h4 style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("TYPOGRAPHY")}</h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', maxWidth: '600px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <label style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: '600', color: 'var(--label-color)', textTransform: 'uppercase' }}>{t("Global Font Family")}</label>
+                            <select value={localTheme['--main-font'] || "'Inter', sans-serif"} onChange={(e) => handleColorChange('--main-font', e.target.value)} style={{ padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none' }}>
+                              <option value="'Inter', sans-serif">Inter</option>
+                              <option value="'Roboto', sans-serif">Roboto</option>
+                              <option value="'Poppins', sans-serif">Poppins</option>
+                              <option value="'Outfit', sans-serif">Outfit</option>
+                              <option value="'Open Sans', sans-serif">Open Sans</option>
+                              <option value="'Hind Siliguri', sans-serif">Hind Siliguri</option>
+                            </select>
+                          </div>
+                          
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <label style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: '600', color: 'var(--label-color)', textTransform: 'uppercase' }}>{t("Global Font Size")}</label>
+                            <select value={localTheme['--main-font-size'] || "13px"} onChange={(e) => handleColorChange('--main-font-size', e.target.value)} style={{ padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none' }}>
+                              <option value="11px">11px</option>
+                              <option value="12px">12px</option>
+                              <option value="13px">13px (Default)</option>
+                              <option value="14px">14px</option>
+                              <option value="15px">15px</option>
+                              <option value="16px">16px</option>
+                              <option value="18px">18px</option>
+                              <option value="20px">20px</option>
+                              <option value="22px">22px</option>
+                              <option value="24px">24px</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ marginTop: '24px' }}>
+                        <h4 style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("LAYOUT COLOR")}</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
                           <ColorInput label={t("Layout Color")} themeKey="--bg-app" />
                         </div>
                       </div>
 
                       <div>
-                        <h4 style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("SIDEBAR COLOR")}</h4>
+                        <h4 style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("SIDEBAR COLOR")}</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
                           <ColorInput label={t("Sidebar Color")} themeKey="--bg-sidebar" />
                           <ColorInput label={t("Sidebar Menu Hover Color")} themeKey="--sidebar-hover" />
@@ -388,7 +421,7 @@ const GeneralSettings = () => {
                       </div>
 
                       <div>
-                        <h4 style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("CARD COLOR")}</h4>
+                        <h4 style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("CARD COLOR")}</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
                           <ColorInput label={t("Card Border Color")} themeKey="--card-border" />
                           <ColorInput label={t("Card Header Color")} themeKey="--card-header-bg" />
@@ -398,7 +431,7 @@ const GeneralSettings = () => {
                       </div>
 
                       <div>
-                        <h4 style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("INPUT COLOR")}</h4>
+                        <h4 style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("INPUT COLOR")}</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
                           <ColorInput label={t("Input Background Color")} themeKey="--input-bg" />
                           <ColorInput label={t("Label Color")} themeKey="--label-color" />
@@ -407,7 +440,7 @@ const GeneralSettings = () => {
                       </div>
 
                       <div>
-                        <h4 style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("TABLE COLOR")}</h4>
+                        <h4 style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("TABLE COLOR")}</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
                           <ColorInput label={t("Table Header BG Color")} themeKey="--table-header-bg" />
                           <ColorInput label={t("Table Header Text Color")} themeKey="--table-header-text" />
@@ -417,7 +450,7 @@ const GeneralSettings = () => {
                       </div>
 
                       <div>
-                        <h4 style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("BUTTON COLOR")}</h4>
+                        <h4 style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("BUTTON COLOR")}</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
                           <ColorInput label={t("Success Button Color")} themeKey="--success" />
                           <ColorInput label={t("Danger Button Color")} themeKey="--danger" />
@@ -430,10 +463,10 @@ const GeneralSettings = () => {
                       </div>
 
                       <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
-                        <button onClick={handleUpdate} style={{ flex: 1, background: 'var(--success)', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
+                        <button onClick={handleUpdate} style={{ flex: 1, background: 'var(--success)', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold' }}>
                           {t("Update")}
                         </button>
-                        <button onClick={() => resetTheme().then(() => toast.success(t("Theme reset"))).catch((e) => toast.error(e?.message || t("Failed to reset theme")))} style={{ flex: 1, background: 'var(--danger)', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
+                        <button onClick={() => resetTheme().then(() => toast.success(t("Theme reset"))).catch((e) => toast.error(e?.message || t("Failed to reset theme")))} style={{ flex: 1, background: 'var(--danger)', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold' }}>
                           {t("Reset Color")}
                         </button>
                       </div>

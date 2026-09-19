@@ -105,7 +105,7 @@
   color: white;
   width: 100%;
   padding: 14px;
-  font-size: 16px;
+  font-size: var(--fs-16, 16px);
 }
 
 .btn-success:hover {
@@ -208,7 +208,7 @@
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: var(--fs-14, 14px);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -309,7 +309,7 @@
   position: absolute;
   top: -24px;
   left: 0;
-  font-size: 13px;
+  font-size: var(--fs-13, 13px);
   font-weight: 700;
   color: #111827;
 }
@@ -317,7 +317,7 @@
 .badge-date {
   background: #3b82f6;
   color: white;
-  font-size: 12px;
+  font-size: var(--fs-12, 12px);
   padding: 2px 8px;
   border-radius: 4px;
   position: absolute;
@@ -494,7 +494,7 @@ input:checked + .slider:before {
 }
 
 .receipt-header-text p {
-  font-size: 16px;
+  font-size: var(--fs-16, 16px);
   line-height: 1.5;
   margin: 0;
   color: #4b5563;
@@ -510,7 +510,7 @@ input:checked + .slider:before {
 
 .filter-label {
   display: block;
-  font-size: 14px;
+  font-size: var(--fs-14, 14px);
   font-weight: 500;
   color: #374151;
   margin-bottom: 8px;
@@ -542,7 +542,7 @@ input:checked + .slider:before {
   left: 12px;
   background: #0ea5e9;
   color: white;
-  font-size: 12px;
+  font-size: var(--fs-12, 12px);
   padding: 2px 8px;
   border-radius: 4px;
   font-weight: 500;
@@ -554,7 +554,7 @@ input:checked + .slider:before {
   border: none;
   padding: 10px 32px;
   border-radius: 6px;
-  font-size: 15px;
+  font-size: var(--fs-15, 15px);
   font-weight: 500;
   cursor: pointer;
   transition: background 0.2s;
@@ -570,7 +570,7 @@ input:checked + .slider:before {
   border: none;
   padding: 10px 16px;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: var(--fs-14, 14px);
   font-weight: 500;
   cursor: pointer;
   display: flex;
@@ -610,7 +610,7 @@ input:checked + .slider:before {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: var(--fs-14, 14px);
   color: #374151;
 }
 
@@ -627,7 +627,7 @@ input:checked + .slider:before {
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: var(--fs-14, 14px);
   font-weight: 500;
   cursor: pointer;
   display: flex;
@@ -649,7 +649,7 @@ input:checked + .slider:before {
   justify-content: space-between;
   align-items: center;
   margin-top: 16px;
-  font-size: 14px;
+  font-size: var(--fs-14, 14px);
   color: #374151;
 }
 
@@ -664,7 +664,7 @@ input:checked + .slider:before {
   background: #f3f4f6;
   color: #374151;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: var(--fs-14, 14px);
   cursor: pointer;
 }
 
@@ -732,7 +732,7 @@ input:checked + .slider:before {
   left: 40px; /* Default for inputs with icons */
   top: 50%;
   transform: translateY(-50%);
-  font-size: 14px;
+  font-size: var(--fs-14, 14px);
   color: var(--text-muted);
   pointer-events: none;
   transition: all 0.2s ease-in-out;
@@ -751,7 +751,7 @@ input:checked + .slider:before {
 .form-input.floating-label select:focus ~ label,
 .form-input.floating-label select:not([value=""]) ~ label {
   top: 12px;
-  font-size: 11px;
+  font-size: var(--fs-11, 11px);
   color: var(--primary);
   font-weight: 600;
 }

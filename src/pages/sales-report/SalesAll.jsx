@@ -80,8 +80,8 @@ const SalesAll = () => {
           
           {/* Header row with Title and Go Back */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: 'bold', margin: '0' }}>{t("SALES REPORT")}</h3>
-            <button onClick={() => navigate(-1)} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--text-muted)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: '13px' }}>
+            <h3 style={{ fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', margin: '0' }}>{t("SALES REPORT")}</h3>
+            <button onClick={() => navigate(-1)} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--text-muted)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }}>
               <ArrowLeft size={14} /> {t("Go Back")}
             </button>
           </div>
@@ -89,7 +89,7 @@ const SalesAll = () => {
           {/* Filters Area */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Search By Client")}</label>
+              <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Search By Client")}</label>
               <select name="client_id" value={filters.client_id} onChange={handleFilterChange} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }}>
                 <option value="">{t("Select Client")}</option>
                 {clients.map(c => (
@@ -98,21 +98,21 @@ const SalesAll = () => {
               </select>
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Search By Barcode")}</label>
+              <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Search By Barcode")}</label>
               <input type="text" name="barcode" value={filters.barcode} onChange={handleFilterChange} placeholder={t("Enter Barcode")} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("From Date")}</label>
+              <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("From Date")}</label>
               <input type="date" name="from_date" value={filters.from_date} onChange={handleFilterChange} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("To Date")}</label>
+              <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("To Date")}</label>
               <input type="date" name="to_date" value={filters.to_date} onChange={handleFilterChange} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
             </div>
           </div>
 
           {/* Clear Filter Button */}
-          <button onClick={handleClearFilters} style={{ width: '100%', background: '#7e8a9f', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', marginBottom: '24px' }}>
+          <button onClick={handleClearFilters} style={{ width: '100%', background: '#7e8a9f', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', marginBottom: '24px' }}>
             {t("Clear Filter")}
           </button>
 
@@ -124,15 +124,15 @@ const SalesAll = () => {
 
           {/* Controls */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: 'var(--fs-13, 13px)', color: 'var(--text-muted)' }}>
               {t("Showing")} {reports.length} {t("entries")}
             </div>
             
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 16px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+              <button onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 16px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }}>
                 <Printer size={14} /> {t("Print Report")}
               </button>
-              <button onClick={fetchReports} style={{ background: 'var(--info)', color: 'white', padding: '6px 16px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+              <button onClick={fetchReports} style={{ background: 'var(--info)', color: 'white', padding: '6px 16px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }}>
                 <RefreshCcw size={14} /> {t("Refresh")}
               </button>
             </div>
@@ -140,7 +140,7 @@ const SalesAll = () => {
 
           {/* Table View */}
           <div className="table-responsive" style={{ width: '100%', overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
-            <table className="custom-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
+            <table className="custom-table" style={{ width: '100%', minWidth: '1100px', borderCollapse: 'collapse', fontSize: 'var(--fs-12, 12px)' }}>
               <thead>
                 <tr style={{ background: 'var(--secondary)', color: 'white' }}>
                   <th style={{ padding: '8px 4px', textAlign: 'center' }}>{t("SL")}</th>

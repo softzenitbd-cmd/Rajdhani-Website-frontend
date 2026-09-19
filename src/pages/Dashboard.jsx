@@ -129,7 +129,7 @@ const Dashboard = () => {
   return (
     <div className="dashboard-content">
       <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
-        <button onClick={load} disabled={loading} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#475569' }}>
+        <button onClick={load} disabled={loading} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'var(--fs-12, 12px)', color: '#475569' }}>
           <RefreshCcw size={14} className={loading ? 'spin' : ''} /> {loading ? t("Loading...") : t("Refresh")}
         </button>
       </div>
@@ -194,8 +194,8 @@ const Dashboard = () => {
               </PieChart>
             </ResponsiveContainer>
             <div style={{ position: 'absolute', textAlign: 'center', pointerEvents: 'none' }}>
-              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#00e396' }}>{t('dashboard.due')}</div>
-              <div style={{ fontSize: '14px', color: '#a3aed1' }}>{money(totalDue)}</div>
+              <div style={{ fontSize: 'var(--fs-20, 20px)', fontWeight: 'bold', color: '#00e396' }}>{t('dashboard.due')}</div>
+              <div style={{ fontSize: 'var(--fs-14, 14px)', color: '#a3aed1' }}>{money(totalDue)}</div>
             </div>
           </div>
         </div>

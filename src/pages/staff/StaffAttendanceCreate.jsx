@@ -112,24 +112,24 @@ const StaffAttendanceCreate = () => {
     }
   };
 
-  const cell = { padding: '10px 14px', borderRight: '1px solid #e2e8f0', fontSize: '13px', color: 'var(--label-color)' };
+  const cell = { padding: '10px 14px', borderRight: '1px solid #e2e8f0', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)' };
   const timeInput = { border: '1px solid #e2e8f0', borderRadius: '4px', padding: '6px', width: '100%' };
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
         <div className="premium-header" style={{ padding: '16px 24px', background: 'white', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-          <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold', textTransform: 'uppercase' }}>{t("Add Attendance")}</h2>
+          <h2 className="premium-title" style={{ fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', textTransform: 'uppercase' }}>{t("Add Attendance")}</h2>
           <div style={{ display: 'flex', gap: '6px' }}>
-            <button type="button" onClick={() => markAll('present')} style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>{t("All Present")}</button>
-            <button type="button" onClick={() => markAll('absence')} style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>{t("All Absent")}</button>
+            <button type="button" onClick={() => markAll('present')} style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)' }}>{t("All Present")}</button>
+            <button type="button" onClick={() => markAll('absence')} style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)' }}>{t("All Absent")}</button>
           </div>
         </div>
 
         <div className="premium-body" style={{ background: 'white', padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
             <div style={{ position: 'relative', width: '300px' }}>
-              <div style={{ position: 'absolute', top: '-10px', left: '16px', background: 'var(--info)', color: 'white', fontSize: '11px', padding: '2px 8px', borderRadius: '4px', zIndex: 1, display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <div style={{ position: 'absolute', top: '-10px', left: '16px', background: 'var(--info)', color: 'white', fontSize: 'var(--fs-11, 11px)', padding: '2px 8px', borderRadius: '4px', zIndex: 1, display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <Calendar size={12} /> {t("Date")}
               </div>
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ width: '100%', padding: '12px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none', textAlign: 'center' }} />
@@ -139,7 +139,7 @@ const StaffAttendanceCreate = () => {
           <div className="table-responsive">
             <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e2e8f0' }}>
               <thead>
-                <tr style={{ background: '#94a3b8', color: 'white', textAlign: 'left', textTransform: 'uppercase', fontSize: '12px' }}>
+                <tr style={{ background: '#94a3b8', color: 'white', textAlign: 'left', textTransform: 'uppercase', fontSize: 'var(--fs-12, 12px)' }}>
                   <th style={cell}>{t("STAFF NAME")}</th>
                   <th style={cell}>{t("PHONE")}</th>
                   <th style={{ ...cell, width: '140px' }}>{t("IN TIME")}</th>
@@ -176,7 +176,7 @@ const StaffAttendanceCreate = () => {
           </div>
 
           <div style={{ textAlign: 'center', marginTop: '24px' }}>
-            <button onClick={save} disabled={saving || staff.length === 0} style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', border: 'none', borderRadius: '4px', fontSize: '14px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', opacity: saving ? 0.7 : 1 }}>
+            <button onClick={save} disabled={saving || staff.length === 0} style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', border: 'none', borderRadius: '4px', fontSize: 'var(--fs-14, 14px)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', opacity: saving ? 0.7 : 1 }}>
               <Save size={16} /> {saving ? t("Saving...") : t("Save Attendance")}
             </button>
           </div>

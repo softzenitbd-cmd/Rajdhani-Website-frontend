@@ -108,7 +108,7 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
   }));
 
   const input = { width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' };
-  const lbl = { display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', fontWeight: 600 };
+  const lbl = { display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', fontWeight: 600 };
   const color = isDeposit ? '#059669' : '#dc2626';
 
   const rowCells = (r, i) => (
@@ -121,7 +121,7 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
       <td style={{ padding: '8px', textAlign: 'center' }}>{accountName(r)}</td>
       <td style={{ padding: '8px', color: '#475569' }}>{r.description || '-'}</td>
       <td style={{ padding: '8px', textAlign: 'center' }}>
-        <span style={{ background: '#dbeafe', color: '#1e40af', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>{r.transaction_type || r.type || (isDeposit ? t("Deposit") : t("Cost"))}</span>
+        <span style={{ background: '#dbeafe', color: '#1e40af', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{r.transaction_type || r.type || (isDeposit ? t("Deposit") : t("Cost"))}</span>
       </td>
       <td style={{ padding: '8px', textAlign: 'right', fontWeight: 'bold', color }}>৳ {money(r.amount)}</td>
     </>
@@ -145,10 +145,10 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
         <div style={{ padding: '24px', background: 'white', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: 'bold', margin: 0, color: 'var(--text-main)' }}>{title}</h2>
+          <h2 style={{ fontSize: 'var(--fs-22, 22px)', fontWeight: 'bold', margin: 0, color: 'var(--text-main)' }}>{title}</h2>
           <div style={{ textAlign: 'right' }}>
-            <span style={{ fontSize: '12px', color: '#64748b', display: 'block' }}>{t("Total")} {isDeposit ? t("Deposited") : t("Expense")}</span>
-            <span style={{ fontSize: '20px', fontWeight: 800, color }}>৳ {money(total)}</span>
+            <span style={{ fontSize: 'var(--fs-12, 12px)', color: '#64748b', display: 'block' }}>{t("Total")} {isDeposit ? t("Deposited") : t("Expense")}</span>
+            <span style={{ fontSize: 'var(--fs-20, 20px)', fontWeight: 800, color }}>৳ {money(total)}</span>
           </div>
         </div>
 
@@ -199,12 +199,12 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
             ) : (
               groups.map((g) => (
                 <div key={g.key} style={{ marginBottom: '24px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', background: '#f1f5f9', padding: '8px 12px', borderRadius: '6px 6px 0 0', fontWeight: 700, fontSize: '13px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', background: '#f1f5f9', padding: '8px 12px', borderRadius: '6px 6px 0 0', fontWeight: 700, fontSize: 'var(--fs-13, 13px)' }}>
                     <span>{g.key} <span style={{ color: '#64748b', fontWeight: 400 }}>({g.rows.length})</span></span>
                     <span style={{ color }}>৳ {money(g.total)}</span>
                   </div>
                   <div className="table-responsive">
-                    <table className="custom-table" style={{ width: '100%', fontSize: '12px' }}>
+                    <table className="custom-table" style={{ width: '100%', fontSize: 'var(--fs-12, 12px)' }}>
                       <thead>{header}</thead>
                       <tbody>{g.rows.slice(0, entries).map((r, i) => <tr key={r.id || i}>{rowCells(r, i)}</tr>)}</tbody>
                     </table>
@@ -214,7 +214,7 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
             )
           ) : (
             <div className="table-responsive">
-              <table className="custom-table" style={{ width: '100%', fontSize: '12px' }}>
+              <table className="custom-table" style={{ width: '100%', fontSize: 'var(--fs-12, 12px)' }}>
                 <thead>{header}</thead>
                 <tbody>
                   {loading ? (

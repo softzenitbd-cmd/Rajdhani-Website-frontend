@@ -113,12 +113,12 @@ const ReceiveCreate = () => {
         {/* Header */}
         <div style={{ background: '#2e7d32', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px' }}>
 
-          <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>{t("Add New Receive")}</h2>
+          <h2 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', fontWeight: 'bold' }}>{t("Add New Receive")}</h2>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={() => navigate('/account/receive-list')} style={{ background: '#818cf8', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
+            <button onClick={() => navigate('/account/receive-list')} style={{ background: '#818cf8', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'var(--fs-13, 13px)', cursor: 'pointer' }}>
               <List size={14} /> {t("Receive List")}
             </button>
-            <button onClick={() => navigate('/settings/income-category')} style={{ background: '#818cf8', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
+            <button onClick={() => navigate('/settings/income-category')} style={{ background: '#818cf8', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'var(--fs-13, 13px)', cursor: 'pointer' }}>
               <Layers size={14} /> {t("Receive Category")}
             </button>
           </div>
@@ -148,7 +148,7 @@ const ReceiveCreate = () => {
                     placeholder={t("Select Client")}
                     onAddClick={() => setIsClientModalOpen(true)}
                   />
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', marginTop: '6px', marginLeft: '4px' }}>{t("Due:")} {dueAmount}</div>
+                  <div style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', marginTop: '6px', marginLeft: '4px' }}>{t("Due:")} {dueAmount}</div>
                 </div>
 
                 {/* Account Select */}
@@ -158,7 +158,7 @@ const ReceiveCreate = () => {
                     value={formData.accountId} 
                     onChange={handleChange}
                     required
-                    style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px', appearance: 'none', background: 'transparent' }}
+                    style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: 'var(--fs-14, 14px)', appearance: 'none', background: 'transparent' }}
                   >
                     <option value="">{t("Select Account")}</option>
                     {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
@@ -183,15 +183,15 @@ const ReceiveCreate = () => {
                     value={formData.amount} 
                     onChange={handleChange}
                     required
-                    style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px' }}
+                    style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: 'var(--fs-14, 14px)' }}
                   />
                 </div>
 
                 {/* SMS Toggle */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #93c5fd', borderRadius: '6px', padding: '12px 16px', background: 'white' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '500' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 'var(--fs-14, 14px)', fontWeight: '500' }}>
                     <div style={{ background: '#1e293b', borderRadius: '50%', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <span style={{ color: 'white', fontSize: '10px' }}>💬</span>
+                      <span style={{ color: 'white', fontSize: 'var(--fs-10, 10px)' }}>💬</span>
                     </div>
                     {t("SMS")}
                   </div>
@@ -210,7 +210,7 @@ const ReceiveCreate = () => {
                 
                 {/* Date Input */}
                 <div style={{ position: 'relative' }}>
-                  <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     {t("📅 Date")}
                   </div>
                   <input 
@@ -218,7 +218,7 @@ const ReceiveCreate = () => {
                     name="date" 
                     value={formData.date} 
                     onChange={handleChange}
-                    style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: '14px', outline: 'none' }} 
+                    style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: 'var(--fs-14, 14px)', outline: 'none' }} 
                   />
                 </div>
 
@@ -231,7 +231,7 @@ const ReceiveCreate = () => {
                     placeholder={t("Receive Description in a short note")} 
                     value={formData.description} 
                     onChange={handleChange}
-                    style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px' }}
+                    style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: 'var(--fs-14, 14px)' }}
                   />
                 </div>
 
@@ -241,7 +241,7 @@ const ReceiveCreate = () => {
                     name="category" 
                     value={formData.category} 
                     onChange={handleChange}
-                    style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: '14px', appearance: 'none', background: 'transparent' }}
+                    style={{ flex: 1, padding: '12px 16px', border: 'none', outline: 'none', fontSize: 'var(--fs-14, 14px)', appearance: 'none', background: 'transparent' }}
                   >
                     <option value="">{t("Select Category")}</option>
                     {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -264,14 +264,14 @@ const ReceiveCreate = () => {
               <button 
                 type="submit" 
                 disabled={submitting} 
-                style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
+                style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '4px', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', cursor: 'pointer' }}
               >
                 {submitting ? t("Adding...") : t("Add New Receive")}
               </button>
               <button 
                 type="button" 
                 onClick={() => navigate('/account/receive-list')} 
-                style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
+                style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '4px', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', cursor: 'pointer' }}
               >
                 {t("Close")}
               </button>

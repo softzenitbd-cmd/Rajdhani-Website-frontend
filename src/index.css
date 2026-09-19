@@ -54,12 +54,12 @@ input[type="date"] {
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--main-font, 'Inter', sans-serif);
   background-color: var(--bg-app);
   color: var(--text-main);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
-  font-size: 13px;
+  font-size: var(--main-font-size, 13px);
 }
 
 /* Bangla UI: <html lang="bn"> is set by src/i18n.js when the language switches */
@@ -68,7 +68,7 @@ html[lang="bn"] button,
 html[lang="bn"] input,
 html[lang="bn"] select,
 html[lang="bn"] textarea {
-  font-family: 'Hind Siliguri', 'Inter', 'Noto Sans Bengali', sans-serif;
+  font-family: var(--main-font, 'Hind Siliguri', 'Inter', 'Noto Sans Bengali', sans-serif);
 }
 
 /* Layout */
@@ -81,13 +81,22 @@ html[lang="bn"] textarea {
 
 /* Sidebar */
 .sidebar {
+  position: relative;
   width: 280px;
   background-color: var(--bg-sidebar);
   display: flex;
   flex-direction: column;
-  transition: var(--transition);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 10;
   box-shadow: var(--shadow-md);
+  white-space: nowrap;
+}
+
+@media (min-width: 1101px) {
+  .sidebar.collapsed {
+    width: 0 !important;
+    overflow: hidden !important;
+  }
 }
 
 .sidebar-brand {
@@ -106,7 +115,7 @@ html[lang="bn"] textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: var(--fs-24, 24px);
   font-weight: 700;
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
@@ -133,7 +142,7 @@ html[lang="bn"] textarea {
 .profile-name {
   color: white;
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--fs-13, 13px);
 }
 
 .profile-role {
@@ -160,7 +169,7 @@ html[lang="bn"] textarea {
   transition: var(--transition);
   cursor: pointer;
   font-weight: 500;
-  font-size: 12px;
+  font-size: var(--fs-12, 12px);
 }
 
 .nav-item-content {
@@ -235,7 +244,7 @@ html[lang="bn"] textarea {
 }
 
 .header-title {
-  font-size: 17px;
+  font-size: var(--fs-18, 18px);
   font-weight: 700;
   color: #ffffff;
   letter-spacing: -0.5px;
@@ -278,7 +287,7 @@ html[lang="bn"] textarea {
   padding: 10px 20px;
   border-radius: var(--radius-full);
   font-weight: 600;
-  font-size: 12px;
+  font-size: var(--fs-12, 12px);
   cursor: pointer;
   border: none;
   transition: var(--transition);
@@ -339,7 +348,7 @@ html[lang="bn"] textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: var(--fs-24, 24px);
 }
 
 .icon-box.sales {
@@ -363,13 +372,13 @@ html[lang="bn"] textarea {
 
 .stat-label {
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: var(--fs-14, 14px);
   font-weight: 500;
   margin-bottom: 4px;
 }
 
 .stat-value {
-  font-size: 18px;
+  font-size: var(--fs-18, 18px);
   font-weight: 700;
   color: var(--text-main);
   display: flex;
@@ -401,9 +410,19 @@ html[lang="bn"] textarea {
 }
 
 .chart-title {
-  font-size: 14px;
+  font-size: var(--fs-14, 14px);
   font-weight: 700;
   color: var(--text-main);
+}
+
+.print-only {
+  display: none !important;
+}
+
+@media print {
+  .print-only {
+    display: block !important;
+  }
 }
 
 .chart-subtitle {
@@ -482,7 +501,7 @@ html[lang="bn"] textarea {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-width: 1100px) and (hover: none) and (pointer: coarse) {
   .mobile-menu-btn {
     display: inline-block !important;
   }
@@ -570,7 +589,7 @@ html[lang="bn"] textarea {
   html, body {
     background: white !important;
     color: #000000 !important;
-    font-size: 11px !important;
+    font-size: var(--fs-11, 11px) !important;
     width: 100% !important;
     height: auto !important;
     margin: 0 !important;
@@ -725,7 +744,7 @@ html[lang="bn"] textarea {
   }
 
   th, td {
-    font-size: 11px !important;
+    font-size: var(--fs-11, 11px) !important;
     padding: 6px 8px !important;
     color: #000000 !important;
     border: 1px solid #475569 !important;
@@ -875,7 +894,7 @@ html[lang="bn"] textarea {
 }
 
 .loader-text {
-  font-size: 14px;
+  font-size: var(--fs-14, 14px);
   font-weight: 600;
   color: var(--text-main);
   letter-spacing: 1px;
@@ -986,7 +1005,7 @@ html[lang="bn"] textarea {
   width: 100%;
 }
 
-/* Responsive Enhancements for Tablets & Phones (<= 1024px) */
+/* Responsive Enhancements for Tablets & Phones */
 @media (max-width: 1024px) {
   .dashboard-content {
     padding: 8px 4px 85px 4px !important;
@@ -1162,6 +1181,7 @@ html[lang="bn"] textarea {
   /* Form Grids on mobile stack into 1 column except 2-col rows */
   .form-grid:not(.form-row-2col), .filter-grid, .filter-section {
     grid-template-columns: 1fr !important;
+    display: grid !important;
     gap: 10px !important;
     width: 100% !important;
   }
@@ -1227,6 +1247,7 @@ html[lang="bn"] textarea {
     right: 0 !important;
     width: 220px !important;
     max-width: 85vw !important;
+  }
   }
 }
 

@@ -76,12 +76,12 @@ const ExpenseCategory = () => {
         
         <div style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0' }}>
           <div>
-            <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: '0 0 4px', color: 'var(--text-main)' }}>{t("Expense Category List")}</h2>
-            <span style={{ fontSize: '13px', color: '#64748b' }}>{t("Manage your cost & expense categories")}</span>
+            <h2 style={{ fontSize: 'var(--fs-20, 20px)', fontWeight: 'bold', margin: '0 0 4px', color: 'var(--text-main)' }}>{t("Expense Category List")}</h2>
+            <span style={{ fontSize: 'var(--fs-13, 13px)', color: '#64748b' }}>{t("Manage your cost & expense categories")}</span>
           </div>
           <button 
             onClick={() => setShowModal(true)}
-            style={{ background: 'var(--success)', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}
+            style={{ background: 'var(--success)', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}
           >
             <Plus size={16} /> {t("Add Expense Category")}
           </button>
@@ -97,23 +97,23 @@ const ExpenseCategory = () => {
                   placeholder={t("Search by category name...")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px 8px 34px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '13px', outline: 'none' }}
+                  style={{ width: '100%', padding: '8px 12px 8px 34px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: 'var(--fs-13, 13px)', outline: 'none' }}
                 />
                 <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
               </div>
-              <button type="submit" style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
+              <button type="submit" style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', fontWeight: '600' }}>
                 {t("Search")}
               </button>
             </form>
 
             <div style={{ display: 'flex', gap: '6px' }}>
-              <button onClick={() => exportVisibleTable('xlsx')} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>{t("Excel")}</button>
-              <button onClick={() => exportVisibleTable('csv')} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>{t("CSV")}</button>
-              <button onClick={() => printPage()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>{t("PDF")}</button>
-              <button onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+              <button onClick={() => exportVisibleTable('xlsx')} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold' }}>{t("Excel")}</button>
+              <button onClick={() => exportVisibleTable('csv')} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold' }}>{t("CSV")}</button>
+              <button onClick={() => printPage()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold' }}>{t("PDF")}</button>
+              <button onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold' }}>
                 <Printer size={14} /> {t("Print")}
               </button>
-              <button onClick={() => { setSearchTerm(''); fetchCategories(''); }} style={{ background: '#64748b', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+              <button onClick={() => { setSearchTerm(''); fetchCategories(''); }} style={{ background: '#64748b', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold' }}>
                 <RefreshCcw size={14} /> {t("Reset")}
               </button>
             </div>
@@ -121,7 +121,7 @@ const ExpenseCategory = () => {
 
           {/* Table */}
           <div className="table-responsive">
-            <table className="custom-table" style={{ width: '100%', fontSize: '13px', textAlign: 'center' }}>
+            <table className="custom-table" style={{ width: '100%', fontSize: 'var(--fs-13, 13px)', textAlign: 'center' }}>
               <thead>
                 <tr style={{ background: '#718096', color: 'white', textTransform: 'uppercase' }}>
                   <th style={{ width: '80px', padding: '12px', textAlign: 'center' }}>{t("SL NO")}</th>
@@ -159,7 +159,7 @@ const ExpenseCategory = () => {
             </table>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', fontSize: '13px', color: 'var(--text-muted)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', fontSize: 'var(--fs-13, 13px)', color: 'var(--text-muted)' }}>
             <div>{t("Total Expense Categories:")} {categories.length}</div>
           </div>
         </div>
@@ -170,19 +170,19 @@ const ExpenseCategory = () => {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
           <div style={{ background: 'white', borderRadius: '12px', padding: '28px', width: '100%', maxWidth: '440px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700' }}>{t("Add Expense Category")}</h3>
+              <h3 style={{ margin: 0, fontSize: 'var(--fs-18, 18px)', fontWeight: '700' }}>{t("Add Expense Category")}</h3>
               <button onClick={() => setShowModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={20} /></button>
             </div>
             <form onSubmit={handleCreate}>
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: '#334155' }}>{t("Category Name *")}</label>
+                <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', fontWeight: '600', marginBottom: '8px', color: '#334155' }}>{t("Category Name *")}</label>
                 <input
                   type="text"
                   required
                   placeholder={t("e.g. DOKAN KOROJ, SALARY")}
                   value={categoryName}
                   onChange={(e) => setCategoryName(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '14px', outline: 'none' }}
+                  style={{ width: '100%', padding: '10px 14px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: 'var(--fs-14, 14px)', outline: 'none' }}
                 />
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>

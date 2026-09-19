@@ -178,7 +178,7 @@ const Profile = () => {
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
-          fontSize: '14px',
+          fontSize: 'var(--fs-14, 14px)',
           background: message.type === 'error' ? '#fef2f2' : '#f0fdf4',
           color: message.type === 'error' ? '#ef4444' : '#16a34a',
           border: `1px solid ${message.type === 'error' ? '#fca5a5' : '#86efac'}`
@@ -215,7 +215,7 @@ const Profile = () => {
                 {profile.image ? (
                   <img src={profile.image} alt={t("Profile")} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
-                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e0e7ff', color: '#4338ca', fontSize: '40px', fontWeight: 'bold' }}>
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e0e7ff', color: '#4338ca', fontSize: 'var(--fs-40, 40px)', fontWeight: 'bold' }}>
                     {(profile.full_name || profile.username || 'U').charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -250,7 +250,7 @@ const Profile = () => {
                 border: 'none', 
                 padding: '6px 16px', 
                 borderRadius: '20px', 
-                fontSize: '11px', 
+                fontSize: 'var(--fs-11, 11px)', 
                 fontWeight: '600',
                 cursor: 'pointer',
                 marginBottom: '16px'
@@ -258,12 +258,12 @@ const Profile = () => {
               {t("Update Image")}
             </button>
             
-            <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {profile.full_name} <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 'normal' }}>({profile.username})</span>
+            <h3 style={{ margin: '0 0 4px 0', fontSize: 'var(--fs-18, 18px)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {profile.full_name} <span style={{ fontSize: 'var(--fs-12, 12px)', color: '#64748b', fontWeight: 'normal' }}>({profile.username})</span>
             </h3>
             
             <div style={{ alignSelf: 'flex-start', width: '100%', marginTop: '16px' }}>
-              <p style={{ margin: '0 0 16px 0', fontSize: '13px', fontWeight: '500' }}>{t("Bio")}</p>
+              <p style={{ margin: '0 0 16px 0', fontSize: 'var(--fs-13, 13px)', fontWeight: '500' }}>{t("Bio")}</p>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <button 
@@ -281,7 +281,7 @@ const Profile = () => {
                     borderRadius: '6px',
                     cursor: 'pointer',
                     fontWeight: '500',
-                    fontSize: '13px',
+                    fontSize: 'var(--fs-13, 13px)',
                     justifyContent: 'flex-start'
                   }}
                 >
@@ -306,7 +306,7 @@ const Profile = () => {
                     borderRadius: '6px',
                     cursor: 'pointer',
                     fontWeight: '500',
-                    fontSize: '13px',
+                    fontSize: 'var(--fs-13, 13px)',
                     justifyContent: 'flex-start'
                   }}
                 >
@@ -333,7 +333,7 @@ const Profile = () => {
           {activeTab === 'profile' && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-                <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold' }}>{t("PERSONAL INFORMATION")}</h4>
+                <h4 style={{ margin: 0, fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold' }}>{t("PERSONAL INFORMATION")}</h4>
                 
                 {!isEditing ? (
                   <button 
@@ -369,7 +369,7 @@ const Profile = () => {
                         alignItems: 'center',
                         gap: '4px',
                         cursor: 'pointer',
-                        fontSize: '12px',
+                        fontSize: 'var(--fs-12, 12px)',
                         fontWeight: '600'
                       }}
                     >
@@ -387,7 +387,7 @@ const Profile = () => {
                         alignItems: 'center',
                         gap: '4px',
                         cursor: 'pointer',
-                        fontSize: '12px'
+                        fontSize: 'var(--fs-12, 12px)'
                       }}
                     >
                       <X size={14} /> {t("Cancel")}
@@ -428,36 +428,36 @@ const Profile = () => {
           
           {activeTab === 'password' && (
             <div>
-              <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', marginBottom: '32px' }}>{t("CHANGE PASSWORD")}</h4>
+              <h4 style={{ margin: 0, fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', marginBottom: '32px' }}>{t("CHANGE PASSWORD")}</h4>
               <form onSubmit={handlePasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '600px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: '600' }}>{t("Current Password")}</label>
+                  <label style={{ fontSize: 'var(--fs-13, 13px)', fontWeight: '600' }}>{t("Current Password")}</label>
                   <input 
                     type="password" 
                     placeholder={t("Current Password")} 
                     value={passwordForm.oldPassword}
                     onChange={(e) => setPasswordForm(prev => ({ ...prev, oldPassword: e.target.value }))}
-                    style={{ padding: '12px 16px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '13px', color: '#334155', outline: 'none' }} 
+                    style={{ padding: '12px 16px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: 'var(--fs-13, 13px)', color: '#334155', outline: 'none' }} 
                   />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: '600' }}>{t("New Password")}</label>
+                  <label style={{ fontSize: 'var(--fs-13, 13px)', fontWeight: '600' }}>{t("New Password")}</label>
                   <input 
                     type="password" 
                     placeholder={t("Type New Password")} 
                     value={passwordForm.newPassword}
                     onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                    style={{ padding: '12px 16px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '13px', color: '#334155', outline: 'none' }} 
+                    style={{ padding: '12px 16px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: 'var(--fs-13, 13px)', color: '#334155', outline: 'none' }} 
                   />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: '600' }}>{t("Confirm Password")}</label>
+                  <label style={{ fontSize: 'var(--fs-13, 13px)', fontWeight: '600' }}>{t("Confirm Password")}</label>
                   <input 
                     type="password" 
                     placeholder={t("Re-type Password")} 
                     value={passwordForm.confirmPassword}
                     onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                    style={{ padding: '12px 16px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '13px', color: '#334155', outline: 'none' }} 
+                    style={{ padding: '12px 16px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: 'var(--fs-13, 13px)', color: '#334155', outline: 'none' }} 
                   />
                 </div>
                 <button 
@@ -473,7 +473,7 @@ const Profile = () => {
                     cursor: 'pointer',
                     marginTop: '8px',
                     width: '100%',
-                    fontSize: '14px'
+                    fontSize: 'var(--fs-14, 14px)'
                   }}>
                   {passwordSaving ? t("Changing...") : t("Change Password")}
                 </button>
@@ -491,7 +491,7 @@ const InfoRow = ({ label, value, isPlaceholder, type }) => {
   const { t } = useTranslation();
   return (
     <div style={{ display: 'flex', alignItems: 'center' }}>
-      <div style={{ width: '180px', fontSize: '13px', color: '#334155', fontWeight: '500' }}>
+      <div style={{ width: '180px', fontSize: 'var(--fs-13, 13px)', color: '#334155', fontWeight: '500' }}>
         {label}
       </div>
       <div style={{ padding: '0 16px', color: '#64748b' }}>:</div>
@@ -508,7 +508,7 @@ const InfoRow = ({ label, value, isPlaceholder, type }) => {
              minHeight: '38px',
              overflow: 'hidden'
            }}>
-             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#dcfce7', color: '#16a34a', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '600' }}>
+             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#dcfce7', color: '#16a34a', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: '600' }}>
                <Mail size={12} />
                {t("TEMP MAIL")}
              </div>
@@ -519,7 +519,7 @@ const InfoRow = ({ label, value, isPlaceholder, type }) => {
             background: 'transparent',
             border: '1px solid #cbd5e1', 
             borderRadius: '6px',
-            fontSize: '13px',
+            fontSize: 'var(--fs-13, 13px)',
             color: isPlaceholder ? '#94a3b8' : '#334155',
             minHeight: '20px'
           }}>
@@ -534,7 +534,7 @@ const InfoRow = ({ label, value, isPlaceholder, type }) => {
 const EditRow = ({ label, name, value, onChange, type = 'text' }) => {
   return (
     <div style={{ display: 'flex', alignItems: 'center' }}>
-      <div style={{ width: '180px', fontSize: '13px', color: '#334155', fontWeight: '500' }}>
+      <div style={{ width: '180px', fontSize: 'var(--fs-13, 13px)', color: '#334155', fontWeight: '500' }}>
         {label}
       </div>
       <div style={{ padding: '0 16px', color: '#64748b' }}>:</div>
@@ -550,7 +550,7 @@ const EditRow = ({ label, name, value, onChange, type = 'text' }) => {
             background: 'white',
             border: '1px solid #0ea5e9', 
             borderRadius: '6px',
-            fontSize: '13px',
+            fontSize: 'var(--fs-13, 13px)',
             color: '#334155',
             outline: 'none'
           }}

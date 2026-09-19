@@ -134,10 +134,10 @@ const ConfirmModalUI = ({ config, onClose }) => {
           </div>
 
           <div style={{ flex: 1 }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 600, color: '#0f172a' }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: 'var(--fs-18, 18px)', fontWeight: 600, color: '#0f172a' }}>
               {title}
             </h3>
-            <p style={{ margin: 0, fontSize: '14px', color: '#475569', lineHeight: 1.5 }}>
+            <p style={{ margin: 0, fontSize: 'var(--fs-14, 14px)', color: '#475569', lineHeight: 1.5 }}>
               {message}
             </p>
           </div>
@@ -180,7 +180,7 @@ const ConfirmModalUI = ({ config, onClose }) => {
               border: '1px solid #cbd5e1',
               backgroundColor: '#ffffff',
               color: '#334155',
-              fontSize: '14px',
+              fontSize: 'var(--fs-14, 14px)',
               fontWeight: 500,
               cursor: 'pointer',
               transition: 'all 0.15s ease'
@@ -199,7 +199,7 @@ const ConfirmModalUI = ({ config, onClose }) => {
               border: 'none',
               backgroundColor: confirmBtnBg,
               color: '#ffffff',
-              fontSize: '14px',
+              fontSize: 'var(--fs-14, 14px)',
               fontWeight: 600,
               cursor: 'pointer',
               boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',

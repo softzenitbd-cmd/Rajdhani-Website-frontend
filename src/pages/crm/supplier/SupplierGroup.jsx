@@ -82,7 +82,7 @@ const SupplierGroup = () => {
         <PrintHeader />
       <div className="chart-card">
         <div className="card-header">
-          <h2 className="card-title" style={{ textTransform: 'none', fontSize: '20px' }}>{t("Supplier Group")}</h2>
+          <h2 className="card-title" style={{ textTransform: 'none', fontSize: 'var(--fs-20, 20px)' }}>{t("Supplier Group")}</h2>
           <div className="card-actions">
             <button className="btn btn-outline" style={{ padding: '6px 12px', background: 'var(--table-header-bg)', color: 'white' }} onClick={() => navigate('/crm/supplier-list')}>
               <List size={14} /> {t("Supplier List")}
@@ -96,7 +96,7 @@ const SupplierGroup = () => {
         <div className="card-body">
           {/* Table Controls */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
+            <div style={{ fontSize: 'var(--fs-14, 14px)', color: 'var(--text-main)' }}>
               {t("Show")} 
               <select style={{ margin: '0 8px', padding: '4px', border: '1px solid var(--secondary)', borderRadius: '4px' }}>
                 <option>50</option>
@@ -104,16 +104,16 @@ const SupplierGroup = () => {
               {t("entries")}
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => exportVisibleTable('xlsx')} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>
+              <button onClick={() => exportVisibleTable('xlsx')} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px' }}>
                 <FileSpreadsheet size={14} style={{ marginRight: '6px' }} /> {t("Excel")}
               </button>
-              <button className="btn" onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>
+              <button className="btn" onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px' }}>
                 <Printer size={14} style={{ marginRight: '6px' }} /> {t("Print")}
               </button>
-              <button onClick={() => window.location.reload()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>
+              <button onClick={() => window.location.reload()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px' }}>
                 <RotateCcw size={14} style={{ marginRight: '6px' }} /> {t("Reset")}
               </button>
-              <button onClick={() => window.location.reload()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}>
+              <button onClick={() => window.location.reload()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px' }}>
                 <RefreshCw size={14} style={{ marginRight: '6px' }} /> {t("Reload")}
               </button>
             </div>
@@ -167,7 +167,7 @@ const SupplierGroup = () => {
           </div>
 
           {/* Pagination */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', fontSize: '14px', color: 'var(--text-muted)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', fontSize: 'var(--fs-14, 14px)', color: 'var(--text-muted)' }}>
             <div>{t("Showing {{from}} to {{to}} of {{total}} entries", { from: groups.length ? 1 : 0, to: groups.length, total: groups.length })}</div>
             <div style={{ display: 'flex', gap: '4px' }}>
               <button style={{ padding: '6px 12px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '4px', cursor: 'pointer' }}>{t("Previous")}</button>

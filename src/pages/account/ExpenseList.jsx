@@ -113,7 +113,7 @@ const ExpenseList = () => {
     row.supplier_name || row.staff_name || row.client_name || row.supplier?.name || row.staff?.name || row.client?.name || '';
 
   const floatingInput = { width: '100%', padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' };
-  const floatingTag = { position: 'absolute', top: '-10px', left: '10px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' };
+  const floatingTag = { position: 'absolute', top: '-10px', left: '10px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)' };
 
   return (
     <div style={{ background: 'white', minHeight: '100vh', padding: '20px' }}>
@@ -121,7 +121,7 @@ const ExpenseList = () => {
 
       {/* Top Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>{t("Expense List")}</h2>
+        <h2 style={{ fontSize: 'var(--fs-24, 24px)', fontWeight: 'bold', margin: 0 }}>{t("Expense List")}</h2>
         <div style={{ display: 'flex', gap: '10px' }}>
           <button onClick={() => navigate('/account/expense-create')} style={{ background: '#059669', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
             <Plus size={16} /> {t("Add Expense")}
@@ -135,14 +135,14 @@ const ExpenseList = () => {
       {/* Filters */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.5fr', gap: '20px', marginBottom: '20px' }}>
         <div>
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 'bold', visibility: 'hidden' }}>{t("Search By ID")}</label>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold', visibility: 'hidden' }}>{t("Search By ID")}</label>
           <div style={{ position: 'relative' }}>
             <div style={floatingTag}>{t("Search By ID")}</div>
             <input type="text" placeholder={t("Search By ID")} value={searchId} onChange={(e) => setSearchId(e.target.value)} style={floatingInput} />
           </div>
         </div>
         <div>
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 'bold' }}>{t("Search By Client")}</label>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold' }}>{t("Search By Client")}</label>
           <SearchableSelect
             options={clients.map(c => ({
               value: c.id,
@@ -155,7 +155,7 @@ const ExpenseList = () => {
           />
         </div>
         <div>
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 'bold' }}>{t("Search By Date")}</label>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold' }}>{t("Search By Date")}</label>
           <div style={{ display: 'flex', gap: '10px' }}>
             <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ flex: 1, padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
             <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ flex: 1, padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
@@ -164,14 +164,14 @@ const ExpenseList = () => {
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-        <button onClick={handleClearFilter} style={{ background: '#64748b', color: 'white', border: 'none', padding: '12px 0', width: '400px', maxWidth: '100%', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '15px' }}>
+        <button onClick={handleClearFilter} style={{ background: '#64748b', color: 'white', border: 'none', padding: '12px 0', width: '400px', maxWidth: '100%', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: 'var(--fs-15, 15px)' }}>
           {t("Clear Filter")}
         </button>
       </div>
 
       {/* Table Controls */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <div style={{ fontSize: '14px' }}>
+        <div style={{ fontSize: 'var(--fs-14, 14px)' }}>
           {t("Show")}
           <input type="number" value={limit} onChange={(e) => setLimit(e.target.value)} style={{ width: '60px', margin: '0 8px', padding: '4px', border: '1px solid #cbd5e1', borderRadius: '4px', textAlign: 'center' }} />
           {t("entries")}
@@ -188,7 +188,7 @@ const ExpenseList = () => {
 
       {/* Table */}
       <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-13, 13px)' }}>
           <thead>
             <tr style={{ background: '#94a3b8', color: 'white' }}>
               <th style={cell}>{t("SL. ↑")}</th>
@@ -217,7 +217,7 @@ const ExpenseList = () => {
                   <td style={cell}>{idx + 1}</td>
                   <td style={cell}>{row.date ? String(row.date).split('T')[0] : ''}</td>
                   <td style={cell}>{receiptFor(row)}</td>
-                  <td style={cell}>{row.reference || row.idNo || row.id}</td>
+                  <td style={cell}>{row.reference || row.idNo || (idx + 1).toString().padStart(4, '0')}</td>
                   <td style={cell}>{row.category_name || row.category || ''}</td>
                   <td style={cell}>{row.account_name || row.account || ''}</td>
                   <td style={cell}>{row.cheque_no || ''}</td>
@@ -253,7 +253,7 @@ const ExpenseList = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ background: '#2563eb', color: 'white', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>
+              <h3 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', fontWeight: 'bold' }}>
                 {t("Edit Expense • Ref:")} {editingExpense.reference || editingExpense.id}
               </h3>
               <button onClick={() => setEditingExpense(null)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -262,12 +262,12 @@ const ExpenseList = () => {
             </div>
             <form onSubmit={handleSaveEdit} style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#1e293b', marginBottom: '8px' }}>{t("Amount (৳) *")}</label>
-                <input type="number" step="0.01" value={editAmount} onChange={(e) => setEditAmount(e.target.value)} required style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 'bold', fontSize: '15px' }} />
+                <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', fontWeight: '600', color: '#1e293b', marginBottom: '8px' }}>{t("Amount (৳) *")}</label>
+                <input type="number" step="0.01" value={editAmount} onChange={(e) => setEditAmount(e.target.value)} required style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 'bold', fontSize: 'var(--fs-15, 15px)' }} />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#1e293b', marginBottom: '8px' }}>{t("Description / Note")}</label>
-                <textarea rows="4" value={editDesc} onChange={(e) => setEditDesc(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none' }} />
+                <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', fontWeight: '600', color: '#1e293b', marginBottom: '8px' }}>{t("Description / Note")}</label>
+                <textarea rows="4" value={editDesc} onChange={(e) => setEditDesc(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: 'var(--fs-14, 14px)', outline: 'none' }} />
               </div>
               <div style={{ marginTop: 'auto', display: 'flex', gap: '12px', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
                 <button type="button" onClick={() => setEditingExpense(null)} style={{ padding: '10px 18px', border: '1px solid #cbd5e1', background: 'white', borderRadius: '6px', cursor: 'pointer' }}>

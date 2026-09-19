@@ -112,8 +112,8 @@ const ClientStatement = () => {
     Description: r.description || r.reference || r.note || '', Bill: r._bill, 'Sales Return': r._salesReturn, Receive: r._receive, 'Money Return': r._moneyReturn, Balance: r._balance,
   }));
 
-  const th = { padding: '10px 8px', fontSize: '11px', textAlign: 'center', border: '1px solid #cbd5e1', background: '#e2e8f0', color: 'black', fontWeight: 'bold' };
-  const td = { textAlign: 'center', border: '1px solid #e2e8f0', padding: '0', fontSize: '12px', color: 'black' };
+  const th = { padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', textAlign: 'center', border: '1px solid #cbd5e1', background: '#e2e8f0', color: 'black', fontWeight: 'bold' };
+  const td = { textAlign: 'center', border: '1px solid #e2e8f0', padding: '0', fontSize: 'var(--fs-12, 12px)', color: 'black' };
   const cellPad = { padding: '8px' };
 
   return (
@@ -121,9 +121,9 @@ const ClientStatement = () => {
       <PrintHeader />
       
       <div style={{ padding: '0 20px' }}>
-        <h2 style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold', margin: '20px 0 30px', color: 'black' }}>Client Statement</h2>
+        <h2 style={{ textAlign: 'center', fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', margin: '20px 0 30px', color: 'black' }}>Client Statement</h2>
 
-        <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '12px', color: 'black', fontWeight: '600' }}>
+        <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: 'var(--fs-12, 12px)', color: 'black', fontWeight: '600' }}>
           <div>
             {selectedClient ? (
               <>
@@ -142,39 +142,39 @@ const ClientStatement = () => {
 
         <form className="no-print" onSubmit={(e) => { e.preventDefault(); load(); }} style={{ display: 'flex', gap: '24px', marginBottom: '16px', alignItems: 'flex-start' }}>
           <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontSize: '11px', marginBottom: '4px', color: 'black' }}>Search By Client</label>
-            <select value={filters.client} onChange={(e) => set('client', e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', fontSize: '12px' }}>
+            <label style={{ display: 'block', fontSize: 'var(--fs-11, 11px)', marginBottom: '4px', color: 'black' }}>Search By Client</label>
+            <select value={filters.client} onChange={(e) => set('client', e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', fontSize: 'var(--fs-12, 12px)' }}>
               <option value="">{t("Select Client")}</option>
               {clients.map((c) => <option key={c.id || c.uuid} value={c.id || c.uuid}>{c.name}{c.phone ? ` (${c.phone})` : ''}</option>)}
             </select>
-            {selectedClient && <div style={{ fontSize: '11px', fontWeight: 'bold', marginTop: '4px', color: 'black' }}>Due : {money(selectedClient.due ?? selectedClient.current_balance ?? closing)}</div>}
+            {selectedClient && <div style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', marginTop: '4px', color: 'black' }}>Due : {money(selectedClient.due ?? selectedClient.current_balance ?? closing)}</div>}
           </div>
           
           <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontSize: '11px', marginBottom: '4px', color: 'black' }}>Search By Date</label>
+            <label style={{ display: 'block', fontSize: 'var(--fs-11, 11px)', marginBottom: '4px', color: 'black' }}>Search By Date</label>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <input type="date" value={filters.from_date} onChange={(e) => set('from_date', e.target.value)} style={{ flex: 1, padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', fontSize: '12px' }} />
-              <input type="date" value={filters.to_date} onChange={(e) => set('to_date', e.target.value)} style={{ flex: 1, padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', fontSize: '12px' }} />
+              <input type="date" value={filters.from_date} onChange={(e) => set('from_date', e.target.value)} style={{ flex: 1, padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', fontSize: 'var(--fs-12, 12px)' }} />
+              <input type="date" value={filters.to_date} onChange={(e) => set('to_date', e.target.value)} style={{ flex: 1, padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', fontSize: 'var(--fs-12, 12px)' }} />
             </div>
           </div>
           
           <div style={{ display: 'flex', gap: '8px', marginTop: '18px' }}>
-            <button type="button" onClick={clear} style={{ padding: '8px 24px', background: '#64748b', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}>Clear Filter</button>
+            <button type="button" onClick={clear} style={{ padding: '8px 24px', background: '#64748b', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: 'var(--fs-12, 12px)' }}>Clear Filter</button>
           </div>
         </form>
 
         <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <div style={{ fontSize: '12px', color: 'black' }}>
+          <div style={{ fontSize: 'var(--fs-12, 12px)', color: 'black' }}>
             Show <select value={entries} onChange={(e) => setEntries(Number(e.target.value))} style={{ border: '1px solid #cbd5e1', padding: '2px 4px', borderRadius: '4px' }}>
               <option value={100}>100</option>
               <option value={500}>500</option>
             </select> entries
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button type="button" onClick={() => window.print()} style={{ padding: '6px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}>
+            <button type="button" onClick={() => window.print()} style={{ padding: '6px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: 'var(--fs-12, 12px)' }}>
               Print
             </button>
-            <button type="button" onClick={() => load()} style={{ padding: '6px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}>
+            <button type="button" onClick={() => load()} style={{ padding: '6px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: 'var(--fs-12, 12px)' }}>
               Reset
             </button>
           </div>
@@ -266,12 +266,12 @@ const ClientStatement = () => {
         </div>
 
         <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
-          <div style={{ fontSize: '13px', color: 'black' }}>
+          <div style={{ fontSize: 'var(--fs-13, 13px)', color: 'black' }}>
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>
-            <button style={{ padding: '6px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: 'black', cursor: 'pointer', fontSize: '13px' }}>Previous</button>
-            <button style={{ padding: '6px 12px', background: '#3b82f6', border: '1px solid #3b82f6', color: 'white', cursor: 'pointer', fontSize: '13px' }}>1</button>
-            <button style={{ padding: '6px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: 'black', cursor: 'pointer', fontSize: '13px' }}>Next</button>
+            <button style={{ padding: '6px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: 'black', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }}>Previous</button>
+            <button style={{ padding: '6px 12px', background: '#3b82f6', border: '1px solid #3b82f6', color: 'white', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }}>1</button>
+            <button style={{ padding: '6px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: 'black', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }}>Next</button>
           </div>
         </div>
 

@@ -11,7 +11,7 @@ import { toList, today, money } from '../../utils/apiHelpers';
 import { useTranslation } from 'react-i18next';
 
 const inputStyle = { width: '100%', padding: '12px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none' };
-const labelStyle = { display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--label-color)', marginBottom: '6px' };
+const labelStyle = { display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '6px' };
 
 const StaffPaymentCreate = () => {
   const { t } = useTranslation();
@@ -103,8 +103,8 @@ const StaffPaymentCreate = () => {
       <div className="premium-card">
         <PrintHeader />
         <div className="premium-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'white' }}>
-          <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold' }}>{t("STAFF PAYMENT")}</h2>
-          <button type="button" onClick={() => navigate('/staff/payment/report')} style={{ background: '#64748b', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+          <h2 className="premium-title" style={{ fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold' }}>{t("STAFF PAYMENT")}</h2>
+          <button type="button" onClick={() => navigate('/staff/payment/report')} style={{ background: '#64748b', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
             <List size={14} /> {t("Payment Report")}
           </button>
         </div>
@@ -128,7 +128,7 @@ const StaffPaymentCreate = () => {
                 placeholder={t("Select staff")}
               />
               {selectedStaff?.salary !== undefined && selectedStaff?.salary !== null && (
-                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>{t("Monthly salary: ৳")} {money(selectedStaff.salary)}</div>
+                <div style={{ fontSize: 'var(--fs-12, 12px)', color: '#64748b', marginTop: '4px' }}>{t("Monthly salary: ৳")} {money(selectedStaff.salary)}</div>
               )}
             </div>
             <div>
@@ -150,7 +150,7 @@ const StaffPaymentCreate = () => {
                 placeholder={t("Select account")}
               />
               {selectedAccount && (
-                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>{t("Balance: ৳")} {money(selectedAccount.balance ?? selectedAccount.current_balance)}</div>
+                <div style={{ fontSize: 'var(--fs-12, 12px)', color: '#64748b', marginTop: '4px' }}>{t("Balance: ৳")} {money(selectedAccount.balance ?? selectedAccount.current_balance)}</div>
               )}
             </div>
             <div>
@@ -177,7 +177,7 @@ const StaffPaymentCreate = () => {
             </div>
           </div>
 
-          <button type="submit" disabled={saving} style={{ width: '100%', background: 'var(--success)', color: 'white', padding: '14px', border: 'none', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', opacity: saving ? 0.7 : 1 }}>
+          <button type="submit" disabled={saving} style={{ width: '100%', background: 'var(--success)', color: 'white', padding: '14px', border: 'none', borderRadius: '4px', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', cursor: 'pointer', opacity: saving ? 0.7 : 1 }}>
             {saving ? t("Saving...") : t("Save Payment")}
           </button>
         </form>

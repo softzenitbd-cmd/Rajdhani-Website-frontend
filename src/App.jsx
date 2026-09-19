@@ -42,6 +42,7 @@ const RouteChangeListener = () => {
 const AppContent = () => {
   const { t } = useTranslation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const location = useLocation();
 
   // Global listener: Auto-open calendar picker on click/focus for ALL date fields across entire app
@@ -74,7 +75,11 @@ const AppContent = () => {
   }, [location.pathname]);
 
   const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+    if (window.innerWidth <= 1100) {
+      setIsSidebarOpen(!isSidebarOpen);
+    } else {
+      setIsSidebarCollapsed(!isSidebarCollapsed);
+    }
   };
   const closeSidebar = () => {
     setIsSidebarOpen(false);
@@ -98,7 +103,7 @@ const AppContent = () => {
 
   return (
     <div className="app-layout">
-      <Sidebar isOpen={isSidebarOpen} closeSidebar={closeSidebar} />
+      <Sidebar isOpen={isSidebarOpen} isCollapsed={isSidebarCollapsed} closeSidebar={closeSidebar} />
       <FloatingShortcutMenu />
       
       {/* Mobile Sidebar Overlay */}
@@ -159,7 +164,7 @@ const AppContent = () => {
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </div>
-        <footer style={{ textAlign: 'center', padding: '20px', color: '#6b7280', fontSize: '13px', flexShrink: 0 }}>
+        <footer style={{ textAlign: 'center', padding: '20px', color: '#6b7280', fontSize: 'var(--fs-13, 13px)', flexShrink: 0 }}>
           {t("Copyright © 2026 Softzen IT. All rights reserved.")}
         </footer>
       </main>

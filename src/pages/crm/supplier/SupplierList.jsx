@@ -130,7 +130,7 @@ const SupplierList = () => {
         {/* Filters */}
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr', marginBottom: '24px', alignItems: 'flex-end', gap: '16px' }}>
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px', color: 'var(--primary)' }}>{t("Search All")}</label>
+            <label style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: '600', marginBottom: '8px', color: 'var(--primary)' }}>{t("Search All")}</label>
             <div className="form-input floating-label">
               <input type="text" placeholder=" " value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
               <label>{t("Search All")}</label>
@@ -138,7 +138,7 @@ const SupplierList = () => {
           </div>
 
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>{t("Search By Supplier Group")}</label>
+            <label style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: '600', marginBottom: '8px' }}>{t("Search By Supplier Group")}</label>
             <div className="form-input floating-label">
               <select value={selectedGroup} onChange={(e) => setSelectedGroup(e.target.value)}>
                 <option value="">{t("All Groups")}</option>
@@ -150,7 +150,7 @@ const SupplierList = () => {
           </div>
 
           <div className="form-group">
-            <label style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>{t("Search By Date")}</label>
+            <label style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: '600', marginBottom: '8px' }}>{t("Search By Date")}</label>
             <div style={{ display: 'flex', gap: '8px' }}>
               <div className="form-input floating-label" style={{ flex: 1, padding: '0 8px' }}>
                 <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ color: '#94a3b8' }} />
@@ -174,40 +174,40 @@ const SupplierList = () => {
 
         {/* Total Due Label */}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#000' }}>{t("Total Supplier Due:")} {totalSupplierDue.toFixed(2)}</h3>
+          <h3 style={{ fontSize: 'var(--fs-18, 18px)', fontWeight: '700', color: '#000' }}>{t("Total Supplier Due:")} {totalSupplierDue.toFixed(2)}</h3>
         </div>
 
         {/* Table Controls */}
-        <div className="table-controls-wrapper" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-          <div style={{ fontSize: '14px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div style={{ fontSize: 'var(--fs-14, 14px)', color: 'var(--text-main)' }}>
             {t("Show")} 
-            <select style={{ margin: '0 4px', padding: '4px', border: '1px solid var(--secondary)', borderRadius: '4px' }}>
+            <select style={{ margin: '0 8px', padding: '4px', border: '1px solid var(--secondary)', borderRadius: '4px' }}>
               <option>25</option>
             </select>
             {t("entries")}
           </div>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <button className="btn" onClick={handleExportExcel} style={{ background: '#059669', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button className="btn" onClick={handleExportExcel} style={{ background: '#059669', color: 'white', padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', borderRadius: '4px', cursor: 'pointer' }}>
               <FileSpreadsheet size={16} style={{ marginRight: '6px' }} /> {t("Excel")}
             </button>
-            <button className="btn" onClick={() => window.print()} style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center' }}>
+            <button className="btn" onClick={() => window.print()} style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', borderRadius: '4px' }}>
               <Printer size={16} style={{ marginRight: '6px' }} /> {t("Print")}
             </button>
-            <button onClick={() => window.location.reload()} className="btn" style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center' }}>
+            <button onClick={() => window.location.reload()} className="btn" style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', borderRadius: '4px' }}>
               <RotateCcw size={16} style={{ marginRight: '6px' }} /> {t("Reset")}
             </button>
           </div>
         </div>
 
-        {/* Main Table */}
-        <div style={{ width: '100%', overflowX: 'hidden', border: '1px solid #d1d5db', borderRadius: '4px', background: 'white' }}>
-          <table className="custom-table crm-compact-table">
+        {/* Table */}
+        <div style={{ overflowX: 'auto', border: '1px solid var(--secondary)', borderRadius: '8px' }}>
+          <table className="custom-table" style={{ width: '100%', minWidth: '1000px' }}>
             <thead>
               <tr style={{ background: '#718096', color: 'white' }}>
-                <th className="col-id">{t("ID NO")}</th>
-                <th className="col-details">{t("SUPPLIER DETAILS")}</th>
-                <th className="col-subtable">{t("ACCOUNT")}</th>
-                <th className="col-action">{t("ACTION")}</th>
+                <th width="50" style={{ textAlign: 'center' }}>{t("ID NO ↕")}</th>
+                <th width="400">{t("SUPPLIER DETAILS")}</th>
+                <th width="250">{t("ACCOUNT ↕")}</th>
+                <th width="100" style={{ textAlign: 'center' }}>{t("ACTION ↕")}</th>
               </tr>
             </thead>
             <tbody>
@@ -217,67 +217,87 @@ const SupplierList = () => {
                 <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>{t("No suppliers found.")}</td></tr>
               ) : (
                 suppliers.map((supplier, index) => (
-                  <tr key={supplier.id || supplier.uuid || index} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                    <td className="col-id" style={{ textAlign: 'center', fontWeight: 'bold' }}>{index + 1}</td>
-                    <td className="col-details">
-                      <div className="crm-details-grid">
-                        <div style={{ fontWeight: '600' }}>{t("Name")}</div><div>:</div><div style={{ fontWeight: 'bold' }}>{supplier.name}</div>
-                        <div style={{ fontWeight: '600' }}>{t("Phone")}</div><div>:</div><div>{supplier.phone || '-'}</div>
+                  <tr key={supplier.id || supplier.uuid || index} style={{ background: 'white' }}>
+                    <td style={{ verticalAlign: 'top', paddingTop: '16px', textAlign: 'center' }}>{index + 1}</td>
+                    <td style={{ verticalAlign: 'top', paddingTop: '16px', fontSize: 'var(--fs-13, 13px)' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '110px 10px 1fr', gap: '4px', textAlign: 'left', marginBottom: '4px' }}>
+                        <div style={{ fontWeight: '600' }}>{t("Name")}</div><div>:</div><div>{supplier.name}</div>
+                        <div style={{ fontWeight: '600' }}>{t("Phone")}</div><div>:</div><div>{supplier.phone}</div>
                         <div style={{ fontWeight: '600' }}>{t("Supplier Group")}</div><div>:</div><div>{supplier.group || '-'}</div>
-                        <div style={{ fontWeight: '600' }}>{t("Address")}</div><div>:</div><div>{supplier.address || '-'}</div>
-                        <div style={{ fontWeight: '600' }}>{t("Status")}</div><div>:</div><div>{supplier.status ? t("Active") : t("Inactive")}</div>
+                        <div style={{ fontWeight: '600' }}>{t("Address")}</div><div>:</div><div>{supplier.address}</div>
+                        {supplier.bank_info && (
+                          <div style={{ gridColumn: '1 / -1', color: '#475569', whiteSpace: 'pre-wrap', marginTop: '4px' }}>
+                            {supplier.bank_info}
+                          </div>
+                        )}
                       </div>
                     </td>
-                    <td className="col-subtable" style={{ padding: 0 }}>
-                      <table className="crm-subtable">
+                    <td style={{ verticalAlign: 'top', paddingTop: '16px' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e2e8f0', fontSize: 'var(--fs-12, 12px)' }}>
                         <tbody>
-                          <tr><td>{t("Previous Due")}</td><td>{Number(supplier.previous_due || 0).toFixed(2)}</td></tr>
-                          <tr><td>{t("Bill")}</td><td>{Number(supplier.stats?.purchase_amount || supplier.bill || 0).toFixed(2)}</td></tr>
-                          <tr><td>{t("Total Bill")}</td><td>{(Number(supplier.previous_due || 0) + Number(supplier.stats?.purchase_amount || supplier.bill || 0)).toFixed(2)}</td></tr>
-                          <tr><td>{t("Sales Return")}</td><td>{Number(supplier.stats?.return_amount || supplier.sales_return || 0).toFixed(2)}</td></tr>
-                          <tr><td>{t("Receive")}</td><td style={{ color: '#059669', fontWeight: '600' }}>{Number(supplier.stats?.payment || supplier.paid || 0).toFixed(2)}</td></tr>
-                          <tr style={{ background: '#fef2f2' }}>
-                            <td><span style={{ background: '#ef4444', color: 'white', padding: '1px 4px', borderRadius: '3px', fontWeight: 'bold' }}>{t("Due")}</span></td>
-                            <td style={{ fontWeight: 'bold', color: '#dc2626' }}>{Number(supplier.stats?.due || supplier.due || supplier.previous_due || 0).toFixed(2)}</td>
+                          <tr>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{t("Previous Due")}</td>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{Number(supplier.previous_due || 0).toFixed(2)}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{t("Bill")}</td>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{Number(supplier.stats?.purchase_amount || supplier.bill || 0).toFixed(2)}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{t("Total Bill")}</td>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{(Number(supplier.previous_due || 0) + Number(supplier.stats?.purchase_amount || supplier.bill || 0)).toFixed(2)}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{t("SalesReturn")}</td>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{Number(supplier.stats?.return_amount || supplier.sales_return || 0).toFixed(2)}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{t("Paid")}</td>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{Number(supplier.stats?.payment || supplier.paid || 0).toFixed(2)}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0', background: '#3b82f6', color: 'white' }}>{t("Due")}</td>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0', background: '#3b82f6', color: 'white', fontWeight: 'bold' }}>{Number(supplier.stats?.due || supplier.due || supplier.previous_due || 0).toFixed(2)}</td>
                           </tr>
                         </tbody>
                       </table>
                     </td>
-                    <td className="col-action" style={{ position: 'relative' }}>
+                    <td style={{ verticalAlign: 'top', paddingTop: '32px', position: 'relative', textAlign: 'center' }}>
                       <button 
                         onClick={() => toggleAction(supplier.id || supplier.uuid)}
-                        className="btn" 
-                        style={{ background: 'var(--success)', color: 'white', padding: '4px 6px', fontSize: '9px', borderRadius: '3px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '2px', width: '100%', fontWeight: 'bold' }}
-                      >
-                        {t("Action")} <ChevronDown size={11} />
-                      </button>
+                      className="btn" 
+                      style={{ background: 'var(--success)', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      {t("Action")} <ChevronDown size={14} />
+                    </button>
 
-                      {activeAction === (supplier.id || supplier.uuid) && (
-                        <div style={{ 
-                          position: 'absolute', 
-                          top: '36px', 
-                          right: '0',
-                          background: 'white', 
-                          border: '1px solid #e2e8f0', 
-                          borderRadius: '6px', 
-                          boxShadow: '0 10px 25px rgba(0,0,0,0.15)', 
-                          width: '150px',
-                          zIndex: 100,
-                          textAlign: 'left'
-                        }}>
-                          <div className="action-item" style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px', borderBottom: '1px solid #f1f5f9' }} onClick={() => { setSelectedSupplierView(supplier); setActiveAction(null); }}><Eye size={12} /> {t("View")}</div>
-                          <div className="action-item" style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px', borderBottom: '1px solid #f1f5f9' }} onClick={() => navigate(`/crm/supplier-edit/${supplier.id || supplier.uuid}`)}><Edit size={12} /> {t("Edit")}</div>
-                          <div className="action-item" style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px', borderBottom: '1px solid #f1f5f9' }} onClick={() => toast.info(t("Delete supplier feature coming soon!"))}><Trash2 size={12} /> {t("Delete")}</div>
-                          <div className="action-item" style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px', borderBottom: '1px solid #f1f5f9' }} onClick={() => navigate('/account/supplier-payment')}><DollarSign size={12} /> {t("Payment")}</div>
-                          <div className="action-item" style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px', borderBottom: '1px solid #f1f5f9' }} onClick={() => navigate('/expense-report/supplier-purchase')}><FileText size={12} /> {t("Payment Report")}</div>
-                          <div className="action-item" style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px', borderBottom: '1px solid #f1f5f9' }} onClick={() => { navigate("/product/purchase/report", { state: { supplierId: supplier.id || supplier.uuid } }); setActiveAction(null); }}><FileBarChart size={12} /> {t("Purchase Report")}</div>
-                          <div className="action-item" style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px' }} onClick={() => { navigate("/crm/supplier-statement", { state: { supplierId: supplier.id || supplier.uuid } }); setActiveAction(null); }}><FileText size={12} /> {t("Statement")}</div>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
+                    {activeAction === (supplier.id || supplier.uuid) && (
+                      <div style={{ 
+                        position: 'absolute', 
+                        top: '64px', 
+                        right: '50%',
+                        transform: 'translateX(50%)',
+                        background: 'white', 
+                        border: '1px solid var(--secondary)', 
+                        borderRadius: '8px', 
+                        boxShadow: 'var(--shadow-md)', 
+                        width: '160px',
+                        zIndex: 100,
+                        textAlign: 'left'
+                      }}>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }} onClick={() => { setSelectedSupplierView(supplier); setActiveAction(null); }}><Eye size={14} /> {t("View")}</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }} onClick={() => navigate(`/crm/supplier-edit/${supplier.id || supplier.uuid}`)}><Edit size={14} /> {t("Edit")}</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }} onClick={() => toast.info(t("Delete supplier feature coming soon!"))}><Trash2 size={14} /> {t("Delete")}</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }} onClick={() => navigate('/account/supplier-payment')}><DollarSign size={14} /> {t("Payment")}</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }} onClick={() => navigate('/expense-report/supplier-purchase')}><FileText size={14} /> {t("Payment Report")}</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }}onClick={() => { navigate("/product/purchase/report", { state: { supplierId: supplier.id || supplier.uuid } }); setActiveAction(null); }}><FileBarChart size={14} /> {t("Purchase Report")}</div>
+                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }}onClick={() => { navigate("/crm/supplier-statement", { state: { supplierId: supplier.id || supplier.uuid } }); setActiveAction(null); }}><FileText size={14} /> {t("Statement")}</div>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
             </tbody>
           </table>
         </div>

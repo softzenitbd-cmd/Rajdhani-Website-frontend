@@ -49,7 +49,7 @@ const Profit = () => {
       <div className="premium-header">
         <div>
           <h2 className="premium-title" style={{ textTransform: 'uppercase', margin: 0 }}>{t("Profit & Loss Ledger")}</h2>
-          <span style={{ fontSize: '12px', color: '#64748b' }}>{t("Live calculation based on sales, purchases, receives & expenses")}</span>
+          <span style={{ fontSize: 'var(--fs-12, 12px)', color: '#64748b' }}>{t("Live calculation based on sales, purchases, receives & expenses")}</span>
         </div>
         <div className="header-actions">
           <button onClick={() => navigate(-1)} style={{ background: '#6b7280', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>{t("Go Back")}</button>
@@ -80,7 +80,7 @@ const Profit = () => {
                   style={{ borderRadius: '0 8px 8px 0', width: '50%', padding: '10px' }} 
                 />
               </div>
-              <button type="submit" className="btn-secondary" style={{ padding: '0 28px', fontSize: '15px', fontWeight: 'bold' }}>{t("Search")}</button>
+              <button type="submit" className="btn-secondary" style={{ padding: '0 28px', fontSize: 'var(--fs-15, 15px)', fontWeight: 'bold' }}>{t("Search")}</button>
               <button type="button" onClick={() => { setFromDate(''); setToDate(''); setTimeout(fetchProfit, 50); }} className="btn-secondary" style={{ padding: '0 16px', background: '#94a3b8' }}>{t("Reset")}</button>
             </div>
           </form>
@@ -91,10 +91,10 @@ const Profit = () => {
           <div style={{ width: '100%', maxWidth: '680px' }}>
             {/* Table Controls */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <span style={{ fontSize: '13px', color: '#64748b' }}>
+              <span style={{ fontSize: 'var(--fs-13, 13px)', color: '#64748b' }}>
                 {loading ? t("Recalculating...") : t("Formulas: Product Profit = Sales - Cost | Net Profit = Product Profit - Expenses")}
               </span>
-              <button className="btn-blue" style={{ background: '#06b6d4', padding: '6px 14px', fontSize: '12px', fontWeight: 'bold', borderColor: '#06b6d4' }} onClick={() => window.print()}>
+              <button className="btn-blue" style={{ background: '#06b6d4', padding: '6px 14px', fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', borderColor: '#06b6d4' }} onClick={() => window.print()}>
                 <Printer size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t("Print Profit Statement")}
               </button>
             </div>

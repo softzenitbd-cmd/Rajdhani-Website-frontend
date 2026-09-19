@@ -127,7 +127,7 @@ const SimpleCrudPage = ({ title, itemLabel: itemLabelProp, service, extraFields 
         <PrintHeader />
 
         <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px', marginBottom: '24px', flexWrap: 'wrap', gap: '8px' }}>
-          <h2 style={{ fontSize: '18px', color: 'var(--text-main)', margin: 0 }}>{title}</h2>
+          <h2 style={{ fontSize: 'var(--fs-18, 18px)', color: 'var(--text-main)', margin: 0 }}>{title}</h2>
           <div style={{ display: 'flex', gap: '8px' }}>
             <input
               value={search}
@@ -136,7 +136,7 @@ const SimpleCrudPage = ({ title, itemLabel: itemLabelProp, service, extraFields 
               placeholder={t("Search...")}
               style={{ ...inputStyle, width: '220px', padding: '8px' }}
             />
-            <button onClick={openCreate} style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <button onClick={openCreate} style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <Plus size={16} /> {t("Add {{v0}}", { v0: itemLabel })}
             </button>
           </div>
@@ -145,7 +145,7 @@ const SimpleCrudPage = ({ title, itemLabel: itemLabelProp, service, extraFields 
         <TableToolbar entries={entries} setEntries={setEntries} total={rows.length} excelData={excelData} excelName={excelName || title.replace(/\s+/g, '_')} onReload={load} onReset={() => { setSearch(''); setTimeout(load, 0); }} />
 
         <div className="table-responsive">
-          <table className="custom-table" style={{ width: '100%', fontSize: '12px', textAlign: 'center' }}>
+          <table className="custom-table" style={{ width: '100%', fontSize: 'var(--fs-12, 12px)', textAlign: 'center' }}>
             <thead>
               <tr style={{ background: '#94a3b8', color: 'white', textTransform: 'uppercase' }}>
                 <th style={{ width: '60px', padding: '12px' }}>{t("SL")}</th>
@@ -185,12 +185,12 @@ const SimpleCrudPage = ({ title, itemLabel: itemLabelProp, service, extraFields 
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
           <div style={{ background: 'white', borderRadius: '8px', width: '420px', maxWidth: '95vw', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
             <div style={{ padding: '16px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--text-main)' }}>{modal.id ? t("Edit {{v0}}", { v0: itemLabel }) : t("Add {{v0}}", { v0: itemLabel })}</h3>
+              <h3 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', color: 'var(--text-main)' }}>{modal.id ? t("Edit {{v0}}", { v0: itemLabel }) : t("Add {{v0}}", { v0: itemLabel })}</h3>
               <button onClick={() => setModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={20} /></button>
             </div>
             <div style={{ padding: '24px' }}>
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: 'var(--label-color)' }}>{t("{{v0}} Name", { v0: itemLabel })} <span style={{ color: 'var(--danger)' }}>*</span></label>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)' }}>{t("{{v0}} Name", { v0: itemLabel })} <span style={{ color: 'var(--danger)' }}>*</span></label>
                 <input
                   autoFocus
                   type="text"
@@ -203,7 +203,7 @@ const SimpleCrudPage = ({ title, itemLabel: itemLabelProp, service, extraFields 
               </div>
               {extraFields.map((f) => (
                 <div key={f.name} style={{ marginBottom: '16px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: 'var(--label-color)' }}>{f.label}</label>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)' }}>{f.label}</label>
                   {f.type === 'select' ? (
                     <select value={modal[f.name]} onChange={(e) => setModal({ ...modal, [f.name]: e.target.value })} style={inputStyle}>
                       {(f.options || []).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}

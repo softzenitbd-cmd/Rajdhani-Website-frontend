@@ -124,7 +124,7 @@ const SalesCustomerWise = () => {
             <option value="">{t("All Customers")}</option>
             {clients.map((c) => <option key={c.id || c.uuid} value={c.id || c.uuid}>{c.name || c.company_name}</option>)}
           </select>
-          <button type="submit" disabled={loading} style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 500 }}>
+          <button type="submit" disabled={loading} style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', fontWeight: 500 }}>
             {loading ? t("Searching...") : t("Search")}
           </button>
         </form>
@@ -135,16 +135,16 @@ const SalesCustomerWise = () => {
           <PrintHeader />
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-            <h3 style={{ fontSize: '12px', fontWeight: 'bold', margin: 0, textTransform: 'uppercase' }}>
+            <h3 style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', margin: 0, textTransform: 'uppercase' }}>
               {t("Customer Wise Sales Report | (")}{selectedClient?.name || t("All Customers")}{t(") | From (")}{filters.from_date}{t(") To (")}{filters.to_date})
             </h3>
-            <button className="no-print" onClick={() => navigate(-1)} style={{ background: '#7e8a9f', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>{t("Go Back")}</button>
+            <button className="no-print" onClick={() => navigate(-1)} style={{ background: '#7e8a9f', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)' }}>{t("Go Back")}</button>
           </div>
 
           <TableToolbar entries={entries} setEntries={setEntries} total={invoices.length} excelData={excelData} excelName="Customer_Wise_Sales" onReload={handleSearch} onReset={reset} />
 
           <div className="table-responsive">
-            <table style={{ width: '100%', fontSize: '11px', textAlign: 'center', borderCollapse: 'collapse', border: '1px solid #94a3b8' }}>
+            <table style={{ width: '100%', fontSize: 'var(--fs-11, 11px)', textAlign: 'center', borderCollapse: 'collapse', border: '1px solid #94a3b8' }}>
               <thead>
                 <tr style={{ background: '#94a3b8', color: 'white', textTransform: 'uppercase' }}>
                   {['SL', 'ISSUED DATE', 'VOUCHER NO', 'CLIENT', 'PRODUCT', 'UNIT', 'QUANTITY', 'PRICE', 'TOTAL', 'DISCOUNT', 'TRANSPORT FARE', 'RETURN QTY', 'GRAND TOTAL', 'RECEIVE', 'DUE'].map((h) => (

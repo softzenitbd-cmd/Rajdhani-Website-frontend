@@ -87,8 +87,8 @@ const SmsScheduleReport = () => {
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
         <div className="premium-header no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'white' }}>
-          <h2 className="premium-title" style={{ fontSize: '18px', fontWeight: 'bold' }}>{t("SMS Schedule Report")}</h2>
-          <button onClick={() => navigate('/sms/schedule')} style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+          <h2 className="premium-title" style={{ fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold' }}>{t("SMS Schedule Report")}</h2>
+          <button onClick={() => navigate('/sms/schedule')} style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
             <Plus size={16} /> {t("Schedule SMS")}
           </button>
         </div>
@@ -113,7 +113,7 @@ const SmsScheduleReport = () => {
           <TableToolbar entries={entries} setEntries={setEntries} total={rows.length} excelData={excelData} excelName="SMS_Schedule_Report" onReload={() => load()} onReset={reset} />
 
           <div className="table-responsive">
-            <table className="custom-table" style={{ width: '100%', fontSize: '12px' }}>
+            <table className="custom-table" style={{ width: '100%', fontSize: 'var(--fs-12, 12px)' }}>
               <thead>
                 <tr>
                   <th style={{ width: '50px', textAlign: 'center' }}>{t("SL")}</th>
@@ -137,11 +137,11 @@ const SmsScheduleReport = () => {
                       <td style={{ padding: '10px', whiteSpace: 'pre-wrap' }}>{bodyOf(r)}</td>
                       <td style={{ padding: '10px' }}>{fmtDateTime(scheduledAt(r))}</td>
                       <td style={{ padding: '10px', textAlign: 'center' }}>
-                        <span style={{ padding: '2px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', textTransform: 'capitalize', ...statusStyle(r.status) }}>{r.status || t("pending")}</span>
+                        <span style={{ padding: '2px 10px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', textTransform: 'capitalize', ...statusStyle(r.status) }}>{r.status || t("pending")}</span>
                       </td>
                       <td className="action-column" style={{ padding: '10px', textAlign: 'center' }}>
                         {isPending(r) ? (
-                          <button onClick={() => cancel(r)} style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px' }}>
+                          <button onClick={() => cancel(r)} style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: 'var(--fs-11, 11px)' }}>
                             <XCircle size={12} /> {t("Cancel")}
                           </button>
                         ) : <span style={{ color: '#94a3b8' }}>—</span>}

@@ -60,21 +60,21 @@ const AccountBalance = () => {
             {t("entries")}
           </div>
           <div className="table-controls-right" style={{ gap: '4px' }}>
-            <button onClick={() => exportVisibleTable('xlsx')} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>{t("Excel")}</button>
-            <button onClick={() => exportVisibleTable('csv')} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>{t("CSV")}</button>
-            <button onClick={() => printPage()} className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>{t("PDF")}</button>
-            <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }} onClick={() => window.print()}><Printer size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.print')}</button>
-            <button className="btn-blue" style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }} onClick={fetchAccounts}><RotateCcw size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.reset')}</button>
+            <button onClick={() => exportVisibleTable('xlsx')} className="btn-blue" style={{ padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold' }}>{t("Excel")}</button>
+            <button onClick={() => exportVisibleTable('csv')} className="btn-blue" style={{ padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold' }}>{t("CSV")}</button>
+            <button onClick={() => printPage()} className="btn-blue" style={{ padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold' }}>{t("PDF")}</button>
+            <button className="btn-blue" style={{ padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold' }} onClick={() => window.print()}><Printer size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.print')}</button>
+            <button className="btn-blue" style={{ padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold' }} onClick={fetchAccounts}><RotateCcw size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }}/> {t('common.reset')}</button>
           </div>
         </div>
 
         <table className="custom-table" style={{ border: '1px solid #d1d5db' }}>
           <thead>
             <tr>
-              <th style={{ width: '80px', textAlign: 'left', paddingLeft: '12px' }}>{t("ID NO")}<span style={{ fontSize: '10px', verticalAlign: 'super', marginLeft: '4px' }}>↑↓</span></th>
-              <th style={{ textAlign: 'left' }}>{t("TITLE")}<span style={{ fontSize: '10px', verticalAlign: 'super', marginLeft: '4px' }}>↑↓</span></th>
-              <th style={{ textAlign: 'left' }}>{t("ACCOUNT")}<span style={{ fontSize: '10px', verticalAlign: 'super', marginLeft: '4px' }}>↑↓</span></th>
-              <th style={{ textAlign: 'left' }}>{t("BALANCE")}<span style={{ fontSize: '10px', verticalAlign: 'super', marginLeft: '4px' }}>↑↓</span></th>
+              <th style={{ width: '80px', textAlign: 'left', paddingLeft: '12px' }}>{t("ID NO")}<span style={{ fontSize: 'var(--fs-10, 10px)', verticalAlign: 'super', marginLeft: '4px' }}>↑↓</span></th>
+              <th style={{ textAlign: 'left' }}>{t("TITLE")}<span style={{ fontSize: 'var(--fs-10, 10px)', verticalAlign: 'super', marginLeft: '4px' }}>↑↓</span></th>
+              <th style={{ textAlign: 'left' }}>{t("ACCOUNT")}<span style={{ fontSize: 'var(--fs-10, 10px)', verticalAlign: 'super', marginLeft: '4px' }}>↑↓</span></th>
+              <th style={{ textAlign: 'left' }}>{t("BALANCE")}<span style={{ fontSize: 'var(--fs-10, 10px)', verticalAlign: 'super', marginLeft: '4px' }}>↑↓</span></th>
             </tr>
           </thead>
           <tbody>

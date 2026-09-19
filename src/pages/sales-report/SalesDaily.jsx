@@ -87,7 +87,7 @@ const SalesDaily = () => {
       <div className="premium-card">
         {/* Banner */}
         <div style={{ padding: '0', background: 'white', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 'bold', padding: '16px 0', margin: '0' }}>{t("Daily Sales Report")}</h2>
+          <h2 style={{ fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', padding: '16px 0', margin: '0' }}>{t("Daily Sales Report")}</h2>
         </div>
 
         <div className="premium-body" style={{ background: 'white', padding: '24px' }}>
@@ -95,10 +95,10 @@ const SalesDaily = () => {
           
           {/* Header row with Title and Go Back */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: 'bold', margin: '0' }}>{t("DAILY SALES REPORT")}</h3>
+            <h3 style={{ fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', margin: '0' }}>{t("DAILY SALES REPORT")}</h3>
             <button 
               onClick={() => navigate('/invoice/list')}
-              style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--text-muted)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: '13px' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--text-muted)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }}
             >
               <ArrowLeft size={14} /> {t("Go Back")}
             </button>
@@ -107,7 +107,7 @@ const SalesDaily = () => {
           {/* Filters Area */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '16px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t('common.search_by_client')}</label>
+              <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t('common.search_by_client')}</label>
               <select 
                 name="client_id"
                 value={filters.client_id}
@@ -121,7 +121,7 @@ const SalesDaily = () => {
               </select>
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Search By Barcode / Invoice")}</label>
+              <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Search By Barcode / Invoice")}</label>
               <input 
                 type="text"
                 name="barcode"
@@ -132,7 +132,7 @@ const SalesDaily = () => {
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Date")}</label>
+              <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Date")}</label>
               <input 
                 type="date"
                 name="from_date"
@@ -146,7 +146,7 @@ const SalesDaily = () => {
           {/* Clear Filter Button */}
           <button 
             onClick={handleClearFilters}
-            style={{ width: '100%', background: '#7e8a9f', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', marginBottom: '24px' }}
+            style={{ width: '100%', background: '#7e8a9f', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', marginBottom: '24px' }}
           >
             {t("Clear Filter")}
           </button>
@@ -159,15 +159,15 @@ const SalesDaily = () => {
 
           {/* Controls */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: 'var(--fs-13, 13px)', color: 'var(--text-muted)' }}>
               {t("Showing")} {reports.length} {t("entries")}
             </div>
             
             <div style={{ display: 'flex', gap: '4px' }}>
-              <button onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px 0 0 4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px' }}>
+              <button onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px 0 0 4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)' }}>
                 <Printer size={14} /> {t("Print")}
               </button>
-              <button onClick={handleClearFilters} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '0 4px 4px 0', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px' }}>
+              <button onClick={handleClearFilters} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '0 4px 4px 0', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)' }}>
                 <RefreshCcw size={14} /> {t("Reset")}
               </button>
             </div>
@@ -175,7 +175,7 @@ const SalesDaily = () => {
 
           {/* Table View */}
           <div className="table-responsive" style={{ width: '100%', overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
-            <table className="custom-table" style={{ width: '100%', fontSize: '11px', textAlign: 'center' }}>
+            <table className="custom-table" style={{ width: '100%', fontSize: 'var(--fs-11, 11px)', textAlign: 'center' }}>
               <thead>
                 <tr style={{ background: '#94a3b8', color: 'white', textTransform: 'uppercase' }}>
                   <th style={{ width: '40px', padding: '10px' }}>{t("SL ⇅")}</th>

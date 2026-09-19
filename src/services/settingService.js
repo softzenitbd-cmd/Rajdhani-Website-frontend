@@ -150,6 +150,30 @@ export const settingService = {
       },
     };
   })(),
+
+  // ==========================================
+  // 6. Form Settings
+  // ==========================================
+  getFormSettings: async (formName) => {
+    try {
+      const res = await apiClient.get(`/settings/forms/${formName}`);
+      return res.data;
+    } catch (err) {
+      // Fallback to local storage if API is not available
+      const stored = localStorage.getItem(`rg_form_${formName}`);
+      return stored ? JSON.parse(stored) : {};
+    }
+  },
+
+  updateFormSettings: async (formName, settings) => {
+    try {
+      await apiClient.put(`/settings/forms/${formName}`, settings);
+    } catch (err) {
+      // Fallback to local storage if API is not available
+      localStorage.setItem(`rg_form_${formName}`, JSON.stringify(settings));
+    }
+    return settings;
+  },
 };
 
 export default settingService;

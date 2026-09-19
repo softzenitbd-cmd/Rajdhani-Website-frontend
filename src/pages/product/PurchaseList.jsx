@@ -36,22 +36,39 @@ const PurchaseList = () => {
         crmService.getSuppliers().catch(() => null)
       ]);
 
-      if (purRes) {
-        const list = Array.isArray(purRes) ? purRes : (purRes?.results || []);
-        setPurchases(list.map((item, idx) => ({
-          id: item.id || idx + 1,
-          date: item.created_at ? new Date(item.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-',
-          invoice: item.invoice_number || item.invoice || `INV-${item.id || idx + 100}`,
-          supplier: item.supplier_name || item.supplier || '-',
-          total: parseFloat(item.total_amount || item.grand_total || item.total || 0).toFixed(2)
-        })));
-      } else {
-        setPurchases([]);
+      let sList = [];
+      if (supRes) {
+        sList = Array.isArray(supRes) ? supRes : (supRes?.results || []);
+        setSuppliers(sList);
       }
 
-      if (supRes) {
-        const sList = Array.isArray(supRes) ? supRes : (supRes?.results || []);
-        setSuppliers(sList);
+      if (purRes) {
+        const list = Array.isArray(purRes) ? purRes : (purRes?.results || []);
+        setPurchases(list.map((item, idx) => {
+          let supName = item.supplier_name || item.supplier?.name;
+          if (!supName && item.supplier) {
+             const s = sList.find(x => String(x.id) === String(item.supplier));
+             supName = s ? (s.name || s.company_name) : String(item.supplier);
+          }
+
+          let inv = item.invoice_number || item.invoice || String(item.id || idx + 100);
+          if (inv && typeof inv === 'string' && inv.length > 20 && inv.includes('-')) {
+             const shortId = inv.startsWith('INV-') ? inv.replace('INV-', '').split('-')[0] : inv.split('-')[0];
+             inv = `INV-${shortId}`;
+          } else if (!inv.startsWith('INV-')) {
+             inv = `INV-${inv}`;
+          }
+
+          return {
+            id: item.id || idx + 1,
+            date: item.created_at ? new Date(item.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-',
+            invoice: inv,
+            supplier: supName || '-',
+            total: parseFloat(item.total_amount || item.grand_total || item.total || 0).toFixed(2)
+          };
+        }));
+      } else {
+        setPurchases([]);
       }
     } catch (err) {
       console.error("Error fetching purchases:", err);
@@ -106,7 +123,7 @@ const PurchaseList = () => {
       
       {/* Center Title */}
       <div style={{ textAlign: 'center', marginBottom: '40px', marginTop: '20px', position: 'relative' }}>
-        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>{t("Purchase List")}</h2>
+        <h2 style={{ fontFamily: 'monospace', fontSize: 'var(--fs-24, 24px)', fontWeight: 'bold' }}>{t("Purchase List")}</h2>
         <button 
           onClick={() => navigate('/product/purchase/add-new')}
           className="btn" 
@@ -120,11 +137,11 @@ const PurchaseList = () => {
         {/* Filters */}
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 2fr 1fr', gap: '16px', marginBottom: '24px', alignItems: 'end' }}>
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t("Supplier")}</div>
+            <div style={{ fontSize: 'var(--fs-12, 12px)', marginBottom: '4px' }}>{t("Supplier")}</div>
             <select 
               value={filters.supplier}
               onChange={(e) => handleFilterChange('supplier', e.target.value)}
-              style={{ padding: '10px', width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', background: 'white' }}
+              style={{ padding: '10px', width: '100%', border: '1px solid #38bdf8', borderRadius: '4px', outline: 'none', background: 'white' }}
             >
               <option value="">{t("Select Supplier")}</option>
               {suppliers.map(s => (
@@ -134,47 +151,47 @@ const PurchaseList = () => {
           </div>
           
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t("Invoice No")}</div>
+            <div style={{ fontSize: 'var(--fs-12, 12px)', marginBottom: '4px' }}>{t("Invoice No")}</div>
             <input 
               type="text" 
               placeholder={t("Search Invoice...")} 
               value={filters.search}
               onChange={(e) => handleFilterChange('search', e.target.value)}
-              style={{ padding: '10px', width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }} 
+              style={{ padding: '10px', width: '100%', border: '1px solid #38bdf8', borderRadius: '4px', outline: 'none' }} 
             />
           </div>
 
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t("Barcode")}</div>
+            <div style={{ fontSize: 'var(--fs-12, 12px)', marginBottom: '4px' }}>{t("Barcode")}</div>
             <input 
               type="text" 
               placeholder={t("Barcode...")} 
               value={filters.barcode}
               onChange={(e) => handleFilterChange('barcode', e.target.value)}
-              style={{ padding: '10px', width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }} 
+              style={{ padding: '10px', width: '100%', border: '1px solid #38bdf8', borderRadius: '4px', outline: 'none' }} 
             />
           </div>
 
           <div>
-            <div style={{ fontSize: '12px', marginBottom: '4px' }}>{t('common.search_by_date')}</div>
+            <div style={{ fontSize: 'var(--fs-12, 12px)', marginBottom: '4px' }}>{t('common.search_by_date')}</div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input 
                 type="date" 
                 value={filters.from_date}
                 onChange={(e) => handleFilterChange('from_date', e.target.value)}
-                style={{ padding: '10px', width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }} 
+                style={{ padding: '10px', width: '100%', border: '1px solid #38bdf8', borderRadius: '4px', outline: 'none', color: '#64748b' }} 
               />
               <input 
                 type="date" 
                 value={filters.to_date}
                 onChange={(e) => handleFilterChange('to_date', e.target.value)}
-                style={{ padding: '10px', width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }} 
+                style={{ padding: '10px', width: '100%', border: '1px solid #38bdf8', borderRadius: '4px', outline: 'none', color: '#64748b' }} 
               />
             </div>
           </div>
 
           <div>
-            <button onClick={clearFilters} className="btn" style={{ background: 'var(--text-muted)', color: 'white', padding: '12px', borderRadius: '4px', fontSize: '14px', width: '100%', cursor: 'pointer' }}>
+            <button onClick={clearFilters} className="btn" style={{ background: '#64748b', color: 'white', padding: '12px', borderRadius: '4px', fontSize: 'var(--fs-14, 14px)', width: '100%', cursor: 'pointer', border: 'none' }}>
               {t("Clear Filter")}
             </button>
           </div>
@@ -182,33 +199,45 @@ const PurchaseList = () => {
 
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
-            {t("Showing")} {filteredPurchases.length} {t("entries")}
+          <div style={{ fontSize: 'var(--fs-14, 14px)', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>{t("Show")}</span>
+            <select style={{ border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '4px', outline: 'none' }}>
+              <option>100</option>
+              <option>50</option>
+              <option>25</option>
+            </select>
+            <span>{t("entries")}</span>
           </div>
-          <div style={{ display: 'flex', gap: '4px' }}>
-            <button onClick={() => window.print()} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              {t("Print")}
+          <div style={{ display: 'flex' }}>
+            <button className="btn" style={{ background: '#3b82f6', color: 'white', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', border: 'none', borderRight: '1px solid rgba(255,255,255,0.2)' }}>
+              Excel
             </button>
-            <button onClick={clearFilters} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <RotateCcw size={14} /> {t("Reset")}
+            <button className="btn" style={{ background: '#3b82f6', color: 'white', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', border: 'none', borderRight: '1px solid rgba(255,255,255,0.2)' }}>
+              CSV
             </button>
-            <button onClick={fetchData} className="btn" style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <RefreshCw size={14} className={loading ? "spin" : ""} /> {t("Reload")}
+            <button className="btn" style={{ background: '#3b82f6', color: 'white', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', border: 'none', borderRight: '1px solid rgba(255,255,255,0.2)' }}>
+              PDF
+            </button>
+            <button onClick={() => window.print()} className="btn" style={{ background: '#3b82f6', color: 'white', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', border: 'none', borderRight: '1px solid rgba(255,255,255,0.2)' }}>
+              Print
+            </button>
+            <button onClick={clearFilters} className="btn" style={{ background: '#3b82f6', color: 'white', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', border: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <RotateCcw size={14} /> Reset
             </button>
           </div>
         </div>
 
         {/* Table */}
-        <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0' }}>
-          <table className="custom-table" style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="custom-table" style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse', border: '1px solid #cbd5e1' }}>
             <thead>
-              <tr style={{ background: 'var(--secondary)', color: 'white' }}>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px', width: '60px' }}>{t("ID NO ↕")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("DATE")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("INVOICE")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("SUPPLIER")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("TOTAL")}</th>
-                <th style={{ textAlign: 'center', padding: '12px', fontSize: '11px', width: '120px' }}>{t("ACTION")}</th>
+              <tr style={{ background: '#94a3b8', color: 'black' }}>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)', width: '60px' }}>{t("ID NO ↕")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("DATE")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("INVOICE")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("SUPPLIER")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("TOTAL")}</th>
+                <th style={{ textAlign: 'center', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)', width: '120px' }}>{t("ACTION")}</th>
               </tr>
             </thead>
             <tbody>
@@ -218,7 +247,7 @@ const PurchaseList = () => {
                 </tr>
               ) : (
                 filteredPurchases.map((purchase, index) => (
-                  <tr key={purchase.id} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: '13px' }}>
+                  <tr key={purchase.id} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-13, 13px)' }}>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{purchase.date}</td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{purchase.invoice}</td>
@@ -251,20 +280,20 @@ const PurchaseList = () => {
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '2px solid #16a34a', paddingBottom: '12px' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#0f172a' }}>{t("Purchase Invoice Memo")}</h3>
-                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '600' }}>{t("Invoice #")}{selectedPurchase.invoice || selectedPurchase.invoiceNo || `PUR-${selectedPurchase.id}`}</span>
+                <h3 style={{ margin: 0, fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', color: '#0f172a' }}>{t("Purchase Invoice Memo")}</h3>
+                <span style={{ fontSize: 'var(--fs-13, 13px)', color: '#64748b', fontWeight: '600' }}>{t("Invoice #")}{selectedPurchase.invoice || selectedPurchase.invoiceNo || `PUR-${selectedPurchase.id}`}</span>
               </div>
               <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#f1f5f9', padding: '6px 16px', borderRadius: '50%', cursor: 'pointer', color: '#64748b' }}>✕</button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px', marginBottom: '20px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: 'var(--fs-13, 13px)', marginBottom: '20px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
               <div><strong>{t("Supplier:")}</strong> {selectedPurchase.supplier || selectedPurchase.supplier_name || t("GENERAL SUPPLIER")}</div>
               <div><strong>{t("Purchase Date:")}</strong> {selectedPurchase.date || selectedPurchase.created_at || '-'}</div>
               <div><strong>{t("Category / Memo:")}</strong> {t("PURCHASE INVOICE")}</div>
               <div><strong>{t("Status:")}</strong> <span style={{ color: '#059669', fontWeight: 'bold' }}>{t("RECEIVED")}</span></div>
             </div>
 
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px', fontSize: '13px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px', fontSize: 'var(--fs-13, 13px)' }}>
               <thead>
                 <tr style={{ background: '#1e293b', color: 'white' }}>
                   <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', width: '40px' }}>{t("SL")}</th>
@@ -305,10 +334,10 @@ const PurchaseList = () => {
 
             {/* Signature Footer */}
             <div className="print-only" style={{ display: 'none', justifyContent: 'space-between', marginTop: '60px', paddingTop: '20px' }}>
-              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: '12px' }}>
+              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: 'var(--fs-12, 12px)' }}>
                 {t("Supplier Signature")}
               </div>
-              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: '12px' }}>
+              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: 'var(--fs-12, 12px)' }}>
                 {t("Authorized Signature")}
               </div>
             </div>

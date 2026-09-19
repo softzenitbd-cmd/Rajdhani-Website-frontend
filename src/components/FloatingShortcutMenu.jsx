@@ -67,7 +67,7 @@ const FloatingShortcutMenu = () => {
               padding: '10px 12px',
               borderRadius: '8px',
               cursor: 'pointer',
-              fontSize: '13px',
+              fontSize: 'var(--fs-13, 13px)',
               fontWeight: '700',
               color: '#0f172a',
               transition: 'all 0.15s ease',
@@ -112,7 +112,7 @@ const FloatingShortcutMenu = () => {
                   padding: '9px 12px',
                   borderRadius: '8px',
                   cursor: 'pointer',
-                  fontSize: '13px',
+                  fontSize: 'var(--fs-13, 13px)',
                   fontWeight: '600',
                   color: '#334155',
                   transition: 'all 0.15s ease'

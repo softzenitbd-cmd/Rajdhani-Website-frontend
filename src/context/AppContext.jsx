@@ -2,6 +2,8 @@ import React, { createContext, useReducer, useEffect, useContext, useCallback } 
 import { appSettingsService } from '../services/appSettingsService';
 
 export const defaultTheme = {
+  '--main-font': "'Inter', sans-serif",
+  '--main-font-size': '13px',
   '--bg-app': '#f4f7fe',
   '--bg-sidebar': '#ffffff',
   '--sidebar-hover': '#f1f5f9',
@@ -76,6 +78,22 @@ export const AppProvider = ({ children }) => {
     if (state.theme) {
       Object.keys(state.theme).forEach(key => {
         root.style.setProperty(key, state.theme[key]);
+      });
+
+      // Compute font scaling based on --main-font-size
+      let baseSize = 13;
+      let targetSize = 13;
+      const sizeStr = state.theme['--main-font-size'] || '13px';
+      const match = sizeStr.match(/(\d+)px/);
+      if (match) {
+        targetSize = parseInt(match[1], 10);
+      }
+      const scale = targetSize / baseSize;
+
+      // Generate scaled sizes for standard pixel values
+      [10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 40].forEach(size => {
+        const newSize = Math.round(size * scale);
+        root.style.setProperty(`--fs-${size}`, `${newSize}px`);
       });
     }
   }, [state.theme]);

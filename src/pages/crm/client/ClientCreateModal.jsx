@@ -104,7 +104,7 @@ const ClientCreateModal = ({ isOpen, onClose, onClientAdded }) => {
         
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #e2e8f0' }}>
-          <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold' }}>{t("Add New Client")}</h3>
+          <h3 style={{ margin: 0, fontSize: 'var(--fs-15, 15px)', fontWeight: 'bold' }}>{t("Add New Client")}</h3>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}>
             <X size={20} />
           </button>
@@ -125,7 +125,7 @@ const ClientCreateModal = ({ isOpen, onClose, onClientAdded }) => {
                 placeholder={t("Client Name")} 
                 value={formData.clientName}
                 onChange={handleChange}
-                style={{ flex: 1, padding: '10px 12px', border: 'none', outline: 'none', fontSize: '13px' }} 
+                style={{ flex: 1, padding: '10px 12px', border: 'none', outline: 'none', fontSize: 'var(--fs-13, 13px)' }} 
               />
             </div>
 
@@ -139,7 +139,7 @@ const ClientCreateModal = ({ isOpen, onClose, onClientAdded }) => {
                 placeholder={t("Address")} 
                 value={formData.address}
                 onChange={handleChange}
-                style={{ flex: 1, padding: '10px 12px', border: 'none', outline: 'none', fontSize: '13px' }} 
+                style={{ flex: 1, padding: '10px 12px', border: 'none', outline: 'none', fontSize: 'var(--fs-13, 13px)' }} 
               />
             </div>
 
@@ -153,7 +153,7 @@ const ClientCreateModal = ({ isOpen, onClose, onClientAdded }) => {
                 placeholder={t("Phone")} 
                 value={formData.phone}
                 onChange={handleChange}
-                style={{ flex: 1, padding: '10px 12px', border: 'none', outline: 'none', fontSize: '13px' }} 
+                style={{ flex: 1, padding: '10px 12px', border: 'none', outline: 'none', fontSize: 'var(--fs-13, 13px)' }} 
               />
             </div>
 
@@ -168,7 +168,7 @@ const ClientCreateModal = ({ isOpen, onClose, onClientAdded }) => {
                 placeholder={t("Phone (Optional)")} 
                 value={formData.phoneOptional}
                 onChange={handleChange}
-                style={{ flex: 1, padding: '10px 12px', border: 'none', outline: 'none', fontSize: '13px' }} 
+                style={{ flex: 1, padding: '10px 12px', border: 'none', outline: 'none', fontSize: 'var(--fs-13, 13px)' }} 
               />
             </div>
 
@@ -182,7 +182,7 @@ const ClientCreateModal = ({ isOpen, onClose, onClientAdded }) => {
                 placeholder={t("Previous Due")} 
                 value={formData.previousDue}
                 onChange={handleChange}
-                style={{ flex: 1, padding: '10px 12px', border: 'none', outline: 'none', fontSize: '13px' }} 
+                style={{ flex: 1, padding: '10px 12px', border: 'none', outline: 'none', fontSize: 'var(--fs-13, 13px)' }} 
               />
             </div>
 
@@ -191,7 +191,7 @@ const ClientCreateModal = ({ isOpen, onClose, onClientAdded }) => {
                 name="group"
                 value={formData.group}
                 onChange={handleChange}
-                style={{ flex: 1, padding: '10px 12px', border: 'none', outline: 'none', fontSize: '13px', appearance: 'none', background: 'transparent' }}
+                style={{ flex: 1, padding: '10px 12px', border: 'none', outline: 'none', fontSize: 'var(--fs-13, 13px)', appearance: 'none', background: 'transparent' }}
               >
                 <option value="">{t("Select Group")}</option>
                 {groups.map(g => (
@@ -211,7 +211,7 @@ const ClientCreateModal = ({ isOpen, onClose, onClientAdded }) => {
           {/* Group Add Modal (Nested) */}
           {isGroupModalOpen && (
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.3)', zIndex: 1010, width: '350px' }}>
-              <h4 style={{ margin: '0 0 16px 0', fontSize: '14px' }}>{t("Add Client Group")}</h4>
+              <h4 style={{ margin: '0 0 16px 0', fontSize: 'var(--fs-14, 14px)' }}>{t("Add Client Group")}</h4>
               <input 
                 type="text" 
                 value={newGroupName}
@@ -242,13 +242,13 @@ const ClientCreateModal = ({ isOpen, onClose, onClientAdded }) => {
             <button 
               onClick={handleSubmit}
               disabled={loading}
-              style={{ background: '#059669', color: 'white', border: 'none', padding: '8px 24px', borderRadius: '4px', fontWeight: 'bold', fontSize: '13px', cursor: loading ? 'not-allowed' : 'pointer' }}
+              style={{ background: '#059669', color: 'white', border: 'none', padding: '8px 24px', borderRadius: '4px', fontWeight: 'bold', fontSize: 'var(--fs-13, 13px)', cursor: loading ? 'not-allowed' : 'pointer' }}
             >
               {loading ? t("Adding...") : t("Client Add")}
             </button>
             <button 
               onClick={onClose}
-              style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 24px', borderRadius: '4px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
+              style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 24px', borderRadius: '4px', fontWeight: 'bold', fontSize: 'var(--fs-13, 13px)', cursor: 'pointer' }}
             >
               {t("Cancel")}
             </button>

@@ -103,7 +103,7 @@ const TransferList = () => {
   const totalCredit = visible.reduce((s, r) => s + r.credit, 0);
   const totalDebit = visible.reduce((s, r) => s + r.debit, 0);
 
-  const toolBtn = (bg) => ({ background: bg, color: 'white', border: 'none', padding: '6px 14px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' });
+  const toolBtn = (bg) => ({ background: bg, color: 'white', border: 'none', padding: '6px 14px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: 'var(--fs-13, 13px)' });
 
   return (
     <div style={{ background: 'white', minHeight: '100vh', padding: '20px' }}>
@@ -120,12 +120,12 @@ const TransferList = () => {
       </div>
 
       <PrintHeader />
-      <h2 style={{ textAlign: 'center', fontSize: '20px', fontWeight: 'bold', margin: '12px 0 20px' }}>{t("Transfer List")}</h2>
+      <h2 style={{ textAlign: 'center', fontSize: 'var(--fs-20, 20px)', fontWeight: 'bold', margin: '12px 0 20px' }}>{t("Transfer List")}</h2>
 
       {/* Filters */}
       <div className="no-print" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.5fr auto', gap: '20px', marginBottom: '20px', alignItems: 'end' }}>
         <div>
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 'bold' }}>{t("Search By Account")}</label>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold' }}>{t("Search By Account")}</label>
           <SearchableSelect
             options={accounts.map((a) => ({ value: a.id, label: a.name, searchValue: a.name }))}
             value={accountId}
@@ -134,7 +134,7 @@ const TransferList = () => {
           />
         </div>
         <div>
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 'bold' }}>{t("Search By Type")}</label>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold' }}>{t("Search By Type")}</label>
           <select value={type} onChange={(e) => setType(e.target.value)} style={{ width: '100%', padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none', background: 'white' }}>
             <option value="">{t("Choose one")}</option>
             <option value="Sent">{t("Sent")}</option>
@@ -142,7 +142,7 @@ const TransferList = () => {
           </select>
         </div>
         <div>
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 'bold' }}>{t("Search By Date")}</label>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold' }}>{t("Search By Date")}</label>
           <div style={{ display: 'flex', gap: '10px' }}>
             <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ flex: 1, padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
             <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ flex: 1, padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
@@ -155,7 +155,7 @@ const TransferList = () => {
 
       {/* Table Controls */}
       <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-        <div style={{ fontSize: '14px' }}>
+        <div style={{ fontSize: 'var(--fs-14, 14px)' }}>
           {t("Show")}
           <input type="number" value={limit} onChange={(e) => setLimit(Number(e.target.value) || 100)} style={{ width: '60px', margin: '0 8px', padding: '4px', border: '1px solid #cbd5e1', borderRadius: '4px', textAlign: 'center' }} />
           {t("entries")}
@@ -171,7 +171,7 @@ const TransferList = () => {
 
       {/* Table */}
       <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-13, 13px)' }}>
           <thead>
             <tr style={{ background: '#94a3b8', color: 'white' }}>
               <th style={cell}>{t("SL")}</th>
@@ -204,7 +204,7 @@ const TransferList = () => {
                   <td style={{ ...cell, color: '#dc2626', fontWeight: '600' }}>{row.debit ? fmt(row.debit) : '0'}</td>
                   <td style={{ ...cell, fontWeight: 'bold' }}>{fmt(row.balance)}</td>
                   <td style={cell} className="no-print">
-                    <button onClick={() => setEditing(transfers.find((tr) => tr.id === row.id))} style={{ background: '#0ea5e9', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
+                    <button onClick={() => setEditing(transfers.find((tr) => tr.id === row.id))} style={{ background: '#0ea5e9', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)' }}>
                       {t("Edit")}
                     </button>
                   </td>
@@ -236,7 +236,7 @@ const TransferList = () => {
           onClose={(saved) => { setEditing(null); if (saved) fetchTransfers(); }}
         />
       )}
-      <div style={{ marginTop: '10px', fontSize: '13px', color: '#475569' }}>
+      <div style={{ marginTop: '10px', fontSize: 'var(--fs-13, 13px)', color: '#475569' }}>
         {t("Showing {{from}} to {{to}} of {{total}} entries", { from: visible.length ? 1 : 0, to: visible.length, total: rows.length })}
       </div>
     </div>

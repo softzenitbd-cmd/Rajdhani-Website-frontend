@@ -169,13 +169,13 @@ const CompanyInformation = () => {
       <div style={{ background: 'white', borderRadius: '8px', padding: '20px', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: '2px solid #8b5cf6' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: '#4c1d95', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <h3 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', fontWeight: 'bold', color: '#4c1d95', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Layout size={20} /> {t("Active Project Header Preview")}
             </h3>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>{t("Click any card below to set that logo/header as the active banner for invoices & print vouchers.")}</span>
+            <span style={{ fontSize: 'var(--fs-12, 12px)', color: '#64748b' }}>{t("Click any card below to set that logo/header as the active banner for invoices & print vouchers.")}</span>
           </div>
 
-          <label style={{ background: '#7c3aed', color: 'white', padding: '8px 16px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <label style={{ background: '#7c3aed', color: 'white', padding: '8px 16px', borderRadius: '6px', fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
             <Upload size={14} /> {t("Upload Custom Banner")}
             <input type="file" style={{ display: 'none' }} accept="image/*" onChange={handleCustomBannerChange} />
           </label>
@@ -195,7 +195,7 @@ const CompanyInformation = () => {
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
-          fontSize: '14px',
+          fontSize: 'var(--fs-14, 14px)',
           background: message.type === 'error' ? '#fef2f2' : '#f0fdf4',
           color: message.type === 'error' ? '#ef4444' : '#16a34a',
           border: `1px solid ${message.type === 'error' ? '#fca5a5' : '#86efac'}`
@@ -207,12 +207,12 @@ const CompanyInformation = () => {
 
       <div style={{ background: 'white', borderRadius: '4px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', overflow: 'hidden', border: '2px solid #22c55e' }}>
         <div style={{ padding: '8px 24px', background: 'rgba(34, 197, 94, 0.2)', borderBottom: '1px solid #22c55e', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontSize: '15px', fontWeight: 'bold', margin: '0', color: '#1f2937' }}>{t("Company Information")}</h2>
+          <h2 style={{ fontSize: 'var(--fs-15, 15px)', fontWeight: 'bold', margin: '0', color: '#1f2937' }}>{t("Company Information")}</h2>
           <button 
             type="button" 
             onClick={handleSubmit} 
             disabled={saving || loading}
-            style={{ background: '#16a34a', color: 'white', border: 'none', padding: '6px 16px', borderRadius: '4px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+            style={{ background: '#16a34a', color: 'white', border: 'none', padding: '6px 16px', borderRadius: '4px', fontWeight: 'bold', fontSize: 'var(--fs-12, 12px)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
           >
             <Save size={14} /> {saving ? t("Saving...") : loading ? t("Loading...") : t("Update Company")}
           </button>
@@ -234,12 +234,12 @@ const CompanyInformation = () => {
               <InputField icon={MessageSquare} label={t("SMS Base URL")} name="sms_base_url" value={companyInfo.sms_base_url} onChange={handleInputChange} />
 
               <div style={{ position: 'relative', marginTop: '12px' }}>
-                <label style={{ position: 'absolute', top: '-12px', left: '12px', background: '#0ea5e9', color: 'white', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', zIndex: 1 }}>{t("Status")}</label>
+                <label style={{ position: 'absolute', top: '-12px', left: '12px', background: '#0ea5e9', color: 'white', padding: '3px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold', zIndex: 1 }}>{t("Status")}</label>
                 <select
                   name="status"
                   value={companyInfo.status === false || companyInfo.status === 'false' || companyInfo.status === 0 ? 'false' : 'true'}
                   onChange={(e) => setCompanyInfo((prev) => ({ ...prev, status: e.target.value === 'true' }))}
-                  style={{ padding: '16px 16px 12px 16px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', width: '100%', fontSize: '13px', color: 'var(--text-main)', background: 'white' }}
+                  style={{ padding: '16px 16px 12px 16px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', width: '100%', fontSize: 'var(--fs-13, 13px)', color: 'var(--text-main)', background: 'white' }}
                 >
                   <option value="true">{t("Active")}</option>
                   <option value="false">{t("Inactive")}</option>
@@ -252,10 +252,10 @@ const CompanyInformation = () => {
               <InputField icon={User} label={t("Proprietor")} name="proprietor" value={companyInfo.proprietor} onChange={handleInputChange} />
 
               <div style={{ position: 'relative', marginTop: '12px' }}>
-                <label style={{ position: 'absolute', top: '-12px', left: '12px', background: '#0284c7', color: 'white', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
+                <label style={{ position: 'absolute', top: '-12px', left: '12px', background: '#0284c7', color: 'white', padding: '3px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
                   <MapPin size={10} color="white" /> {t("Country")}
                 </label>
-                <input type="text" name="country" value={companyInfo.country || ''} onChange={handleInputChange} style={{ padding: '16px 16px 12px 16px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', width: '100%', fontSize: '13px', background: 'white' }} />
+                <input type="text" name="country" value={companyInfo.country || ''} onChange={handleInputChange} style={{ padding: '16px 16px 12px 16px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', width: '100%', fontSize: 'var(--fs-13, 13px)', background: 'white' }} />
               </div>
 
               <InputField icon={MapPin} label={t("Address")} name="address" value={companyInfo.address} onChange={handleInputChange} />
@@ -270,11 +270,11 @@ const CompanyInformation = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '12px' }}>
                 {companyInfo.logo && <img src={companyInfo.logo} alt={t("Logo")} style={{ height: '40px', width: '40px', objectFit: 'contain', border: '1px solid #e2e8f0', borderRadius: '4px' }} />}
                 <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #0ea5e9', borderRadius: '4px', overflow: 'hidden', maxWidth: '300px', flex: 1 }}>
-                  <label style={{ background: '#0ea5e9', color: 'white', padding: '8px 16px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', margin: 0, whiteSpace: 'nowrap' }}>
+                  <label style={{ background: '#0ea5e9', color: 'white', padding: '8px 16px', fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', cursor: 'pointer', margin: 0, whiteSpace: 'nowrap' }}>
                     {t("Company Logo")}
                     <input type="file" style={{ display: 'none' }} accept="image/*" onChange={handleLogoChange} />
                   </label>
-                  <span style={{ padding: '8px 16px', fontSize: '12px', color: '#64748b', flex: 1, background: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <span style={{ padding: '8px 16px', fontSize: 'var(--fs-12, 12px)', color: '#64748b', flex: 1, background: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {rightLogoPreview ? rightLogoPreview.name : (companyInfo.logo ? t("Uploaded") : t("No file chosen"))}
                   </span>
                 </div>
@@ -284,7 +284,7 @@ const CompanyInformation = () => {
 
           {/* Bottom Interactive Header Logo Cards Section */}
           <div style={{ marginTop: '40px' }}>
-            <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', fontWeight: 'bold', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <h4 style={{ margin: '0 0 16px 0', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
               {t("💡 Select Active Header Style (Click any card below to set as active header)")}
             </h4>
 
@@ -309,17 +309,17 @@ const CompanyInformation = () => {
                   <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #0ea5e9', borderRadius: '4px', overflow: 'hidden' }}>
                     <label 
                       onClick={(e) => e.stopPropagation()} 
-                      style={{ background: '#0ea5e9', color: 'white', padding: '6px 12px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', margin: 0, whiteSpace: 'nowrap' }}
+                      style={{ background: '#0ea5e9', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', cursor: 'pointer', margin: 0, whiteSpace: 'nowrap' }}
                     >
                       {t("Choose a file")}
                       <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => handleFileChange(e, setLogo1Preview, 'card1')} />
                     </label>
-                    <span style={{ padding: '6px 12px', fontSize: '11px', color: '#64748b', flex: 1, background: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <span style={{ padding: '6px 12px', fontSize: 'var(--fs-11, 11px)', color: '#64748b', flex: 1, background: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {logo1Preview ? logo1Preview.name : t("No file chosen")}
                     </span>
                   </div>
                   {activeCard === 'card1' && (
-                    <span style={{ background: '#16a34a', color: 'white', fontSize: '10px', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                    <span style={{ background: '#16a34a', color: 'white', fontSize: 'var(--fs-10, 10px)', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '2px' }}>
                       <Check size={12} /> {t("ACTIVE")}
                     </span>
                   )}
@@ -330,8 +330,8 @@ const CompanyInformation = () => {
                     <img src={logo1Preview.url} alt={t("Logo 1 Preview")} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', padding: '8px' }} />
                   ) : (
                     <div style={{ textAlign: 'center' }}>
-                      <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: '32px', color: 'black' }}>{t("Rajdhani")}</h2>
-                      <h3 style={{ fontFamily: 'cursive', margin: '-8px 0 0 40px', fontSize: '20px', color: 'black' }}>{t("Garments")}</h3>
+                      <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-32, 32px)', color: 'black' }}>{t("Rajdhani")}</h2>
+                      <h3 style={{ fontFamily: 'cursive', margin: '-8px 0 0 40px', fontSize: 'var(--fs-20, 20px)', color: 'black' }}>{t("Garments")}</h3>
                     </div>
                   )}
                 </div>
@@ -339,7 +339,7 @@ const CompanyInformation = () => {
                 <button 
                   type="button"
                   onClick={(e) => { e.stopPropagation(); selectCardAsHeader('card1', logo1Preview); }} 
-                  style={{ background: activeCard === 'card1' ? '#16a34a' : 'black', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', fontSize: '11px', alignSelf: 'flex-start', cursor: 'pointer', fontWeight: 'bold' }}
+                  style={{ background: activeCard === 'card1' ? '#16a34a' : 'black', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', alignSelf: 'flex-start', cursor: 'pointer', fontWeight: 'bold' }}
                 >
                   {activeCard === 'card1' ? t("✓ Active Header") : t("Click to Set Header")}
                 </button>
@@ -365,17 +365,17 @@ const CompanyInformation = () => {
                   <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #0ea5e9', borderRadius: '4px', overflow: 'hidden' }}>
                     <label 
                       onClick={(e) => e.stopPropagation()}
-                      style={{ background: '#0ea5e9', color: 'white', padding: '6px 12px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', margin: 0, whiteSpace: 'nowrap' }}
+                      style={{ background: '#0ea5e9', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', cursor: 'pointer', margin: 0, whiteSpace: 'nowrap' }}
                     >
                       {t("Choose a file")}
                       <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => handleFileChange(e, setLogo2Preview, 'card2')} />
                     </label>
-                    <span style={{ padding: '6px 12px', fontSize: '11px', color: '#64748b', flex: 1, background: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <span style={{ padding: '6px 12px', fontSize: 'var(--fs-11, 11px)', color: '#64748b', flex: 1, background: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {logo2Preview ? logo2Preview.name : t("Set Header Image")}
                     </span>
                   </div>
                   {activeCard === 'card2' && (
-                    <span style={{ background: '#16a34a', color: 'white', fontSize: '10px', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                    <span style={{ background: '#16a34a', color: 'white', fontSize: 'var(--fs-10, 10px)', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '2px' }}>
                       <Check size={12} /> {t("ACTIVE")}
                     </span>
                   )}
@@ -390,9 +390,9 @@ const CompanyInformation = () => {
                         <ShoppingCart size={20} />
                       </div>
                       <div>
-                        <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '900', color: 'black' }}>রাজধানী <span style={{ fontWeight: 'normal' }}>সুপার শপ</span></h2>
-                        <p style={{ margin: 0, fontSize: '9px', fontWeight: 'bold', color: 'black' }}>নেহা শপিং মল (২য় তলা), আঙ্গার মোড়, কালীগঞ্জ, ঝিনাইদহ।</p>
-                        <p style={{ margin: 0, fontSize: '9px', fontWeight: 'bold', color: 'black' }}>০১৯৭১-৬৯২১৫০, ০১৭২৭-৯০২৪৯৮</p>
+                        <h2 style={{ margin: 0, fontSize: 'var(--fs-24, 24px)', fontWeight: '900', color: 'black' }}>রাজধানী <span style={{ fontWeight: 'normal' }}>সুপার শপ</span></h2>
+                        <p style={{ margin: 0, fontSize: 'var(--fs-9, 9px)', fontWeight: 'bold', color: 'black' }}>নেহা শপিং মল (২য় তলা), আঙ্গার মোড়, কালীগঞ্জ, ঝিনাইদহ।</p>
+                        <p style={{ margin: 0, fontSize: 'var(--fs-9, 9px)', fontWeight: 'bold', color: 'black' }}>০১৯৭১-৬৯২১৫০, ০১৭২৭-৯০২৪৯৮</p>
                       </div>
                     </div>
                   )}
@@ -401,7 +401,7 @@ const CompanyInformation = () => {
                 <button 
                   type="button"
                   onClick={(e) => { e.stopPropagation(); selectCardAsHeader('card2', logo2Preview); }} 
-                  style={{ background: activeCard === 'card2' ? '#16a34a' : 'black', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', fontSize: '11px', alignSelf: 'flex-start', cursor: 'pointer', fontWeight: 'bold' }}
+                  style={{ background: activeCard === 'card2' ? '#16a34a' : 'black', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', alignSelf: 'flex-start', cursor: 'pointer', fontWeight: 'bold' }}
                 >
                   {activeCard === 'card2' ? t("✓ Active Header") : t("Click to Set Header")}
                 </button>
@@ -427,17 +427,17 @@ const CompanyInformation = () => {
                   <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #0ea5e9', borderRadius: '4px', overflow: 'hidden' }}>
                     <label 
                       onClick={(e) => e.stopPropagation()}
-                      style={{ background: '#0ea5e9', color: 'white', padding: '6px 12px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', margin: 0, whiteSpace: 'nowrap' }}
+                      style={{ background: '#0ea5e9', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', cursor: 'pointer', margin: 0, whiteSpace: 'nowrap' }}
                     >
                       {t("Choose a file")}
                       <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => handleFileChange(e, setLogo3Preview, 'card3')} />
                     </label>
-                    <span style={{ padding: '6px 12px', fontSize: '11px', color: '#64748b', flex: 1, background: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <span style={{ padding: '6px 12px', fontSize: 'var(--fs-11, 11px)', color: '#64748b', flex: 1, background: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {logo3Preview ? logo3Preview.name : t("No file chosen")}
                     </span>
                   </div>
                   {activeCard === 'card3' && (
-                    <span style={{ background: '#16a34a', color: 'white', fontSize: '10px', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                    <span style={{ background: '#16a34a', color: 'white', fontSize: 'var(--fs-10, 10px)', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '2px' }}>
                       <Check size={12} /> {t("ACTIVE")}
                     </span>
                   )}
@@ -448,8 +448,8 @@ const CompanyInformation = () => {
                     <img src={logo3Preview.url} alt={t("Logo 3 Preview")} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', padding: '8px' }} />
                   ) : (
                     <div style={{ textAlign: 'center' }}>
-                      <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: '32px', color: 'black' }}>{t("Rajdhani")}</h2>
-                      <h3 style={{ fontFamily: 'cursive', margin: '-8px 0 0 40px', fontSize: '20px', color: 'black' }}>{t("Super Shop")}</h3>
+                      <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-32, 32px)', color: 'black' }}>{t("Rajdhani")}</h2>
+                      <h3 style={{ fontFamily: 'cursive', margin: '-8px 0 0 40px', fontSize: 'var(--fs-20, 20px)', color: 'black' }}>{t("Super Shop")}</h3>
                     </div>
                   )}
                 </div>
@@ -457,7 +457,7 @@ const CompanyInformation = () => {
                 <button 
                   type="button"
                   onClick={(e) => { e.stopPropagation(); selectCardAsHeader('card3', logo3Preview); }} 
-                  style={{ background: activeCard === 'card3' ? '#16a34a' : 'black', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', fontSize: '11px', alignSelf: 'flex-start', cursor: 'pointer', fontWeight: 'bold' }}
+                  style={{ background: activeCard === 'card3' ? '#16a34a' : 'black', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', alignSelf: 'flex-start', cursor: 'pointer', fontWeight: 'bold' }}
                 >
                   {activeCard === 'card3' ? t("✓ Active Header") : t("Click to Set Header")}
                 </button>
@@ -481,7 +481,7 @@ const InputField = ({ icon: Icon, label, name, value, onChange, type = "text", p
       color: 'white', 
       padding: '3px 8px', 
       borderRadius: '4px', 
-      fontSize: '10px', 
+      fontSize: 'var(--fs-10, 10px)', 
       fontWeight: 'bold', 
       display: 'flex', 
       alignItems: 'center', 
@@ -502,7 +502,7 @@ const InputField = ({ icon: Icon, label, name, value, onChange, type = "text", p
         borderRadius: '4px',
         outline: 'none',
         width: '100%',
-        fontSize: '13px',
+        fontSize: 'var(--fs-13, 13px)',
         color: 'var(--text-main)',
         background: 'white'
       }}

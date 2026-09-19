@@ -115,12 +115,12 @@ const DraftInvoiceList = () => {
       
       {/* Center Title */}
       <div style={{ textAlign: 'center', marginBottom: '20px', marginTop: '20px' }}>
-        <h2 style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 'bold' }}>{t("Draft Invoice List")}</h2>
+        <h2 style={{ fontFamily: 'monospace', fontSize: 'var(--fs-24, 24px)', fontWeight: 'bold' }}>{t("Draft Invoice List")}</h2>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 'normal', color: '#333' }}>{t("Draft Invoices (Status=0)")}</h2>
-        <button className="btn btn-primary" onClick={() => navigate('/invoice/add-new')} style={{ background: 'var(--success)', padding: '8px 16px', fontSize: '14px', borderRadius: '4px' }}>
+        <h2 style={{ fontSize: 'var(--fs-20, 20px)', fontWeight: 'normal', color: '#333' }}>{t("Draft Invoices (Status=0)")}</h2>
+        <button className="btn btn-primary" onClick={() => navigate('/invoice/add-new')} style={{ background: 'var(--success)', padding: '8px 16px', fontSize: 'var(--fs-14, 14px)', borderRadius: '4px' }}>
           {t("Invoice Create")}
         </button>
       </div>
@@ -157,7 +157,7 @@ const DraftInvoiceList = () => {
             <input type="text" name="search" value={filters.search} onChange={handleFilterChange} placeholder={t("Draft ID or Barcode")} style={{ padding: '10px' }} />
           </div>
           <div>
-            <button className="btn btn-primary" onClick={handleClearFilters} style={{ width: '100%', height: '100%', background: 'var(--success)', border: 'none', borderRadius: '4px', fontSize: '15px' }}>
+            <button className="btn btn-primary" onClick={handleClearFilters} style={{ width: '100%', height: '100%', background: 'var(--success)', border: 'none', borderRadius: '4px', fontSize: 'var(--fs-15, 15px)' }}>
               {t("Clear Filter")}
             </button>
           </div>
@@ -165,11 +165,11 @@ const DraftInvoiceList = () => {
 
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
+          <div style={{ fontSize: 'var(--fs-14, 14px)', color: 'var(--text-main)' }}>
             {t("Showing")} {invoices.length} {t("entries")}
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>
-            <button className="btn" onClick={fetchDrafts} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <button className="btn" onClick={fetchDrafts} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <RotateCcw size={14} /> {t("Refresh")}
             </button>
           </div>
@@ -180,21 +180,21 @@ const DraftInvoiceList = () => {
           <table className="custom-table" style={{ width: '100%', minWidth: '1200px', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--secondary)', color: 'white' }}>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("SL")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("ISSUED DATE")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("CLIENT")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("DRAFT ID NO")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("CATEGORY")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("BILL AMOUNT")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("RECEIVE AMOUNT")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("DUE AMOUNT")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: '11px' }}>{t("STATUS")}</th>
-                <th style={{ textAlign: 'center', padding: '12px', fontSize: '11px' }}>{t("ACTION")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("SL")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("ISSUED DATE")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("CLIENT")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("DRAFT ID NO")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("CATEGORY")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("BILL AMOUNT")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("RECEIVE AMOUNT")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("DUE AMOUNT")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid white', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("STATUS")}</th>
+                <th style={{ textAlign: 'center', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("ACTION")}</th>
               </tr>
             </thead>
             <tbody>
               {invoices.map((inv, index) => (
-                <tr key={inv.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: '12px' }}>
+                <tr key={inv.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-12, 12px)' }}>
                   <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
                   <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{inv.created_at ? new Date(inv.created_at).toLocaleDateString() : (inv.date || t("25 Aug 2026"))}</td>
                   <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{inv.client_name || inv.clientName || t("C.CASTOMER")}</td>
@@ -204,20 +204,20 @@ const DraftInvoiceList = () => {
                   <td style={{ textAlign: 'right', padding: '8px', borderRight: '1px solid #e2e8f0', color: '#059669' }}>৳ {Number(inv.receive_amount || inv.receiveAmount || 0).toFixed(2)}</td>
                   <td style={{ textAlign: 'right', padding: '8px', borderRight: '1px solid #e2e8f0', color: '#ef4444', fontWeight: 'bold' }}>৳ {Number(inv.total_due || inv.dueAmount || 0).toFixed(2)}</td>
                   <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>
-                    <span style={{ background: '#64748b', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>{t("Draft (0)")}</span>
+                    <span style={{ background: '#64748b', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)' }}>{t("Draft (0)")}</span>
                   </td>
                   <td style={{ textAlign: 'center', padding: '8px' }}>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
                       <button 
                         onClick={() => navigate(`/invoice/edit/${inv.id}`, { state: { invoice: inv } })} 
-                        style={{ background: 'var(--info)', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        style={{ background: 'var(--info)', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                         title={t("Edit Draft Invoice")}
                       >
                         {t("Edit")}
                       </button>
                       <button 
                         onClick={() => handleConvertToFinal(inv.id)} 
-                        style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                         title={t("Convert Draft to Final General Invoice")}
                       >
                         <CheckCircle size={14} /> {t("Make Final")}

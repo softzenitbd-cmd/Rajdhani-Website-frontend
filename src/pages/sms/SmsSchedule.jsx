@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
  * suppliers, or typed manually (comma / newline separated numbers).
  */
 const box = { width: '100%', padding: '12px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none' };
-const label = { display: 'block', fontSize: '12px', marginBottom: '6px', color: 'var(--label-color)', fontWeight: 600 };
+const label = { display: 'block', fontSize: 'var(--fs-12, 12px)', marginBottom: '6px', color: 'var(--label-color)', fontWeight: 600 };
 
 const SmsSchedule = () => {
   const { t } = useTranslation();
@@ -71,8 +71,8 @@ const SmsSchedule = () => {
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
         <div className="premium-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'white' }}>
-          <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold' }}>{t("SCHEDULE SMS")}</h2>
-          <button type="button" onClick={() => navigate('/sms/schedule-report')} style={{ background: '#64748b', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <h2 className="premium-title" style={{ fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold' }}>{t("SCHEDULE SMS")}</h2>
+          <button type="button" onClick={() => navigate('/sms/schedule-report')} style={{ background: '#64748b', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
             <List size={14} /> {t("Schedule Report")}
           </button>
         </div>
@@ -81,7 +81,7 @@ const SmsSchedule = () => {
           <div style={{ marginBottom: '20px' }}>
             <label style={label}>{t("Message Body")}</label>
             <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder={t("Type your message here ...")} style={{ ...box, height: '140px', resize: 'vertical' }} />
-            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>{message.length} {t("characters ·")} {Math.max(1, Math.ceil(message.length / 160))} {t("SMS")}</div>
+            <div style={{ fontSize: 'var(--fs-12, 12px)', color: '#64748b', marginTop: '6px' }}>{message.length} {t("characters ·")} {Math.max(1, Math.ceil(message.length / 160))} {t("SMS")}</div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
@@ -108,7 +108,7 @@ const SmsSchedule = () => {
           </div>
 
           <div style={{ textAlign: 'center' }}>
-            <button type="submit" disabled={sending} style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', border: 'none', borderRadius: '4px', fontSize: '14px', cursor: 'pointer', opacity: sending ? 0.7 : 1 }}>
+            <button type="submit" disabled={sending} style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', border: 'none', borderRadius: '4px', fontSize: 'var(--fs-14, 14px)', cursor: 'pointer', opacity: sending ? 0.7 : 1 }}>
               {sending ? t("Scheduling...") : t("Schedule SMS")}
             </button>
           </div>

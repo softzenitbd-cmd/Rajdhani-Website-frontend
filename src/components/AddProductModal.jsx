@@ -63,7 +63,7 @@ const CenteredNestedPopup = ({ isOpen, onClose, onSave, title, label }) => {
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold', color: '#1e293b' }}>
+          <h4 style={{ margin: 0, fontSize: 'var(--fs-15, 15px)', fontWeight: 'bold', color: '#1e293b' }}>
             {title}
           </h4>
           <button
@@ -86,7 +86,7 @@ const CenteredNestedPopup = ({ isOpen, onClose, onSave, title, label }) => {
               color: 'white',
               padding: '2px 8px',
               borderRadius: '4px',
-              fontSize: '11px',
+              fontSize: 'var(--fs-11, 11px)',
               fontWeight: 'bold',
               display: 'flex',
               alignItems: 'center',
@@ -107,7 +107,7 @@ const CenteredNestedPopup = ({ isOpen, onClose, onSave, title, label }) => {
                 border: '1px solid #38bdf8',
                 borderRadius: '8px',
                 outline: 'none',
-                fontSize: '13px',
+                fontSize: 'var(--fs-13, 13px)',
                 background: 'white'
               }}
             />
@@ -125,7 +125,7 @@ const CenteredNestedPopup = ({ isOpen, onClose, onSave, title, label }) => {
                 padding: '8px 20px',
                 borderRadius: '6px',
                 fontWeight: 'bold',
-                fontSize: '13px',
+                fontSize: 'var(--fs-13, 13px)',
                 cursor: 'pointer'
               }}
             >
@@ -142,7 +142,7 @@ const CenteredNestedPopup = ({ isOpen, onClose, onSave, title, label }) => {
                 padding: '8px 20px',
                 borderRadius: '6px',
                 fontWeight: 'bold',
-                fontSize: '13px',
+                fontSize: 'var(--fs-13, 13px)',
                 cursor: 'pointer'
               }}
             >
@@ -319,7 +319,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
             justifyContent: 'space-between',
             alignItems: 'center'
           }}>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: '#1e293b' }}>
+            <h3 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', fontWeight: 'bold', color: '#1e293b' }}>
               {t('product_modal.add_new_product', 'Add New Product')}
             </h3>
             <button
@@ -350,7 +350,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                     color: 'white',
                     padding: '2px 8px',
                     borderRadius: '4px',
-                    fontSize: '11px',
+                    fontSize: 'var(--fs-11, 11px)',
                     fontWeight: 'bold',
                     display: 'flex',
                     alignItems: 'center',
@@ -372,7 +372,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                       border: '1px solid #38bdf8',
                       borderRadius: '8px',
                       outline: 'none',
-                      fontSize: '13px',
+                      fontSize: 'var(--fs-13, 13px)',
                       background: 'white'
                     }}
                   />
@@ -388,7 +388,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                     color: 'white',
                     padding: '2px 8px',
                     borderRadius: '4px',
-                    fontSize: '11px',
+                    fontSize: 'var(--fs-11, 11px)',
                     fontWeight: 'bold',
                     display: 'flex',
                     alignItems: 'center',
@@ -410,7 +410,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                       border: '1px solid #38bdf8',
                       borderRadius: '8px',
                       outline: 'none',
-                      fontSize: '13px',
+                      fontSize: 'var(--fs-13, 13px)',
                       background: 'white'
                     }}
                   />
@@ -426,7 +426,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                     color: 'white',
                     padding: '2px 8px',
                     borderRadius: '4px',
-                    fontSize: '11px',
+                    fontSize: 'var(--fs-11, 11px)',
                     fontWeight: 'bold',
                     display: 'flex',
                     alignItems: 'center',
@@ -448,7 +448,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                       border: '1px solid #38bdf8',
                       borderRadius: '8px',
                       outline: 'none',
-                      fontSize: '13px',
+                      fontSize: 'var(--fs-13, 13px)',
                       background: 'white'
                     }}
                   />
@@ -467,7 +467,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                     color: 'white',
                     padding: '2px 8px',
                     borderRadius: '4px',
-                    fontSize: '11px',
+                    fontSize: 'var(--fs-11, 11px)',
                     fontWeight: 'bold',
                     display: 'flex',
                     alignItems: 'center',
@@ -489,7 +489,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                       border: '1px solid #38bdf8',
                       borderRadius: '8px',
                       outline: 'none',
-                      fontSize: '13px',
+                      fontSize: 'var(--fs-13, 13px)',
                       background: 'white'
                     }}
                   />
@@ -506,7 +506,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                       padding: '12px',
                       border: 'none',
                       outline: 'none',
-                      fontSize: '13px',
+                      fontSize: 'var(--fs-13, 13px)',
                       background: 'white',
                       color: '#0f172a'
                     }}
@@ -546,7 +546,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                       padding: '12px',
                       border: 'none',
                       outline: 'none',
-                      fontSize: '13px',
+                      fontSize: 'var(--fs-13, 13px)',
                       background: 'white',
                       color: '#0f172a'
                     }}
@@ -589,7 +589,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                   padding: '8px 24px',
                   borderRadius: '6px',
                   fontWeight: 'bold',
-                  fontSize: '13px',
+                  fontSize: 'var(--fs-13, 13px)',
                   cursor: 'pointer'
                 }}
               >
@@ -606,7 +606,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                   padding: '8px 24px',
                   borderRadius: '6px',
                   fontWeight: 'bold',
-                  fontSize: '13px',
+                  fontSize: 'var(--fs-13, 13px)',
                   cursor: 'pointer'
                 }}
               >

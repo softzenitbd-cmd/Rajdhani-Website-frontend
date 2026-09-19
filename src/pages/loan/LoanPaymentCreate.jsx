@@ -142,10 +142,10 @@ const LoanPaymentCreate = () => {
                 />
               </div>
               <div className="form-col" style={{ position: 'relative' }}>
-                <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
+                <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
                   <Calendar size={12} /> {t("Date")}
                 </div>
-                <input type="date" name="date" value={formData.date} onChange={handleChange} style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: '14px', outline: 'none', background: 'white' }} />
+                <input type="date" name="date" value={formData.date} onChange={handleChange} style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: 'var(--fs-14, 14px)', outline: 'none', background: 'white' }} />
               </div>
             </div>
 
@@ -169,7 +169,7 @@ const LoanPaymentCreate = () => {
                   <div style={{ padding: '0 12px', display: 'flex', alignItems: 'center' }}>
                     <FileText size={18} color="#1e293b" />
                   </div>
-                  <input type="text" name="note" placeholder={t("Payment Description in a short note")} value={formData.note} onChange={handleChange} style={{ flex: 1, padding: '12px 16px 12px 0', border: 'none', outline: 'none', fontSize: '14px' }} />
+                  <input type="text" name="note" placeholder={t("Payment Description in a short note")} value={formData.note} onChange={handleChange} style={{ flex: 1, padding: '12px 16px 12px 0', border: 'none', outline: 'none', fontSize: 'var(--fs-14, 14px)' }} />
                 </div>
               </div>
             </div>
@@ -181,7 +181,7 @@ const LoanPaymentCreate = () => {
                   <div style={{ padding: '0 16px', fontWeight: 'bold', color: '#1e293b' }}>
                     <DollarSign size={18} color="#1e293b" />
                   </div>
-                  <input type="number" name="amount" placeholder={t("Amount")} value={formData.amount} onChange={handleChange} required style={{ flex: 1, padding: '12px 16px 12px 0', border: 'none', outline: 'none', fontSize: '14px' }} />
+                  <input type="number" name="amount" placeholder={t("Amount")} value={formData.amount} onChange={handleChange} required style={{ flex: 1, padding: '12px 16px 12px 0', border: 'none', outline: 'none', fontSize: 'var(--fs-14, 14px)' }} />
                 </div>
               </div>
               <div className="form-col">
@@ -203,7 +203,7 @@ const LoanPaymentCreate = () => {
             <div className="form-row">
               <div className="form-col" style={{ flex: 'none', width: '50%' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #93c5fd', borderRadius: '6px', padding: '12px 16px', background: 'white', height: '48px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '500', color: '#334155' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 'var(--fs-14, 14px)', fontWeight: '500', color: '#334155' }}>
                     <MessageSquare size={18} color="#1e293b" />
                     {t("SMS")}
                   </div>
@@ -219,10 +219,10 @@ const LoanPaymentCreate = () => {
 
             {/* Footer Buttons */}
             <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '32px' }}>
-              <button type="submit" className="btn-primary" style={{ background: 'var(--primary)', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }} disabled={loading}>
+              <button type="submit" className="btn-primary" style={{ background: 'var(--primary)', padding: '10px 24px', fontSize: 'var(--fs-14, 14px)', borderRadius: '4px' }} disabled={loading}>
                 {loading ? t("Processing...") : t("Add New Payment")}
               </button>
-              <button type="button" className="btn-danger" onClick={() => navigate('/loan/payment')} style={{ background: 'var(--danger)', padding: '10px 24px', fontSize: '14px', borderRadius: '4px' }}>
+              <button type="button" className="btn-danger" onClick={() => navigate('/loan/payment')} style={{ background: 'var(--danger)', padding: '10px 24px', fontSize: 'var(--fs-14, 14px)', borderRadius: '4px' }}>
                 {t("Close")}
               </button>
             </div>

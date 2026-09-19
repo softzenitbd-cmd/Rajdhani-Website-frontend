@@ -86,8 +86,8 @@ const StaffList = () => {
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
         <div className="premium-header no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'white' }}>
-          <h2 className="premium-title" style={{ fontSize: '18px', fontWeight: 'bold' }}>{t("Staff List")}</h2>
-          <button onClick={() => navigate('/staff/create')} style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+          <h2 className="premium-title" style={{ fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold' }}>{t("Staff List")}</h2>
+          <button onClick={() => navigate('/staff/create')} style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
             <Plus size={16} /> {t("Add Staff")}
           </button>
         </div>
@@ -101,11 +101,11 @@ const StaffList = () => {
             style={{ display: 'grid', gridTemplateColumns: '2fr 1fr auto', gap: '12px', marginBottom: '16px', alignItems: 'end' }}
           >
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: 'var(--label-color)' }}>{t("Search (name / phone)")}</label>
+              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, marginBottom: '6px', color: 'var(--label-color)' }}>{t("Search (name / phone)")}</label>
               <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("Search...")} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '6px', outline: 'none' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: 'var(--label-color)' }}>{t("Department")}</label>
+              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, marginBottom: '6px', color: 'var(--label-color)' }}>{t("Department")}</label>
               <select value={department} onChange={(e) => setDepartment(e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '6px', outline: 'none' }}>
                 <option value="">{t("All departments")}</option>
                 {departments.map((d) => <option key={d.id || d.uuid} value={d.id || d.uuid}>{d.name}</option>)}
@@ -120,7 +120,7 @@ const StaffList = () => {
 
           {/* Table View */}
           <div className="table-responsive" style={{ width: '100%', overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
-            <table className="custom-table" style={{ width: '100%', fontSize: '11px' }}>
+            <table className="custom-table" style={{ width: '100%', fontSize: 'var(--fs-12, 12px)' }}>
               <thead>
                 <tr style={{ background: '#718096', color: 'white' }}>
                   <th style={{ width: '40px', textAlign: 'center', padding: '8px 4px' }}>{t("SL")}</th>
@@ -156,15 +156,15 @@ const StaffList = () => {
                             </div>
                           )}
                         </td>
-                        <td style={{ padding: '6px', fontWeight: 600 }}>{s.full_name || s.user?.full_name || s.name}</td>
-                        <td style={{ padding: '6px' }}>{s.phone_number || s.user?.phone_number || s.phone || '-'}</td>
-                        <td style={{ padding: '6px' }}>{s.email || '-'}</td>
-                        <td style={{ padding: '6px' }}>{nameOf(s.department_name || s.department_details || s.department)}</td>
-                        <td style={{ padding: '6px' }}>{nameOf(s.designation_name || s.designation_details || s.designation)}</td>
-                        <td style={{ padding: '6px', textAlign: 'right' }}>{(s.basic_salary ?? s.salary) !== undefined && (s.basic_salary ?? s.salary) !== null ? money(s.basic_salary ?? s.salary) : '-'}</td>
-                        <td style={{ padding: '6px' }}>{fmtDate(s.joining_date || s.created_at)}</td>
-                        <td style={{ padding: '6px', textAlign: 'center' }}>
-                          <span style={{ background: active ? '#dcfce7' : '#fee2e2', color: active ? '#166534' : '#991b1b', padding: '2px 6px', borderRadius: '3px', fontSize: '10px', fontWeight: 'bold' }}>
+                        <td style={{ padding: '8px 6px', fontWeight: 600 }}>{s.full_name || s.user?.full_name || s.name}</td>
+                        <td style={{ padding: '8px 6px' }}>{s.phone_number || s.user?.phone_number || s.phone || '-'}</td>
+                        <td style={{ padding: '8px 6px' }}>{s.email || '-'}</td>
+                        <td style={{ padding: '8px 6px' }}>{nameOf(s.department_name || s.department_details || s.department)}</td>
+                        <td style={{ padding: '8px 6px' }}>{nameOf(s.designation_name || s.designation_details || s.designation)}</td>
+                        <td style={{ padding: '8px 6px', textAlign: 'right' }}>{(s.basic_salary ?? s.salary) !== undefined && (s.basic_salary ?? s.salary) !== null ? money(s.basic_salary ?? s.salary) : '-'}</td>
+                        <td style={{ padding: '8px 6px' }}>{fmtDate(s.joining_date || s.created_at)}</td>
+                        <td style={{ padding: '8px 6px', textAlign: 'center' }}>
+                          <span style={{ background: active ? '#dcfce7' : '#fee2e2', color: active ? '#166534' : '#991b1b', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>
                             {active ? t("Active") : t("Inactive")}
                           </span>
                         </td>

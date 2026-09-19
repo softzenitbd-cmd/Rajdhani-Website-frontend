@@ -28,7 +28,7 @@ const CalculatorPopup = ({ onClose }) => {
   return (
     <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '12px', width: '240px', background: 'white', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.15)', padding: '12px', zIndex: 100, color: '#1e293b' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <strong style={{ fontSize: '13px' }}>{t("Calculator")}</strong>
+        <strong style={{ fontSize: 'var(--fs-13, 13px)' }}>{t("Calculator")}</strong>
         <X size={16} style={{ cursor: 'pointer' }} onClick={onClose} />
       </div>
       <input
@@ -36,9 +36,9 @@ const CalculatorPopup = ({ onClose }) => {
         onChange={(e) => setExpr(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && evaluate()}
         placeholder="0"
-        style={{ width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '4px', textAlign: 'right', fontSize: '16px', marginBottom: '4px' }}
+        style={{ width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '4px', textAlign: 'right', fontSize: 'var(--fs-16, 16px)', marginBottom: '4px' }}
       />
-      <div style={{ textAlign: 'right', fontSize: '18px', fontWeight: 'bold', minHeight: '24px', marginBottom: '8px', color: '#4f46e5' }}>{result}</div>
+      <div style={{ textAlign: 'right', fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', minHeight: '24px', marginBottom: '8px', color: '#4f46e5' }}>{result}</div>
       <div className="calc-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
         {keys.map((k) => (
           <button key={k} onClick={() => setExpr((p) => p + k)} style={{ padding: '8px 0', border: '1px solid #e2e8f0', background: '#f8fafc', borderRadius: '4px', cursor: 'pointer' }}>{k}</button>
@@ -159,7 +159,7 @@ const Header = ({ toggleSidebar }) => {
     >
       <div className="header-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
         <Menu className="mobile-menu-btn" size={24} style={{ cursor: 'pointer' }} onClick={toggleSidebar} />
-        <span style={{ fontSize: 'clamp(14px, 2vw, 18px)', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{companyName || t('app_name')}</span>
+        <span style={{ fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{companyName || t('app_name')}</span>
       </div>
       
       <div className="header-nav-scroll" style={{ 
@@ -176,7 +176,13 @@ const Header = ({ toggleSidebar }) => {
         {navButtons.map((btn, idx) => (
           <button 
             key={idx}
-            onClick={() => navigate(btn.path)}
+            onClick={() => {
+              if (window.location.pathname === btn.path) {
+                window.location.reload();
+              } else {
+                navigate(btn.path);
+              }
+            }}
             style={{ 
               background: '#14b8a6', // teal
               color: 'white', 
@@ -186,7 +192,7 @@ const Header = ({ toggleSidebar }) => {
               display: 'flex', 
               alignItems: 'center', 
               gap: '6px',
-              fontSize: '12px',
+              fontSize: 'var(--fs-12, 12px)',
               fontWeight: '500',
               cursor: 'pointer',
               whiteSpace: 'nowrap',
@@ -210,13 +216,13 @@ const Header = ({ toggleSidebar }) => {
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            fontSize: '13px',
+            fontSize: 'var(--fs-13, 13px)',
             cursor: 'pointer'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '2px', fontWeight: 'bold' }}>
             <span>{t("A")}</span>
-            <span style={{ fontSize: '10px' }}>文</span>
+            <span style={{ fontSize: 'var(--fs-10, 10px)' }}>文</span>
           </div>
           {t('header.switch_lang')}
         </button>
@@ -305,8 +311,8 @@ const Header = ({ toggleSidebar }) => {
                 }}>
                   {avatarNode('16px')}
                 </div>
-                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>{fullName}</h3>
-                <p style={{ margin: 0, fontSize: '12px', opacity: 0.8 }}>{role || username.toUpperCase()}</p>
+                <h3 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', fontWeight: 'bold' }}>{fullName}</h3>
+                <p style={{ margin: 0, fontSize: 'var(--fs-12, 12px)', opacity: 0.8 }}>{role || username.toUpperCase()}</p>
                 
                 {/* Status Dot */}
                 <div style={{
@@ -332,7 +338,7 @@ const Header = ({ toggleSidebar }) => {
                     cursor: 'pointer',
                     transition: 'background 0.2s',
                     borderBottom: idx < profileMenu.length - 1 ? '1px dashed #eaeaea' : 'none',
-                    fontSize: '14px',
+                    fontSize: 'var(--fs-14, 14px)',
                     fontWeight: 500
                   }}
                   onClick={() => handleMenuClick(item)}

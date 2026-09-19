@@ -115,8 +115,8 @@ const SmsComposer = ({ title, recipientType, contacts = [], groups = null, loadi
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
         <div className="premium-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'white' }}>
-          <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold', textTransform: 'uppercase' }}>{title}</h2>
-          <button type="button" onClick={() => navigate(-1)} style={{ background: '#64748b', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <h2 className="premium-title" style={{ fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', textTransform: 'uppercase' }}>{title}</h2>
+          <button type="button" onClick={() => navigate(-1)} style={{ background: '#64748b', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
             <ArrowLeft size={14} /> {t("Go Back")}
           </button>
         </div>
@@ -124,14 +124,14 @@ const SmsComposer = ({ title, recipientType, contacts = [], groups = null, loadi
         <div className="premium-body" style={{ background: 'white', padding: '24px', display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) minmax(280px, 1fr)', gap: '24px' }}>
           {/* Left: message */}
           <div>
-            <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', color: 'var(--label-color)', fontWeight: 600 }}>{t("Message Body")}</label>
+            <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', marginBottom: '8px', color: 'var(--label-color)', fontWeight: 600 }}>{t("Message Body")}</label>
             <textarea
               placeholder={t("Type your message here ...")}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               style={{ ...box, height: '160px', resize: 'vertical' }}
             />
-            <div style={{ fontSize: '12px', color: message.length > SMS_LIMIT ? '#b45309' : '#64748b', marginTop: '6px', display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: 'var(--fs-12, 12px)', color: message.length > SMS_LIMIT ? '#b45309' : '#64748b', marginTop: '6px', display: 'flex', justifyContent: 'space-between' }}>
               <span>{message.length} {t("characters ·")} {smsCount} {t("SMS part")}{smsCount > 1 ? 's' : ''}</span>
               <span>{t("Remaining:")} {SMS_LIMIT - (message.length % SMS_LIMIT || (message.length ? SMS_LIMIT : 0))}</span>
             </div>
@@ -146,18 +146,18 @@ const SmsComposer = ({ title, recipientType, contacts = [], groups = null, loadi
             </div>
             {mode === 'schedule' && (
               <div style={{ marginTop: '12px' }}>
-                <label style={{ display: 'block', fontSize: '12px', marginBottom: '6px', color: 'var(--label-color)', fontWeight: 600 }}>{t("Schedule Date & Time")}</label>
+                <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', marginBottom: '6px', color: 'var(--label-color)', fontWeight: 600 }}>{t("Schedule Date & Time")}</label>
                 <input type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} style={box} />
               </div>
             )}
 
-            <div style={{ marginTop: '24px', padding: '12px', background: '#f8fafc', borderRadius: '6px', fontSize: '13px', color: '#334155' }}>
+            <div style={{ marginTop: '24px', padding: '12px', background: '#f8fafc', borderRadius: '6px', fontSize: 'var(--fs-13, 13px)', color: '#334155' }}>
               <Users size={14} style={{ verticalAlign: 'middle', marginRight: '6px' }} />
               <strong>{withPhone.length}</strong> {t("recipient")}{withPhone.length === 1 ? '' : 's'} {t("selected")}
               {recipients.length !== withPhone.length && <span style={{ color: '#b45309' }}> ({recipients.length - withPhone.length} {t("without phone skipped)")}</span>}
             </div>
 
-            <button type="button" onClick={send} disabled={sending} style={{ marginTop: '16px', width: '100%', background: 'var(--success)', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', opacity: sending ? 0.7 : 1 }}>
+            <button type="button" onClick={send} disabled={sending} style={{ marginTop: '16px', width: '100%', background: 'var(--success)', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', cursor: 'pointer', opacity: sending ? 0.7 : 1 }}>
               {sending ? t("Sending...") : mode === 'now' ? t("Send SMS") : t("Schedule SMS")}
             </button>
           </div>
@@ -166,7 +166,7 @@ const SmsComposer = ({ title, recipientType, contacts = [], groups = null, loadi
           <div>
             {groups && (
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', fontSize: '12px', marginBottom: '6px', color: 'var(--label-color)', fontWeight: 600 }}>{t("Select Group")}</label>
+                <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', marginBottom: '6px', color: 'var(--label-color)', fontWeight: 600 }}>{t("Select Group")}</label>
                 <select value={groupId} onChange={(e) => setGroupId(e.target.value)} style={box}>
                   <option value="">{t("-- All groups --")}</option>
                   {groups.map((g) => <option key={g.id || g.uuid} value={g.id || g.uuid}>{g.name}</option>)}
@@ -180,7 +180,7 @@ const SmsComposer = ({ title, recipientType, contacts = [], groups = null, loadi
               )}
             </div>
             <div style={{ border: '1px solid #e2e8f0', borderRadius: '4px', maxHeight: '360px', overflowY: 'auto' }}>
-              <div onClick={toggleAll} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', background: '#f1f5f9', cursor: 'pointer', fontWeight: 600, fontSize: '13px', position: 'sticky', top: 0 }}>
+              <div onClick={toggleAll} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', background: '#f1f5f9', cursor: 'pointer', fontWeight: 600, fontSize: 'var(--fs-13, 13px)', position: 'sticky', top: 0 }}>
                 {allVisibleSelected ? <CheckSquare size={16} color="#0ea5e9" /> : <Square size={16} />} {t("Select all (")}{pool.length})
               </div>
               {loading ? (
@@ -189,7 +189,7 @@ const SmsComposer = ({ title, recipientType, contacts = [], groups = null, loadi
                 <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>{t("No contacts found")}</div>
               ) : (
                 pool.map((c) => (
-                  <div key={c.id} onClick={() => toggle(c.id)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderTop: '1px solid #f1f5f9', cursor: 'pointer', fontSize: '13px', background: selected.has(c.id) ? '#f0f9ff' : 'white' }}>
+                  <div key={c.id} onClick={() => toggle(c.id)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderTop: '1px solid #f1f5f9', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', background: selected.has(c.id) ? '#f0f9ff' : 'white' }}>
                     {selected.has(c.id) ? <CheckSquare size={16} color="#0ea5e9" /> : <Square size={16} color="#94a3b8" />}
                     <span style={{ flex: 1 }}>{c.name}</span>
                     <span style={{ color: c.phone ? '#475569' : '#dc2626' }}>{c.phone || t("no phone")}</span>

@@ -117,7 +117,7 @@ const ReceiveList = () => {
       {/* Top Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div style={{ width: '150px' }}></div>
-        <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>{t("Receive List")}</h2>
+        <h2 style={{ fontSize: 'var(--fs-24, 24px)', fontWeight: 'bold', margin: 0 }}>{t("Receive List")}</h2>
         <div style={{ display: 'flex', gap: '10px' }}>
           <button onClick={() => navigate('/account/receive-create')} style={{ background: '#059669', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
             <Plus size={16} /> {t("Add New Receive")}
@@ -131,7 +131,7 @@ const ReceiveList = () => {
       {/* Filters */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.5fr', gap: '20px', marginBottom: '20px' }}>
         <div>
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 'bold' }}>{t("Search By Client")}</label>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold' }}>{t("Search By Client")}</label>
           <SearchableSelect
             options={clients.map(c => ({
               value: c.id,
@@ -144,21 +144,21 @@ const ReceiveList = () => {
           />
         </div>
         <div>
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 'bold', visibility: 'hidden' }}>{t("Invoice No")}</label>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold', visibility: 'hidden' }}>{t("Invoice No")}</label>
           <div style={{ position: 'relative' }}>
-             <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>{t("Invoice No")}</div>
+             <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)' }}>{t("Invoice No")}</div>
              <input type="text" placeholder={t("Invoice No")} value={invoiceNo} onChange={(e) => setInvoiceNo(e.target.value)} style={{ width: '100%', padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
           </div>
         </div>
         <div>
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 'bold', visibility: 'hidden' }}>{t("Receipt No")}</label>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold', visibility: 'hidden' }}>{t("Receipt No")}</label>
           <div style={{ position: 'relative' }}>
-             <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>{t("Receipt No")}</div>
+             <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)' }}>{t("Receipt No")}</div>
              <input type="text" placeholder={t("Receipt No")} value={receiptNo} onChange={(e) => setReceiptNo(e.target.value)} style={{ width: '100%', padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
           </div>
         </div>
         <div>
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 'bold' }}>{t("Search By Date")}</label>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold' }}>{t("Search By Date")}</label>
           <div style={{ display: 'flex', gap: '10px' }}>
             <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ flex: 1, padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
             <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ flex: 1, padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
@@ -167,14 +167,14 @@ const ReceiveList = () => {
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-        <button onClick={handleClearFilter} style={{ background: '#64748b', color: 'white', border: 'none', padding: '12px 0', width: '400px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '15px' }}>
+        <button onClick={handleClearFilter} style={{ background: '#64748b', color: 'white', border: 'none', padding: '12px 0', width: '400px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: 'var(--fs-15, 15px)' }}>
           {t("Clear Filter")}
         </button>
       </div>
 
       {/* Table Controls */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <div style={{ fontSize: '14px' }}>
+        <div style={{ fontSize: 'var(--fs-14, 14px)' }}>
           {t("Show")} 
           <input type="number" value={limit} onChange={(e) => setLimit(e.target.value)} style={{ width: '60px', margin: '0 8px', padding: '4px', border: '1px solid #cbd5e1', borderRadius: '4px', textAlign: 'center' }} /> 
           {t("entries")}
@@ -191,7 +191,7 @@ const ReceiveList = () => {
 
       {/* Table */}
       <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-13, 13px)' }}>
           <thead>
             <tr style={{ background: '#94a3b8', color: 'white' }}>
               <th style={{ padding: '12px', border: '1px solid #cbd5e1' }}>{t("SL. ↑")}</th>
@@ -267,7 +267,7 @@ const ReceiveList = () => {
           <div style={{ background: 'white', width: '800px', maxWidth: '95%', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '90vh' }}>
             {/* Header */}
             <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#1e293b' }}>{t("Money Receipt")}</h3>
+              <h3 style={{ margin: 0, fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', color: '#1e293b' }}>{t("Money Receipt")}</h3>
               <button onClick={() => setReceiptModal(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}>
                 <X size={20} />
               </button>
@@ -276,10 +276,10 @@ const ReceiveList = () => {
             {/* Body */}
             <div style={{ padding: '20px', overflowY: 'auto', flex: 1, backgroundColor: 'white' }} id="print-receipt-section">
               <PrintHeader />
-              <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '16px', margin: '16px 0', borderBottom: '1px solid black', paddingBottom: '4px' }}>
+              <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 'var(--fs-16, 16px)', margin: '16px 0', borderBottom: '1px solid black', paddingBottom: '4px' }}>
                 জমা রশিদ
               </div>
-              <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid black', fontSize: '14px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid black', fontSize: 'var(--fs-14, 14px)' }}>
                 <tbody>
                   <tr>
                     <td style={{ padding: '8px', border: '1px solid black', width: '40%' }}>Receipt No</td>

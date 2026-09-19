@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
  * (type=cost, transaction_type="Staff Salary") against the chosen account.
  */
 const inputStyle = { width: '100%', padding: '10px 12px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none' };
-const labelStyle = { display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: 'var(--label-color)' };
+const labelStyle = { display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, marginBottom: '6px', color: 'var(--label-color)' };
 
 const StaffSalaryCreate = () => {
   const { t } = useTranslation();
@@ -103,14 +103,14 @@ const StaffSalaryCreate = () => {
     }
   };
 
-  const cell = { padding: '10px 14px', borderRight: '1px solid #e2e8f0', fontSize: '13px', color: 'var(--label-color)' };
+  const cell = { padding: '10px 14px', borderRight: '1px solid #e2e8f0', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)' };
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
         <div className="premium-header" style={{ padding: '16px 24px', background: 'white', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 className="premium-title" style={{ fontSize: '14px', fontWeight: 'bold', textTransform: 'uppercase' }}>{t("Add Salary")}</h2>
-          <button type="button" onClick={() => navigate('/staff/salary/report')} style={{ background: '#64748b', color: 'white', padding: '6px 12px', fontSize: '12px', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+          <h2 className="premium-title" style={{ fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', textTransform: 'uppercase' }}>{t("Add Salary")}</h2>
+          <button type="button" onClick={() => navigate('/staff/salary/report')} style={{ background: '#64748b', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
             <List size={14} /> {t("Salary Report")}
           </button>
         </div>
@@ -154,7 +154,7 @@ const StaffSalaryCreate = () => {
           <div className="table-responsive">
             <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e2e8f0' }}>
               <thead>
-                <tr style={{ background: '#94a3b8', color: 'white', textAlign: 'left', textTransform: 'uppercase', fontSize: '12px' }}>
+                <tr style={{ background: '#94a3b8', color: 'white', textAlign: 'left', textTransform: 'uppercase', fontSize: 'var(--fs-12, 12px)' }}>
                   <th style={{ ...cell, width: '40px', textAlign: 'center' }}>
                     <input type="checkbox" checked={staff.length > 0 && selectedRows.length === staff.filter((s) => Number(sheet[s.id || s.uuid]?.amount) > 0).length} onChange={(e) => toggleAll(e.target.checked)} />
                   </th>
@@ -176,7 +176,7 @@ const StaffSalaryCreate = () => {
                     return (
                       <tr key={sid} style={{ borderBottom: '1px solid #e2e8f0', background: i % 2 === 0 ? 'var(--card-header-bg)' : 'white', opacity: r.checked ? 1 : 0.6 }}>
                         <td style={{ ...cell, textAlign: 'center' }}><input type="checkbox" checked={!!r.checked} onChange={(e) => update(sid, 'checked', e.target.checked)} /></td>
-                        <td style={cell}><div style={{ fontWeight: 600 }}>{s.full_name || s.name}</div><div style={{ fontSize: '11px', color: '#64748b' }}>{s.phone_number || s.phone}</div></td>
+                        <td style={cell}><div style={{ fontWeight: 600 }}>{s.full_name || s.name}</div><div style={{ fontSize: 'var(--fs-11, 11px)', color: '#64748b' }}>{s.phone_number || s.phone}</div></td>
                         <td style={cell}>{s.designation_name || s.designation?.name || '-'}</td>
                         <td style={cell}><input type="number" min="0" step="0.01" value={r.amount} onChange={(e) => update(sid, 'amount', e.target.value)} style={{ ...inputStyle, padding: '6px 8px', borderColor: '#e2e8f0' }} /></td>
                         <td style={{ ...cell, borderRight: 'none' }}><input value={r.note} onChange={(e) => update(sid, 'note', e.target.value)} placeholder={t("optional")} style={{ ...inputStyle, padding: '6px 8px', borderColor: '#e2e8f0' }} /></td>
@@ -198,7 +198,7 @@ const StaffSalaryCreate = () => {
           </div>
 
           <div style={{ textAlign: 'center', marginTop: '24px' }}>
-            <button onClick={save} disabled={saving || loading} style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', border: 'none', borderRadius: '4px', fontSize: '14px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', opacity: saving ? 0.7 : 1 }}>
+            <button onClick={save} disabled={saving || loading} style={{ background: 'var(--success)', color: 'white', padding: '12px 32px', border: 'none', borderRadius: '4px', fontSize: 'var(--fs-14, 14px)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', opacity: saving ? 0.7 : 1 }}>
               <Save size={16} /> {saving ? t("Saving...") : t("Save Salary Sheet")}
             </button>
           </div>

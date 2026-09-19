@@ -97,7 +97,7 @@ const AddOptionModal = ({
           justifyContent: 'space-between',
           borderBottom: '1px solid #e2e8f0'
         }}>
-          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#1e293b' }}>
+          <h3 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', fontWeight: '700', color: '#1e293b' }}>
             {title || t("Add New Client Group")}
           </h3>
           <button 
@@ -143,7 +143,7 @@ const AddOptionModal = ({
               gap: '8px',
               color: '#334155',
               fontWeight: '600',
-              fontSize: '13px',
+              fontSize: 'var(--fs-13, 13px)',
               whiteSpace: 'nowrap',
               userSelect: 'none'
             }}>
@@ -160,7 +160,7 @@ const AddOptionModal = ({
                 border: 'none',
                 outline: 'none',
                 padding: '10px 14px',
-                fontSize: '14px',
+                fontSize: 'var(--fs-14, 14px)',
                 color: '#0f172a',
                 background: 'transparent'
               }}
@@ -192,7 +192,7 @@ const AddOptionModal = ({
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '4px',
-                fontSize: '14px',
+                fontSize: 'var(--fs-14, 14px)',
                 fontWeight: '600',
                 cursor: saving ? 'not-allowed' : 'pointer',
                 transition: 'background-color 0.2s'
@@ -211,7 +211,7 @@ const AddOptionModal = ({
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '4px',
-                fontSize: '14px',
+                fontSize: 'var(--fs-14, 14px)',
                 fontWeight: '600',
                 cursor: 'pointer',
                 transition: 'background-color 0.2s'

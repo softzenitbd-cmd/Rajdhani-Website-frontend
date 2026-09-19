@@ -18,6 +18,7 @@ const SearchableSelect = ({
   onAddClick,
   disabled = false,
   clearOnSelect = false,
+  hideOptionsUntilSearch = false,
   className = '',
   style = {}
 }) => {
@@ -53,6 +54,7 @@ const SearchableSelect = ({
 
   // Filter options based on search term
   const filteredOptions = options.filter((opt) => {
+    if (hideOptionsUntilSearch && !searchTerm) return false;
     if (!searchTerm) return true;
     const query = searchTerm.toLowerCase();
     const labelMatch = (opt.label || '').toLowerCase().includes(query);
@@ -167,7 +169,7 @@ const SearchableSelect = ({
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '10px 32px 10px 12px',
-            fontSize: '13px',
+            fontSize: 'var(--fs-13, 13px)',
             color: selectedOption ? '#0f172a' : '#64748b',
             fontWeight: selectedOption ? '600' : 'normal',
             cursor: disabled ? 'not-allowed' : 'pointer',
@@ -274,7 +276,7 @@ const SearchableSelect = ({
                 border: '1px solid #475569',
                 borderRadius: '2px',
                 background: '#cbd5e1',
-                fontSize: '13px',
+                fontSize: 'var(--fs-13, 13px)',
                 color: '#0f172a',
                 outline: 'none',
                 boxSizing: 'border-box'
@@ -288,10 +290,14 @@ const SearchableSelect = ({
             style={{
               maxHeight: '220px',
               overflowY: 'auto',
-              fontSize: '13px'
+              fontSize: 'var(--fs-13, 13px)'
             }}
           >
-            {filteredOptions.length === 0 ? (
+            {hideOptionsUntilSearch && !searchTerm ? (
+              <div style={{ padding: '12px', textAlign: 'center', color: '#94a3b8' }}>
+                {t("Type to search...")}
+              </div>
+            ) : filteredOptions.length === 0 ? (
               <div style={{ padding: '12px', textAlign: 'center', color: '#94a3b8' }}>
                 {t("No matches found")}
               </div>

@@ -78,17 +78,17 @@ const StaffPaymentReport = () => {
         {/* Report Title & Buttons */}
         <div style={{ padding: '24px', background: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0' }}>
           <div>
-            <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: '0 0 4px' }}>{t("Staff Payment & Salary Report")}</h2>
-            <span style={{ fontSize: '13px', color: '#64748b' }}>{t("Comprehensive staff payroll and advances disbursement report")}</span>
+            <h2 style={{ fontSize: 'var(--fs-20, 20px)', fontWeight: 'bold', margin: '0 0 4px' }}>{t("Staff Payment & Salary Report")}</h2>
+            <span style={{ fontSize: 'var(--fs-13, 13px)', color: '#64748b' }}>{t("Comprehensive staff payroll and advances disbursement report")}</span>
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <span style={{ fontSize: '18px', fontWeight: '800', color: '#2563eb', marginRight: '12px' }}>
+            <span style={{ fontSize: 'var(--fs-18, 18px)', fontWeight: '800', color: '#2563eb', marginRight: '12px' }}>
               {t("Total: ৳")} {totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </span>
             <button 
               className="btn-primary" 
               onClick={() => navigate('/staff/payment/create')}
-              style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', fontSize: '13px', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+              style={{ background: 'var(--success)', color: 'white', padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', borderRadius: '4px', border: 'none', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 'bold' }}
             >
               <Plus size={16} /> {t("New Payment")}
             </button>
@@ -100,7 +100,7 @@ const StaffPaymentReport = () => {
           <PrintHeader />
           <form onSubmit={handleFilter} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1.5fr auto', gap: '16px', alignItems: 'end', marginBottom: '24px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '12px', marginBottom: '6px', fontWeight: '600' }}>{t("Search Staff / Reference")}</label>
+              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', marginBottom: '6px', fontWeight: '600' }}>{t("Search Staff / Reference")}</label>
               <input 
                 type="text" 
                 placeholder={t("Search staff name...")} 
@@ -111,7 +111,7 @@ const StaffPaymentReport = () => {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '12px', marginBottom: '6px', fontWeight: '600' }}>{t("Month")}</label>
+              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', marginBottom: '6px', fontWeight: '600' }}>{t("Month")}</label>
               <select 
                 value={selectedMonth} 
                 onChange={(e) => setSelectedMonth(e.target.value)} 
@@ -125,7 +125,7 @@ const StaffPaymentReport = () => {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '12px', marginBottom: '6px', fontWeight: '600' }}>{t("Date Range")}</label>
+              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', marginBottom: '6px', fontWeight: '600' }}>{t("Date Range")}</label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ width: '50%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px' }} />
                 <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ width: '50%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px' }} />
@@ -144,14 +144,14 @@ const StaffPaymentReport = () => {
 
           {/* Table Controls */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div style={{ fontSize: '13px', color: '#64748b' }}>
+            <div style={{ fontSize: 'var(--fs-13, 13px)', color: '#64748b' }}>
               {t("Showing")} {payments.length} {t("payment records")}
             </div>
             <div style={{ display: 'flex', gap: '6px' }}>
-              <button onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+              <button onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold' }}>
                 <Printer size={14} /> {t("Print")}
               </button>
-              <button onClick={fetchStaffPayments} style={{ background: '#64748b', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+              <button onClick={fetchStaffPayments} style={{ background: '#64748b', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold' }}>
                 <RefreshCcw size={14} /> {t("Reload")}
               </button>
             </div>
@@ -159,7 +159,7 @@ const StaffPaymentReport = () => {
 
           {/* Table */}
           <div className="table-responsive">
-            <table className="custom-table" style={{ width: '100%', fontSize: '13px' }}>
+            <table className="custom-table" style={{ width: '100%', fontSize: 'var(--fs-13, 13px)' }}>
               <thead>
                 <tr style={{ background: '#718096', color: 'white' }}>
                   <th style={{ width: '60px' }}>{t("SL")}</th>
@@ -192,7 +192,7 @@ const StaffPaymentReport = () => {
                         ৳ {Number(row.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                       </td>
                       <td style={{ textAlign: 'center' }}>
-                        <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                           <CheckCircle2 size={12} /> {t("Paid")}
                         </span>
                       </td>

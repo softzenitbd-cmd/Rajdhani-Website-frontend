@@ -43,7 +43,7 @@ const PrintHeader = () => {
   // 1. Uploaded banner image
   if (headerMode === 'image' && headerImage) {
     return (
-      <div className="receipt-header-image" style={{ marginBottom: '20px', textAlign: 'center' }}>
+      <div className="receipt-header-image print-only" style={{ marginBottom: '20px', textAlign: 'center' }}>
         <img
           src={headerImage}
           alt={info.company_name || t("Company banner")}
@@ -64,9 +64,9 @@ const PrintHeader = () => {
   // 2. Card 1 – cursive "Rajdhani Garments"
   if (activeCard === 'card1') {
     return (
-      <div className="receipt-header-text" style={{ border: '2px solid #000', borderRadius: '8px', padding: '16px 24px', background: 'white', textAlign: 'center', margin: '0 auto 20px auto', maxWidth: '800px' }}>
-        <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: '36px', color: 'black' }}>{info.company_name || t("Rajdhani")}</h2>
-        <h3 style={{ fontFamily: 'cursive', margin: '-8px 0 0 40px', fontSize: '24px', color: 'black' }}>{info.company_type || t("Garments")}</h3>
+      <div className="receipt-header-text print-only" style={{ border: '2px solid #000', borderRadius: '8px', padding: '16px 24px', background: 'white', textAlign: 'center', margin: '0 auto 20px auto', maxWidth: '800px' }}>
+        <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-36, 36px)', color: 'black' }}>{info.company_name || t("Rajdhani")}</h2>
+        <h3 style={{ fontFamily: 'cursive', margin: '-8px 0 0 40px', fontSize: 'var(--fs-24, 24px)', color: 'black' }}>{info.company_type || t("Garments")}</h3>
       </div>
     );
   }
@@ -74,16 +74,16 @@ const PrintHeader = () => {
   // 3. Card 3 – cursive "Rajdhani Super Shop"
   if (activeCard === 'card3') {
     return (
-      <div className="receipt-header-text" style={{ border: '2px solid #000', borderRadius: '8px', padding: '16px 24px', background: 'white', textAlign: 'center', margin: '0 auto 20px auto', maxWidth: '800px' }}>
-        <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: '36px', color: 'black' }}>{info.company_name || t("Rajdhani")}</h2>
-        <h3 style={{ fontFamily: 'cursive', margin: '-8px 0 0 40px', fontSize: '24px', color: 'black' }}>{t("Super Shop")}</h3>
+      <div className="receipt-header-text print-only" style={{ border: '2px solid #000', borderRadius: '8px', padding: '16px 24px', background: 'white', textAlign: 'center', margin: '0 auto 20px auto', maxWidth: '800px' }}>
+        <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-36, 36px)', color: 'black' }}>{info.company_name || t("Rajdhani")}</h2>
+        <h3 style={{ fontFamily: 'cursive', margin: '-8px 0 0 40px', fontSize: 'var(--fs-24, 24px)', color: 'black' }}>{t("Super Shop")}</h3>
       </div>
     );
   }
 
   // 4. Default: Card 2 – company name + address + phone from the API
   return (
-    <div className="receipt-header-text receipt-header-card" style={{
+    <div className="receipt-header-text receipt-header-card print-only" style={{
       border: '2px solid #000',
       borderRadius: '8px',
       padding: '12px 20px',
@@ -93,7 +93,7 @@ const PrintHeader = () => {
       maxWidth: '850px'
     }}>
       {info.invoice_greetings && (
-        <div className="receipt-header-greetings" style={{ fontSize: 'clamp(11px, 1.2vw, 13px)', fontWeight: 'bold', color: 'black', marginBottom: '6px' }}>
+        <div className="receipt-header-greetings" style={{ fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold', color: 'black', marginBottom: '6px' }}>
           {info.invoice_greetings}
         </div>
       )}
@@ -103,16 +103,16 @@ const PrintHeader = () => {
           <ShoppingCart size={20} />
         </div>
         <div style={{ textAlign: 'left' }}>
-          <h2 className="receipt-header-title" style={{ margin: 0, fontSize: 'clamp(18px, 2.2vw, 26px)', fontWeight: '900', color: 'black', lineHeight: '1.2' }}>
+          <h2 className="receipt-header-title" style={{ margin: 0, fontSize: 'var(--fs-28, 28px)', fontWeight: '900', color: 'black', lineHeight: '1.2' }}>
             {info.company_name || ''}
           </h2>
           {(info.address || info.present_address) && (
-            <p className="receipt-header-subtext" style={{ margin: '3px 0 0 0', fontSize: 'clamp(10px, 1.1vw, 11px)', fontWeight: 'bold', color: 'black' }}>
+            <p className="receipt-header-subtext" style={{ margin: '3px 0 0 0', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', color: 'black' }}>
               {info.address || info.present_address}
             </p>
           )}
           {(info.phone_number || info.phone) && (
-            <p className="receipt-header-subtext" style={{ margin: '2px 0 0 0', fontSize: 'clamp(10px, 1.1vw, 11px)', fontWeight: 'bold', color: 'black' }}>
+            <p className="receipt-header-subtext" style={{ margin: '2px 0 0 0', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', color: 'black' }}>
               {info.phone_number || info.phone}
             </p>
           )}

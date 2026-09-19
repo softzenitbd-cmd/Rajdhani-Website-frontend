@@ -117,7 +117,7 @@ const SupplierPayment = () => {
         
         {/* Payment Form Section matching screenshot */}
         <div style={{ background: '#22c55e', color: 'white', padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontSize: '16px', margin: 0, fontWeight: '600' }}>{t("Add Supplier Payment")}</h2>
+          <h2 style={{ fontSize: 'var(--fs-16, 16px)', margin: 0, fontWeight: '600' }}>{t("Add Supplier Payment")}</h2>
           <div style={{ display: 'flex', gap: '8px' }}>
             <Link to="/crm/supplier-list">
               <button className="btn-outline" style={{ padding: '6px 12px', background: '#718096', color: 'white', border: 'none', borderRadius: '4px' }}>
@@ -131,13 +131,13 @@ const SupplierPayment = () => {
           <form onSubmit={handleAddPayment}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '16px' }}>
               <div>
-                <label className="form-label" style={{ display: 'block', marginBottom: '8px', background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: '12px' }}>
+                <label className="form-label" style={{ display: 'block', marginBottom: '8px', background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: 'var(--fs-12, 12px)' }}>
                   {t("Date")}
                 </label>
                 <input type="date" className="input-outline" value={paymentForm.date} onChange={e => setPaymentForm({...paymentForm, date: e.target.value})} required />
               </div>
               <div>
-                <label className="form-label" style={{ display: 'block', marginBottom: '8px', background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: '12px' }}>
+                <label className="form-label" style={{ display: 'block', marginBottom: '8px', background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: 'var(--fs-12, 12px)' }}>
                   {t("Select Account")}
                 </label>
                 <SearchableSelect
@@ -153,7 +153,7 @@ const SupplierPayment = () => {
               </div>
 
               <div>
-                <label className="form-label" style={{ display: 'block', marginBottom: '8px', background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: '12px' }}>
+                <label className="form-label" style={{ display: 'block', marginBottom: '8px', background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: 'var(--fs-12, 12px)' }}>
                   {t("Supplier Name")}
                 </label>
                 <SearchableSelect
@@ -167,14 +167,14 @@ const SupplierPayment = () => {
                   placeholder={t("Choose One")}
                 />
                 {paymentForm.supplier && (
-                  <div style={{ fontSize: '12px', marginTop: '4px', color: '#eab308' }}>
+                  <div style={{ fontSize: 'var(--fs-12, 12px)', marginTop: '4px', color: '#eab308' }}>
                     {t("Supplier Due :")} ৳ {Number(suppliers.find(s => s.id === paymentForm.supplier || s.uuid === paymentForm.supplier)?.due || 0).toFixed(2)}
                   </div>
                 )}
               </div>
               
               <div>
-                <label className="form-label" style={{ display: 'block', marginBottom: '8px', background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: '12px' }}>
+                <label className="form-label" style={{ display: 'block', marginBottom: '8px', background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: 'var(--fs-12, 12px)' }}>
                   {t("Amount")}
                 </label>
                 <div style={{ display: 'flex', gap: '8px' }}>
@@ -184,8 +184,8 @@ const SupplierPayment = () => {
               </div>
 
               <div style={{ gridColumn: 'span 2' }}>
-                <label className="form-label" style={{ display: 'block', marginBottom: '8px', background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: '12px' }}>
-                  {t("Expense Description")} <span style={{ fontSize: '10px' }}>(max short note)</span>
+                <label className="form-label" style={{ display: 'block', marginBottom: '8px', background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: 'var(--fs-12, 12px)' }}>
+                  {t("Expense Description")} <span style={{ fontSize: 'var(--fs-10, 10px)' }}>(max short note)</span>
                 </label>
                 <input type="text" className="input-outline" value={paymentForm.reference} onChange={e => setPaymentForm({...paymentForm, reference: e.target.value})} />
               </div>
@@ -200,7 +200,7 @@ const SupplierPayment = () => {
 
         <div style={{ padding: '40px' }}>
           <PrintHeader />
-          <h3 style={{ textAlign: 'center', fontSize: '16px', fontWeight: 'bold', margin: '20px 0' }}>{t("Expense List")}</h3>
+          <h3 style={{ textAlign: 'center', fontSize: 'var(--fs-16, 16px)', fontWeight: 'bold', margin: '20px 0' }}>{t("Expense List")}</h3>
 
         {/* Filter Section */}
         <div style={{ display: 'flex', gap: '20px', marginBottom: '40px', alignItems: 'end' }}>
@@ -262,7 +262,7 @@ const SupplierPayment = () => {
         <table className="custom-table" style={{ border: '1px solid #d1d5db' }}>
           <thead>
             <tr>
-              <th>{t('common.sl')}<span style={{ fontSize: '10px', verticalAlign: 'super' }}>↑↓</span></th>
+              <th>{t('common.sl')}<span style={{ fontSize: 'var(--fs-10, 10px)', verticalAlign: 'super' }}>↑↓</span></th>
               <th>{t('common.date')}</th>
               <th>{t("RECEIPT FOR")}</th>
               <th>{t("ID NO")}</th>
@@ -352,13 +352,13 @@ const SupplierPayment = () => {
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '2px solid #0ea5e9', paddingBottom: '12px' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#0f172a' }}>{t("Supplier Payment Voucher")}</h3>
-                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '600' }}>{t("Voucher #")}{selectedPayment.id || selectedPayment.voucherNo || t("PAY-001")}</span>
+                <h3 style={{ margin: 0, fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', color: '#0f172a' }}>{t("Supplier Payment Voucher")}</h3>
+                <span style={{ fontSize: 'var(--fs-13, 13px)', color: '#64748b', fontWeight: '600' }}>{t("Voucher #")}{selectedPayment.id || selectedPayment.voucherNo || t("PAY-001")}</span>
               </div>
               <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#f1f5f9', padding: '6px 12px', borderRadius: '50%', cursor: 'pointer', color: '#64748b' }}>✕</button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px', marginBottom: '20px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: 'var(--fs-13, 13px)', marginBottom: '20px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
               <div><strong>{t("Supplier Name:")}</strong> {selectedPayment.supplier_name || selectedPayment.supplier?.name || t("Supplier")}</div>
               <div><strong>{t("Payment Date:")}</strong> {selectedPayment.date || '-'}</div>
               <div><strong>{t("Category:")}</strong> {selectedPayment.category_name || selectedPayment.category?.name || t("Supplier Payment")}</div>
@@ -367,7 +367,7 @@ const SupplierPayment = () => {
               <div><strong>{t("Cheque / Ref No:")}</strong> {selectedPayment.cheque_no || '-'}</div>
             </div>
 
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px', fontSize: '13px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px', fontSize: 'var(--fs-13, 13px)' }}>
               <thead>
                 <tr style={{ background: '#1e293b', color: 'white' }}>
                   <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', width: '40px' }}>{t("SL")}</th>
@@ -389,7 +389,7 @@ const SupplierPayment = () => {
               <tfoot>
                 <tr style={{ background: '#f1f5f9', fontWeight: 'bold' }}>
                   <td colSpan="2" style={{ padding: '10px', textAlign: 'right', border: '1px solid #cbd5e1' }}>{t("Total Paid Amount:")}</td>
-                  <td style={{ padding: '10px', textAlign: 'right', border: '1px solid #cbd5e1', color: '#059669', fontSize: '14px' }}>
+                  <td style={{ padding: '10px', textAlign: 'right', border: '1px solid #cbd5e1', color: '#059669', fontSize: 'var(--fs-14, 14px)' }}>
                     ৳ {Number(selectedPayment.amount || 0).toLocaleString()}
                   </td>
                 </tr>
@@ -398,10 +398,10 @@ const SupplierPayment = () => {
 
             {/* Signature Footer */}
             <div className="print-only" style={{ display: 'none', justifyContent: 'space-between', marginTop: '60px', paddingTop: '20px' }}>
-              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: '12px' }}>
+              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: 'var(--fs-12, 12px)' }}>
                 {t("Supplier Signature")}
               </div>
-              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: '12px' }}>
+              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: 'var(--fs-12, 12px)' }}>
                 {t("Authorized Signature")}
               </div>
             </div>
