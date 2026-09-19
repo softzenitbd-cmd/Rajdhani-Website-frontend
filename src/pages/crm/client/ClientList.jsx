@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, Plus, Search, Calendar, FileSpreadsheet, Printer, RotateCcw, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Users, Plus, Search, Calendar, FileSpreadsheet, Printer, RotateCcw, ChevronDown, Eye, Edit, Trash2, ArrowDownCircle, FileText, Ban, CheckCircle2 } from 'lucide-react';
 import PrintHeader from '../../../components/PrintHeader';
 import { useApi } from '../../../hooks/useApi';
 import { useConfirm } from '../../../context/ConfirmContext';
@@ -182,6 +182,16 @@ const ClientList = () => {
   const [dateModalClient, setDateModalClient] = useState(null);
   
   const { get, del, patch, loading } = useApi();
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.action-dropdown-container')) {
+        setActiveAction(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const toggleAction = (id) => {
     if (activeAction === id) {
@@ -478,28 +488,178 @@ const ClientList = () => {
                       </table>
                     </td>
                     
-                    <td style={{ verticalAlign: 'top', paddingTop: '16px', position: 'relative' }}>
+                    <td style={{ verticalAlign: 'top', paddingTop: '16px', position: 'relative' }} className="action-dropdown-container">
                       <button 
                         onClick={() => toggleAction(client.id || client.uuid)}
-                      className="btn" 
-                      style={{ background: '#05cd99', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', width: '100%', justifyContent: 'space-between' }}
-                    >
-                      {t("Action")} <ChevronDown size={14} />
-                    </button>
+                        className="btn" 
+                        style={{ 
+                          background: '#05cd99', 
+                          color: 'white', 
+                          padding: '6px 10px', 
+                          fontSize: 'var(--fs-12, 12px)', 
+                          fontWeight: '600',
+                          borderRadius: '6px', 
+                          width: '100%', 
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          border: 'none',
+                          cursor: 'pointer',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                        }}
+                      >
+                        {t("Action")} <ChevronDown size={14} />
+                      </button>
                     
-                    {activeAction === (client.id || client.uuid) && (
-                      <div style={{ position: 'absolute', top: '50px', right: '16px', background: 'white', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', borderRadius: '8px', zIndex: 10, width: '160px', padding: '8px 0', border: '1px solid #e2e8f0' }}>
-                        <div onClick={() => handleDeactivate(client.id || client.uuid, client.status)} style={{ padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item">
-                          {(client.status === false || client.status === 'Deactivated') ? t("✅ Activate") : t("🚫 Deactivate")}
+                      {activeAction === (client.id || client.uuid) && (
+                        <div 
+                          style={{ 
+                            position: 'absolute', 
+                            top: '52px', 
+                            right: '8px', 
+                            background: 'white', 
+                            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', 
+                            borderRadius: '8px', 
+                            zIndex: 100, 
+                            minWidth: '185px', 
+                            padding: '6px', 
+                            border: '1px solid #e2e8f0'
+                          }}
+                        >
+                          {/* Deactivate / Activate */}
+                          <div 
+                            onClick={() => handleDeactivate(client.id || client.uuid, client.status)} 
+                            style={{ 
+                              padding: '8px 12px', 
+                              fontSize: 'var(--fs-13, 13px)', 
+                              cursor: 'pointer', 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: '10px',
+                              borderRadius: '6px',
+                              color: (client.status === false || client.status === 'Deactivated') ? '#059669' : '#e11d48',
+                              fontWeight: '500'
+                            }}
+                            className="action-item"
+                          >
+                            {(client.status === false || client.status === 'Deactivated') ? (
+                              <>
+                                <CheckCircle2 size={16} color="#059669" />
+                                <span>{t("Activate")}</span>
+                              </>
+                            ) : (
+                              <>
+                                <Ban size={16} color="#e11d48" />
+                                <span>{t("Deactivate")}</span>
+                              </>
+                            )}
+                          </div>
+
+                          {/* View */}
+                          <div 
+                            onClick={() => { setViewClient(client); setActiveAction(null); }} 
+                            style={{ 
+                              padding: '8px 12px', 
+                              fontSize: 'var(--fs-13, 13px)', 
+                              cursor: 'pointer', 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: '10px',
+                              borderRadius: '6px',
+                              color: '#334155',
+                              fontWeight: '500'
+                            }} 
+                            className="action-item"
+                          >
+                            <Eye size={16} color="#0284c7" />
+                            <span>{t("View")}</span>
+                          </div>
+
+                          {/* Receive */}
+                          <div 
+                            onClick={() => { navigate('/account/receive-create', { state: { clientId: client.id || client.uuid } }); setActiveAction(null); }} 
+                            style={{ 
+                              padding: '8px 12px', 
+                              fontSize: 'var(--fs-13, 13px)', 
+                              cursor: 'pointer', 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: '10px',
+                              borderRadius: '6px',
+                              color: '#334155',
+                              fontWeight: '500'
+                            }} 
+                            className="action-item"
+                          >
+                            <ArrowDownCircle size={16} color="#059669" />
+                            <span>{t("Receive")}</span>
+                          </div>
+
+                          {/* Edit */}
+                          <div 
+                            onClick={() => navigate(`/crm/client-edit/${client.id || client.uuid}`)} 
+                            style={{ 
+                              padding: '8px 12px', 
+                              fontSize: 'var(--fs-13, 13px)', 
+                              cursor: 'pointer', 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: '10px',
+                              borderRadius: '6px',
+                              color: '#334155',
+                              fontWeight: '500'
+                            }} 
+                            className="action-item"
+                          >
+                            <Edit size={16} color="#4f46e5" />
+                            <span>{t("Edit")}</span>
+                          </div>
+
+                          {/* Delete */}
+                          <div 
+                            onClick={() => handleDelete(client.id || client.uuid)} 
+                            style={{ 
+                              padding: '8px 12px', 
+                              fontSize: 'var(--fs-13, 13px)', 
+                              cursor: 'pointer', 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: '10px',
+                              borderRadius: '6px',
+                              color: '#dc2626',
+                              fontWeight: '500'
+                            }} 
+                            className="action-item"
+                          >
+                            <Trash2 size={16} color="#dc2626" />
+                            <span>{t("Delete")}</span>
+                          </div>
+
+                          <div style={{ height: '1px', background: '#f1f5f9', margin: '4px 0' }} />
+
+                          {/* View Statement */}
+                          <div 
+                            onClick={() => navigate('/crm/client-statement')} 
+                            style={{ 
+                              padding: '8px 12px', 
+                              fontSize: 'var(--fs-13, 13px)', 
+                              cursor: 'pointer', 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: '10px',
+                              borderRadius: '6px',
+                              color: '#334155',
+                              fontWeight: '500',
+                              whiteSpace: 'nowrap'
+                            }} 
+                            className="action-item"
+                          >
+                            <FileText size={16} color="#64748b" />
+                            <span>{t("View Statement")}</span>
+                          </div>
                         </div>
-                        <div onClick={() => { setViewClient(client); setActiveAction(null); }} style={{ padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>👁</span> {t("View")}</div>
-                        <div onClick={() => { navigate('/account/receive-create', { state: { clientId: client.id || client.uuid } }); setActiveAction(null); }} style={{ padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>⬇️</span> {t("Receive")}</div>
-                        <div onClick={() => navigate(`/crm/client-edit/${client.id || client.uuid}`)} style={{ padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>✏️</span> {t("Edit")}</div>
-                        <div onClick={() => handleDelete(client.id || client.uuid)} style={{ padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', color: '#ef4444' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>🗑</span> {t("Delete")}</div>
-                        <div onClick={() => navigate('/crm/client-statement')} style={{ padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} className="action-item"><span style={{ width: '14px', textAlign: 'center' }}>📄</span> {t("View Statement")}</div>
-                      </div>
-                    )}
-                  </td>
+                      )}
+                    </td>
                 </tr>
               ))
             )}
