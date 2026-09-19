@@ -161,6 +161,14 @@ export const accountingService = {
   getReceives: async (filters = {}) => {
     const params = {};
     if (filters.search) params.search = filters.search;
+    if (filters.invoice_no) {
+      params.invoice_no = filters.invoice_no;
+      if (!params.search) params.search = filters.invoice_no;
+    }
+    if (filters.receipt_no) {
+      params.receipt_no = filters.receipt_no;
+      if (!params.search) params.search = filters.receipt_no;
+    }
     if (filters.client) params.client = filters.client;
     if (filters.account) params.account = filters.account;
     if (filters.category) params.category = filters.category;

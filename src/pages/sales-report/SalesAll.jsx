@@ -138,36 +138,36 @@ const SalesAll = () => {
             </div>
           </div>
 
-          {/* Table */}
-          <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
+          {/* Table View */}
+          <div className="table-responsive" style={{ width: '100%', overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
             <table className="custom-table" style={{ width: '100%', minWidth: '1100px', borderCollapse: 'collapse', fontSize: 'var(--fs-12, 12px)' }}>
               <thead>
                 <tr style={{ background: 'var(--secondary)', color: 'white' }}>
-                  <th style={{ padding: '10px', textAlign: 'center' }}>{t("SL")}</th>
-                  <th style={{ padding: '10px', textAlign: 'center' }}>{t("DATE")}</th>
-                  <th style={{ padding: '10px', textAlign: 'center' }}>{t("CLIENT")}</th>
-                  <th style={{ padding: '10px', textAlign: 'center' }}>{t("PRODUCT")}</th>
-                  <th style={{ padding: '10px', textAlign: 'center' }}>{t("BARCODE")}</th>
-                  <th style={{ padding: '10px', textAlign: 'center' }}>{t("QTY")}</th>
-                  <th style={{ padding: '10px', textAlign: 'right' }}>{t("PRICE")}</th>
-                  <th style={{ padding: '10px', textAlign: 'right' }}>{t("TOTAL")}</th>
-                  <th style={{ padding: '10px', textAlign: 'right' }}>{t("RECEIVE")}</th>
-                  <th style={{ padding: '10px', textAlign: 'right' }}>{t("PROFIT")}</th>
+                  <th style={{ padding: '8px 4px', textAlign: 'center' }}>{t("SL")}</th>
+                  <th style={{ padding: '8px 4px', textAlign: 'center' }}>{t("DATE")}</th>
+                  <th style={{ padding: '8px 4px', textAlign: 'center' }}>{t("CLIENT")}</th>
+                  <th style={{ padding: '8px 4px', textAlign: 'center' }}>{t("PRODUCT")}</th>
+                  <th style={{ padding: '8px 4px', textAlign: 'center' }}>{t("BARCODE")}</th>
+                  <th style={{ padding: '8px 4px', textAlign: 'center' }}>{t("QTY")}</th>
+                  <th style={{ padding: '8px 4px', textAlign: 'right' }}>{t("PRICE")}</th>
+                  <th style={{ padding: '8px 4px', textAlign: 'right' }}>{t("TOTAL")}</th>
+                  <th style={{ padding: '8px 4px', textAlign: 'right' }}>{t("RECEIVE")}</th>
+                  <th style={{ padding: '8px 4px', textAlign: 'right' }}>{t("PROFIT")}</th>
                 </tr>
               </thead>
               <tbody>
                 {reports.map((row, idx) => (
                   <tr key={row.id || idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                    <td style={{ padding: '8px', textAlign: 'center' }}>{idx + 1}</td>
-                    <td style={{ padding: '8px', textAlign: 'center' }}>{fmtDate(row.date || row.issued_date)}</td>
-                    <td style={{ padding: '8px', textAlign: 'center' }}>{row.client_name || row.client?.client_name || '-'}</td>
-                    <td style={{ padding: '8px', textAlign: 'center', fontWeight: '500' }}>{row.products || row.product || '-'}</td>
-                    <td style={{ padding: '8px', textAlign: 'center', color: '#64748b' }}>{row.barcode || '-'}</td>
-                    <td style={{ padding: '8px', textAlign: 'center' }}>{row.product_qty ?? row.qty ?? 0}</td>
-                    <td style={{ padding: '8px', textAlign: 'right' }}>৳ {Number(row.product_sale_price || row.price || 0).toFixed(2)}</td>
-                    <td style={{ padding: '8px', textAlign: 'right', fontWeight: 'bold' }}>৳ {Number(row.amount || row.total || 0).toFixed(2)}</td>
-                    <td style={{ padding: '8px', textAlign: 'right', color: '#059669' }}>৳ {Number(row.invoice?.receive_amount || row.receive || 0).toFixed(2)}</td>
-                    <td style={{ padding: '8px', textAlign: 'right', color: '#2563eb', fontWeight: 'bold' }}>৳ {Number(row.profit || 0).toFixed(2)}</td>
+                    <td style={{ padding: '6px 4px', textAlign: 'center' }}>{idx + 1}</td>
+                    <td style={{ padding: '6px 4px', textAlign: 'center' }}>{fmtDate(row.date || row.issued_date)}</td>
+                    <td style={{ padding: '6px 4px', textAlign: 'center' }}>{row.client_name || row.client?.client_name || '-'}</td>
+                    <td style={{ padding: '6px 4px', textAlign: 'center', fontWeight: '500' }}>{row.products || row.product || '-'}</td>
+                    <td style={{ padding: '6px 4px', textAlign: 'center', color: '#64748b' }}>{row.barcode || '-'}</td>
+                    <td style={{ padding: '6px 4px', textAlign: 'center' }}>{row.product_qty ?? row.qty ?? 0}</td>
+                    <td style={{ padding: '6px 4px', textAlign: 'right' }}>৳ {Number(row.product_sale_price || row.price || 0).toFixed(2)}</td>
+                    <td style={{ padding: '6px 4px', textAlign: 'right', fontWeight: 'bold' }}>৳ {Number(row.amount || row.total || 0).toFixed(2)}</td>
+                    <td style={{ padding: '6px 4px', textAlign: 'right', color: '#059669' }}>৳ {Number(row.invoice?.receive_amount || row.receive || 0).toFixed(2)}</td>
+                    <td style={{ padding: '6px 4px', textAlign: 'right', color: '#2563eb', fontWeight: 'bold' }}>৳ {Number(row.profit || 0).toFixed(2)}</td>
                   </tr>
                 ))}
                 {reports.length === 0 && (

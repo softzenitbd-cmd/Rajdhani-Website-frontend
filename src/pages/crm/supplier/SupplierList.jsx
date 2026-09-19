@@ -32,6 +32,16 @@ const SupplierList = () => {
     }
   };
 
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.action-dropdown-container')) {
+        setActiveAction(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const fetchGroups = async () => {
     try {
       const res = await get(ENDPOINTS.CRM_SUPPLIER_GROUPS);
@@ -262,36 +272,50 @@ const SupplierList = () => {
                         </tbody>
                       </table>
                     </td>
-                    <td style={{ verticalAlign: 'top', paddingTop: '32px', position: 'relative', textAlign: 'center' }}>
+                    <td style={{ verticalAlign: 'top', paddingTop: '32px', position: 'relative', textAlign: 'center' }} className="action-dropdown-container">
                       <button 
                         onClick={() => toggleAction(supplier.id || supplier.uuid)}
-                      className="btn" 
-                      style={{ background: 'var(--success)', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                    >
-                      {t("Action")} <ChevronDown size={14} />
-                    </button>
+                        className="btn" 
+                        style={{ 
+                          background: 'var(--success)', 
+                          color: 'white', 
+                          padding: '6px 12px', 
+                          fontSize: 'var(--fs-12, 12px)', 
+                          fontWeight: '600',
+                          borderRadius: '6px', 
+                          display: 'inline-flex', 
+                          alignItems: 'center', 
+                          gap: '6px',
+                          border: 'none',
+                          cursor: 'pointer',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                        }}
+                      >
+                        {t("Action")} <ChevronDown size={14} />
+                      </button>
 
                     {activeAction === (supplier.id || supplier.uuid) && (
                       <div style={{ 
                         position: 'absolute', 
-                        top: '64px', 
+                        top: '68px', 
                         right: '50%',
                         transform: 'translateX(50%)',
                         background: 'white', 
-                        border: '1px solid var(--secondary)', 
+                        border: '1px solid #e2e8f0', 
                         borderRadius: '8px', 
-                        boxShadow: 'var(--shadow-md)', 
-                        width: '160px',
+                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', 
+                        minWidth: '180px',
                         zIndex: 100,
+                        padding: '6px',
                         textAlign: 'left'
                       }}>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }} onClick={() => { setSelectedSupplierView(supplier); setActiveAction(null); }}><Eye size={14} /> {t("View")}</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }} onClick={() => navigate(`/crm/supplier-edit/${supplier.id || supplier.uuid}`)}><Edit size={14} /> {t("Edit")}</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }} onClick={() => toast.info(t("Delete supplier feature coming soon!"))}><Trash2 size={14} /> {t("Delete")}</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }} onClick={() => navigate('/account/supplier-payment')}><DollarSign size={14} /> {t("Payment")}</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }} onClick={() => navigate('/expense-report/supplier-purchase')}><FileText size={14} /> {t("Payment Report")}</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }}onClick={() => { navigate("/product/purchase/report", { state: { supplierId: supplier.id || supplier.uuid } }); setActiveAction(null); }}><FileBarChart size={14} /> {t("Purchase Report")}</div>
-                        <div className="action-item" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }}onClick={() => { navigate("/crm/supplier-statement", { state: { supplierId: supplier.id || supplier.uuid } }); setActiveAction(null); }}><FileText size={14} /> {t("Statement")}</div>
+                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => { setSelectedSupplierView(supplier); setActiveAction(null); }}><Eye size={16} color="#0284c7" /> <span>{t("View")}</span></div>
+                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => navigate(`/crm/supplier-edit/${supplier.id || supplier.uuid}`)}><Edit size={16} color="#4f46e5" /> <span>{t("Edit")}</span></div>
+                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#dc2626' }} onClick={() => toast.info(t("Delete supplier feature coming soon!"))}><Trash2 size={16} color="#dc2626" /> <span>{t("Delete")}</span></div>
+                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => navigate('/account/supplier-payment')}><DollarSign size={16} color="#059669" /> <span>{t("Payment")}</span></div>
+                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => navigate('/expense-report/supplier-purchase')}><FileText size={16} color="#64748b" /> <span>{t("Payment Report")}</span></div>
+                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => { navigate("/product/purchase/report", { state: { supplierId: supplier.id || supplier.uuid } }); setActiveAction(null); }}><FileBarChart size={16} color="#0284c7" /> <span>{t("Purchase Report")}</span></div>
+                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => { navigate("/crm/supplier-statement", { state: { supplierId: supplier.id || supplier.uuid } }); setActiveAction(null); }}><FileText size={16} color="#64748b" /> <span>{t("Statement")}</span></div>
                       </div>
                     )}
                   </td>

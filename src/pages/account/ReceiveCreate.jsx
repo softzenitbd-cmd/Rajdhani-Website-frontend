@@ -31,13 +31,14 @@ const ReceiveCreate = () => {
   });
 
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [clientLiveDue, setClientLiveDue] = useState(null);
 
   const loadPrerequisites = async () => {
     try {
       const [accRes, catRes, clientRes] = await Promise.all([
         accountingService.getAccounts(),
         accountingService.getIncomeCategories(),
-        crmService.getClients()
+        crmService.getClients({ page_size: 1000 })
       ]);
 
       const accData = Array.isArray(accRes) ? accRes : (accRes?.results || []);
@@ -45,9 +46,7 @@ const ReceiveCreate = () => {
       const clientData = Array.isArray(clientRes) ? clientRes : (clientRes?.results || []);
 
       setAccounts(accData);
-
       setCategories(catData);
-
       setClients(clientData);
     } catch (err) {
       toast.error(err?.message || t("Failed to load form data"));
@@ -58,6 +57,47 @@ const ReceiveCreate = () => {
     loadPrerequisites();
   }, []);
 
+  const selectedClient = (clients || []).find(c => String(c.id || c.uuid) === String(formData.clientId));
+
+  useEffect(() => {
+    if (!formData.clientId) {
+      setClientLiveDue(null);
+      return;
+    }
+
+    const client = (clients || []).find((c) => String(c.id || c.uuid) === String(formData.clientId));
+    const initialDue = client
+      ? Number(client.current_due ?? client.previous_due ?? client.total_due ?? client.due ?? client.due_amount ?? 0)
+      : 0;
+
+    setClientLiveDue(initialDue);
+
+    // Fetch live accurate due from client due report or client ledger
+    crmService
+      .getClientDueReport({ client_id: formData.clientId })
+      .then((res) => {
+        const list = Array.isArray(res) ? res : (res?.results || res?.data || []);
+        if (list.length > 0) {
+          const row = list[0];
+          const due = Number(row.current_due ?? row.total_due ?? row.balance ?? row.due ?? row.due_amount ?? row.previous_due ?? initialDue);
+          setClientLiveDue(due);
+        }
+      })
+      .catch(() => {
+        accountingService
+          .getClientLedger(formData.clientId)
+          .then((ledgerRes) => {
+            const due = Number(ledgerRes?.client?.current_due ?? ledgerRes?.current_due ?? ledgerRes?.previous_due ?? initialDue);
+            setClientLiveDue(due);
+          })
+          .catch(() => {});
+      });
+  }, [formData.clientId, clients]);
+
+  const dueAmount = clientLiveDue !== null
+    ? clientLiveDue
+    : (selectedClient ? Number(selectedClient.current_due ?? selectedClient.previous_due ?? selectedClient.total_due ?? selectedClient.due ?? selectedClient.due_amount ?? 0) : 0);
+
   const handleChange = (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setFormData({ ...formData, [e.target.name]: value });
@@ -66,9 +106,6 @@ const ReceiveCreate = () => {
   const clearField = (field) => {
     setFormData({ ...formData, [field]: '' });
   };
-
-  const selectedClient = (clients || []).find(c => String(c.id) === String(formData.clientId));
-  const dueAmount = selectedClient ? (selectedClient.due || selectedClient.due_amount || 0) : 0;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -138,7 +175,7 @@ const ReceiveCreate = () => {
                     options={(clients || []).map((c) => {
                       const nameStr = c.name || c.company_name || '';
                       return {
-                        value: c.id,
+                        value: c.id || c.uuid,
                         label: `${nameStr} ${c.phone ? `(${c.phone})` : ''}`,
                         searchValue: `${nameStr} ${c.phone || ''}`
                       };
@@ -148,7 +185,21 @@ const ReceiveCreate = () => {
                     placeholder={t("Select Client")}
                     onAddClick={() => setIsClientModalOpen(true)}
                   />
-                  <div style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', marginTop: '6px', marginLeft: '4px' }}>{t("Due:")} {dueAmount}</div>
+                  {formData.clientId && (
+                    <div style={{ fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold', marginTop: '8px', marginLeft: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ color: 'var(--text-main)' }}>{t("Due:")}</span>
+                      <span style={{
+                        color: dueAmount > 0 ? '#dc2626' : '#059669',
+                        background: dueAmount > 0 ? '#fee2e2' : '#dcfce7',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        fontSize: 'var(--fs-12, 12px)',
+                        fontWeight: 'bold'
+                      }}>
+                        ৳ {Number(dueAmount).toFixed(2)}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Account Select */}

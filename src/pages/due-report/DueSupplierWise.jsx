@@ -76,17 +76,18 @@ const DueSupplierWise = () => {
 
           <TableToolbar entries={entries} setEntries={setEntries} total={data.length} excelData={excelData} excelName="Supplier_Due_Report" onReload={fetchData} onReset={() => { setSupplierId(''); setOnlyDue(true); }} />
 
-          <div className="table-responsive">
+          {/* Table View */}
+          <div className="table-responsive" style={{ width: '100%', overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
             <table className="custom-table" style={{ width: '100%', fontSize: 'var(--fs-11, 11px)', textAlign: 'center' }}>
               <thead>
                 <tr style={{ background: '#94a3b8', color: 'white', textTransform: 'uppercase' }}>
-                  <th style={{ width: '40px', padding: '12px' }}>{t("SL")}</th>
-                  <th style={{ padding: '12px', textAlign: 'left' }}>{t("SUPPLIER INFO")}</th>
-                  <th style={{ padding: '12px' }}>{t("GROUP")}</th>
-                  <th style={{ padding: '12px' }}>{t("PURCHASE")}</th>
-                  <th style={{ padding: '12px' }}>{t("PAYMENT")}</th>
-                  <th style={{ padding: '12px' }}>{t("RETURN")}</th>
-                  <th style={{ padding: '12px' }}>{t("DUE")}</th>
+                  <th style={{ width: '40px', padding: '10px' }}>{t("SL")}</th>
+                  <th style={{ padding: '10px', textAlign: 'left' }}>{t("SUPPLIER INFO")}</th>
+                  <th style={{ padding: '10px' }}>{t("GROUP")}</th>
+                  <th style={{ padding: '10px' }}>{t("PURCHASE")}</th>
+                  <th style={{ padding: '10px' }}>{t("PAYMENT")}</th>
+                  <th style={{ padding: '10px' }}>{t("RETURN")}</th>
+                  <th style={{ padding: '10px' }}>{t("DUE")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -96,17 +97,17 @@ const DueSupplierWise = () => {
                   <tr><td colSpan="7" style={{ padding: '24px', color: '#64748b' }}>{t("No records found")}</td></tr>
                 ) : rows.map((row, index) => (
                   <tr key={row.supplier_id || index}>
-                    <td style={{ padding: '10px' }}>{index + 1}</td>
-                    <td style={{ padding: '10px', textAlign: 'left' }}>
+                    <td style={{ padding: '8px 4px' }}>{index + 1}</td>
+                    <td style={{ padding: '8px', textAlign: 'left' }}>
                       <div><b>{t("Name :")}</b> {row.supplier_name}</div>
                       <div><b>{t("Address :")}</b> {row.address || '-'}</div>
                       <div><b>{t("Phone :")}</b> {row.phone || '-'}</div>
                     </td>
-                    <td style={{ padding: '10px' }}>{row.group_name || '-'}</td>
-                    <td style={{ padding: '10px' }}>{money(row.purchase_amount)}</td>
-                    <td style={{ padding: '10px', color: '#059669' }}>{money(row.payment)}</td>
-                    <td style={{ padding: '10px' }}>{money(row.return_amount)}</td>
-                    <td style={{ padding: '10px', fontWeight: 'bold', color: Number(row.due) > 0 ? '#dc2626' : '#059669' }}>{money(row.due)}</td>
+                    <td style={{ padding: '8px 4px' }}>{row.group_name || '-'}</td>
+                    <td style={{ padding: '8px 4px' }}>{money(row.purchase_amount)}</td>
+                    <td style={{ padding: '8px 4px', color: '#059669' }}>{money(row.payment)}</td>
+                    <td style={{ padding: '8px 4px' }}>{money(row.return_amount)}</td>
+                    <td style={{ padding: '8px 4px', fontWeight: 'bold', color: Number(row.due) > 0 ? '#dc2626' : '#059669' }}>{money(row.due)}</td>
                   </tr>
                 ))}
               </tbody>

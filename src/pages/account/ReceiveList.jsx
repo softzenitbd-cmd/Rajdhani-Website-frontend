@@ -8,7 +8,7 @@ import SearchableSelect from '../../components/SearchableSelect';
 import PrintHeader from '../../components/PrintHeader';
 import { useToast } from '../../context/ToastContext';
 import { useConfirm } from '../../context/ConfirmContext';
-import QuickEditModal from '../../components/QuickEditModal';
+import ReceiveEditModal from './ReceiveEditModal';
 
 const ReceiveList = () => {
   const { t } = useTranslation();
@@ -112,6 +112,60 @@ const ReceiveList = () => {
   };
 
 
+  const getInvoiceNo = (row) => {
+    if (row.invoice_no) return row.invoice_no;
+    if (row.invoice_number) return row.invoice_number;
+    if (row.invoice_id) return row.invoice_id;
+    if (row.invoice) {
+      if (typeof row.invoice === 'string') return row.invoice;
+      if (row.invoice.invoice_number) return row.invoice.invoice_number;
+      if (row.invoice.invoice_id) return row.invoice.invoice_id;
+      if (row.invoice.id) return String(row.invoice.id).slice(0, 8);
+    }
+    if (row.sale_invoice) return row.sale_invoice;
+    if (row.transaction_type === 'Invoice' || row.type === 'Invoice') {
+      if (row.reference && (String(row.reference).startsWith('INV') || String(row.reference).startsWith('Invoice') || String(row.reference).includes('Payment for'))) {
+        return String(row.reference).replace('Payment for ', '');
+      }
+      if (row.id) return `INV-${String(row.id).slice(0, 8)}`;
+    }
+    return '-';
+  };
+
+  const getReceiptNo = (row) => {
+    if (row.receipt_no) return row.receipt_no;
+    if (row.receipt_number) return row.receipt_number;
+    if (row.voucher_no) return row.voucher_no;
+    if (row.id) return `RCP-${String(row.id).slice(0, 8)}`;
+    return '-';
+  };
+
+  const getDescription = (row) => {
+    if (row.description) return row.description;
+    if (row.reference && !String(row.reference).startsWith('INV') && !String(row.reference).startsWith('RCP') && !String(row.reference).includes('Payment for')) {
+      return row.reference;
+    }
+    return '-';
+  };
+
+  const filteredReceives = receives.filter((row) => {
+    if (invoiceNo) {
+      const q = invoiceNo.trim().toLowerCase();
+      const invNo = getInvoiceNo(row).toLowerCase();
+      const ref = String(row.reference || '').toLowerCase();
+      const id = String(row.id || '').toLowerCase();
+      if (!invNo.includes(q) && !ref.includes(q) && !id.includes(q)) return false;
+    }
+    if (receiptNo) {
+      const q = receiptNo.trim().toLowerCase();
+      const rcpNo = getReceiptNo(row).toLowerCase();
+      const ref = String(row.reference || '').toLowerCase();
+      const id = String(row.id || '').toLowerCase();
+      if (!rcpNo.includes(q) && !ref.includes(q) && !id.includes(q)) return false;
+    }
+    return true;
+  });
+
   return (
     <div style={{ background: 'white', minHeight: '100vh', padding: '20px' }}>
       {/* Top Header */}
@@ -144,18 +198,24 @@ const ReceiveList = () => {
           />
         </div>
         <div>
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold', visibility: 'hidden' }}>{t("Invoice No")}</label>
-          <div style={{ position: 'relative' }}>
-             <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)' }}>{t("Invoice No")}</div>
-             <input type="text" placeholder={t("Invoice No")} value={invoiceNo} onChange={(e) => setInvoiceNo(e.target.value)} style={{ width: '100%', padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
-          </div>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold' }}>{t("Invoice No")}</label>
+          <input
+            type="text"
+            placeholder={t("Invoice No")}
+            value={invoiceNo}
+            onChange={(e) => setInvoiceNo(e.target.value)}
+            style={{ width: '100%', padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none', boxSizing: 'border-box' }}
+          />
         </div>
         <div>
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold', visibility: 'hidden' }}>{t("Receipt No")}</label>
-          <div style={{ position: 'relative' }}>
-             <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)' }}>{t("Receipt No")}</div>
-             <input type="text" placeholder={t("Receipt No")} value={receiptNo} onChange={(e) => setReceiptNo(e.target.value)} style={{ width: '100%', padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
-          </div>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold' }}>{t("Receipt No")}</label>
+          <input
+            type="text"
+            placeholder={t("Receipt No")}
+            value={receiptNo}
+            onChange={(e) => setReceiptNo(e.target.value)}
+            style={{ width: '100%', padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none', boxSizing: 'border-box' }}
+          />
         </div>
         <div>
           <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold' }}>{t("Search By Date")}</label>
@@ -209,21 +269,21 @@ const ReceiveList = () => {
           <tbody>
             {loading ? (
               <tr><td colSpan="10" style={{ textAlign: 'center', padding: '20px' }}>Loading...</td></tr>
-            ) : receives.length === 0 ? (
+            ) : filteredReceives.length === 0 ? (
               <tr><td colSpan="10" style={{ textAlign: 'center', padding: '20px' }}>No records found.</td></tr>
             ) : (
-              receives.slice(0, limit).map((row, idx) => (
+              filteredReceives.slice(0, limit).map((row, idx) => (
                 <tr key={row.id || idx} style={{ borderBottom: '1px solid #cbd5e1', textAlign: 'center' }}>
                   <td style={{ padding: '12px', border: '1px solid #cbd5e1' }}>{idx + 1}</td>
                   <td style={{ padding: '12px', border: '1px solid #cbd5e1' }}>{row.date ? String(row.date).split('T')[0] : ''}</td>
-                  <td style={{ padding: '12px', border: '1px solid #cbd5e1' }}>{row.receipt_no || row.reference || `RCP-${row.id}`}</td>
-                  <td style={{ padding: '12px', border: '1px solid #cbd5e1' }}>{row.invoice_no || row.invoice || '-'}</td>
+                  <td style={{ padding: '12px', border: '1px solid #cbd5e1' }}>{getReceiptNo(row)}</td>
+                  <td style={{ padding: '12px', border: '1px solid #cbd5e1', fontWeight: '500' }}>{getInvoiceNo(row)}</td>
                   <td style={{ padding: '12px', border: '1px solid #cbd5e1', textAlign: 'center' }}>
                     <div>Name: {row.client_name || row.client?.name || 'Walk-in'}</div>
-                    {row.client_phone && <div>Number: {row.client_phone}</div>}
+                    {(row.client_phone || row.client?.phone) && <div>Number: {row.client_phone || row.client?.phone}</div>}
                   </td>
-                  <td style={{ padding: '12px', border: '1px solid #cbd5e1' }}>{row.transaction_type || t("Invoice")}</td>
-                  <td style={{ padding: '12px', border: '1px solid #cbd5e1' }}>{row.description || ''}</td>
+                  <td style={{ padding: '12px', border: '1px solid #cbd5e1' }}>{row.transaction_type || row.type || t("Invoice")}</td>
+                  <td style={{ padding: '12px', border: '1px solid #cbd5e1' }}>{getDescription(row)}</td>
                   <td style={{ padding: '12px', border: '1px solid #cbd5e1', fontWeight: 'bold' }}>{Number(row.amount || 0).toFixed(2)}</td>
                   <td style={{ padding: '12px', border: '1px solid #cbd5e1' }}>
                     <button onClick={() => setReceiptModal(row)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer' }}>
@@ -248,16 +308,14 @@ const ReceiveList = () => {
       </div>
 
       {editing && (
-        <QuickEditModal
-          title={t("Edit Receive")}
-          record={editing}
-          fields={[
-            { name: 'date', label: t("Date"), type: 'date' },
-            { name: 'amount', label: t("Amount"), type: 'number' },
-            { name: 'description', label: t("Description") },
-          ]}
-          onSave={(changed) => accountingService.updateReceive(editing.id, changed)}
-          onClose={(saved) => { setEditing(null); if (saved) fetchReceives(); }}
+        <ReceiveEditModal
+          isOpen={!!editing}
+          receive={editing}
+          onClose={() => setEditing(null)}
+          onSuccess={() => {
+            setEditing(null);
+            fetchReceives();
+          }}
         />
       )}
 
@@ -283,19 +341,25 @@ const ReceiveList = () => {
                 <tbody>
                   <tr>
                     <td style={{ padding: '8px', border: '1px solid black', width: '40%' }}>Receipt No</td>
-                    <td style={{ padding: '8px', border: '1px solid black', width: '60%' }}>#{receiptModal.receipt_no || receiptModal.reference || receiptModal.id}</td>
+                    <td style={{ padding: '8px', border: '1px solid black', width: '60%' }}>#{getReceiptNo(receiptModal)}</td>
                   </tr>
+                  {getInvoiceNo(receiptModal) !== '-' && (
+                    <tr>
+                      <td style={{ padding: '8px', border: '1px solid black' }}>Invoice No</td>
+                      <td style={{ padding: '8px', border: '1px solid black' }}>{getInvoiceNo(receiptModal)}</td>
+                    </tr>
+                  )}
                   <tr>
                     <td style={{ padding: '8px', border: '1px solid black' }}>তারিখ</td>
                     <td style={{ padding: '8px', border: '1px solid black' }}>{receiptModal.date ? String(receiptModal.date).split('T')[0] : ''}</td>
                   </tr>
                   <tr>
                     <td style={{ padding: '8px', border: '1px solid black' }}>নাম</td>
-                    <td style={{ padding: '8px', border: '1px solid black' }}>{receiptModal.client_name || receiptModal.client?.name || 'C.CA STOMER'}</td>
+                    <td style={{ padding: '8px', border: '1px solid black' }}>{receiptModal.client_name || receiptModal.client?.name || 'Walk-in'}</td>
                   </tr>
                   <tr>
                     <td style={{ padding: '8px', border: '1px solid black' }}>বিবরণ</td>
-                    <td style={{ padding: '8px', border: '1px solid black' }}>{receiptModal.description || ''}</td>
+                    <td style={{ padding: '8px', border: '1px solid black' }}>{getDescription(receiptModal)}</td>
                   </tr>
                   <tr>
                     <td style={{ padding: '8px', border: '1px solid black' }}>জমা টাকা</td>

@@ -301,18 +301,24 @@ const SalesReturnCreate = () => {
       <div className="premium-card">
         <div className="premium-header" style={{ padding: '12px 24px', background: isEdit ? '#10b981' : 'white', color: isEdit ? 'white' : '#0f172a', borderRadius: '4px 4px 0 0' }}>
           <h2 className="premium-title" style={{ fontSize: isEdit ? '15px' : '14px', fontWeight: 'bold', margin: 0, textTransform: isEdit ? 'uppercase' : 'none' }}>
-            {isEdit 
-              ? `UPDATE INVOICE | ID NO: ${formData.returnNo || id || '163873'}` 
-              : t("SALES RETURN | CTRL + S = SAVE | ALT + S = SAVE & PRINT | CTRL + D = ড্রাফ্ট হিসেবে সংরক্ষণ")
-            }
+            {isEdit ? (
+              `UPDATE INVOICE | ID NO: ${formData.returnNo || id || '163873'}`
+            ) : (
+              <>
+                <span>{t("SALES RETURN")}</span>
+                <span className="desktop-shortcut-guide" style={{ fontWeight: 'normal', fontSize: '12px', color: '#64748b', marginLeft: '6px' }}>
+                  | CTRL + S = SAVE | ALT + S = SAVE & PRINT | CTRL + D = {t("ড্রাফ্ট হিসেবে সংরক্ষণ")}
+                </span>
+              </>
+            )}
           </h2>
         </div>
 
         <div className="premium-body" style={{ background: 'white', paddingTop: '16px' }}>
           <PrintHeader />
           <form onSubmit={(e) => e.preventDefault()}>
-            {/* Top Row */}
-            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '8px' }}>
+            {/* Top Row: Customer Selection */}
+            <div style={{ marginBottom: '12px' }}>
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <SearchableSelect
                   options={(clients || []).map((c) => {
@@ -333,8 +339,11 @@ const SalesReturnCreate = () => {
                   {t("Due: ৳")} {dueAmount.toFixed(2)}
                 </div>
               </div>
+            </div>
 
-              <div className="form-group" style={{ position: 'relative', marginBottom: '0' }}>
+            {/* Date & Time Row (Side-by-side on both mobile & desktop) */}
+            <div className="form-row-2col" style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+              <div className="form-group" style={{ position: 'relative', flex: 1, marginBottom: 0 }}>
                 <div className="badge-date" style={{ background: 'var(--info)' }}><Calendar size={12} /> {t("Issued Date")}</div>
                 <input 
                   type="date" 
@@ -344,22 +353,22 @@ const SalesReturnCreate = () => {
                   onChange={handleChange}
                   onClick={(e) => { try { e.target.showPicker(); } catch (err) {} }}
                   onFocus={(e) => { try { e.target.showPicker(); } catch (err) {} }}
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: 'pointer', width: '100%' }}
                 />
               </div>
 
-              <div className="form-group" style={{ marginBottom: '0' }}>
+              <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                  <input type="text" name="time" value={formData.time} onChange={handleChange} style={{ width: '100%', padding: '12px', paddingRight: '40px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }} />
+                  <input type="text" name="time" value={formData.time} onChange={handleChange} style={{ width: '100%', padding: '12px', paddingRight: '40px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', height: '48px', boxSizing: 'border-box' }} />
                   <Clock size={16} style={{ position: 'absolute', right: '12px', color: '#94a3b8' }} />
                 </div>
               </div>
             </div>
 
-            {/* Second Row */}
-            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px', position: 'relative' }}>
+            {/* Second Row: Barcode & Product Selection */}
+            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px', position: 'relative' }}>
               <div className="form-group" style={{ marginBottom: '0', position: 'relative' }}>
-                <div style={{ position: 'absolute', top: '-10px', left: '20px', background: 'var(--primary)', color: 'white', padding: '2px 8px', fontSize: 'var(--fs-10, 10px)', borderRadius: '4px' }}>{t("Barcode Number")}</div>
+                <div style={{ position: 'absolute', top: '-10px', left: '20px', background: 'var(--primary)', color: 'white', padding: '2px 8px', fontSize: 'var(--fs-10, 10px)', borderRadius: '4px', zIndex: 2 }}>{t("Barcode Number")}</div>
                 <div style={{ display: 'flex', border: '1px solid #e2e8f0', borderRadius: '4px', overflow: 'hidden', background: 'var(--card-border)' }}>
                   <div style={{ padding: '12px', borderRight: '1px solid #cbd5e1', display: 'flex', alignItems: 'center' }}>
                     <Barcode size={24} style={{ color: 'var(--text-muted)' }} />
@@ -395,9 +404,9 @@ const SalesReturnCreate = () => {
               </div>
             </div>
 
-            {/* Product Table */}
-            <div style={{ border: '1px solid #e2e8f0', marginBottom: '16px', overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-12, 12px)' }}>
+            {/* Product Table with Responsive Scroll Wrapper */}
+            <div className="table-responsive-wrapper" style={{ border: '1px solid #e2e8f0', borderRadius: '6px', marginBottom: '16px', overflowX: 'auto' }}>
+              <table style={{ width: '100%', minWidth: '580px', borderCollapse: 'collapse', fontSize: 'var(--fs-12, 12px)' }}>
                 <thead>
                   <tr style={{ background: 'var(--secondary)', color: 'white' }}>
                     <th style={{ padding: '8px', textAlign: 'center' }}>{t("SL")}</th>
@@ -472,13 +481,13 @@ const SalesReturnCreate = () => {
             </div>
 
             <div style={{ textAlign: 'center', fontSize: 'var(--fs-13, 13px)', marginBottom: '24px', fontWeight: 'bold' }}>
-              {t("Total Quantity:")} {totalQuantity}
+              {t("Total Quantity:")} <span style={{ color: 'var(--primary)' }}>{totalQuantity}</span>
             </div>
 
             {/* Bottom Section */}
-            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '40px' }}>
+            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
               {/* Left Column - Accounts */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <SearchableSelect
                   options={[
                     { value: 'TOTAL BALENCE', label: t("TOTAL BALENCE") },
@@ -543,12 +552,12 @@ const SalesReturnCreate = () => {
               </div>
             </div>
 
-            {/* Footer Buttons */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/* Footer Action Buttons */}
+            <div className="form-bottom-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
               <button type="button" className="btn-danger" onClick={() => navigate('/invoice/sales-return/list')} style={{ background: 'var(--danger)', padding: '10px 24px', fontSize: 'var(--fs-14, 14px)', borderRadius: '4px' }}>
                 {t("Cancel")}
               </button>
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div className="form-action-group" style={{ display: 'flex', gap: '8px' }}>
                 <button type="button" className="btn-primary" onClick={() => handleSaveReturn(0)} style={{ background: '#64748b', padding: '10px 24px', fontSize: 'var(--fs-14, 14px)', borderRadius: '4px' }}>
                   {t("Save As Draft")}
                 </button>

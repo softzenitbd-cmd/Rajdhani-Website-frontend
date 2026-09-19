@@ -4,6 +4,8 @@ import { appSettingsService } from '../services/appSettingsService';
 export const defaultTheme = {
   '--main-font': "'Inter', sans-serif",
   '--main-font-size': '13px',
+  '--sidebar-font-size': '14px',
+  '--sidebar-submenu-font-size': '13px',
   '--bg-app': '#f4f7fe',
   '--bg-sidebar': '#ffffff',
   '--sidebar-hover': '#f1f5f9',

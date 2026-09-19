@@ -40,10 +40,10 @@ const FloatingShortcutMenu = () => {
   };
 
   return (
-    <div ref={menuRef} style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999 }}>
+    <div ref={menuRef} className="floating-shortcut-fab-container" style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999 }}>
       {/* Floating Shortcut Popup Card */}
       {isOpen && (
-        <div style={{
+        <div className="floating-shortcut-popup" style={{
           position: 'absolute',
           bottom: '65px',
           right: 0,
@@ -150,6 +150,7 @@ const FloatingShortcutMenu = () => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         aria-label={t("Quick Actions Menu")}
+        className="floating-shortcut-fab-btn"
         style={{
           width: '52px',
           height: '52px',

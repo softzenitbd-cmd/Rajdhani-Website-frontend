@@ -3,15 +3,19 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import PrintHeader from '../../../components/PrintHeader';
 import { Printer, RotateCcw, Plus } from 'lucide-react';
-import { useApi } from '../../../hooks/useApi';
+import apiClient from '../../../api/apiClient';
 import { ENDPOINTS } from '../../../api/endpoints';
+import { crmService } from '../../../services/crmService';
+import { purchaseService } from '../../../services/purchaseService';
+import { useToast } from '../../../context/ToastContext';
 
 const SupplierStatement = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { get, loading } = useApi();
+  const toast = useToast();
 
+  const [loading, setLoading] = useState(false);
   const [statementData, setStatementData] = useState([]);
   const [summary, setSummary] = useState(null); // { supplier: {...} } from the ledger API
   const [suppliers, setSuppliers] = useState([]);
@@ -27,33 +31,127 @@ const SupplierStatement = () => {
   // Fetch Suppliers for dropdown
   const fetchSuppliers = async () => {
     try {
-      const res = await get(ENDPOINTS.CRM_SUPPLIERS);
+      const res = await crmService.getSuppliers({ page_size: 1000 });
       setSuppliers(res.results || res.data || res || []);
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching suppliers:', err);
     }
   };
 
   // GET /api/accounting/reports/supplier-ledger/?supplier_id=&from_date=&to_date=
-  // → { supplier: {id, name, phone, current_due}, ledger: [{date, type, reference, debit, credit, balance}] }
+  // With resilient fallback to purchase invoices + expenses + purchase returns if backend throws 500
   const fetchStatement = async () => {
     if (!filters.supplier) {
       setStatementData([]);
       setSummary(null);
       return;
     }
+
+    setLoading(true);
+    const selectedSupplier = suppliers.find((s) => String(s.id || s.uuid) === String(filters.supplier));
+
     try {
-      const params = new URLSearchParams({ supplier_id: filters.supplier });
-      if (filters.startDate) params.set('from_date', filters.startDate);
-      if (filters.endDate) params.set('to_date', filters.endDate);
-      const res = await get(`${ENDPOINTS.ACCOUNTING_REPORT_SUPPLIER_LEDGER}?${params.toString()}`);
-      const rows = Array.isArray(res) ? res : (res?.ledger || res?.results || res?.data || []);
+      const params = { supplier_id: filters.supplier };
+      if (filters.startDate) params.from_date = filters.startDate;
+      if (filters.endDate) params.to_date = filters.endDate;
+
+      // 1. Try primary supplier ledger API
+      const res = await apiClient.get(ENDPOINTS.ACCOUNTING_REPORT_SUPPLIER_LEDGER, { params });
+      const data = res?.data !== undefined ? res.data : res;
+      const rows = Array.isArray(data) ? data : (data?.ledger || data?.results || data?.data || []);
       setStatementData(rows);
-      setSummary(Array.isArray(res) ? null : res);
+      setSummary(Array.isArray(data) ? (selectedSupplier ? { supplier: selectedSupplier } : null) : data);
     } catch (err) {
-      // useApi already toasts the error
-      setStatementData([]);
-      setSummary(null);
+      console.warn("Supplier ledger API error (backend 500), using fallback statement assembly:", err);
+
+      try {
+        // 2. Fallback: Fetch purchases, expenses (payments), and returns for this supplier
+        const [purchasesRes, expensesRes, returnsRes] = await Promise.allSettled([
+          purchaseService.getPurchaseInvoices({ supplier: filters.supplier, from_date: filters.startDate, to_date: filters.endDate }),
+          apiClient.get(ENDPOINTS.ACCOUNTING_EXPENSES, { params: { supplier: filters.supplier, from_date: filters.startDate, to_date: filters.endDate } }),
+          purchaseService.getPurchaseReturns({ supplier: filters.supplier, from_date: filters.startDate, to_date: filters.endDate }),
+        ]);
+
+        const purchases = purchasesRes.status === 'fulfilled'
+          ? (Array.isArray(purchasesRes.value?.data || purchasesRes.value)
+              ? (purchasesRes.value?.data || purchasesRes.value)
+              : (purchasesRes.value?.data?.results || purchasesRes.value?.results || []))
+          : [];
+
+        const expenses = expensesRes.status === 'fulfilled'
+          ? (Array.isArray(expensesRes.value?.data || expensesRes.value)
+              ? (expensesRes.value?.data || expensesRes.value)
+              : (expensesRes.value?.data?.results || expensesRes.value?.results || []))
+          : [];
+
+        const returns = returnsRes.status === 'fulfilled'
+          ? (Array.isArray(returnsRes.value?.data || returnsRes.value)
+              ? (returnsRes.value?.data || returnsRes.value)
+              : (returnsRes.value?.data?.results || returnsRes.value?.results || []))
+          : [];
+
+        const assembledRows = [];
+
+        // Purchases -> Debit (we owe more)
+        purchases.forEach((p) => {
+          assembledRows.push({
+            id: p.id || p.uuid,
+            date: p.invoice_date || p.date || p.created_at,
+            type: t('Purchase'),
+            reference: p.invoice_number || p.invoice_no || p.reference || (p.id ? `INV-${String(p.id).slice(0, 8)}` : '-'),
+            debit: Number(p.grand_total || p.total_amount || p.net_total || p.total || 0),
+            credit: 0,
+          });
+        });
+
+        // Expenses / Supplier Payments -> Credit (we paid)
+        expenses.forEach((e) => {
+          assembledRows.push({
+            id: e.id || e.uuid,
+            date: e.date || e.created_at,
+            type: e.transaction_type || t('Supplier Payment'),
+            reference: e.reference || e.description || '-',
+            debit: 0,
+            credit: Number(e.amount || 0),
+          });
+        });
+
+        // Purchase Returns -> Credit (we returned goods, reducing due)
+        returns.forEach((r) => {
+          assembledRows.push({
+            id: r.id || r.uuid,
+            date: r.return_date || r.date || r.created_at,
+            type: t('Purchase Return'),
+            reference: r.return_number || r.reference || '-',
+            debit: 0,
+            credit: Number(r.total_amount || r.amount || 0),
+          });
+        });
+
+        // Sort chronologically
+        assembledRows.sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+
+        // Compute running balance
+        let balance = Number(selectedSupplier?.previous_due || selectedSupplier?.opening_balance || 0);
+        const rowsWithBalance = assembledRows.map((row) => {
+          balance += Number(row.debit || 0) - Number(row.credit || 0);
+          return { ...row, balance };
+        });
+
+        setStatementData(rowsWithBalance);
+        setSummary({
+          supplier: selectedSupplier || { id: filters.supplier, name: '-' },
+          current_due: selectedSupplier?.current_due ?? selectedSupplier?.previous_due ?? balance,
+          opening_balance: selectedSupplier?.previous_due || 0,
+        });
+      } catch (fallbackErr) {
+        console.error("Fallback failed:", fallbackErr);
+        toast.error(t("Failed to load supplier statement"));
+        setStatementData([]);
+        setSummary(null);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -64,7 +162,7 @@ const SupplierStatement = () => {
   // Fetch statement whenever filters change
   useEffect(() => {
     fetchStatement();
-  }, [filters]);
+  }, [filters, suppliers.length]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -83,6 +181,8 @@ const SupplierStatement = () => {
     handleClearFilter();
     setEntries(100);
   };
+
+  const selectedSupplier = suppliers.find((s) => String(s.id || s.uuid) === String(filters.supplier));
 
   // Basic client-side slicing
   const displayedData = statementData.slice(0, entries);
@@ -160,11 +260,16 @@ const SupplierStatement = () => {
           </div>
         </div>
 
-        {summary?.supplier && (
+        {(summary?.supplier || selectedSupplier) && (
           <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', padding: '12px 16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', marginBottom: '16px', fontSize: 'var(--fs-13, 13px)' }}>
-            <div><b>{t("Supplier:")}</b> {summary.supplier.name}</div>
-            {summary.supplier.phone && <div><b>{t("Phone:")}</b> {summary.supplier.phone}</div>}
-            <div style={{ marginLeft: 'auto' }}><b>{t("Current Due:")}</b> <span style={{ color: '#dc2626', fontWeight: 700 }}>৳ {Number(summary.supplier.current_due || 0).toFixed(2)}</span></div>
+            <div><b>{t("Supplier:")}</b> {summary?.supplier?.name || selectedSupplier?.name}</div>
+            {(summary?.supplier?.phone || selectedSupplier?.phone) && <div><b>{t("Phone:")}</b> {summary?.supplier?.phone || selectedSupplier?.phone}</div>}
+            <div style={{ marginLeft: 'auto' }}>
+              <b>{t("Current Due:")}</b>{' '}
+              <span style={{ color: '#dc2626', fontWeight: 700 }}>
+                ৳ {Number(summary?.supplier?.current_due ?? summary?.current_due ?? selectedSupplier?.previous_due ?? displayedData[displayedData.length - 1]?.balance ?? 0).toFixed(2)}
+              </span>
+            </div>
           </div>
         )}
 

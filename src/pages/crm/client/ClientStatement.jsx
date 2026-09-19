@@ -5,12 +5,15 @@ import PrintHeader from '../../../components/PrintHeader';
 import TableToolbar from '../../../components/TableToolbar';
 import { crmService } from '../../../services/crmService';
 import { accountingService } from '../../../services/accountingService';
+import { saleService } from '../../../services/saleService';
+import { productService } from '../../../services/productService';
 import { useToast } from '../../../context/ToastContext';
 import { toList, fmtDate, money } from '../../../utils/apiHelpers';
 import { useTranslation } from 'react-i18next';
 
 /**
  * Client statement / ledger → /api/accounting/reports/client-ledger/?client_id=&from_date=&to_date=
+ * Enriched with item-level product names, quantities, units, and prices from Sales Invoices and Sales Returns.
  */
 const ClientStatement = () => {
   const { t } = useTranslation();
@@ -30,7 +33,7 @@ const ClientStatement = () => {
   });
 
   useEffect(() => {
-    crmService.getClients().then((r) => setClients(toList(r))).catch(() => {});
+    crmService.getClients({ page_size: 1000 }).then((r) => setClients(toList(r))).catch(() => {});
   }, []);
 
   const load = async (f = filters) => {
@@ -39,13 +42,199 @@ const ClientStatement = () => {
       const params = {};
       if (f.from_date) params.from_date = f.from_date;
       if (f.to_date) params.to_date = f.to_date;
-      const res = f.client
-        ? await accountingService.getClientLedger(f.client, params)
-        : await accountingService.getDepositReport(params);
-      const list = toList(res?.ledger || res?.transactions || res?.statement || res?.results || res);
+
+      const [ledgerRes, invoicesRes, returnsRes, productsRes, saleItemsRes] = await Promise.allSettled([
+        f.client
+          ? accountingService.getClientLedger(f.client, params)
+          : accountingService.getDepositReport(params),
+        f.client
+          ? saleService.getSalesInvoices({ client: f.client, from_date: f.from_date, to_date: f.to_date }).catch(() => [])
+          : Promise.resolve([]),
+        f.client
+          ? saleService.getSalesReturns({ client: f.client, from_date: f.from_date, to_date: f.to_date }).catch(() => [])
+          : Promise.resolve([]),
+        productService.getProducts().catch(() => []),
+        f.client
+          ? saleService.getSaleItems().catch(() => [])
+          : Promise.resolve([])
+      ]);
+
+      const res = ledgerRes.status === 'fulfilled' ? ledgerRes.value : [];
+      const invoices = toList(invoicesRes.status === 'fulfilled' ? invoicesRes.value : []);
+      const returns = toList(returnsRes.status === 'fulfilled' ? returnsRes.value : []);
+      const products = toList(productsRes.status === 'fulfilled' ? productsRes.value : []);
+      const allSaleItems = toList(saleItemsRes.status === 'fulfilled' ? saleItemsRes.value : []);
+
+      const productsMap = new Map();
+      products.forEach((p) => {
+        if (p.id) productsMap.set(String(p.id), p);
+        if (p.uuid) productsMap.set(String(p.uuid), p);
+      });
+
+      // Group sale items by invoice ID
+      const itemsByInvoice = new Map();
+      allSaleItems.forEach((it) => {
+        const invKey = String(it.sale || it.invoice || it.sale_invoice || it.sale_id || it.invoice_id || '');
+        if (invKey) {
+          if (!itemsByInvoice.has(invKey)) itemsByInvoice.set(invKey, []);
+          itemsByInvoice.get(invKey).push(it);
+        }
+      });
+
+      // Index invoices by multiple identifier formats
+      const invoicesMap = new Map();
+      invoices.forEach((inv) => {
+        if (inv.id) invoicesMap.set(String(inv.id), inv);
+        if (inv.uuid) invoicesMap.set(String(inv.uuid), inv);
+        if (inv.invoice_id) invoicesMap.set(String(inv.invoice_id), inv);
+        if (inv.invoice_no) invoicesMap.set(String(inv.invoice_no), inv);
+        if (inv.voucher) invoicesMap.set(String(inv.voucher), inv);
+      });
+
+      // Index returns by id, uuid, return_no, reference
+      const returnsMap = new Map();
+      returns.forEach((ret) => {
+        if (ret.id) returnsMap.set(String(ret.id), ret);
+        if (ret.uuid) returnsMap.set(String(ret.uuid), ret);
+        if (ret.return_no) returnsMap.set(String(ret.return_no), ret);
+        if (ret.reference) returnsMap.set(String(ret.reference), ret);
+      });
+
+      // Attach standalone items to invoices if items array was missing
+      invoices.forEach((inv) => {
+        const invId = String(inv.id || inv.uuid);
+        if ((!Array.isArray(inv.items) || inv.items.length === 0) && itemsByInvoice.has(invId)) {
+          inv.items = itemsByInvoice.get(invId);
+        }
+      });
+
+      // Fetch individual invoice details for any invoice that still has missing items
+      const missingInvoices = invoices.filter((inv) => !Array.isArray(inv.items) || inv.items.length === 0);
+      if (missingInvoices.length > 0 && missingInvoices.length <= 15) {
+        await Promise.allSettled(
+          missingInvoices.map(async (inv) => {
+            try {
+              const detail = await saleService.getSalesInvoiceById(inv.id || inv.uuid);
+              if (detail && Array.isArray(detail.items) && detail.items.length > 0) {
+                inv.items = detail.items;
+                if (inv.id) invoicesMap.set(String(inv.id), inv);
+                if (inv.uuid) invoicesMap.set(String(inv.uuid), inv);
+              }
+            } catch {}
+          })
+        );
+      }
+
+      // Process ledger transactions and enrich them with item details
+      const rawList = toList(res?.ledger || res?.transactions || res?.statement || res?.results || res);
+
+      const list = rawList.map((r) => {
+        const refStr = String(r.reference || r.description || '');
+        const invMatch = refStr.match(/Invoice:\s*([a-zA-Z0-9-]+)/i);
+        const retMatch = refStr.match(/Return:\s*([a-zA-Z0-9-]+)/i);
+
+        let matchedInvoice = null;
+        let matchedReturn = null;
+
+        if (invMatch && invMatch[1]) {
+          const invKey = invMatch[1].trim();
+          matchedInvoice = invoicesMap.get(invKey);
+          if (!matchedInvoice) {
+            matchedInvoice = invoices.find((inv) =>
+              String(inv.id || '').includes(invKey) ||
+              invKey.includes(String(inv.id || '')) ||
+              String(inv.invoice_no || '').includes(invKey) ||
+              String(inv.invoice_id || '').includes(invKey)
+            );
+          }
+        } else if (r.invoice || r.invoice_id) {
+          matchedInvoice = invoicesMap.get(String(r.invoice || r.invoice_id));
+        }
+
+        if (retMatch && retMatch[1]) {
+          const retKey = retMatch[1].trim();
+          matchedReturn = returnsMap.get(retKey);
+          if (!matchedReturn) {
+            matchedReturn = returns.find((ret) =>
+              String(ret.id || '').includes(retKey) ||
+              retKey.includes(String(ret.id || '')) ||
+              String(ret.return_no || '').includes(retKey)
+            );
+          }
+        }
+
+        let enrichedItems = [];
+        let cleanDescription = r.description || r.reference || '-';
+
+        if (matchedInvoice) {
+          const invNo = matchedInvoice.invoice_no || matchedInvoice.invoice_id || matchedInvoice.voucher || (matchedInvoice.id ? `INV-${String(matchedInvoice.id).slice(0, 8)}` : '');
+          if (invNo) cleanDescription = `Invoice: ${invNo}`;
+
+          const rawItems = Array.isArray(matchedInvoice.items) && matchedInvoice.items.length > 0
+            ? matchedInvoice.items
+            : (itemsByInvoice.get(String(matchedInvoice.id || matchedInvoice.uuid)) || []);
+
+          if (rawItems.length > 0) {
+            enrichedItems = rawItems.map((it) => {
+              const prodId = String(it.product || it.product_id || it.id || '');
+              const prod = productsMap.get(prodId) || (typeof it.product === 'object' ? it.product : null);
+              const qty = Number(it.quantity || it.qty || it.product_qty || 1);
+              const price = Number(
+                it.selling_price ||
+                it.price ||
+                it.sales_price ||
+                it.rate ||
+                prod?.selling_price ||
+                prod?.sales_price ||
+                (it.total_selling_price ? Number(it.total_selling_price) / qty : 0) ||
+                0
+              );
+              const name = it.product_name || it.name || prod?.name || prod?.title || (it.product ? `Product #${it.product}` : 'Product');
+              const unit = it.unit || it.unit_name || prod?.unit_name || prod?.unit || 'PEACE';
+              return {
+                product_name: name,
+                quantity: qty,
+                unit: unit,
+                price: price,
+                total: Number(it.total_selling_price || it.total || (qty * price))
+              };
+            });
+          }
+        } else if (matchedReturn) {
+          const retNo = matchedReturn.return_no || matchedReturn.reference || (matchedReturn.id ? `SR-${String(matchedReturn.id).slice(0, 8)}` : '');
+          if (retNo) cleanDescription = `Return: ${retNo}`;
+
+          const rawItems = Array.isArray(matchedReturn.items) ? matchedReturn.items : [];
+          if (rawItems.length > 0) {
+            enrichedItems = rawItems.map((it) => {
+              const prodId = String(it.product || it.product_id || it.id || '');
+              const prod = productsMap.get(prodId) || (typeof it.product === 'object' ? it.product : null);
+              const qty = Number(it.quantity || it.qty || 1);
+              const price = Number(it.selling_price || it.price || it.sales_price || prod?.selling_price || 0);
+              const name = it.product_name || it.name || prod?.name || 'Returned Item';
+              const unit = it.unit || it.unit_name || prod?.unit_name || 'PEACE';
+              return {
+                product_name: name,
+                quantity: qty,
+                unit: unit,
+                price: price,
+                total: qty * price
+              };
+            });
+          }
+        }
+
+        return {
+          ...r,
+          items: enrichedItems,
+          clean_description: cleanDescription
+        };
+      });
+
       setRows(list);
       setSummary(f.client && !Array.isArray(res) ? res : null);
     } catch (e) {
+      console.error("Error loading client statement:", e);
       toast.error(e.message || t("Failed to load client statement"));
       setRows([]);
     } finally {
@@ -64,11 +253,9 @@ const ClientStatement = () => {
 
   const selectedClient = clients.find((c) => String(c.id || c.uuid) === String(filters.client));
 
-  // running balance if the backend does not send one
+  // Running balance calculation
   let running = Number(summary?.opening_balance || summary?.previous_due || selectedClient?.previous_due || 0);
   
-  // API ledger rows: { date, type, reference, debit, credit, balance } – debit = bill, credit = payment.
-  // "type" tells which column a debit/credit belongs to (Sale Invoice / Sales Return / Receive / Money Return).
   let computed = rows.slice(0, entries).map((r) => {
     const t = String(r.type || r.transaction_type || '').toLowerCase();
     const debit = Number(r.debit ?? 0);
@@ -93,6 +280,8 @@ const ClientStatement = () => {
         date: filters.from_date || '',
         type: 'Previous Due',
         description: 'Opening Balance',
+        clean_description: 'Opening Balance',
+        items: [],
         _bill: 0,
         _salesReturn: 0,
         _receive: 0,
@@ -106,11 +295,6 @@ const ClientStatement = () => {
 
   const totals = computed.reduce((a, r) => ({ bill: a.bill + r._bill, sr: a.sr + r._salesReturn, rec: a.rec + r._receive, mr: a.mr + r._moneyReturn, lc: a.lc + r._labourCost }), { bill: 0, sr: 0, rec: 0, mr: 0, lc: 0 });
   const closing = computed.length ? computed[computed.length - 1]._balance : Number(summary?.closing_balance || summary?.due || 0);
-
-  const excelData = computed.map((r, i) => ({
-    SL: i + 1, Date: fmtDate(r.date), Product: r.product || r.product_name || r.description || '', Qty: r.quantity ?? r.qty ?? '', Unit: r.unit || '', Price: r.price ?? '',
-    Description: r.description || r.reference || r.note || '', Bill: r._bill, 'Sales Return': r._salesReturn, Receive: r._receive, 'Money Return': r._moneyReturn, Balance: r._balance,
-  }));
 
   const th = { padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', textAlign: 'center', border: '1px solid #cbd5e1', background: '#e2e8f0', color: 'black', fontWeight: 'bold' };
   const td = { textAlign: 'center', border: '1px solid #e2e8f0', padding: '0', fontSize: 'var(--fs-12, 12px)', color: 'black' };
@@ -206,43 +390,105 @@ const ClientStatement = () => {
                 <tr><td colSpan="13" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No data available</td></tr>
               ) : (
                 computed.map((r, i) => {
-                  // Fallbacks for different possible backend array names for products
-                  const items = r.items || r.products || r.details || r.sale_items || r.invoice_items || r.items_details || [];
-                  const hasItems = items.length > 0;
-                  
-                  // Debug log so we can see what the backend is actually sending
-                  if (i === 0) console.log("API Ledger Row Data:", r);
+                  const hasItems = Array.isArray(r.items) && r.items.length > 0;
                   
                   return (
                     <tr key={r.id || i}>
                       <td style={td}><div style={cellPad}>{i + 1}</div></td>
                       <td style={td}><div style={cellPad}>{r.isOpening ? '-' : fmtDate(r.date)}</div></td>
+                      
+                      {/* PRODUCT */}
                       <td style={td}>
-                        {hasItems ? items.map((item, idx) => (
-                          <div key={idx} style={{ padding: '6px 8px', borderBottom: idx < items.length - 1 ? '1px solid #e2e8f0' : 'none' }}>{item.product_name || item.name || item.product || '-'}</div>
-                        )) : <div style={cellPad}>{r.product || r.product_name || r.invoice_id || r.type || r.transaction_type || '-'}</div>}
+                        {hasItems ? (
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            {r.items.map((item, idx) => (
+                              <div key={idx} style={{ padding: '6px 8px', borderBottom: idx < r.items.length - 1 ? '1px solid #e2e8f0' : 'none', fontWeight: '500' }}>
+                                {item.product_name || '-'}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div style={cellPad}>
+                            {r.isOpening
+                              ? 'Previous Due'
+                              : (r._receive > 0
+                                  ? 'Receive'
+                                  : (r._moneyReturn > 0
+                                      ? 'Money Return'
+                                      : (r.product || r.product_name || (r._bill > 0 ? 'Sale Invoice' : '-'))))}
+                          </div>
+                        )}
                       </td>
+
+                      {/* QTY */}
                       <td style={td}>
-                        {hasItems ? items.map((item, idx) => (
-                          <div key={idx} style={{ padding: '6px 8px', borderBottom: idx < items.length - 1 ? '1px solid #e2e8f0' : 'none' }}>{Number(item.quantity || item.qty || 0).toFixed(4)}</div>
-                        )) : <div style={cellPad}>{r.isOpening ? '-' : (r.quantity ?? r.qty ?? '-')}</div>}
+                        {hasItems ? (
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            {r.items.map((item, idx) => (
+                              <div key={idx} style={{ padding: '6px 8px', borderBottom: idx < r.items.length - 1 ? '1px solid #e2e8f0' : 'none' }}>
+                                {Number(item.quantity || 1).toFixed(4)}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div style={cellPad}>
+                            {r.isOpening ? '-' : (r.quantity ?? r.qty ?? (r._bill > 0 ? '1.0000' : '-'))}
+                          </div>
+                        )}
                       </td>
+
+                      {/* UNIT */}
                       <td style={td}>
-                        {hasItems ? items.map((item, idx) => (
-                          <div key={idx} style={{ padding: '6px 8px', borderBottom: idx < items.length - 1 ? '1px solid #e2e8f0' : 'none' }}>{item.unit || 'PEACE'}</div>
-                        )) : <div style={cellPad}>{r.isOpening ? '-' : (r.unit || '-')}</div>}
+                        {hasItems ? (
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            {r.items.map((item, idx) => (
+                              <div key={idx} style={{ padding: '6px 8px', borderBottom: idx < r.items.length - 1 ? '1px solid #e2e8f0' : 'none', color: '#64748b' }}>
+                                {item.unit || 'PEACE'}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div style={cellPad}>
+                            {r.isOpening ? '-' : (r.unit || (r._bill > 0 ? 'PEACE' : '-'))}
+                          </div>
+                        )}
                       </td>
+
+                      {/* PRICE */}
                       <td style={td}>
-                        {hasItems ? items.map((item, idx) => (
-                          <div key={idx} style={{ padding: '6px 8px', borderBottom: idx < items.length - 1 ? '1px solid #e2e8f0' : 'none' }}>{item.price !== undefined ? money(item.price) : '0.00'}</div>
-                        )) : <div style={cellPad}>{r.isOpening ? '-' : (r.price !== undefined ? money(r.price) : '-')}</div>}
+                        {hasItems ? (
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            {r.items.map((item, idx) => (
+                              <div key={idx} style={{ padding: '6px 8px', borderBottom: idx < r.items.length - 1 ? '1px solid #e2e8f0' : 'none', fontWeight: '600' }}>
+                                {money(item.price || 0)}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div style={cellPad}>
+                            {r.isOpening ? '-' : (r._bill > 0 ? money(r._bill) : (r._salesReturn > 0 ? money(r._salesReturn) : '-'))}
+                          </div>
+                        )}
                       </td>
-                      <td style={td}><div style={cellPad}>{r.description || r.reference || r.note || '-'}</div></td>
+
+                      {/* DESCRIPTION */}
+                      <td style={td}>
+                        <div style={cellPad}>
+                          {r.clean_description || r.description || r.reference || '-'}
+                        </div>
+                      </td>
+
+                      {/* LABOUR COST */}
                       <td style={td}><div style={cellPad}>{r._labourCost ? money(r._labourCost) : '0'}</div></td>
+                      {/* BILL */}
                       <td style={td}><div style={cellPad}>{r._bill ? money(r._bill) : '0.00'}</div></td>
+                      {/* SALES RETURN */}
                       <td style={td}><div style={cellPad}>{r._salesReturn ? money(r._salesReturn) : '0'}</div></td>
+                      {/* RECEIVE */}
                       <td style={td}><div style={cellPad}>{r._receive ? money(r._receive) : '0.00'}</div></td>
+                      {/* MONEY RETURN */}
                       <td style={td}><div style={cellPad}>{r._moneyReturn ? money(r._moneyReturn) : '0.00'}</div></td>
+                      {/* BALANCE */}
                       <td style={td}><div style={cellPad}>{money(r._balance)}</div></td>
                     </tr>
                   );

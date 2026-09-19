@@ -355,16 +355,66 @@ const GeneralSettings = () => {
             )}
 
             {activeTab === 'Color' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
                 
-                {/* Color Block Helper */}
+                {/* Helpers */}
                 {(() => {
+                  const TypographySelect = ({ label, value, onChange, options }) => (
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ minHeight: '34px', display: 'flex', alignItems: 'flex-end', marginBottom: '6px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--label-color)', textTransform: 'uppercase', lineHeight: '1.25', letterSpacing: '0.02em' }}>
+                          {label}
+                        </label>
+                      </div>
+                      <select
+                        value={value}
+                        onChange={onChange}
+                        style={{
+                          height: '38px',
+                          minHeight: '38px',
+                          maxHeight: '38px',
+                          boxSizing: 'border-box',
+                          padding: '0 10px',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '4px',
+                          fontSize: '13px',
+                          lineHeight: '36px',
+                          outline: 'none',
+                          background: 'white',
+                          width: '100%',
+                          color: 'var(--text-main, #1e293b)',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {options.map((opt) => (
+                          <option key={opt.value} value={opt.value} style={{ fontSize: '13px' }}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+
                   const ColorInput = ({ label, themeKey }) => (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: '600', color: 'var(--label-color)', textTransform: 'uppercase' }}>{label}</label>
-                      <div style={{ display: 'flex', height: '36px', border: '1px solid #cbd5e1', borderRadius: '4px', overflow: 'hidden' }}>
-                        <input type="color" value={localTheme[themeKey] || '#ffffff'} onChange={(e) => handleColorChange(themeKey, e.target.value)} style={{ width: '40px', height: '100%', padding: '0', border: 'none', cursor: 'pointer' }} />
-                        <input type="text" value={localTheme[themeKey] || ''} onChange={(e) => handleColorChange(themeKey, e.target.value)} style={{ flex: 1, border: 'none', padding: '0 12px', fontSize: 'var(--fs-13, 13px)', outline: 'none' }} />
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ minHeight: '34px', display: 'flex', alignItems: 'flex-end', marginBottom: '6px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--label-color)', textTransform: 'uppercase', lineHeight: '1.25', letterSpacing: '0.02em' }}>
+                          {label}
+                        </label>
+                      </div>
+                      <div style={{ display: 'flex', height: '38px', minHeight: '38px', maxHeight: '38px', border: '1px solid #cbd5e1', borderRadius: '4px', overflow: 'hidden', background: 'white', boxSizing: 'border-box' }}>
+                        <input
+                          type="color"
+                          value={localTheme[themeKey] || '#ffffff'}
+                          onChange={(e) => handleColorChange(themeKey, e.target.value)}
+                          style={{ width: '40px', minWidth: '40px', height: '100%', padding: '0', border: 'none', cursor: 'pointer', background: 'transparent' }}
+                        />
+                        <input
+                          type="text"
+                          value={localTheme[themeKey] || ''}
+                          onChange={(e) => handleColorChange(themeKey, e.target.value)}
+                          style={{ flex: 1, minWidth: 0, height: '100%', border: 'none', padding: '0 10px', fontSize: '13px', outline: 'none', color: 'var(--text-main, #1e293b)', background: 'transparent', boxSizing: 'border-box' }}
+                        />
                       </div>
                     </div>
                   );
@@ -372,48 +422,81 @@ const GeneralSettings = () => {
                   return (
                     <>
                       <div>
-                        <h4 style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("TYPOGRAPHY")}</h4>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', maxWidth: '600px' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <label style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: '600', color: 'var(--label-color)', textTransform: 'uppercase' }}>{t("Global Font Family")}</label>
-                            <select value={localTheme['--main-font'] || "'Inter', sans-serif"} onChange={(e) => handleColorChange('--main-font', e.target.value)} style={{ padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none' }}>
-                              <option value="'Inter', sans-serif">Inter</option>
-                              <option value="'Roboto', sans-serif">Roboto</option>
-                              <option value="'Poppins', sans-serif">Poppins</option>
-                              <option value="'Outfit', sans-serif">Outfit</option>
-                              <option value="'Open Sans', sans-serif">Open Sans</option>
-                              <option value="'Hind Siliguri', sans-serif">Hind Siliguri</option>
-                            </select>
-                          </div>
-                          
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <label style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: '600', color: 'var(--label-color)', textTransform: 'uppercase' }}>{t("Global Font Size")}</label>
-                            <select value={localTheme['--main-font-size'] || "13px"} onChange={(e) => handleColorChange('--main-font-size', e.target.value)} style={{ padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none' }}>
-                              <option value="11px">11px</option>
-                              <option value="12px">12px</option>
-                              <option value="13px">13px (Default)</option>
-                              <option value="14px">14px</option>
-                              <option value="15px">15px</option>
-                              <option value="16px">16px</option>
-                              <option value="18px">18px</option>
-                              <option value="20px">20px</option>
-                              <option value="22px">22px</option>
-                              <option value="24px">24px</option>
-                            </select>
-                          </div>
+                        <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t("TYPOGRAPHY")}</h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px' }}>
+                          <TypographySelect
+                            label={t("Global Font Family")}
+                            value={localTheme['--main-font'] || "'Inter', sans-serif"}
+                            onChange={(e) => handleColorChange('--main-font', e.target.value)}
+                            options={[
+                              { value: "'Inter', sans-serif", label: "Inter" },
+                              { value: "'Roboto', sans-serif", label: "Roboto" },
+                              { value: "'Poppins', sans-serif", label: "Poppins" },
+                              { value: "'Outfit', sans-serif", label: "Outfit" },
+                              { value: "'Open Sans', sans-serif", label: "Open Sans" },
+                              { value: "'Hind Siliguri', sans-serif", label: "Hind Siliguri" },
+                            ]}
+                          />
+                          <TypographySelect
+                            label={t("Global Font Size")}
+                            value={localTheme['--main-font-size'] || "13px"}
+                            onChange={(e) => handleColorChange('--main-font-size', e.target.value)}
+                            options={[
+                              { value: "11px", label: "11px" },
+                              { value: "12px", label: "12px" },
+                              { value: "13px", label: "13px (Default)" },
+                              { value: "14px", label: "14px" },
+                              { value: "15px", label: "15px" },
+                              { value: "16px", label: "16px" },
+                              { value: "18px", label: "18px" },
+                              { value: "20px", label: "20px" },
+                              { value: "22px", label: "22px" },
+                              { value: "24px", label: "24px" },
+                            ]}
+                          />
+                          <TypographySelect
+                            label={t("Sidebar Menu Font Size")}
+                            value={localTheme['--sidebar-font-size'] || "14px"}
+                            onChange={(e) => handleColorChange('--sidebar-font-size', e.target.value)}
+                            options={[
+                              { value: "11px", label: "11px" },
+                              { value: "12px", label: "12px" },
+                              { value: "13px", label: "13px" },
+                              { value: "14px", label: "14px (Default)" },
+                              { value: "15px", label: "15px" },
+                              { value: "16px", label: "16px" },
+                              { value: "18px", label: "18px" },
+                              { value: "20px", label: "20px" },
+                            ]}
+                          />
+                          <TypographySelect
+                            label={t("Sidebar Submenu Font Size")}
+                            value={localTheme['--sidebar-submenu-font-size'] || "13px"}
+                            onChange={(e) => handleColorChange('--sidebar-submenu-font-size', e.target.value)}
+                            options={[
+                              { value: "10px", label: "10px" },
+                              { value: "11px", label: "11px" },
+                              { value: "12px", label: "12px" },
+                              { value: "13px", label: "13px (Default)" },
+                              { value: "14px", label: "14px" },
+                              { value: "15px", label: "15px" },
+                              { value: "16px", label: "16px" },
+                              { value: "18px", label: "18px" },
+                            ]}
+                          />
                         </div>
                       </div>
 
-                      <div style={{ marginTop: '24px' }}>
-                        <h4 style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("LAYOUT COLOR")}</h4>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
+                      <div>
+                        <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t("LAYOUT COLOR")}</h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px' }}>
                           <ColorInput label={t("Layout Color")} themeKey="--bg-app" />
                         </div>
                       </div>
 
                       <div>
-                        <h4 style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("SIDEBAR COLOR")}</h4>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
+                        <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t("SIDEBAR COLOR")}</h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px' }}>
                           <ColorInput label={t("Sidebar Color")} themeKey="--bg-sidebar" />
                           <ColorInput label={t("Sidebar Menu Hover Color")} themeKey="--sidebar-hover" />
                           <ColorInput label={t("Sidebar Text Color")} themeKey="--text-sidebar" />
@@ -421,8 +504,8 @@ const GeneralSettings = () => {
                       </div>
 
                       <div>
-                        <h4 style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("CARD COLOR")}</h4>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
+                        <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t("CARD COLOR")}</h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px' }}>
                           <ColorInput label={t("Card Border Color")} themeKey="--card-border" />
                           <ColorInput label={t("Card Header Color")} themeKey="--card-header-bg" />
                           <ColorInput label={t("Card Body Color")} themeKey="--bg-surface" />
@@ -431,8 +514,8 @@ const GeneralSettings = () => {
                       </div>
 
                       <div>
-                        <h4 style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("INPUT COLOR")}</h4>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
+                        <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t("INPUT COLOR")}</h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px' }}>
                           <ColorInput label={t("Input Background Color")} themeKey="--input-bg" />
                           <ColorInput label={t("Label Color")} themeKey="--label-color" />
                           <ColorInput label={t("Input Color")} themeKey="--input-text" />
@@ -440,8 +523,8 @@ const GeneralSettings = () => {
                       </div>
 
                       <div>
-                        <h4 style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("TABLE COLOR")}</h4>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
+                        <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t("TABLE COLOR")}</h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px' }}>
                           <ColorInput label={t("Table Header BG Color")} themeKey="--table-header-bg" />
                           <ColorInput label={t("Table Header Text Color")} themeKey="--table-header-text" />
                           <ColorInput label={t("Table Text Color")} themeKey="--table-text" />
@@ -450,8 +533,8 @@ const GeneralSettings = () => {
                       </div>
 
                       <div>
-                        <h4 style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("BUTTON COLOR")}</h4>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
+                        <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t("BUTTON COLOR")}</h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px' }}>
                           <ColorInput label={t("Success Button Color")} themeKey="--success" />
                           <ColorInput label={t("Danger Button Color")} themeKey="--danger" />
                           <ColorInput label={t("Info Button Color")} themeKey="--info" />
@@ -462,7 +545,7 @@ const GeneralSettings = () => {
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
+                      <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
                         <button onClick={handleUpdate} style={{ flex: 1, background: 'var(--success)', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold' }}>
                           {t("Update")}
                         </button>
