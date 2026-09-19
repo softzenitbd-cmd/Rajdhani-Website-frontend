@@ -81,6 +81,7 @@ html[lang="bn"] textarea {
 
 /* Sidebar */
 .sidebar {
+  position: relative;
   width: 280px;
   background-color: var(--bg-sidebar);
   display: flex;
@@ -872,7 +873,8 @@ html[lang="bn"] textarea {
     -webkit-overflow-scrolling: touch;
   }
   /* Override inline grid styles for filters */
-  div[style*="grid-template-columns"], div[style*="gridTemplateColumns"] {
+  .form-grid {
     grid-template-columns: 1fr !important;
+    display: grid !important;
   }
 }

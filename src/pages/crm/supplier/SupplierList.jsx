@@ -220,33 +220,17 @@ const SupplierList = () => {
                   <tr key={supplier.id || supplier.uuid || index} style={{ background: 'white' }}>
                     <td style={{ verticalAlign: 'top', paddingTop: '16px', textAlign: 'center' }}>{index + 1}</td>
                     <td style={{ verticalAlign: 'top', paddingTop: '16px', fontSize: 'var(--fs-13, 13px)' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <tbody>
-                          <tr>
-                            <td style={{ width: '120px', fontWeight: '700', padding: '2px 0', border: 'none' }}>{t("Name")}</td>
-                            <td style={{ padding: '2px 0', border: 'none' }}>: {supplier.name}</td>
-                          </tr>
-                          <tr>
-                            <td style={{ fontWeight: '700', padding: '2px 0', border: 'none' }}>{t("Phone")}</td>
-                            <td style={{ padding: '2px 0', border: 'none' }}>: {supplier.phone}</td>
-                          </tr>
-                          <tr>
-                            <td style={{ fontWeight: '700', padding: '2px 0', border: 'none' }}>{t("Supplier Group")}</td>
-                            <td style={{ padding: '2px 0', border: 'none' }}>: {supplier.group || '-'}</td>
-                          </tr>
-                          <tr>
-                            <td style={{ fontWeight: '700', padding: '2px 0', border: 'none' }}>{t("Address")}</td>
-                            <td style={{ padding: '2px 0', border: 'none' }}>: {supplier.address}</td>
-                          </tr>
-                          {supplier.bank_info && (
-                            <tr>
-                              <td colSpan="2" style={{ padding: '8px 0 2px', border: 'none', color: '#475569', whiteSpace: 'pre-wrap' }}>
-                                {supplier.bank_info}
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
+                      <div style={{ display: 'grid', gridTemplateColumns: '110px 10px 1fr', gap: '4px', textAlign: 'left', marginBottom: '4px' }}>
+                        <div style={{ fontWeight: '600' }}>{t("Name")}</div><div>:</div><div>{supplier.name}</div>
+                        <div style={{ fontWeight: '600' }}>{t("Phone")}</div><div>:</div><div>{supplier.phone}</div>
+                        <div style={{ fontWeight: '600' }}>{t("Supplier Group")}</div><div>:</div><div>{supplier.group || '-'}</div>
+                        <div style={{ fontWeight: '600' }}>{t("Address")}</div><div>:</div><div>{supplier.address}</div>
+                        {supplier.bank_info && (
+                          <div style={{ gridColumn: '1 / -1', color: '#475569', whiteSpace: 'pre-wrap', marginTop: '4px' }}>
+                            {supplier.bank_info}
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td style={{ verticalAlign: 'top', paddingTop: '16px' }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e2e8f0', fontSize: 'var(--fs-12, 12px)' }}>

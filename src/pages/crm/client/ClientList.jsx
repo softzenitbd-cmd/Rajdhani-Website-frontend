@@ -414,7 +414,6 @@ const ClientList = () => {
             <thead>
               <tr>
                 <th width="50">{t("ID NO")}</th>
-                <th width="120" style={{ textAlign: 'center' }}>{t("IMAGE")}</th>
                 <th width="300">{t("CLIENT DETAILS")}</th>
                 <th>{t("DETAILS")}</th>
                 <th width="100">{t("ACTION")}</th>
@@ -422,20 +421,16 @@ const ClientList = () => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>{t("Loading...")}</td></tr>
+                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>{t("Loading...")}</td></tr>
               ) : filteredClients.length === 0 ? (
-                <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>{t("No clients found.")}</td></tr>
+                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>{t("No clients found.")}</td></tr>
               ) : (
                 filteredClients.map((client, index) => (
                   <tr key={client.id || client.uuid || index}>
                     <td style={{ verticalAlign: 'top', paddingTop: '16px', textAlign: 'center' }}>{index + 1}</td>
                     
-                    <td style={{ verticalAlign: 'top', paddingTop: '16px' }}>
-                      <ClientImageUploader client={client} onUploadSuccess={fetchClients} />
-                    </td>
-                    
                     <td style={{ verticalAlign: 'top', paddingTop: '16px', fontSize: 'var(--fs-13, 13px)' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '80px 10px 1fr', gap: '4px', marginBottom: '4px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '110px 10px 1fr', gap: '4px', marginBottom: '4px', textAlign: 'left' }}>
                         <div style={{ fontWeight: '600' }}>{t("Name")}</div><div>:</div><div>{client.name || (client.details && client.details.name)}</div>
                         <div style={{ fontWeight: '600' }}>{t("Phone")}</div><div>:</div><div>{client.phone || (client.details && client.details.phone)}</div>
                         {(client.group || (client.details && client.details.group)) && (

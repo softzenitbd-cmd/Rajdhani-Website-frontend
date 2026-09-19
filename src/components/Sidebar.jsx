@@ -214,8 +214,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
       style={{ 
         overflowY: 'auto', 
         width: isCollapsed ? undefined : sidebarWidth, 
-        transition: isResizing ? 'none' : undefined,
-        position: 'relative'
+        transition: isResizing ? 'none' : undefined
       }}
     >
       {/* Resizer Handle */}
