@@ -8,7 +8,7 @@ import SearchableSelect from '../../components/SearchableSelect';
 import PrintHeader from '../../components/PrintHeader';
 import { useToast } from '../../context/ToastContext';
 import { useConfirm } from '../../context/ConfirmContext';
-import QuickEditModal from '../../components/QuickEditModal';
+import ReceiveEditModal from './ReceiveEditModal';
 
 const ReceiveList = () => {
   const { t } = useTranslation();
@@ -308,16 +308,14 @@ const ReceiveList = () => {
       </div>
 
       {editing && (
-        <QuickEditModal
-          title={t("Edit Receive")}
-          record={editing}
-          fields={[
-            { name: 'date', label: t("Date"), type: 'date' },
-            { name: 'amount', label: t("Amount"), type: 'number' },
-            { name: 'description', label: t("Description") },
-          ]}
-          onSave={(changed) => accountingService.updateReceive(editing.id, changed)}
-          onClose={(saved) => { setEditing(null); if (saved) fetchReceives(); }}
+        <ReceiveEditModal
+          isOpen={!!editing}
+          receive={editing}
+          onClose={() => setEditing(null)}
+          onSuccess={() => {
+            setEditing(null);
+            fetchReceives();
+          }}
         />
       )}
 
