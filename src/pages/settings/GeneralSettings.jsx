@@ -361,10 +361,12 @@ const GeneralSettings = () => {
                 {(() => {
                   const ColorInput = ({ label, themeKey }) => (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <label style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: '600', color: 'var(--label-color)', textTransform: 'uppercase', minHeight: '28px', display: 'flex', alignItems: 'flex-end', lineHeight: '1.25' }}>{label}</label>
+                      <div style={{ minHeight: '32px', display: 'flex', alignItems: 'flex-end' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--label-color)', textTransform: 'uppercase', lineHeight: '1.25' }}>{label}</label>
+                      </div>
                       <div style={{ display: 'flex', height: '38px', border: '1px solid #cbd5e1', borderRadius: '4px', overflow: 'hidden' }}>
                         <input type="color" value={localTheme[themeKey] || '#ffffff'} onChange={(e) => handleColorChange(themeKey, e.target.value)} style={{ width: '40px', height: '100%', padding: '0', border: 'none', cursor: 'pointer' }} />
-                        <input type="text" value={localTheme[themeKey] || ''} onChange={(e) => handleColorChange(themeKey, e.target.value)} style={{ flex: 1, border: 'none', padding: '0 12px', fontSize: 'var(--fs-13, 13px)', outline: 'none' }} />
+                        <input type="text" value={localTheme[themeKey] || ''} onChange={(e) => handleColorChange(themeKey, e.target.value)} style={{ flex: 1, border: 'none', padding: '0 12px', fontSize: '13px', outline: 'none' }} />
                       </div>
                     </div>
                   );
@@ -373,10 +375,12 @@ const GeneralSettings = () => {
                     <>
                       <div>
                         <h4 style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase' }}>{t("TYPOGRAPHY")}</h4>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '16px', maxWidth: '850px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', maxWidth: '850px' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            <label style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: '600', color: 'var(--label-color)', textTransform: 'uppercase', minHeight: '28px', display: 'flex', alignItems: 'flex-end', lineHeight: '1.25' }}>{t("Global Font Family")}</label>
-                            <select value={localTheme['--main-font'] || "'Inter', sans-serif"} onChange={(e) => handleColorChange('--main-font', e.target.value)} style={{ height: '38px', padding: '0 10px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none', background: 'white', width: '100%', boxSizing: 'border-box' }}>
+                            <div style={{ minHeight: '32px', display: 'flex', alignItems: 'flex-end' }}>
+                              <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--label-color)', textTransform: 'uppercase', lineHeight: '1.25' }}>{t("Global Font Family")}</label>
+                            </div>
+                            <select value={localTheme['--main-font'] || "'Inter', sans-serif"} onChange={(e) => handleColorChange('--main-font', e.target.value)} style={{ height: '38px', padding: '0 10px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '13px', outline: 'none', background: 'white', width: '100%', boxSizing: 'border-box' }}>
                               <option value="'Inter', sans-serif">Inter</option>
                               <option value="'Roboto', sans-serif">Roboto</option>
                               <option value="'Poppins', sans-serif">Poppins</option>
@@ -387,8 +391,10 @@ const GeneralSettings = () => {
                           </div>
                           
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            <label style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: '600', color: 'var(--label-color)', textTransform: 'uppercase', minHeight: '28px', display: 'flex', alignItems: 'flex-end', lineHeight: '1.25' }}>{t("Global Font Size")}</label>
-                            <select value={localTheme['--main-font-size'] || "13px"} onChange={(e) => handleColorChange('--main-font-size', e.target.value)} style={{ height: '38px', padding: '0 10px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none', background: 'white', width: '100%', boxSizing: 'border-box' }}>
+                            <div style={{ minHeight: '32px', display: 'flex', alignItems: 'flex-end' }}>
+                              <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--label-color)', textTransform: 'uppercase', lineHeight: '1.25' }}>{t("Global Font Size")}</label>
+                            </div>
+                            <select value={localTheme['--main-font-size'] || "13px"} onChange={(e) => handleColorChange('--main-font-size', e.target.value)} style={{ height: '38px', padding: '0 10px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '13px', outline: 'none', background: 'white', width: '100%', boxSizing: 'border-box' }}>
                               <option value="11px">11px</option>
                               <option value="12px">12px</option>
                               <option value="13px">13px (Default)</option>
@@ -403,8 +409,10 @@ const GeneralSettings = () => {
                           </div>
 
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            <label style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: '600', color: 'var(--label-color)', textTransform: 'uppercase', minHeight: '28px', display: 'flex', alignItems: 'flex-end', lineHeight: '1.25' }}>{t("Sidebar Menu Font Size")}</label>
-                            <select value={localTheme['--sidebar-font-size'] || "14px"} onChange={(e) => handleColorChange('--sidebar-font-size', e.target.value)} style={{ height: '38px', padding: '0 10px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none', background: 'white', width: '100%', boxSizing: 'border-box' }}>
+                            <div style={{ minHeight: '32px', display: 'flex', alignItems: 'flex-end' }}>
+                              <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--label-color)', textTransform: 'uppercase', lineHeight: '1.25' }}>{t("Sidebar Menu Font Size")}</label>
+                            </div>
+                            <select value={localTheme['--sidebar-font-size'] || "14px"} onChange={(e) => handleColorChange('--sidebar-font-size', e.target.value)} style={{ height: '38px', padding: '0 10px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '13px', outline: 'none', background: 'white', width: '100%', boxSizing: 'border-box' }}>
                               <option value="11px">11px</option>
                               <option value="12px">12px</option>
                               <option value="13px">13px</option>
@@ -417,8 +425,10 @@ const GeneralSettings = () => {
                           </div>
 
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            <label style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: '600', color: 'var(--label-color)', textTransform: 'uppercase', minHeight: '28px', display: 'flex', alignItems: 'flex-end', lineHeight: '1.25' }}>{t("Sidebar Submenu Font Size")}</label>
-                            <select value={localTheme['--sidebar-submenu-font-size'] || "13px"} onChange={(e) => handleColorChange('--sidebar-submenu-font-size', e.target.value)} style={{ height: '38px', padding: '0 10px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none', background: 'white', width: '100%', boxSizing: 'border-box' }}>
+                            <div style={{ minHeight: '32px', display: 'flex', alignItems: 'flex-end' }}>
+                              <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--label-color)', textTransform: 'uppercase', lineHeight: '1.25' }}>{t("Sidebar Submenu Font Size")}</label>
+                            </div>
+                            <select value={localTheme['--sidebar-submenu-font-size'] || "13px"} onChange={(e) => handleColorChange('--sidebar-submenu-font-size', e.target.value)} style={{ height: '38px', padding: '0 10px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '13px', outline: 'none', background: 'white', width: '100%', boxSizing: 'border-box' }}>
                               <option value="10px">10px</option>
                               <option value="11px">11px</option>
                               <option value="12px">12px</option>
