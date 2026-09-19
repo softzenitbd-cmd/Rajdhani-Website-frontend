@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, Plus, Search, Calendar, FileSpreadsheet, Printer, RotateCcw, ChevronDown, Eye, Edit, Trash2, ArrowDownCircle, FileText, Ban, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Users, Plus, Search, Calendar, FileSpreadsheet, Printer, RotateCcw, ChevronDown, Eye, Edit, Trash2, ArrowDownCircle, FileText, Ban, CheckCircle2, X, User } from 'lucide-react';
 import PrintHeader from '../../../components/PrintHeader';
 import { useApi } from '../../../hooks/useApi';
 import { useConfirm } from '../../../context/ConfirmContext';
@@ -671,32 +671,227 @@ const ClientList = () => {
 
       {/* View Modal */}
       {viewClient && (
-        <div className="printable-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div className="printable-modal-content" style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '550px', maxWidth: '90vw', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
-            <PrintHeader />
+        <div 
+          className="printable-modal-overlay" 
+          style={{ 
+            position: 'fixed', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0, 
+            background: 'rgba(15, 23, 42, 0.6)', 
+            backdropFilter: 'blur(4px)',
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            zIndex: 1000,
+            padding: '16px'
+          }}
+          onClick={() => setViewClient(null)}
+        >
+          <div 
+            className="printable-modal-content" 
+            style={{ 
+              background: 'white', 
+              borderRadius: '12px', 
+              width: '560px', 
+              maxWidth: '95vw', 
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              overflow: 'hidden'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'none' }} className="print-only">
+              <PrintHeader />
+            </div>
             
-            <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', borderBottom: '2px solid #0ea5e9', paddingBottom: '8px' }}>{t("Customer Profile / Ledger Info")}</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '12px', fontSize: 'var(--fs-14, 14px)', background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
-              <div style={{ fontWeight: '600' }}>{t("Customer ID:")}</div><div>{viewClient.id || viewClient.uuid}</div>
-              <div style={{ fontWeight: '600' }}>{t("Name:")}</div><div style={{ fontWeight: 'bold' }}>{viewClient.name}</div>
-              <div style={{ fontWeight: '600' }}>{t("Phone:")}</div><div>{viewClient.phone}</div>
-              <div style={{ fontWeight: '600' }}>{t("Group:")}</div><div>{viewClient.group || '-'}</div>
-              <div style={{ fontWeight: '600' }}>{t("Address:")}</div><div>{viewClient.address || '-'}</div>
-              <div style={{ fontWeight: '600' }}>{t("Total Due:")}</div><div style={{ color: '#ef4444', fontWeight: 'bold', fontSize: 'var(--fs-16, 16px)' }}>৳ {viewClient.due || viewClient.previous_due || '0.00'}</div>
+            {/* Header */}
+            <div 
+              style={{ 
+                padding: '16px 20px', 
+                background: '#f8fafc', 
+                borderBottom: '1px solid #e2e8f0', 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center' 
+              }}
+              className="no-print"
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div 
+                  style={{ 
+                    width: '36px', 
+                    height: '36px', 
+                    borderRadius: '8px', 
+                    background: '#e0f2fe', 
+                    color: '#0284c7', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center' 
+                  }}
+                >
+                  <User size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', fontWeight: '700', color: '#1e293b' }}>
+                    {t("Customer Profile / Ledger Info")}
+                  </h3>
+                  <p style={{ margin: 0, fontSize: 'var(--fs-12, 12px)', color: '#64748b' }}>
+                    {viewClient.name}
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setViewClient(null)} 
+                style={{ 
+                  background: '#f1f5f9', 
+                  border: 'none', 
+                  borderRadius: '6px', 
+                  width: '32px', 
+                  height: '32px', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  cursor: 'pointer', 
+                  color: '#64748b' 
+                }}
+              >
+                <X size={18} />
+              </button>
             </div>
 
-            <div className="print-only" style={{ display: 'none', justifyContent: 'space-between', marginTop: '60px', paddingTop: '20px' }}>
-              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '160px', paddingTop: '4px', fontSize: 'var(--fs-12, 12px)' }}>
-                {t("Customer Signature")}
-              </div>
-              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '160px', paddingTop: '4px', fontSize: 'var(--fs-12, 12px)' }}>
-                {t("Authorized Signature")}
-              </div>
-            </div>
+            {/* Body Info Box */}
+            <div style={{ padding: '20px' }}>
+              <div 
+                style={{ 
+                  background: '#f8fafc', 
+                  padding: '18px 20px', 
+                  borderRadius: '8px', 
+                  border: '1px solid #e2e8f0', 
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  fontSize: 'var(--fs-13, 13px)'
+                }}
+              >
+                {/* ID */}
+                <div style={{ display: 'grid', gridTemplateColumns: '120px 15px 1fr', alignItems: 'center' }}>
+                  <span style={{ fontWeight: '600', color: '#475569' }}>{t("Customer ID")}</span>
+                  <span style={{ color: '#94a3b8' }}>:</span>
+                  <span style={{ color: '#0f172a', fontWeight: '500', fontFamily: 'monospace', fontSize: 'var(--fs-12, 12px)', wordBreak: 'break-all' }}>
+                    {viewClient.id || viewClient.uuid}
+                  </span>
+                </div>
 
-            <div className="no-print" style={{ textAlign: 'right' }}>
-              <button onClick={() => window.print()} className="btn" style={{ background: 'var(--success)', color: 'white', padding: '8px 20px', borderRadius: '6px', marginRight: '8px', fontWeight: '600' }}>{t("🖨️ Print Memo")}</button>
-              <button onClick={() => setViewClient(null)} className="btn" style={{ background: '#64748b', color: 'white', padding: '8px 16px', borderRadius: '6px' }}>{t("Close")}</button>
+                {/* Name */}
+                <div style={{ display: 'grid', gridTemplateColumns: '120px 15px 1fr', alignItems: 'center' }}>
+                  <span style={{ fontWeight: '600', color: '#475569' }}>{t("Name")}</span>
+                  <span style={{ color: '#94a3b8' }}>:</span>
+                  <span style={{ color: '#0f172a', fontWeight: '700', fontSize: 'var(--fs-14, 14px)' }}>
+                    {viewClient.name || '-'}
+                  </span>
+                </div>
+
+                {/* Phone */}
+                <div style={{ display: 'grid', gridTemplateColumns: '120px 15px 1fr', alignItems: 'center' }}>
+                  <span style={{ fontWeight: '600', color: '#475569' }}>{t("Phone")}</span>
+                  <span style={{ color: '#94a3b8' }}>:</span>
+                  <span style={{ color: '#0f172a', fontWeight: '500' }}>
+                    {viewClient.phone || '-'}
+                  </span>
+                </div>
+
+                {/* Group */}
+                <div style={{ display: 'grid', gridTemplateColumns: '120px 15px 1fr', alignItems: 'center' }}>
+                  <span style={{ fontWeight: '600', color: '#475569' }}>{t("Client Group")}</span>
+                  <span style={{ color: '#94a3b8' }}>:</span>
+                  <span style={{ color: '#0f172a', fontWeight: '500' }}>
+                    {typeof viewClient.group === 'object' && viewClient.group !== null
+                      ? viewClient.group.name
+                      : (groups.find(g => String(g.id || g.uuid) === String(viewClient.group))?.name || viewClient.group_name || viewClient.group || '-')}
+                  </span>
+                </div>
+
+                {/* Address */}
+                <div style={{ display: 'grid', gridTemplateColumns: '120px 15px 1fr', alignItems: 'flex-start' }}>
+                  <span style={{ fontWeight: '600', color: '#475569' }}>{t("Address")}</span>
+                  <span style={{ color: '#94a3b8' }}>:</span>
+                  <span style={{ color: '#0f172a', fontWeight: '500', lineHeight: '1.4' }}>
+                    {viewClient.address || '-'}
+                  </span>
+                </div>
+
+                {/* Total Due */}
+                <div style={{ display: 'grid', gridTemplateColumns: '120px 15px 1fr', alignItems: 'center', paddingTop: '4px', borderTop: '1px dashed #cbd5e1' }}>
+                  <span style={{ fontWeight: '700', color: '#1e293b' }}>{t("Total Due")}</span>
+                  <span style={{ color: '#94a3b8' }}>:</span>
+                  <div>
+                    <span 
+                      style={{ 
+                        color: Number(viewClient.due || viewClient.previous_due || 0) > 0 ? '#dc2626' : '#059669', 
+                        background: Number(viewClient.due || viewClient.previous_due || 0) > 0 ? '#fee2e2' : '#dcfce7',
+                        fontWeight: '700', 
+                        fontSize: 'var(--fs-14, 14px)',
+                        padding: '3px 10px',
+                        borderRadius: '6px',
+                        display: 'inline-block'
+                      }}
+                    >
+                      ৳ {Number(viewClient.due || viewClient.previous_due || 0).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Print Signatures */}
+              <div className="print-only" style={{ display: 'none', justifyContent: 'space-between', marginTop: '60px', paddingTop: '20px' }}>
+                <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '160px', paddingTop: '4px', fontSize: 'var(--fs-12, 12px)' }}>
+                  {t("Customer Signature")}
+                </div>
+                <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '160px', paddingTop: '4px', fontSize: 'var(--fs-12, 12px)' }}>
+                  {t("Authorized Signature")}
+                </div>
+              </div>
+
+              {/* Footer Buttons */}
+              <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+                <button 
+                  onClick={() => window.print()} 
+                  className="btn" 
+                  style={{ 
+                    background: '#059669', 
+                    color: 'white', 
+                    padding: '8px 20px', 
+                    borderRadius: '6px', 
+                    fontWeight: '600',
+                    fontSize: 'var(--fs-13, 13px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)'
+                  }}
+                >
+                  <Printer size={16} /> {t("Print Memo")}
+                </button>
+                <button 
+                  onClick={() => setViewClient(null)} 
+                  className="btn" 
+                  style={{ 
+                    background: '#64748b', 
+                    color: 'white', 
+                    padding: '8px 20px', 
+                    borderRadius: '6px',
+                    fontWeight: '600',
+                    fontSize: 'var(--fs-13, 13px)',
+                    border: 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {t("Close")}
+                </button>
+              </div>
             </div>
           </div>
         </div>
