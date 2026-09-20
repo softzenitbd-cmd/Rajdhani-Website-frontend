@@ -8,6 +8,8 @@ import { ENDPOINTS } from '../../../api/endpoints';
 import { crmService } from '../../../services/crmService';
 import { purchaseService } from '../../../services/purchaseService';
 import { useToast } from '../../../context/ToastContext';
+import CustomDatePicker from '../../../components/CustomDatePicker';
+
 
 const SupplierStatement = () => {
   const { t } = useTranslation();
@@ -229,8 +231,8 @@ const SupplierStatement = () => {
             <label style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: '600', marginBottom: '8px' }}>{t("Search By Date")}</label>
             <div style={{ display: 'flex', gap: '12px' }}>
               <div className="form-input floating-label" style={{ flex: 1 }}>
-                <input
-                  type="date"
+                <CustomDatePicker
+                  
                   name="startDate"
                   value={filters.startDate}
                   onChange={handleInputChange}
@@ -238,8 +240,8 @@ const SupplierStatement = () => {
                 />
               </div>
               <div className="form-input floating-label" style={{ flex: 1 }}>
-                <input
-                  type="date"
+                <CustomDatePicker
+                  
                   name="endDate"
                   value={filters.endDate}
                   onChange={handleInputChange}

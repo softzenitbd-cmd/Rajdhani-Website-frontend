@@ -10,6 +10,8 @@ import { productService } from '../../../services/productService';
 import { useToast } from '../../../context/ToastContext';
 import { toList, fmtDate, money } from '../../../utils/apiHelpers';
 import { useTranslation } from 'react-i18next';
+import CustomDatePicker from '../../../components/CustomDatePicker';
+
 
 /**
  * Client statement / ledger → /api/accounting/reports/client-ledger/?client_id=&from_date=&to_date=
@@ -337,8 +339,8 @@ const ClientStatement = () => {
           <div style={{ flex: 1 }}>
             <label style={{ display: 'block', fontSize: 'var(--fs-11, 11px)', marginBottom: '4px', color: 'black' }}>Search By Date</label>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <input type="date" value={filters.from_date} onChange={(e) => set('from_date', e.target.value)} style={{ flex: 1, padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', fontSize: 'var(--fs-12, 12px)' }} />
-              <input type="date" value={filters.to_date} onChange={(e) => set('to_date', e.target.value)} style={{ flex: 1, padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', fontSize: 'var(--fs-12, 12px)' }} />
+              <CustomDatePicker  value={filters.from_date} onChange={(e) => set('from_date', e.target.value)} style={{ flex: 1, padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', fontSize: 'var(--fs-12, 12px)' }} />
+              <CustomDatePicker  value={filters.to_date} onChange={(e) => set('to_date', e.target.value)} style={{ flex: 1, padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', fontSize: 'var(--fs-12, 12px)' }} />
             </div>
           </div>
           

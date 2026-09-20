@@ -5,6 +5,8 @@ import { RotateCcw, Plus, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { purchaseService } from '../../services/purchaseService';
 import { crmService } from '../../services/crmService';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const PurchaseInvoiceList = () => {
   const { t } = useTranslation();
@@ -172,14 +174,14 @@ const PurchaseInvoiceList = () => {
           <div>
             <div style={{ fontSize: 'var(--fs-12, 12px)', marginBottom: '4px' }}>{t('common.search_by_date')}</div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <input 
-                type="date" 
+              <CustomDatePicker 
+                 
                 value={filters.from_date}
                 onChange={(e) => handleFilterChange('from_date', e.target.value)}
                 style={{ padding: '10px', width: '100%', border: '1px solid #38bdf8', borderRadius: '4px', outline: 'none', color: '#64748b' }} 
               />
-              <input 
-                type="date" 
+              <CustomDatePicker 
+                 
                 value={filters.to_date}
                 onChange={(e) => handleFilterChange('to_date', e.target.value)}
                 style={{ padding: '10px', width: '100%', border: '1px solid #38bdf8', borderRadius: '4px', outline: 'none', color: '#64748b' }} 

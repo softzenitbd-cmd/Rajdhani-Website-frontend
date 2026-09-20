@@ -11,6 +11,8 @@ import { ENDPOINTS } from '../../api/endpoints';
 import { productService } from '../../services/productService';
 import { purchaseService } from '../../services/purchaseService';
 import { crmService } from '../../services/crmService';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const PurchaseReturnCreate = () => {
   const { t } = useTranslation();
@@ -229,7 +231,7 @@ const PurchaseReturnCreate = () => {
                   <div style={{ position: 'absolute', top: '-10px', left: '16px', background: 'var(--info)', color: 'white', fontSize: 'var(--fs-11, 11px)', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Calendar size={12} /> {t("Date")}
                   </div>
-                  <input type="date" name="date" value={formData.date} onChange={handleChange} style={{ width: '100%', padding: '14px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none' }} />
+                  <CustomDatePicker  name="date" value={formData.date} onChange={handleChange} style={{ width: '100%', padding: '14px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none' }} />
                 </div>
               </div>
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
+
 import { useNavigate, useLocation } from 'react-router-dom';
 import { RotateCcw, Edit, Trash2, ArrowUp } from 'lucide-react';
 import { saleService } from '../../services/saleService';
@@ -9,6 +10,9 @@ import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
 import { useConfirm } from '../../context/ConfirmContext';
 import { exportVisibleTable } from '../../utils/tableExport';
+import CustomDatePicker from '../../components/CustomDatePicker';
+import { companyStore, companyHeaderImage } from '../../services/companyStore';
+
 
 const InvoiceList = () => {
   const toast = useToast();
@@ -34,6 +38,11 @@ const InvoiceList = () => {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [entriesLimit, setEntriesLimit] = useState('All');
+  const [companyInfo, setCompanyInfo] = useState(() => companyStore.getCached());
+
+  useEffect(() => {
+    companyStore.load().then(info => setCompanyInfo(info));
+  }, []);
 
   const [filters, setFilters] = useState({
     client: '',
@@ -187,8 +196,8 @@ const InvoiceList = () => {
         {/* Row 2 Filters: From Date, To Date, Invoice No Search, Clear Filter Button */}
         <div className="filter-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px', marginBottom: '20px', alignItems: 'center' }}>
           <div>
-            <input 
-              type="date" 
+            <CustomDatePicker 
+               
               name="from_date"
               value={filters.from_date}
               onChange={handleFilterChange}
@@ -199,8 +208,8 @@ const InvoiceList = () => {
           </div>
 
           <div>
-            <input 
-              type="date" 
+            <CustomDatePicker 
+               
               name="to_date"
               value={filters.to_date}
               onChange={handleFilterChange}
@@ -381,187 +390,164 @@ const InvoiceList = () => {
       {/* POS / Printable Invoice Modal */}
       {showViewModal && selectedInvoice && (
         <div className="printable-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div className="printable-modal-content" style={{ background: 'white', width: '700px', maxWidth: '95vw', borderRadius: '12px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="printable-modal-content" style={{ background: '#f8f9fa', width: '100%', maxWidth: '800px', borderRadius: '8px', padding: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', maxHeight: '90vh', overflowY: 'auto' }}>
             
-            <PrintHeader />
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '2px solid #0ea5e9', paddingBottom: '12px' }}>
-              <div>
-                <h3 style={{ margin: 0, fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', color: '#0f172a' }}>{t('invoice.sales_cash_memo', 'Sales Cash Memo')}</h3>
-                <span style={{ fontSize: 'var(--fs-13, 13px)', color: '#64748b', fontWeight: '600' }}>{t("Invoice #")}{selectedInvoice.invoice_id || selectedInvoice.invoiceNo || `INV-${selectedInvoice.id}`}</span>
-              </div>
-              <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#f1f5f9', padding: '6px', borderRadius: '50%', cursor: 'pointer', color: '#64748b' }}>✕</button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <button onClick={() => window.print()} className="no-print" style={{ background: '#000', color: 'white', border: 'none', padding: '6px 16px', cursor: 'pointer', borderRadius: '4px', fontWeight: 'bold' }}>
+                🖨️ Printable
+              </button>
+              <button onClick={() => navigate('/invoice/create')} className="no-print" style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 16px', cursor: 'pointer', borderRadius: '4px', fontWeight: 'bold' }}>
+                + Add New
+              </button>
+              <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#e2e8f0', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', color: '#0f172a', fontWeight: 'bold', marginLeft: 'auto' }}>✕ Close</button>
             </div>
 
-            {(() => {
-              const clientObj = (clients || []).find(c => String(c.id) === String(selectedInvoice.client || selectedInvoice.client_id));
-              const clientDisplay = selectedInvoice.client_name || selectedInvoice.clientName || (clientObj ? (clientObj.name || clientObj.company_name) : (
-                (selectedInvoice.client && !String(selectedInvoice.client).includes('-')) ? selectedInvoice.client : 'C.CUSTOMER'
-              ));
-
-              const catObj = (accounts || []).find(a => String(a.id) === String(selectedInvoice.category_id || selectedInvoice.category || selectedInvoice.account_id));
-              const categoryDisplay = selectedInvoice.category_name || (catObj ? catObj.name : (
-                (selectedInvoice.category_id && !String(selectedInvoice.category_id).includes('-')) ? selectedInvoice.category_id :
-                (selectedInvoice.category && !String(selectedInvoice.category).includes('-')) ? selectedInvoice.category : 'CASH SELL'
-              ));
-
-              return (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: 'var(--fs-13, 13px)', marginBottom: '20px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <div><strong>{t('invoice.customer_name', 'Customer Name')}:</strong> {clientDisplay}</div>
-                  <div><strong>{t('invoice.invoice_date', 'Invoice Date')}:</strong> {selectedInvoice.created_at ? new Date(selectedInvoice.created_at).toLocaleDateString() : (selectedInvoice.date || '-')}</div>
-                  <div><strong>{t('invoice.category', 'Category')}:</strong> {categoryDisplay}</div>
-                  <div><strong>{t('invoice.invoice_status', 'Invoice Status')}:</strong> <span style={{ color: '#059669', fontWeight: 'bold' }}>{t("PAID")}</span></div>
+            <div className="pos-receipt-wrapper" style={{ margin: '0 auto', width: '380px', background: 'white', padding: '8px', boxSizing: 'border-box' }}>
+              <div style={{ border: '2px solid black', padding: '8px' }}>
+                
+                {/* Dynamic Header */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
+                  {companyHeaderImage(companyInfo) && (
+                    <img src={companyHeaderImage(companyInfo)} alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'contain', marginRight: '8px' }} />
+                  )}
+                  <div style={{ textAlign: 'center' }}>
+                    <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: 'black' }}>{companyInfo.company_name || 'Rajdhani Super Shop'}</h2>
+                  </div>
                 </div>
-              );
-            })()}
+                <div style={{ textAlign: 'center', fontSize: '11px', color: 'black', marginBottom: '2px', fontWeight: 'bold' }}>
+                  {companyInfo.address || 'Address not available'}
+                </div>
+                <div style={{ textAlign: 'center', fontSize: '11px', color: 'black', marginBottom: '8px', fontWeight: 'bold' }}>
+                  MOBILE: {companyInfo.phone || '01700000000'}
+                </div>
 
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px', fontSize: 'var(--fs-13, 13px)' }}>
-              <thead>
-                <tr style={{ background: '#1e293b', color: 'white' }}>
-                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', width: '40px' }}>{t('invoice.sl', 'SL')}</th>
-                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'left' }}>{t('invoice.item_details', 'Item Details')}</th>
-                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', width: '60px' }}>{t('invoice.qty', 'Qty')}</th>
-                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'right', width: '100px' }}>{t('invoice.rate', 'Rate')}</th>
-                  <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'right', width: '110px' }}>{t('invoice.total_amount', 'Total Amount')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedInvoice.items && selectedInvoice.items.length > 0 ? (
-                  selectedInvoice.items.map((item, idx) => {
-                    const qty = Number(item.quantity || item.qty || 1);
-                    const rate = Number(
-                      item.selling_price ||
-                      item.price ||
-                      item.sales_price ||
-                      item.rate ||
-                      item.unit_price ||
-                      (item.total_selling_price ? Number(item.total_selling_price) / qty : 0) ||
-                      0
-                    );
-                    const itemTotal = Number(
-                      item.total_selling_price ||
-                      item.total_amount ||
-                      item.total ||
-                      (qty * rate) ||
-                      0
-                    );
+                {(() => {
+                  const clientObj = (clients || []).find(c => String(c.id) === String(selectedInvoice.client || selectedInvoice.client_id));
+                  const clientDisplay = selectedInvoice.client_name || selectedInvoice.clientName || (clientObj ? (clientObj.name || clientObj.company_name) : (
+                    (selectedInvoice.client && !String(selectedInvoice.client).includes('-')) ? selectedInvoice.client : 'C.CUSTOMER'
+                  ));
+                  
+                  const invoiceBill = Number(selectedInvoice.invoice_bill || selectedInvoice.invoiceBill || (selectedInvoice.items || []).reduce((sum, item) => {
+                      const qty = Number(item.quantity || item.qty || 1);
+                      const rate = Number(item.selling_price || item.price || item.rate || 0);
+                      return sum + (Number(item.total_selling_price || item.total_amount || (qty * rate)) || 0);
+                  }, 0) || selectedInvoice.grand_total || 0);
+                  
+                  const prevDue = Number(selectedInvoice.previous_due || selectedInvoice.previousDue || 0);
+                  const discountAmt = Number(selectedInvoice.discount || selectedInvoice.total_discount || 0);
+                  const totalBill = invoiceBill - discountAmt + prevDue;
+                  const payment = Number(selectedInvoice.receive_amount || selectedInvoice.receiveAmount || selectedInvoice.paid || 0);
+                  const invoiceDue = Math.max(0, invoiceBill - discountAmt - payment);
+                  const totalDue = selectedInvoice.total_due !== undefined ? Number(selectedInvoice.total_due) : Math.max(0, totalBill - payment);
 
-                    const displayItemName = item.name || item.product_name || item.product_title || item.title || item.product?.name || item.product?.title || 'Garments Item';
+                  let totalQty = 0;
+                  (selectedInvoice.items || []).forEach(item => {
+                    totalQty += Number(item.quantity || item.qty || 1);
+                  });
 
-                    return (
-                      <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                        <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>{idx + 1}</td>
-                        <td style={{ padding: '8px', border: '1px solid #e2e8f0', fontWeight: '500' }}>
-                          {displayItemName}
-                        </td>
-                        <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>{qty}</td>
-                        <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right' }}>৳ {rate.toFixed(2)}</td>
-                        <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 'bold' }}>৳ {itemTotal.toFixed(2)}</td>
-                      </tr>
-                    );
-                  })
-                ) : (
-                  <tr>
-                    <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>1</td>
-                    <td style={{ padding: '8px', border: '1px solid #e2e8f0', fontWeight: '500' }}>{t("GENERAL APPAREL / GARMENTS ITEM")}</td>
-                    <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>1</td>
-                    <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right' }}>৳ {Number(selectedInvoice.grand_total || selectedInvoice.billAmount || selectedInvoice.invoice_bill || 0).toFixed(2)}</td>
-                    <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 'bold' }}>৳ {Number(selectedInvoice.grand_total || selectedInvoice.billAmount || selectedInvoice.invoice_bill || 0).toFixed(2)}</td>
-                  </tr>
-                )}
-              </tbody>
-              <tfoot>
-                {/* Invoice Bill */}
-                <tr style={{ background: '#f1f5f9' }}>
-                  <td colSpan="4" style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1', fontWeight: 'bold' }}>{t('invoice.invoice_bill', 'Invoice Bill')}:</td>
-                  <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1', fontWeight: 'bold' }}>
-                    ৳ {Number(
-                      selectedInvoice.invoice_bill ||
-                      selectedInvoice.invoiceBill ||
-                      (selectedInvoice.items && selectedInvoice.items.length > 0
-                        ? selectedInvoice.items.reduce((sum, item) => {
-                            const qty = Number(item.quantity || item.qty || 1);
-                            const rate = Number(item.selling_price || item.price || item.sales_price || item.rate || item.unit_price || (item.total_selling_price ? Number(item.total_selling_price) / qty : 0) || 0);
-                            return sum + (Number(item.total_selling_price || item.total_amount || (qty * rate)) || 0);
-                          }, 0)
-                        : selectedInvoice.grand_total || selectedInvoice.billAmount || 0)
-                    ).toFixed(2)}
-                  </td>
-                </tr>
+                  return (
+                    <>
+                      {/* Info Table */}
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: 'black', marginBottom: '4px' }}>
+                        <tbody>
+                          <tr>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>Client ID No:- {selectedInvoice.client_id || (clientObj ? clientObj.id : '')}</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>Invoice ID No:- {selectedInvoice.invoice_id || selectedInvoice.invoiceNo || selectedInvoice.id}</td>
+                          </tr>
+                          <tr>
+                            <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>Client: {clientDisplay}</td>
+                          </tr>
+                          <tr>
+                            <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>Date:- {selectedInvoice.created_at ? new Date(selectedInvoice.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'medium' }) : (selectedInvoice.date || '-')}</td>
+                          </tr>
+                          <tr>
+                            <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>Served By:- {selectedInvoice.served_by || 'ADMIN'}</td>
+                          </tr>
+                        </tbody>
+                      </table>
 
-                {/* Discount */}
-                {Number(selectedInvoice.discount || selectedInvoice.total_discount || 0) > 0 && (
-                  <tr style={{ background: '#fff1f2', color: '#991b1b' }}>
-                    <td colSpan="4" style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1', fontWeight: 'bold' }}>{t('invoice.discount_header', 'Discount')} (-):</td>
-                    <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1', fontWeight: 'bold' }}>
-                      ৳ {Number(selectedInvoice.discount || selectedInvoice.total_discount || 0).toFixed(2)}
-                    </td>
-                  </tr>
-                )}
+                      {/* Items Table */}
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: 'black', marginBottom: '0' }}>
+                        <thead>
+                          <tr>
+                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Name</th>
+                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Price</th>
+                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Quantity</th>
+                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedInvoice.items && selectedInvoice.items.length > 0 ? (
+                            selectedInvoice.items.map((item, idx) => {
+                              const qty = Number(item.quantity || item.qty || 1);
+                              const rate = Number(item.selling_price || item.price || item.rate || 0);
+                              const itemTotal = Number(item.total_selling_price || item.total_amount || (qty * rate) || 0);
+                              const displayItemName = item.name || item.product_name || item.title || 'Item';
+                              return (
+                                <tr key={idx}>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{displayItemName}</td>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{rate}</td>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{qty}</td>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{itemTotal}</td>
+                                </tr>
+                              );
+                            })
+                          ) : (
+                            <tr>
+                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>General Item</td>
+                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{invoiceBill}</td>
+                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>1</td>
+                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{invoiceBill}</td>
+                            </tr>
+                          )}
+                          <tr>
+                            <td colSpan="3" style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right', fontWeight: 'bold' }}>Total Quantity</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center', fontWeight: 'bold' }}>{totalQty || 1}</td>
+                          </tr>
+                        </tbody>
+                      </table>
 
-                {/* Previous Due */}
-                {Number(selectedInvoice.previous_due || selectedInvoice.previousDue || 0) > 0 && (
-                  <tr style={{ background: '#f1f5f9' }}>
-                    <td colSpan="4" style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>{t('invoice.previous_due', 'Previous Due')} (+):</td>
-                    <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1', fontWeight: 'bold', color: '#475569' }}>
-                      ৳ {Number(selectedInvoice.previous_due || selectedInvoice.previousDue || 0).toFixed(2)}
-                    </td>
-                  </tr>
-                )}
+                      {/* Summary Table */}
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: 'black' }}>
+                        <tbody>
+                          <tr>
+                            <td style={{ border: '1px solid black', borderTop: 'none', padding: '2px 8px', textAlign: 'right', width: '70%' }}>Invoice Bill :-</td>
+                            <td style={{ border: '1px solid black', borderTop: 'none', padding: '2px 4px', textAlign: 'center' }}>{invoiceBill}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Previous Due :-</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{prevDue}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Total Bill :-</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{totalBill}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Payment :-</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{payment}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Invoice Due :-</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{invoiceDue}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Total Due :-</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{totalDue}</td>
+                          </tr>
+                          <tr>
+                            <td colSpan="2" style={{ border: '1px solid black', padding: '4px', textAlign: 'center', fontSize: '10px', fontStyle: 'italic', fontWeight: '600' }}>
+                              Software Developed By www.softhostit.com
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </>
+                  );
+                })()}
 
-                {/* Total Bill */}
-                <tr style={{ background: '#f1f5f9', fontWeight: 'bold' }}>
-                  <td colSpan="4" style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>{t('invoice.total_bill', 'Total Bill')}:</td>
-                  <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1', color: '#1d4ed8' }}>
-                    ৳ {Number(
-                      selectedInvoice.total_bill ||
-                      selectedInvoice.totalBill ||
-                      (Number(selectedInvoice.invoice_bill || selectedInvoice.grand_total || selectedInvoice.billAmount || 0) - Number(selectedInvoice.discount || selectedInvoice.total_discount || 0) + Number(selectedInvoice.previous_due || selectedInvoice.previousDue || 0))
-                    ).toFixed(2)}
-                  </td>
-                </tr>
-
-                {/* Paid / Received Amount */}
-                <tr style={{ background: '#f1f5f9', fontWeight: 'bold', color: '#059669' }}>
-                  <td colSpan="4" style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>{t('invoice.paid_received', 'Paid / Received Amount')}:</td>
-                  <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>
-                    ৳ {Number(selectedInvoice.receive_amount || selectedInvoice.receiveAmount || selectedInvoice.paid || 0).toFixed(2)}
-                  </td>
-                </tr>
-
-                {/* Total Due / Net Due */}
-                <tr style={{ background: '#fef2f2', fontWeight: 'bold', color: '#dc2626' }}>
-                  <td colSpan="4" style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1' }}>{t('invoice.total_due', 'Total Due')}:</td>
-                  <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #cbd5e1', fontSize: 'var(--fs-14, 14px)' }}>
-                    ৳ {Number(
-                      selectedInvoice.total_due !== undefined ? selectedInvoice.total_due :
-                      (selectedInvoice.dueAmount !== undefined ? selectedInvoice.dueAmount :
-                      (selectedInvoice.due !== undefined ? selectedInvoice.due :
-                      Math.max(0, (Number(selectedInvoice.total_bill || selectedInvoice.grand_total || 0) - Number(selectedInvoice.receive_amount || selectedInvoice.receiveAmount || 0)))))
-                    ).toFixed(2)}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-
-            {/* Signature Footer */}
-            <div className="print-only" style={{ display: 'none', justifyContent: 'space-between', marginTop: '60px', paddingTop: '20px' }}>
-              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: 'var(--fs-12, 12px)' }}>
-                {t("Customer Signature")}
-              </div>
-              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: 'var(--fs-12, 12px)' }}>
-                {t("Authorized Signature")}
               </div>
             </div>
 
-            <div className="no-print" style={{ textAlign: 'right', marginTop: '16px' }}>
-              <button onClick={() => window.print()} className="btn" style={{ background: 'var(--success)', color: 'white', padding: '10px 24px', borderRadius: '6px', marginRight: '8px', fontWeight: '600' }}>
-                🖨️ {t('invoice.print_memo', 'Print Memo')}
-              </button>
-              <button onClick={() => setShowViewModal(false)} className="btn" style={{ background: '#64748b', color: 'white', padding: '10px 20px', borderRadius: '6px' }}>
-                {t('invoice.close', 'Close')}
-              </button>
-            </div>
           </div>
         </div>
       )}

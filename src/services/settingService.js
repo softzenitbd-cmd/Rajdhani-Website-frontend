@@ -156,9 +156,15 @@ export const settingService = {
   // ==========================================
   getFormSettings: async (formName) => {
     try {
-      const res = await apiClient.get(`/settings/forms/${formName}`);
-      return res.data;
+      const res = await apiClient.get(`/api/settings/forms/${formName}/`);
+      console.log(`[FormSettings API GET] Success for ${formName}:`, res.data);
+      let data = res.data;
+      if (data && data.settings) {
+        data = typeof data.settings === 'string' ? JSON.parse(data.settings) : data.settings;
+      }
+      return data;
     } catch (err) {
+      console.warn(`[FormSettings API GET] Error for ${formName}, falling back to localStorage`, err?.response?.data || err);
       // Fallback to local storage if API is not available
       const stored = localStorage.getItem(`rg_form_${formName}`);
       return stored ? JSON.parse(stored) : {};
@@ -167,9 +173,14 @@ export const settingService = {
 
   updateFormSettings: async (formName, settings) => {
     try {
-      await apiClient.put(`/settings/forms/${formName}`, settings);
+      console.log(`[FormSettings API PUT] Sending for ${formName}:`, settings);
+      // Send wrapped in 'settings' key just in case backend expects it, 
+      // but also spread settings in root for flexible backends.
+      await apiClient.put(`/api/settings/forms/${formName}/`, { settings, ...settings });
+      console.log(`[FormSettings API PUT] Success for ${formName}`);
     } catch (err) {
       // Fallback to local storage if API is not available
+      console.error(`[FormSettings API PUT] Error in updateFormSettings for ${formName}:`, err?.response?.data || err);
       localStorage.setItem(`rg_form_${formName}`, JSON.stringify(settings));
     }
     return settings;

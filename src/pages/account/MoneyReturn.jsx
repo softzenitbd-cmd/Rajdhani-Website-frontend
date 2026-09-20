@@ -9,6 +9,8 @@ import { accountingService } from "../../services/accountingService";
 import { crmService } from "../../services/crmService";
 import { useToast } from "../../context/ToastContext";
 import { useTranslation } from "react-i18next";
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const MoneyReturn = () => {
   const { t } = useTranslation();
@@ -215,8 +217,8 @@ const MoneyReturn = () => {
                   >
                     {t("📅 Date")}
                   </div>
-                  <input
-                    type="date"
+                  <CustomDatePicker
+                    
                     name="date"
                     value={formData.date}
                     onChange={handleChange}

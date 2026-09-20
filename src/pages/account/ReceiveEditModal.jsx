@@ -20,6 +20,8 @@ import AddOptionModal from '../../components/AddOptionModal';
 import { accountingService } from '../../services/accountingService';
 import { crmService } from '../../services/crmService';
 import { useToast } from '../../context/ToastContext';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 /**
  * Modernized Update Receive Modal:
@@ -601,8 +603,8 @@ const ReceiveEditModal = ({ isOpen, receive, onClose, onSuccess }) => {
                     <span>{t("Date")}</span>
                     <span style={{ color: '#ef4444' }}>*</span>
                   </label>
-                  <input
-                    type="date"
+                  <CustomDatePicker
+                    
                     name="date"
                     value={formData.date}
                     onChange={handleChange}

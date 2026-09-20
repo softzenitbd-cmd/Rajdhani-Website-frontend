@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import { productService } from '../../services/productService';
 import { exportToExcel } from '../../utils/excelExporter';
 import { useToast } from '../../context/ToastContext';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const ProductList = () => {
   const toast = useToast();
@@ -179,8 +181,8 @@ const ProductList = () => {
             <div style={{ fontSize: 'var(--fs-12, 12px)', marginBottom: '4px' }}>{t('common.search_by_date')}</div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <div className="form-input floating-label" style={{ borderRadius: '4px', flex: 1 }}>
-                <input 
-                  type="date" 
+                <CustomDatePicker 
+                   
                   name="from_date"
                   value={filters.from_date}
                   onChange={handleFilterChange}
@@ -188,8 +190,8 @@ const ProductList = () => {
                 />
               </div>
               <div className="form-input floating-label" style={{ borderRadius: '4px', flex: 1 }}>
-                <input 
-                  type="date" 
+                <CustomDatePicker 
+                   
                   name="to_date"
                   value={filters.to_date}
                   onChange={handleFilterChange}

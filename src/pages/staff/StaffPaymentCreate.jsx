@@ -9,6 +9,8 @@ import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
 import { toList, today, money } from '../../utils/apiHelpers';
 import { useTranslation } from 'react-i18next';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const inputStyle = { width: '100%', padding: '12px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none' };
 const labelStyle = { display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '6px' };
@@ -113,7 +115,7 @@ const StaffPaymentCreate = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '24px' }}>
             <div>
               <label style={labelStyle}>{t("Date *")}</label>
-              <input type="date" value={form.date} onChange={(e) => set('date', e.target.value)} style={inputStyle} required />
+              <CustomDatePicker  value={form.date} onChange={(e) => set('date', e.target.value)} style={inputStyle} required />
             </div>
             <div>
               <label style={labelStyle}>{t("Staff *")}</label>

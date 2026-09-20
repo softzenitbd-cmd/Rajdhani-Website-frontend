@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { RotateCcw, ArrowUp, Edit, Trash2 } from 'lucide-react';
 import { saleService } from '../../services/saleService';
 import { crmService } from '../../services/crmService';
@@ -9,6 +9,8 @@ import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
 import { useConfirm } from '../../context/ConfirmContext';
 import { exportVisibleTable } from '../../utils/tableExport';
+import CustomDatePicker from '../../components/CustomDatePicker';
+import SearchableSelect from '../../components/SearchableSelect';
 
 const sampleReturns = [
   { id: 1, created_at: '2026-09-15 11:28:09', client_name: 'C.CASTOMER', client_phone: '01', invoice_no: 'Invoice ID: 163873', category: 'MALL FEROT', return_qty: 0, bill_amount: 2600.00, discount: 0.00, receive_amount: 0.00, total_due: 2600.00, status: 'Return' },
@@ -29,6 +31,7 @@ const SalesReturnList = () => {
   const confirm = useConfirm();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [returns, setReturns] = useState([]);
   const [clients, setClients] = useState([]);
@@ -91,6 +94,29 @@ const SalesReturnList = () => {
   useEffect(() => {
     fetchReturns();
   }, [filters]);
+
+  useEffect(() => {
+    if (location.state?.printReturn && returns.length > 0) {
+      let printId = location.state.printReturn;
+      if (printId === true) {
+        setSelectedReturn(returns[0]);
+        setViewModalType('pos');
+      } else {
+        const ret = returns.find(r => String(r.id) === String(printId) || String(r.invoice_no) === String(printId));
+        if (ret) {
+          setSelectedReturn(ret);
+          setViewModalType('pos');
+        } else {
+          setSelectedReturn(returns[0]);
+          setViewModalType('pos');
+        }
+      }
+      
+      const stateCopy = { ...location.state };
+      delete stateCopy.printReturn;
+      navigate(location.pathname, { replace: true, state: stateCopy });
+    }
+  }, [location.state, returns, navigate]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -171,30 +197,20 @@ const SalesReturnList = () => {
         {/* Row 1 Filters: Select Client & Select Account */}
         <div className="filter-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
           <div>
-            <select 
-              name="client" 
-              value={filters.client} 
-              onChange={handleFilterChange} 
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none', color: '#334155' }}
-            >
-              <option value="">{t("Select Client")}</option>
-              {clients.map(c => (
-                <option key={c.id} value={c.id}>{c.name || c.company_name}</option>
-              ))}
-            </select>
+            <SearchableSelect
+              options={clients.map(c => ({ value: c.id, label: c.name || c.company_name }))}
+              value={filters.client}
+              onChange={(val) => handleFilterChange({ target: { name: 'client', value: val } })}
+              placeholder={t("Select Client")}
+            />
           </div>
           <div>
-            <select 
-              name="account_id" 
-              value={filters.account_id} 
-              onChange={handleFilterChange} 
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none', color: '#334155' }}
-            >
-              <option value="">{t("Select Account")}</option>
-              {accounts.map(a => (
-                <option key={a.id} value={a.name}>{a.name}</option>
-              ))}
-            </select>
+            <SearchableSelect
+              options={accounts.map(a => ({ value: a.name, label: a.name }))}
+              value={filters.account_id}
+              onChange={(val) => handleFilterChange({ target: { name: 'account_id', value: val } })}
+              placeholder={t("Select Account")}
+            />
           </div>
         </div>
 

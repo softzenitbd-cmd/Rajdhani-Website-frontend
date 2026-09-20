@@ -15,12 +15,9 @@ const ClientCreate = () => {
   const [newGroupName, setNewGroupName] = useState('');
   const [formData, setFormData] = useState({
     clientName: '',
-    fathersName: '',
-    companyName: '',
     address: '',
     phone: '',
     phoneOptional: '',
-    email: '',
     previousDue: '',
     reference: '',
     group: ''
@@ -51,11 +48,8 @@ const ClientCreate = () => {
     // API Body format: { name, phone, address, previous_due, group }
     const payload = {
       name: formData.clientName,
-      fathers_name: formData.fathersName || "",
-      company_name: formData.companyName || "",
       phone: formData.phone,
       phone_optional: formData.phoneOptional || "",
-      email: formData.email || "",
       reference: formData.reference || "",
       address: formData.address || "",
       previous_due: formData.previousDue || "0.00",
@@ -117,21 +111,7 @@ const ClientCreate = () => {
                 </div>
               </div>
               
-              <div className="form-group">
-                <div className="form-input floating-label" style={{ background: 'white' }}>
-                  <User size={18} className="input-icon" />
-                  <input type="text" placeholder=" " value={formData.fathersName} onChange={(e) => setFormData({...formData, fathersName: e.target.value})} />
-                  <label>{t("Father's Name")}</label>
-                </div>
-              </div>
 
-              <div className="form-group">
-                <div className="form-input floating-label" style={{ background: 'white' }}>
-                  <User size={18} className="input-icon" />
-                  <input type="text" placeholder=" " value={formData.companyName} onChange={(e) => setFormData({...formData, companyName: e.target.value})} />
-                  <label>{t("Company Name")}</label>
-                </div>
-              </div>
 
               {/* Row 2 */}
               <div className="form-group">
@@ -167,13 +147,7 @@ const ClientCreate = () => {
                 </div>
               </div>
 
-              <div className="form-group">
-                <div className="form-input floating-label" style={{ background: 'white' }}>
-                  <User size={18} className="input-icon" />
-                  <input type="email" placeholder=" " value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
-                  <label>{t("E-mail")}</label>
-                </div>
-              </div>
+
 
               <div className="form-group">
                 <div className="form-input floating-label" style={{ background: 'white' }}>

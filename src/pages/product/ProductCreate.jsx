@@ -149,7 +149,26 @@ const ProductCreate = () => {
         return;
       }
 
-      navigate('/product/list');
+      if (!isEditMode) {
+        setFormData({
+          name: '',
+          custom_barcode_no: '',
+          buying_price: '',
+          selling_price: '',
+          wholesale_price: '',
+          stock_warning: '',
+          opening_stock: '',
+          unit: '',
+          group: '',
+          brand: '',
+          color: '',
+          size: '',
+          warehouse: '',
+          status: 1,
+        });
+      } else {
+        navigate('/product/list');
+      }
     } catch (err) {
       console.error("Error saving product:", err);
       toast.error(t("An unexpected error occurred while saving product."));

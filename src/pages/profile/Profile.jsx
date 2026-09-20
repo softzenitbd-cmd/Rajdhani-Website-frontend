@@ -3,6 +3,8 @@ import { Camera, Home, Settings, Edit, Mail, Save, X, CheckCircle, AlertCircle }
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { getUserProfile, updateUserProfile, changePassword } from '../../api/authApi';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const Profile = () => {
   const { t } = useTranslation();

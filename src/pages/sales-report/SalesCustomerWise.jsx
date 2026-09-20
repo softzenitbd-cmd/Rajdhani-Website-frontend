@@ -7,6 +7,8 @@ import { crmService } from '../../services/crmService';
 import { useToast } from '../../context/ToastContext';
 import { toList, money, fmtDate, today, nameOf } from '../../utils/apiHelpers';
 import { useTranslation } from 'react-i18next';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 /**
  * Customer wise sales report. The sales report API returns item-wise rows; they are
@@ -117,8 +119,8 @@ const SalesCustomerWise = () => {
       <div className="no-print" style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px', marginTop: '24px' }}>
         <form onSubmit={handleSearch} style={{ background: 'white', padding: '16px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', display: 'flex', gap: '16px', alignItems: 'center', width: '90%', maxWidth: '900px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', flex: 1, minWidth: '260px' }}>
-            <input type="date" name="from_date" value={filters.from_date} onChange={handleChange} style={{ width: '50%', padding: '12px 16px', border: '1px solid #e2e8f0', borderRadius: '4px 0 0 4px', outline: 'none' }} />
-            <input type="date" name="to_date" value={filters.to_date} onChange={handleChange} style={{ width: '50%', padding: '12px 16px', border: '1px solid #e2e8f0', borderLeft: 'none', borderRadius: '0 4px 4px 0', outline: 'none' }} />
+            <CustomDatePicker  name="from_date" value={filters.from_date} onChange={handleChange} style={{ width: '50%', padding: '12px 16px', border: '1px solid #e2e8f0', borderRadius: '4px 0 0 4px', outline: 'none' }} />
+            <CustomDatePicker  name="to_date" value={filters.to_date} onChange={handleChange} style={{ width: '50%', padding: '12px 16px', border: '1px solid #e2e8f0', borderLeft: 'none', borderRadius: '0 4px 4px 0', outline: 'none' }} />
           </div>
           <select name="client_id" value={filters.client_id} onChange={handleChange} style={{ flex: 1, minWidth: '200px', padding: '12px 16px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', background: 'white' }}>
             <option value="">{t("All Customers")}</option>

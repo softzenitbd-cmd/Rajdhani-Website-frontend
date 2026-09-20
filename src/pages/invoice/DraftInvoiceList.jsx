@@ -8,6 +8,8 @@ import { crmService } from '../../services/crmService';
 import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
 import { useConfirm } from '../../context/ConfirmContext';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const DraftInvoiceList = () => {
   const toast = useToast();
@@ -148,10 +150,10 @@ const DraftInvoiceList = () => {
 
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px', marginBottom: '24px' }}>
           <div className="form-input floating-label" style={{ borderRadius: '4px' }}>
-            <input type="date" name="from_date" value={filters.from_date} onChange={handleFilterChange} style={{ color: '#334155', padding: '10px' }} />
+            <CustomDatePicker  name="from_date" value={filters.from_date} onChange={handleFilterChange} style={{ color: '#334155', padding: '10px' }} />
           </div>
           <div className="form-input floating-label" style={{ borderRadius: '4px' }}>
-            <input type="date" name="to_date" value={filters.to_date} onChange={handleFilterChange} style={{ color: '#334155', padding: '10px' }} />
+            <CustomDatePicker  name="to_date" value={filters.to_date} onChange={handleFilterChange} style={{ color: '#334155', padding: '10px' }} />
           </div>
           <div className="form-input floating-label" style={{ borderRadius: '4px' }}>
             <input type="text" name="search" value={filters.search} onChange={handleFilterChange} placeholder={t("Draft ID or Barcode")} style={{ padding: '10px' }} />

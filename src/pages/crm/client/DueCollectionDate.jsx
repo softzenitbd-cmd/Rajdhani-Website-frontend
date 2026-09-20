@@ -6,26 +6,26 @@ import { ArrowLeft, Users, Plus, FileSpreadsheet, Printer, RotateCcw } from 'luc
 import { crmService } from '../../../services/crmService';
 import { exportToExcel } from '../../../utils/excelExporter';
 import { useToast } from '../../../context/ToastContext';
-
+import CustomDatePicker from '../../../components/CustomDatePicker';
 const DueCollectionDate = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [clients, setClients] = useState([]);
   const toast = useToast();
   // Collection date lives on the client record: PATCH /api/crm/clients/{id}/ { collection_date }
-  const dateOf = (c) => (c.collection_date ? String(c.collection_date).split('T')[0] : '') || (c.due_date ? String(c.due_date).split('T')[0] : '');
+  const dateOf = (c) => c.due_date ? String(c.due_date).split('T')[0] : '';
   const saveDate = async (c, value) => {
     const id = c.id || c.uuid;
-    const previous = c.collection_date;
-    setClients((prev) => prev.map((row) => ((row.id || row.uuid) === id ? { ...row, collection_date: value } : row)));
+    const previous = c.due_date;
+    setClients((prev) => prev.map((row) => ((row.id || row.uuid) === id ? { ...row, due_date: value } : row)));
     try {
-      const saved = await crmService.updateClient(id, { collection_date: value || null });
+      const saved = await crmService.updateClient(id, { due_date: value || null });
       if (saved && typeof saved === 'object') {
         setClients((prev) => prev.map((row) => ((row.id || row.uuid) === id ? { ...row, ...saved } : row)));
       }
       toast.success(t("Collection date saved"));
     } catch (e) {
-      setClients((prev) => prev.map((row) => ((row.id || row.uuid) === id ? { ...row, collection_date: previous } : row)));
+      setClients((prev) => prev.map((row) => ((row.id || row.uuid) === id ? { ...row, due_date: previous } : row)));
       toast.error(e?.message || t("Failed to save collection date"));
     }
   };
@@ -64,6 +64,7 @@ const DueCollectionDate = () => {
       const params = {};
       if (filters.searchAll) params.search = filters.searchAll;
       if (filters.clientGroup) params.group = filters.clientGroup;
+      if (filters.startDate) params.due_date = filters.startDate;
       
       const res = await crmService.getClients(params);
       const data = Array.isArray(res) ? res : (res?.results || []);
@@ -81,9 +82,9 @@ const DueCollectionDate = () => {
             receive: stats.receive !== undefined ? stats.receive : client.receive,
             sales_return: stats.sales_return !== undefined ? stats.sales_return : client.sales_return,
             due: stats.due !== undefined ? stats.due : client.due,
-            collection_date: client.collection_date || stats.collection_date
+            due_date: client.due_date || stats.due_date
           };
-        });
+        }).filter(c => Number(c.due || c.previous_due || 0) > 0 && Boolean(c.due_date));
         setClients(mergedData);
       } catch (err) {
         console.error("Failed to fetch client stats", err);
@@ -107,7 +108,7 @@ const DueCollectionDate = () => {
       fetchClients();
     }, 300);
     return () => clearTimeout(delayDebounceFn);
-  }, [filters.searchAll, filters.clientGroup]);
+  }, [filters.searchAll, filters.clientGroup, filters.startDate, filters.endDate]);
 
   const handleClearFilter = () => {
     setFilters({
@@ -185,10 +186,10 @@ const DueCollectionDate = () => {
             <label style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: '600', marginBottom: '8px' }}>{t('common.search_by_date')}</label>
             <div style={{ display: 'flex', gap: '12px' }}>
               <div className="form-input floating-label" style={{ flex: 1 }}>
-                <input type="date" name="startDate" value={filters.startDate} onChange={handleInputChange} style={{ fontSize: 'var(--fs-13, 13px)' }} />
+                <CustomDatePicker  name="startDate" value={filters.startDate} onChange={handleInputChange} style={{ fontSize: 'var(--fs-13, 13px)' }} />
               </div>
               <div className="form-input floating-label" style={{ flex: 1 }}>
-                <input type="date" name="endDate" value={filters.endDate} onChange={handleInputChange} style={{ fontSize: 'var(--fs-13, 13px)' }} />
+                <CustomDatePicker  name="endDate" value={filters.endDate} onChange={handleInputChange} style={{ fontSize: 'var(--fs-13, 13px)' }} />
               </div>
             </div>
           </div>
@@ -260,7 +261,7 @@ const DueCollectionDate = () => {
                     <td style={{ textAlign: 'left', padding: '8px 12px' }}>{Number(client.sales_return || 0).toFixed(2)}</td>
                     <td style={{ textAlign: 'left', padding: '8px 12px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <input type="date" value={dateOf(client)} readOnly style={{ padding: '2px 4px', border: '1px solid #e2e8f0', background: '#f8fafc', outline: 'none', fontSize: 'var(--fs-12, 12px)', color: '#475569', borderRadius: '4px' }} />
+                        <CustomDatePicker  value={dateOf(client)} onChange={(e) => saveDate(client, e.target.value)} style={{ padding: "4px", border: "1px solid #e2e8f0", background: "white", outline: "none", fontSize: "var(--fs-12, 12px)", color: "#475569", borderRadius: "4px", cursor: "pointer" }} />
                         <button onClick={() => navigate('/crm/client-statement', { state: { clientId: client.id || client.uuid } })} style={{ background: '#059669', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>Statement</button>
                       </div>
                     </td>

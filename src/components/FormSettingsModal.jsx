@@ -15,7 +15,10 @@ const FormSettingsModal = ({ isOpen, onClose, title, fields, initialSettings, on
   if (!isOpen) return null;
 
   const handleToggle = (key) => {
-    setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+    setSettings((prev) => ({
+      ...prev,
+      [key]: prev[key] === false ? true : false,
+    }));
   };
 
   const handleSave = () => {

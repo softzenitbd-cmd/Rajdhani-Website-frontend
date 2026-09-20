@@ -8,6 +8,8 @@ import { exportToExcel } from '../../../utils/excelExporter';
 import { useToast } from '../../../context/ToastContext';
 import { useTranslation } from 'react-i18next';
 import SupplierViewModal from './SupplierViewModal';
+import CustomDatePicker from '../../../components/CustomDatePicker';
+
 
 const SupplierList = () => {
   const { t } = useTranslation();
@@ -163,10 +165,10 @@ const SupplierList = () => {
             <label style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: '600', marginBottom: '8px' }}>{t("Search By Date")}</label>
             <div style={{ display: 'flex', gap: '8px' }}>
               <div className="form-input floating-label" style={{ flex: 1, padding: '0 8px' }}>
-                <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ color: '#94a3b8' }} />
+                <CustomDatePicker  value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ color: '#94a3b8' }} />
               </div>
               <div className="form-input floating-label" style={{ flex: 1, padding: '0 8px' }}>
-                <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ color: '#94a3b8' }} />
+                <CustomDatePicker  value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ color: '#94a3b8' }} />
               </div>
             </div>
           </div>

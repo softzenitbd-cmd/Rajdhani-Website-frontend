@@ -5,6 +5,8 @@ import { RefreshCcw, Printer, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { saleService } from '../../services/saleService';
 import { productService } from '../../services/productService';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const SalesBarcodeSearch = () => {
   const { t } = useTranslation();
@@ -153,15 +155,15 @@ const SalesBarcodeSearch = () => {
             <div>
               <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t('common.search_by_date')}</label>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <input 
-                  type="date" 
+                <CustomDatePicker 
+                   
                   name="from_date"
                   value={filters.from_date}
                   onChange={handleFilterChange}
                   style={{ width: '50%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} 
                 />
-                <input 
-                  type="date" 
+                <CustomDatePicker 
+                   
                   name="to_date"
                   value={filters.to_date}
                   onChange={handleFilterChange}

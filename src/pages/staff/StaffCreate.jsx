@@ -6,6 +6,8 @@ import { useToast } from '../../context/ToastContext';
 import { toList, today } from '../../utils/apiHelpers';
 import AddOptionModal from '../../components/AddOptionModal';
 import { useTranslation } from 'react-i18next';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const inputStyle = { width: '100%', padding: '12px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none' };
 const labelStyle = { display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '6px' };
@@ -338,7 +340,7 @@ const StaffCreate = () => {
             </div>
             <div>
               <label style={labelStyle}>{t("Joining Date")}</label>
-              <input type="date" value={form.joining_date} onChange={(e) => set('joining_date', e.target.value)} style={inputStyle} />
+              <CustomDatePicker  value={form.joining_date} onChange={(e) => set('joining_date', e.target.value)} style={inputStyle} />
             </div>
             <div>
               <label style={labelStyle}>{t("Status")}</label>

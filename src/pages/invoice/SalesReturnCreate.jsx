@@ -32,8 +32,8 @@ const SalesReturnCreate = () => {
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     barcode: '',
     productId: '',
-    totalBalanceAcc: '',
-    mallFerotAcc: '',
+    totalBalanceAcc: 'TOTAL BALENCE',
+    mallFerotAcc: 'MALL FEROT',
     receiveAmount: '0',
     sms: false,
     returnNo: ''
@@ -68,7 +68,14 @@ const SalesReturnCreate = () => {
       if (clientData && clientData.length > 0) {
         const defaultClient = clientData.find(c => {
           const name = String(c.name || c.company_name || '').toLowerCase();
-          return name.includes('c.customer') || name.includes('c.castomer') || name.includes('c. customer') || name === 'default';
+          return (
+            name.includes("c.customer") ||
+            name.includes("c.castomer") ||
+            name.includes("c.coustomer") ||
+            name.includes("c. customer") ||
+            name === "default" ||
+            name.startsWith("c.")
+          );
         }) || clientData[0];
 
         if (defaultClient) {
@@ -163,6 +170,21 @@ const SalesReturnCreate = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [formData, items, clients, products, accounts]);
 
+  const [isReceiveAmountManuallyEdited, setIsReceiveAmountManuallyEdited] = useState(false);
+
+  useEffect(() => {
+    if (!isReceiveAmountManuallyEdited) {
+      const calculatedReturnBill = items.reduce(
+        (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0),
+        0
+      );
+      setFormData((prev) => ({
+        ...prev,
+        receiveAmount: String(calculatedReturnBill),
+      }));
+    }
+  }, [items, isReceiveAmountManuallyEdited]);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     if (name === 'productId') {
@@ -170,6 +192,9 @@ const SalesReturnCreate = () => {
         handleSelectProduct(value);
       }
     } else {
+      if (name === "receiveAmount") {
+        setIsReceiveAmountManuallyEdited(true);
+      }
       setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     }
   };
@@ -237,7 +262,20 @@ const SalesReturnCreate = () => {
   };
 
   const selectedClientObj = (clients || []).find(c => String(c.id) === String(formData.clientId));
-  const dueAmount = selectedClientObj ? Number(selectedClientObj.due || selectedClientObj.previous_due || 0) : 0;
+  
+  const isDefaultClient = selectedClientObj && (() => {
+    const name = String(selectedClientObj.name || selectedClientObj.company_name || '').toLowerCase();
+    return (
+      name.includes("c.customer") ||
+      name.includes("c.castomer") ||
+      name.includes("c.coustomer") ||
+      name.includes("c. customer") ||
+      name === "default" ||
+      name.startsWith("c.")
+    );
+  })();
+
+  const dueAmount = selectedClientObj && !isDefaultClient ? Number(selectedClientObj.due || selectedClientObj.previous_due || 0) : 0;
 
   const totalQuantity = items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
   const returnBill = items.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 0)), 0);
@@ -255,6 +293,12 @@ const SalesReturnCreate = () => {
     }
 
     const returnCredit = Math.max(0, returnBill - receiveAmt);
+
+    if (isDefaultClient && returnCredit > 0) {
+      toast.error(t("Default customer cannot have due balance. Please pay the full return amount."));
+      return;
+    }
+
     const payload = {
       client: formData.clientId,
       date: formData.date,
@@ -272,27 +316,40 @@ const SalesReturnCreate = () => {
     };
 
     try {
+      let resData = null;
       if (isEdit) {
-        await saleService.updateSalesReturn(id, payload);
+        const res = await saleService.updateSalesReturn(id, payload);
+        resData = res?.data || res;
         toast.success(t("Sales Return Updated Successfully!"));
       } else {
-        await saleService.createSalesReturn(payload);
+        const res = await saleService.createSalesReturn(payload);
+        resData = res?.data || res;
         toast.success(status === 0 ? t("Draft Return Invoice Saved Successfully!") : t("Sales Return Created Successfully!"));
       }
 
       if (shouldPrint) {
-        window.print();
+        navigate('/invoice/sales-return/list', { state: { printReturn: resData?.id || true } });
+      } else {
+        if (!isEdit) {
+          setItems([]);
+          setFormData({
+            clientId: '',
+            date: new Date().toISOString().split('T')[0],
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            barcode: '',
+            productId: '',
+            totalBalanceAcc: 'TOTAL BALENCE',
+            mallFerotAcc: 'MALL FEROT',
+            receiveAmount: '0',
+            sms: false,
+            returnNo: ''
+          });
+        }
       }
-      navigate('/invoice/sales-return/list');
     } catch (err) {
       console.error("Error saving sales return:", err);
-      if (isEdit) {
-        toast.success(t("Sales Return Updated Successfully!"));
-        navigate('/invoice/sales-return/list');
-      } else {
-        const errMsg = err?.response?.data?.detail || err?.response?.data?.message || err?.message || "Failed to save sales return via API.";
-        toast.error(t("API Error: {{v0}}", { v0: errMsg }));
-      }
+      const errMsg = err?.response?.data?.detail || err?.response?.data?.message || err?.message || "Failed to save sales return via API.";
+      toast.error(t("API Error: {{v0}}", { v0: errMsg }));
     }
   };
 
@@ -317,8 +374,8 @@ const SalesReturnCreate = () => {
         <div className="premium-body" style={{ background: 'white', paddingTop: '16px' }}>
           <PrintHeader />
           <form onSubmit={(e) => e.preventDefault()}>
-            {/* Top Row: Customer Selection */}
-            <div style={{ marginBottom: '12px' }}>
+            {/* Top Row: Customer, Date, Time on the same line */}
+            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <SearchableSelect
                   options={(clients || []).map((c) => {
@@ -339,11 +396,8 @@ const SalesReturnCreate = () => {
                   {t("Due: ৳")} {dueAmount.toFixed(2)}
                 </div>
               </div>
-            </div>
 
-            {/* Date & Time Row (Side-by-side on both mobile & desktop) */}
-            <div className="form-row-2col" style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-              <div className="form-group" style={{ position: 'relative', flex: 1, marginBottom: 0 }}>
+              <div className="form-group" style={{ position: 'relative', marginBottom: 0 }}>
                 <div className="badge-date" style={{ background: 'var(--info)' }}><Calendar size={12} /> {t("Issued Date")}</div>
                 <input 
                   type="date" 
@@ -357,7 +411,7 @@ const SalesReturnCreate = () => {
                 />
               </div>
 
-              <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+              <div className="form-group" style={{ position: 'relative', marginBottom: 0 }}>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                   <input type="text" name="time" value={formData.time} onChange={handleChange} style={{ width: '100%', padding: '12px', paddingRight: '40px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', height: '48px', boxSizing: 'border-box' }} />
                   <Clock size={16} style={{ position: 'absolute', right: '12px', color: '#94a3b8' }} />
@@ -366,7 +420,7 @@ const SalesReturnCreate = () => {
             </div>
 
             {/* Second Row: Barcode & Product Selection */}
-            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px', position: 'relative' }}>
+            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '150px', position: 'relative' }}>
               <div className="form-group" style={{ marginBottom: '0', position: 'relative' }}>
                 <div style={{ position: 'absolute', top: '-10px', left: '20px', background: 'var(--primary)', color: 'white', padding: '2px 8px', fontSize: 'var(--fs-10, 10px)', borderRadius: '4px', zIndex: 2 }}>{t("Barcode Number")}</div>
                 <div style={{ display: 'flex', border: '1px solid #e2e8f0', borderRadius: '4px', overflow: 'hidden', background: 'var(--card-border)' }}>
@@ -453,6 +507,13 @@ const SalesReturnCreate = () => {
                                 if (nextInput) {
                                   e.preventDefault();
                                   nextInput.focus();
+                                } else {
+                                  e.preventDefault();
+                                  const receiveInput = document.getElementById("receiveAmountInput");
+                                  if (receiveInput) {
+                                    receiveInput.focus();
+                                    receiveInput.select();
+                                  }
                                 }
                               }
                             }}
@@ -512,7 +573,16 @@ const SalesReturnCreate = () => {
 
                 <div style={{ position: 'relative' }}>
                   <div className="badge-date" style={{ background: 'var(--info)' }}> {t("Receive Amount")}</div>
-                  <input type="number" step="0.01" name="receiveAmount" className="input-date" value={formData.receiveAmount} onChange={handleChange} />
+                  <input 
+                    id="receiveAmountInput"
+                    type="number" 
+                    step="0.01" 
+                    name="receiveAmount" 
+                    className="input-date" 
+                    value={formData.receiveAmount} 
+                    onChange={handleChange} 
+                    onFocus={(e) => e.target.select()}
+                  />
                 </div>
               </div>
 

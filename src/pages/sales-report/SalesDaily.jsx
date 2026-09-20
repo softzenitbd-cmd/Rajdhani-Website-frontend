@@ -5,6 +5,8 @@ import { RefreshCcw, Printer, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { saleService } from '../../services/saleService';
 import { crmService } from '../../services/crmService';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const SalesDaily = () => {
   const { t } = useTranslation();
@@ -133,8 +135,8 @@ const SalesDaily = () => {
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Date")}</label>
-              <input 
-                type="date"
+              <CustomDatePicker 
+                
                 name="from_date"
                 value={filters.from_date}
                 onChange={(e) => setFilters(prev => ({ ...prev, from_date: e.target.value, to_date: e.target.value }))}

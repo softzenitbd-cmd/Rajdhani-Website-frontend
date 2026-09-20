@@ -19,6 +19,7 @@ const SearchableSelect = ({
   disabled = false,
   clearOnSelect = false,
   hideOptionsUntilSearch = false,
+  searchPlaceholder = '',
   className = '',
   style = {}
 }) => {
@@ -218,7 +219,11 @@ const SearchableSelect = ({
           <button
             type="button"
             className="append-btn"
-            onClick={onAddClick}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onAddClick(e);
+            }}
             disabled={disabled}
             style={{
               background: '#10b981',
@@ -269,7 +274,7 @@ const SearchableSelect = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={t('invoice.search_placeholder', 'Type name to search...')}
+              placeholder={searchPlaceholder || t('invoice.search_placeholder', 'Type name to search...')}
               style={{
                 width: '100%',
                 padding: '5px 8px',

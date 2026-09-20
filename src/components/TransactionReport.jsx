@@ -7,6 +7,8 @@ import { crmService } from '../services/crmService';
 import { useToast } from '../context/ToastContext';
 import { toList, money, fmtDate, nameOf } from '../utils/apiHelpers';
 import { useTranslation } from 'react-i18next';
+import CustomDatePicker from './CustomDatePicker';
+
 
 /**
  * Shared deposit / expense report with an optional group-by.
@@ -179,8 +181,8 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
             <div>
               <label style={lbl}>{t("Date Range")}</label>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ ...input, width: '50%' }} />
-                <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ ...input, width: '50%' }} />
+                <CustomDatePicker  value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ ...input, width: '50%' }} />
+                <CustomDatePicker  value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ ...input, width: '50%' }} />
               </div>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>

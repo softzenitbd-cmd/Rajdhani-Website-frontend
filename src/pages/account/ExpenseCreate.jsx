@@ -6,6 +6,8 @@ import PrintHeader from '../../components/PrintHeader';
 import SearchableSelect from '../../components/SearchableSelect';
 import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 // Mirrors the original CRM "খরচ তৈরি" form:
 // left column  → date, amount, note
@@ -175,8 +177,8 @@ const ExpenseCreate = () => {
                   >
                     {t("📅 Date")}
                   </div>
-                  <input
-                    type="date"
+                  <CustomDatePicker
+                    
                     name="date"
                     value={formData.date}
                     onChange={handleChange}

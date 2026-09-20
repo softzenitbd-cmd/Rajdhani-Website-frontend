@@ -5,6 +5,8 @@ import { Plus, Printer, RefreshCcw, Search, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const StaffPaymentReport = () => {
   const { t } = useTranslation();
@@ -127,8 +129,8 @@ const StaffPaymentReport = () => {
             <div>
               <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', marginBottom: '6px', fontWeight: '600' }}>{t("Date Range")}</label>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ width: '50%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px' }} />
-                <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ width: '50%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px' }} />
+                <CustomDatePicker  value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ width: '50%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px' }} />
+                <CustomDatePicker  value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ width: '50%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px' }} />
               </div>
             </div>
 

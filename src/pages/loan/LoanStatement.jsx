@@ -5,6 +5,8 @@ import PrintHeader from '../../components/PrintHeader';
 import { Printer, RotateCcw } from 'lucide-react';
 import { loanService } from '../../services/loanService';
 import SearchableSelect from '../../components/SearchableSelect';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const LoanStatement = () => {
   const { t } = useTranslation();
@@ -106,8 +108,8 @@ const LoanStatement = () => {
           <div className="form-group">
             <label style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: '600', marginBottom: '8px', color: '#334155', display: 'block' }}>{t('common.search_by_date')}</label>
             <div style={{ display: 'flex', border: '1px solid #93c5fd', borderRadius: '6px', overflow: 'hidden', background: 'white', height: '44px', alignItems: 'center' }}>
-              <input type="date" style={{ width: '50%', border: 'none', borderRight: '1px solid #cbd5e1', padding: '0 10px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', outline: 'none', height: '100%' }} value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
-              <input type="date" style={{ width: '50%', border: 'none', padding: '0 10px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', outline: 'none', height: '100%' }} value={toDate} onChange={(e) => setToDate(e.target.value)} />
+              <CustomDatePicker  style={{ width: '50%', border: 'none', borderRight: '1px solid #cbd5e1', padding: '0 10px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', outline: 'none', height: '100%' }} value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+              <CustomDatePicker  style={{ width: '50%', border: 'none', padding: '0 10px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', outline: 'none', height: '100%' }} value={toDate} onChange={(e) => setToDate(e.target.value)} />
             </div>
           </div>
 

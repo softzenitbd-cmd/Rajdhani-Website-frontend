@@ -5,6 +5,7 @@ import PrintHeader from '../../components/PrintHeader';
 import { productService } from '../../services/productService';
 import SearchableSelect from '../../components/SearchableSelect';
 import JsBarcode from 'jsbarcode';
+import { useLocation } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 
 const BarcodeSticker = ({ barcodeValue, name, price }) => {
@@ -53,10 +54,10 @@ const BarcodeSticker = ({ barcodeValue, name, price }) => {
 const ProductBarcode = () => {
   const toast = useToast();
   const { t } = useTranslation();
-
+  const location = useLocation();
 
   const [products, setProducts] = useState([]);
-  const [selectedProductId, setSelectedProductId] = useState('');
+  const [selectedProductId, setSelectedProductId] = useState(location.state?.product?.id || '');
   const [quantity, setQuantity] = useState(10);
   const [generatedStickers, setGeneratedStickers] = useState([]);
 

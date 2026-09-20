@@ -8,6 +8,8 @@ import { accountingService } from '../../services/accountingService';
 import SearchableSelect from '../../components/SearchableSelect';
 import { useToast } from '../../context/ToastContext';
 import { useConfirm } from '../../context/ConfirmContext';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const LoanReceiveList = () => {
   const { t } = useTranslation();
@@ -157,7 +159,7 @@ const LoanReceiveList = () => {
                   <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
                     <Calendar size={12} /> {t("Date")}
                   </div>
-                  <input type="date" name="date" value={editFormData.date} onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })} style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: 'var(--fs-14, 14px)', outline: 'none', background: 'white' }} />
+                  <CustomDatePicker  name="date" value={editFormData.date} onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })} style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: 'var(--fs-14, 14px)', outline: 'none', background: 'white' }} />
                 </div>
               </div>
 
@@ -261,8 +263,8 @@ const LoanReceiveList = () => {
           <div className="form-group">
             <label style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: '600', marginBottom: '8px', color: '#334155', display: 'block' }}>{t('Search By Date')}</label>
             <div style={{ display: 'flex', border: '1px solid #93c5fd', borderRadius: '6px', overflow: 'hidden', background: 'white', height: '44px', alignItems: 'center' }}>
-              <input type="date" style={{ width: '50%', border: 'none', borderRight: '1px solid #cbd5e1', padding: '0 10px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', outline: 'none', height: '100%' }} value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
-              <input type="date" style={{ width: '50%', border: 'none', padding: '0 10px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', outline: 'none', height: '100%' }} value={toDate} onChange={(e) => setToDate(e.target.value)} />
+              <CustomDatePicker  style={{ width: '50%', border: 'none', borderRight: '1px solid #cbd5e1', padding: '0 10px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', outline: 'none', height: '100%' }} value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+              <CustomDatePicker  style={{ width: '50%', border: 'none', padding: '0 10px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', outline: 'none', height: '100%' }} value={toDate} onChange={(e) => setToDate(e.target.value)} />
             </div>
           </div>
 

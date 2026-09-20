@@ -8,6 +8,8 @@ import { accountingService } from '../../services/accountingService';
 import { crmService } from '../../services/crmService';
 import { useToast } from '../../context/ToastContext';
 import { useTranslation } from 'react-i18next';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const ReceiveCreate = () => {
   const { t } = useTranslation();
@@ -48,6 +50,12 @@ const ReceiveCreate = () => {
       setAccounts(accData);
       setCategories(catData);
       setClients(clientData);
+
+      // Auto-select "TOTAL BALANCE" account if it exists
+      const totalBalanceAcc = accData.find(a => a.name && a.name.toUpperCase().includes('TOTAL BALANCE'));
+      if (totalBalanceAcc) {
+        setFormData(prev => ({ ...prev, accountId: totalBalanceAcc.id || totalBalanceAcc.uuid || '' }));
+      }
     } catch (err) {
       toast.error(err?.message || t("Failed to load form data"));
     }
@@ -95,8 +103,7 @@ const ReceiveCreate = () => {
   }, [formData.clientId, clients]);
 
   const dueAmount = clientLiveDue !== null
-    ? clientLiveDue
-    : (selectedClient ? Number(selectedClient.current_due ?? selectedClient.previous_due ?? selectedClient.total_due ?? selectedClient.due ?? selectedClient.due_amount ?? 0) : 0);
+
 
   const handleChange = (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -264,8 +271,8 @@ const ReceiveCreate = () => {
                   <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     {t("📅 Date")}
                   </div>
-                  <input 
-                    type="date" 
+                  <CustomDatePicker 
+                     
                     name="date" 
                     value={formData.date} 
                     onChange={handleChange}

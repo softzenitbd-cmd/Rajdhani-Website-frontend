@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import { saleService } from '../../services/saleService';
 import { crmService } from '../../services/crmService';
 import { fmtDate } from '../../utils/apiHelpers';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const SalesAll = () => {
   const { t } = useTranslation();
@@ -103,11 +105,11 @@ const SalesAll = () => {
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("From Date")}</label>
-              <input type="date" name="from_date" value={filters.from_date} onChange={handleFilterChange} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
+              <CustomDatePicker  name="from_date" value={filters.from_date} onChange={handleFilterChange} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("To Date")}</label>
-              <input type="date" name="to_date" value={filters.to_date} onChange={handleFilterChange} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
+              <CustomDatePicker  name="to_date" value={filters.to_date} onChange={handleFilterChange} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
             </div>
           </div>
 

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
 import SearchableSelect from '../../components/SearchableSelect';
 import AddOptionModal from '../../components/AddOptionModal';
+import AddSupplierModal from '../../components/AddSupplierModal';
 import AddProductModal from '../../components/AddProductModal';
 import FormSettingsModal from '../../components/FormSettingsModal';
 import { crmService } from '../../services/crmService';
@@ -30,6 +31,9 @@ const PurchaseCreate = () => {
     vat: '',
     vat_type: 'Percentage (%)',
     receive_amount: '',
+    warehouse: '',
+    account: '',
+    category: '',
   });
 
   const [suppliers, setSuppliers] = useState([]);
@@ -79,7 +83,13 @@ const PurchaseCreate = () => {
     try {
       const saved = await settingService.getFormSettings('purchase_create');
       if (saved && Object.keys(saved).length > 0) {
-        setVisibleFields(prev => ({ ...prev, ...saved }));
+        const parsedSaved = {};
+        for (const [key, value] of Object.entries(saved)) {
+          if (value === 'false' || value === 'False' || value === 0) parsedSaved[key] = false;
+          else if (value === 'true' || value === 'True' || value === 1) parsedSaved[key] = true;
+          else parsedSaved[key] = value;
+        }
+        setVisibleFields(prev => ({ ...prev, ...parsedSaved }));
       }
     } catch (err) {
       console.error(err);
@@ -120,7 +130,7 @@ const PurchaseCreate = () => {
           quantity: 1,
           buyingPrice: Number(prod.purchase_price || prod.buying_price || prod.price || 0),
           salePrice: Number(prod.sales_price || prod.selling_price || 0),
-          barcode: prod.code || prod.barcode || `BC-${prod.id}`
+          barcode: prod.code || prod.barcode || "-"
         }];
       }
     });
@@ -188,7 +198,7 @@ const PurchaseCreate = () => {
     }
   };
 
-  const handleSubmitPurchase = async () => {
+  const handleSubmitPurchase = async (status = 1, shouldPrint = false) => {
     if (!formData.supplier) {
       toast.error(t("Please select a supplier."));
       return;
@@ -215,7 +225,10 @@ const PurchaseCreate = () => {
         grand_total: grandTotal.toFixed(2),
         receive_amount: paidAmt.toFixed(2),
         total_due: totalDue.toFixed(2),
-        status: 1,
+        warehouse: formData.warehouse || "",
+        account: formData.account || "",
+        category: formData.category || "",
+        status: status,
         items: items.map(i => ({
           product: i.id,
           quantity: String(i.quantity),
@@ -228,7 +241,12 @@ const PurchaseCreate = () => {
 
       const created = await purchaseService.createPurchaseInvoice(payload);
       toast.success(t("Purchase invoice {{v0}}created successfully!", { v0: created?.invoice_id ? created.invoice_id + ' ' : '' }));
-      navigate('/product/purchase/list');
+      
+      if (shouldPrint) {
+        navigate('/product/purchase/list', { state: { printPurchase: created?.id || true } });
+      } else {
+        navigate('/product/purchase/list');
+      }
     } catch (err) {
       console.error("Error creating purchase:", err);
       toast.error(t("Failed to create purchase: {{v0}}", { v0: err?.message || t("server error") }));
@@ -275,50 +293,86 @@ const PurchaseCreate = () => {
         <div className="premium-body" style={{ background: 'white', padding: '24px' }}>
           <PrintHeader />
           <form onSubmit={(e) => e.preventDefault()}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-              {/* Left Column (Select Suppliers) */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                {visibleFields.supplier !== false && (
-                  <div className="form-group" style={{ marginBottom: '0', height: '100%' }}>
-                    <div style={{ height: '100%', display: 'flex', border: '1px solid #0ea5e9', borderRadius: '8px', padding: '16px' }}>
-                      <SearchableSelect
-                        options={suppliers.map(sup => ({
-                          value: sup.id,
-                          label: sup.name,
-                          searchValue: sup.name
-                        }))}
-                        value={formData.supplier}
-                        onChange={(val) => setFormData(prev => ({ ...prev, supplier: val }))}
-                        placeholder={t("Select Suppliers")}
-                        onAddClick={() => setIsSupplierModalOpen(true)}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
+            {/* Top Row: Supplier, Date, Invoice ID */}
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
+              {visibleFields.supplier !== false && (
+                <div className="form-group" style={{ flex: '1 1 250px', marginBottom: '0' }}>
+                  <SearchableSelect
+                    options={suppliers.map(sup => ({
+                      value: sup.id,
+                      label: sup.name,
+                      searchValue: sup.name
+                    }))}
+                    value={formData.supplier}
+                    onChange={(val) => setFormData(prev => ({ ...prev, supplier: val }))}
+                    placeholder={t("Select Suppliers")}
+                    onAddClick={() => setIsSupplierModalOpen(true)}
+                  />
+                </div>
+              )}
 
-              {/* Right Column (Date and Invoice ID) */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                {visibleFields.date !== false && (
-                  <div className="form-group" style={{ marginBottom: '0', position: 'relative', border: '1px solid #0ea5e9', borderRadius: '8px' }}>
-                    <BadgeLabel icon={<Calendar size={12} />} text={t("Date")} />
-                    <input type="date" name="date" value={formData.date} onChange={handleChange} style={{ width: '100%', padding: '16px', border: 'none', background: 'transparent', outline: 'none' }} />
+              {visibleFields.date !== false && (
+                <div className="form-group" style={{ flex: '1 1 250px', position: 'relative', marginBottom: 0 }}>
+                  <div className="badge-date" style={{ background: 'var(--info)' }}><Calendar size={12} /> {t("Issued Date")}</div>
+                  <input 
+                    type="date" 
+                    name="date" 
+                    className="input-date" 
+                    value={formData.date} 
+                    onChange={handleChange}
+                    onClick={(e) => { try { e.target.showPicker(); } catch (err) {} }}
+                    onFocus={(e) => { try { e.target.showPicker(); } catch (err) {} }}
+                    style={{ cursor: 'pointer', width: '100%' }}
+                  />
+                </div>
+              )}
+
+              {visibleFields.invoice_id !== false && (
+                <div className="form-group" style={{ flex: '1 1 250px', position: 'relative', marginBottom: 0 }}>
+                  <div style={{ position: 'absolute', top: '-10px', left: '16px', background: 'var(--primary)', color: 'white', padding: '2px 8px', fontSize: '10px', borderRadius: '4px', zIndex: 1, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Calendar size={12} /> {t("Invoice ID No")}
                   </div>
-                )}
-                {visibleFields.invoice_id !== false && (
-                  <div className="form-group" style={{ marginBottom: '0', position: 'relative', border: '1px solid #0ea5e9', borderRadius: '8px' }}>
-                    <BadgeLabel icon={<Calendar size={12} />} text={t("Invoice ID No")} />
-                    <input type="text" name="invoice_id" value={formData.invoice_id} onChange={handleChange} placeholder="Invoice Id" style={{ width: '100%', padding: '16px', border: 'none', background: 'transparent', outline: 'none' }} />
-                  </div>
-                )}
-              </div>
+                  <input 
+                    type="text" 
+                    name="invoice_id" 
+                    value={formData.invoice_id} 
+                    onChange={handleChange} 
+                    placeholder={t("Invoice Id")} 
+                    style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none', height: '48px', boxSizing: 'border-box' }} 
+                  />
+                </div>
+              )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+            {/* Additional Fields Row based on form settings */}
+            {(visibleFields.warehouse !== false || visibleFields.category !== false || visibleFields.accounts !== false) && (
+              <div style={{ display: 'flex', gap: '24px', marginBottom: '24px', flexWrap: 'wrap' }}>
+                {visibleFields.warehouse !== false && (
+                    <div className="form-group" style={{ flex: '1 1 200px', marginBottom: '0', position: 'relative', border: '1px solid #cbd5e1', borderRadius: '8px' }}>
+                      <BadgeLabel text={t("Warehouse")} />
+                      <input type="text" name="warehouse" value={formData.warehouse} onChange={handleChange} placeholder={t("Warehouse Name")} style={{ width: '100%', padding: '16px', border: 'none', background: 'transparent', outline: 'none' }} />
+                    </div>
+                )}
+                {visibleFields.category !== false && (
+                    <div className="form-group" style={{ flex: '1 1 200px', marginBottom: '0', position: 'relative', border: '1px solid #cbd5e1', borderRadius: '8px' }}>
+                      <BadgeLabel text={t("Category")} />
+                      <input type="text" name="category" value={formData.category} onChange={handleChange} placeholder={t("Category")} style={{ width: '100%', padding: '16px', border: 'none', background: 'transparent', outline: 'none' }} />
+                    </div>
+                )}
+                {visibleFields.accounts !== false && (
+                    <div className="form-group" style={{ flex: '1 1 200px', marginBottom: '0', position: 'relative', border: '1px solid #cbd5e1', borderRadius: '8px' }}>
+                      <BadgeLabel text={t("Account")} />
+                      <input type="text" name="account" value={formData.account} onChange={handleChange} placeholder={t("Account Name")} style={{ width: '100%', padding: '16px', border: 'none', background: 'transparent', outline: 'none' }} />
+                    </div>
+                )}
+              </div>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px', alignItems: 'start' }}>
               {/* Barcode Number */}
-              <div className="form-group" style={{ marginBottom: '0', position: 'relative', border: '1px solid #cbd5e1', borderRadius: '8px', background: '#e2e8f0' }}>
+              <div className="form-group" style={{ marginBottom: '0', position: 'relative', border: '1px solid #0ea5e9', borderRadius: '8px', background: 'white' }}>
                 <BadgeLabel text={t("Barcode Number")} />
-                <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
                   <div style={{ padding: '0 16px', color: 'var(--text-muted)' }}>
                     <Barcode size={24} />
                   </div>
@@ -328,16 +382,17 @@ const PurchaseCreate = () => {
                     value={formData.barcode}
                     onChange={handleChange}
                     onKeyDown={handleBarcodeKeyDown}
-                    placeholder="Barcode Number"
+                    placeholder={t("Barcode Number")}
                     style={{ flex: 1, padding: '16px 16px 16px 0', border: 'none', outline: 'none', background: 'transparent', color: '#334155' }}
                   />
                 </div>
               </div>
 
               {/* Select Product */}
-              <div className="form-group" style={{ marginBottom: '0', position: 'relative', border: '1px solid #0ea5e9', borderRadius: '8px', padding: '8px 16px' }}>
+              <div className="form-group" style={{ marginBottom: '40px', position: 'relative', border: '1px solid #0ea5e9', borderRadius: '8px', padding: '8px 16px' }}>
                 <BadgeLabel text={t("Product Name")} />
                 <SearchableSelect
+                  searchPlaceholder={t("Search by product name or barcode...")}
                   options={(products || []).map(p => ({
                     value: p.id,
                     label: `${p.name || p.title} ${p.code || p.barcode ? `[${p.code || p.barcode}]` : ''}`,
@@ -351,6 +406,7 @@ const PurchaseCreate = () => {
                     }
                   }}
                   clearOnSelect={true}
+                  hideOptionsUntilSearch={true}
                   placeholder={t("Select Product")}
                   onAddClick={() => setIsProductModalOpen(true)}
                 />
@@ -428,15 +484,28 @@ const PurchaseCreate = () => {
                         <td style={{ textAlign: 'right', padding: '10px', fontWeight: 'bold' }}>
                           ৳ {(item.quantity * item.salePrice).toFixed(2)}
                         </td>
-                        <td style={{ textAlign: 'center', padding: '10px', fontSize: 'var(--fs-11, 11px)', color: '#64748b' }}>{item.barcode}</td>
+                        <td style={{ textAlign: 'center', padding: '10px', fontSize: 'var(--fs-11, 11px)', color: '#64748b', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.barcode}>
+                          {item.barcode}
+                        </td>
                         <td style={{ textAlign: 'center', padding: '10px' }}>
-                          <button
-                            type="button"
-                            onClick={() => removeItem(idx)}
-                            style={{ border: 'none', background: 'transparent', color: '#ef4444', cursor: 'pointer' }}
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                            <button
+                              type="button"
+                              onClick={() => navigate('/product/barcode', { state: { product: item } })}
+                              style={{ border: 'none', background: '#1e293b', color: 'white', cursor: 'pointer', padding: '4px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                              title={t("Generate Barcode")}
+                            >
+                              <Barcode size={16} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeItem(idx)}
+                              style={{ border: 'none', background: '#ef4444', color: 'white', cursor: 'pointer', padding: '4px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                              title={t("Remove")}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -459,7 +528,7 @@ const PurchaseCreate = () => {
             {/* Bill summary and Bottom fields */}
             <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', marginBottom: '24px' }}>
               {/* Left Column Form fields */}
-              <div style={{ flex: '1 1 500px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <div style={{ flex: '1 1 500px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', alignContent: 'start' }}>
                 {visibleFields.discount !== false && (
                   <div style={{ display: 'flex', gap: '16px' }}>
                     <div style={{ flex: 1, position: 'relative', border: '1px solid #0ea5e9', borderRadius: '8px' }}>
@@ -522,27 +591,59 @@ const PurchaseCreate = () => {
               </div>
             </div>
 
-            <div style={{ textAlign: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', borderTop: '1px solid #e2e8f0', paddingTop: '24px' }}>
               <button
                 type="button"
-                disabled={submitting}
-                onClick={handleSubmitPurchase}
-                className="btn-primary"
-                style={{ padding: '12px 32px', background: 'var(--success)', border: 'none', borderRadius: '4px', fontSize: 'var(--fs-14, 14px)', cursor: 'pointer' }}
+                onClick={() => window.history.back()}
+                style={{ background: "#f1f5f9", color: "#475569", padding: "10px 24px", fontSize: "var(--fs-14, 14px)", border: "none", cursor: "pointer", borderRadius: "4px" }}
               >
-                {submitting ? t("Processing...") : t("Buy Product")}
+                {t("Cancel")}
               </button>
+              <div className="form-action-group" style={{ display: "flex", gap: "8px" }}>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => handleSubmitPurchase(0)}
+                  disabled={submitting}
+                  style={{ background: "#64748b", padding: "10px 24px", fontSize: "var(--fs-14, 14px)", borderRadius: "4px", border: 'none', cursor: 'pointer', color: 'white' }}
+                >
+                  {t("Save As Draft")}
+                </button>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => handleSubmitPurchase(1, true)}
+                  disabled={submitting}
+                  style={{ background: "#3b82f6", padding: "10px 24px", fontSize: "var(--fs-14, 14px)", borderRadius: "4px", border: 'none', cursor: 'pointer', color: 'white' }}
+                >
+                  {t("Save & Print")}
+                </button>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => handleSubmitPurchase(1)}
+                  disabled={submitting}
+                  style={{ background: "var(--success)", padding: "10px 24px", fontSize: "var(--fs-14, 14px)", borderRadius: "4px", fontWeight: "bold", border: 'none', cursor: 'pointer', color: 'white' }}
+                >
+                  {submitting ? t("Processing...") : t("Add Invoice")}
+                </button>
+              </div>
             </div>
           </form>
         </div>
       </div>
 
-      <AddOptionModal
+      {/* Add Supplier Modal component */}
+      <AddSupplierModal
         isOpen={isSupplierModalOpen}
         onClose={() => setIsSupplierModalOpen(false)}
-        onSave={handleAddSupplier}
-        title={t("Add Supplier")}
-        label={t("Supplier Name")}
+        onSuccess={(newSupplier) => {
+          if (newSupplier) {
+            const formattedSupplier = { ...newSupplier, id: newSupplier.id || newSupplier.uuid };
+            setSuppliers(prev => [...prev, formattedSupplier]);
+            setFormData(prev => ({ ...prev, supplier: formattedSupplier.id }));
+          }
+        }}
       />
 
       <AddProductModal 
@@ -576,10 +677,13 @@ const PurchaseCreate = () => {
         initialSettings={visibleFields}
         onSave={async (newSettings) => {
           setVisibleFields(newSettings);
-          await settingService.updateFormSettings('purchase_create', newSettings);
           setIsSettingsOpen(false);
           toast.success(t("Settings saved successfully!"));
-          window.location.reload();
+          try {
+            await settingService.updateFormSettings('purchase_create', newSettings);
+          } catch (err) {
+            console.error("Failed to save settings to API", err);
+          }
         }}
       />
     </div>

@@ -7,6 +7,8 @@ import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
 import { toList, today, money, MONTHS, YEARS } from '../../utils/apiHelpers';
 import { useTranslation } from 'react-i18next';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 /**
  * Monthly salary sheet. Each row that is ticked is saved as an expense
@@ -133,7 +135,7 @@ const StaffSalaryCreate = () => {
             </div>
             <div>
               <label style={labelStyle}>{t("Payment Date")}</label>
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle} />
+              <CustomDatePicker  value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle} />
             </div>
             <div>
               <label style={labelStyle}>{t("Pay From Account *")}</label>

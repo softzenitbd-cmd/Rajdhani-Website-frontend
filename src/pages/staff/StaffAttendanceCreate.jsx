@@ -4,6 +4,8 @@ import staffApi from '../../api/staffApi';
 import { useToast } from '../../context/ToastContext';
 import { toList, today } from '../../utils/apiHelpers';
 import { useTranslation } from 'react-i18next';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 // labels are translation keys, resolved with t() at render time
 const STATUS = [
@@ -132,7 +134,7 @@ const StaffAttendanceCreate = () => {
               <div style={{ position: 'absolute', top: '-10px', left: '16px', background: 'var(--info)', color: 'white', fontSize: 'var(--fs-11, 11px)', padding: '2px 8px', borderRadius: '4px', zIndex: 1, display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <Calendar size={12} /> {t("Date")}
               </div>
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ width: '100%', padding: '12px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none', textAlign: 'center' }} />
+              <CustomDatePicker  value={date} onChange={(e) => setDate(e.target.value)} style={{ width: '100%', padding: '12px', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none', textAlign: 'center' }} />
             </div>
           </div>
 

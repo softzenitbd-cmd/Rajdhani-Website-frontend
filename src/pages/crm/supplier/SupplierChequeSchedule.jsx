@@ -5,6 +5,8 @@ import { crmService } from '../../../services/crmService';
 import { useApi } from '../../../hooks/useApi';
 import { ENDPOINTS } from '../../../api/endpoints';
 import { useToast } from '../../../context/ToastContext';
+import CustomDatePicker from '../../../components/CustomDatePicker';
+
 
 const SupplierChequeSchedule = () => {
   const { t } = useTranslation();
@@ -27,7 +29,10 @@ const SupplierChequeSchedule = () => {
   const fetchCheques = async () => {
     try {
       const res = await get(ENDPOINTS.CRM_SUPPLIER_CHEQUES);
-      setCheques(res.results || res.data || res || []);
+      let data = res.results || res.data || res || [];
+      // Sort by date descending (latest first)
+      data.sort((a, b) => new Date(b.date) - new Date(a.date));
+      setCheques(data);
     } catch (err) {
       console.error(err);
     }
@@ -84,8 +89,8 @@ const SupplierChequeSchedule = () => {
       toast.error(t("Please select a supplier"));
       return;
     }
-    if (!formData.amount || !formData.cheque_number || !formData.bank_name) {
-      toast.error(t("Please fill in all required fields"));
+    if (!formData.amount || !formData.bank_name) {
+      toast.error(t("Please fill in all required fields (Amount, Bank Name)"));
       return;
     }
 
@@ -137,8 +142,8 @@ const SupplierChequeSchedule = () => {
           <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
              {t("Date")}
           </div>
-          <input 
-            type="date" 
+          <CustomDatePicker 
+             
             name="date"
             value={formData.date}
             onChange={handleChange}
@@ -245,10 +250,10 @@ const SupplierChequeSchedule = () => {
               <thead>
                 <tr style={{ background: '#cbd5e1', color: '#334155' }}>
                   <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #e2e8f0' }}>{t("ID NO")}</th>
-                  <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #e2e8f0' }}>{t("CHEQUE NO")}</th>
                   <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #e2e8f0' }}>{t("DATE")}</th>
                   <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #e2e8f0' }}>{t("SUPPLIER")}</th>
                   <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #e2e8f0' }}>{t("BANK")}</th>
+                  <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #e2e8f0' }}>{t("CHEQUE NO")}</th>
                   <th style={{ padding: '12px', textAlign: 'right', border: '1px solid #e2e8f0' }}>{t("AMOUNT")}</th>
                   <th style={{ padding: '12px', textAlign: 'center', border: '1px solid #e2e8f0' }}>{t("ACTION")}</th>
                 </tr>
@@ -275,10 +280,10 @@ const SupplierChequeSchedule = () => {
                     <React.Fragment key={cId}>
                       <tr style={{ borderBottom: '1px solid #e2e8f0', background: index % 2 === 0 ? 'white' : '#f8fafc' }}>
                         <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{index + 1}</td>
-                        <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{cheque.cheque_number || cheque.chequeNo || '-'}</td>
                         <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{cheque.date || '-'}</td>
                         <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{getSupplierName(cheque.supplier)}</td>
                         <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{cheque.bank_name || cheque.bank || '-'}</td>
+                        <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{cheque.cheque_number || cheque.chequeNo || '-'}</td>
                         <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #e2e8f0', fontWeight: '600' }}>{parseFloat(cheque.amount || 0).toFixed(2)}</td>
                         <td style={{ padding: '8px 12px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
                           <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>

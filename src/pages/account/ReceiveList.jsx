@@ -9,6 +9,8 @@ import PrintHeader from '../../components/PrintHeader';
 import { useToast } from '../../context/ToastContext';
 import { useConfirm } from '../../context/ConfirmContext';
 import ReceiveEditModal from './ReceiveEditModal';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const ReceiveList = () => {
   const { t } = useTranslation();
@@ -220,8 +222,8 @@ const ReceiveList = () => {
         <div>
           <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold' }}>{t("Search By Date")}</label>
           <div style={{ display: 'flex', gap: '10px' }}>
-            <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ flex: 1, padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
-            <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ flex: 1, padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
+            <CustomDatePicker  value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ flex: 1, padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
+            <CustomDatePicker  value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ flex: 1, padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
           </div>
         </div>
       </div>
@@ -333,7 +335,7 @@ const ReceiveList = () => {
             
             {/* Body */}
             <div style={{ padding: '20px', overflowY: 'auto', flex: 1, backgroundColor: 'white' }} id="print-receipt-section">
-              <PrintHeader />
+              <PrintHeader showOnScreen={true} />
               <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 'var(--fs-16, 16px)', margin: '16px 0', borderBottom: '1px solid black', paddingBottom: '4px' }}>
                 জমা রশিদ
               </div>

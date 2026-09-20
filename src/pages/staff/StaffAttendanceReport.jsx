@@ -5,6 +5,8 @@ import staffApi from '../../api/staffApi';
 import { useToast } from '../../context/ToastContext';
 import { toList, fmtDate, nameOf, today, MONTHS, YEARS } from '../../utils/apiHelpers';
 import { useTranslation } from 'react-i18next';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const badge = (status) => {
   const s = String(status || '').toLowerCase();
@@ -85,7 +87,7 @@ const StaffAttendanceReport = () => {
             </form>
 
             <form onSubmit={(e) => { e.preventDefault(); setMode('date'); setTimeout(load, 0); }} style={{ display: 'flex', gap: '16px', alignItems: 'center', background: 'white', padding: '16px', border: `1px solid ${mode === 'date' ? '#0ea5e9' : '#e2e8f0'}`, borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', flexWrap: 'wrap', justifyContent: 'center' }}>
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ ...selectStyle, width: '376px', maxWidth: '80vw', textAlign: 'center' }} />
+              <CustomDatePicker  value={date} onChange={(e) => setDate(e.target.value)} style={{ ...selectStyle, width: '376px', maxWidth: '80vw', textAlign: 'center' }} />
               <button type="submit" style={searchBtn}>{t("Search by Date")}</button>
             </form>
           </div>

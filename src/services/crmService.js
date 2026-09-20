@@ -34,6 +34,7 @@ export const crmService = {
     if (filters.group) params.group = filters.group;
     if (filters.page) params.page = filters.page;
     if (filters.page_size) params.page_size = filters.page_size;
+    if (filters.due_date) params.due_date = filters.due_date;
     return await apiClient.get(ENDPOINTS.CRM_CLIENTS, { params });
   },
 

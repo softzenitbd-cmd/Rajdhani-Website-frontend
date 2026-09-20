@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import { saleService } from '../../services/saleService';
 import { today } from '../../utils/apiHelpers';
 import { crmService } from '../../services/crmService';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const firstOfMonth = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`; };
 
@@ -64,14 +66,14 @@ const SalesGroupWise = () => {
         <div style={{ background: 'white', padding: '16px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', display: 'flex', gap: '16px', alignItems: 'center', width: '80%', maxWidth: '800px' }}>
           
           <div style={{ display: 'flex', flex: 1, gap: '0', position: 'relative' }}>
-            <input 
-              type="date" 
+            <CustomDatePicker 
+               
               value={filters.from_date}
               onChange={(e) => setFilters(prev => ({ ...prev, from_date: e.target.value }))}
               style={{ width: '50%', padding: '12px 16px', border: '1px solid #e2e8f0', borderRadius: '4px 0 0 4px', outline: 'none' }} 
             />
-            <input 
-              type="date" 
+            <CustomDatePicker 
+               
               value={filters.to_date}
               onChange={(e) => setFilters(prev => ({ ...prev, to_date: e.target.value }))}
               style={{ width: '50%', padding: '12px 16px', border: '1px solid #e2e8f0', borderLeft: 'none', borderRadius: '0 4px 4px 0', outline: 'none' }} 

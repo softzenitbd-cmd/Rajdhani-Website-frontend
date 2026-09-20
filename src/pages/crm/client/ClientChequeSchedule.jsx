@@ -4,6 +4,8 @@ import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useApi } from '../../../hooks/useApi';
 import { useConfirm } from '../../../context/ConfirmContext';
 import { ENDPOINTS } from '../../../api/endpoints';
+import CustomDatePicker from '../../../components/CustomDatePicker';
+
 
 const ClientChequeSchedule = () => {
   const { t } = useTranslation();
@@ -127,8 +129,8 @@ const ClientChequeSchedule = () => {
           <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
              {t("Date")}
           </div>
-          <input 
-            type="date" 
+          <CustomDatePicker 
+             
             name="date"
             value={formData.date}
             onChange={handleChange}

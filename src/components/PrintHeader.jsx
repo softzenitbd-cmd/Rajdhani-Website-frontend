@@ -18,7 +18,7 @@ const readPrefs = () => ({
   headerMode: appSettingsService.get('print_header_mode', 'card'),
 });
 
-const PrintHeader = () => {
+const PrintHeader = ({ showOnScreen = false }) => {
   const { t } = useTranslation();
   const [prefs, setPrefs] = useState(readPrefs);
   const [companyInfo, setCompanyInfo] = useState(() => companyStore.getCached());
@@ -40,10 +40,12 @@ const PrintHeader = () => {
   const headerImage = companyHeaderImage(info);
   const { activeCard, headerMode } = prefs;
 
+  const visibilityClass = showOnScreen ? '' : ' print-only';
+
   // 1. Uploaded banner image
   if (headerMode === 'image' && headerImage) {
     return (
-      <div className="receipt-header-image print-only" style={{ marginBottom: '20px', textAlign: 'center' }}>
+      <div className={`receipt-header-image${visibilityClass}`} style={{ marginBottom: '20px', textAlign: 'center' }}>
         <img
           src={headerImage}
           alt={info.company_name || t("Company banner")}
@@ -61,29 +63,29 @@ const PrintHeader = () => {
     );
   }
 
-  // 2. Card 1 – cursive "Rajdhani Garments"
+  // 2. Card 1 - cursive "Rajdhani Garments"
   if (activeCard === 'card1') {
     return (
-      <div className="receipt-header-text print-only" style={{ border: '2px solid #000', borderRadius: '8px', padding: '16px 24px', background: 'white', textAlign: 'center', margin: '0 auto 20px auto', maxWidth: '800px' }}>
-        <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-36, 36px)', color: 'black' }}>{info.company_name || t("Rajdhani")}</h2>
-        <h3 style={{ fontFamily: 'cursive', margin: '-8px 0 0 40px', fontSize: 'var(--fs-24, 24px)', color: 'black' }}>{info.company_type || t("Garments")}</h3>
+      <div className={`receipt-header-text${visibilityClass}`} style={{ border: '2px solid #000', borderRadius: '8px', padding: '16px 24px', background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', maxWidth: '800px' }}>
+        <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-36, 36px)', color: 'black', fontWeight: 'bold', display: 'block' }}>{info.company_name || t("Rajdhani")}</h2>
+        <h3 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-24, 24px)', color: 'black', display: 'block' }}>{info.company_type || t("Garments")}</h3>
       </div>
     );
   }
 
-  // 3. Card 3 – cursive "Rajdhani Super Shop"
+  // 3. Card 3 - cursive "Rajdhani Super Shop"
   if (activeCard === 'card3') {
     return (
-      <div className="receipt-header-text print-only" style={{ border: '2px solid #000', borderRadius: '8px', padding: '16px 24px', background: 'white', textAlign: 'center', margin: '0 auto 20px auto', maxWidth: '800px' }}>
-        <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-36, 36px)', color: 'black' }}>{info.company_name || t("Rajdhani")}</h2>
-        <h3 style={{ fontFamily: 'cursive', margin: '-8px 0 0 40px', fontSize: 'var(--fs-24, 24px)', color: 'black' }}>{t("Super Shop")}</h3>
+      <div className={`receipt-header-text${visibilityClass}`} style={{ border: '2px solid #000', borderRadius: '8px', padding: '16px 24px', background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', maxWidth: '800px' }}>
+        <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-36, 36px)', color: 'black', fontWeight: 'bold', display: 'block' }}>{info.company_name || t("Rajdhani")}</h2>
+        <h3 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-24, 24px)', color: 'black', display: 'block' }}>{t("Super Shop")}</h3>
       </div>
     );
   }
 
   // 4. Default: Card 2 – company name + address + phone from the API
   return (
-    <div className="receipt-header-text receipt-header-card print-only" style={{
+    <div className={`receipt-header-text receipt-header-card${visibilityClass}`} style={{
       border: '2px solid #000',
       borderRadius: '8px',
       padding: '12px 20px',

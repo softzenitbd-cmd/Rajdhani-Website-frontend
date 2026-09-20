@@ -7,6 +7,8 @@ import { communicationService } from '../../services/communicationService';
 import { useToast } from '../../context/ToastContext';
 import { toList } from '../../utils/apiHelpers';
 import { useTranslation } from 'react-i18next';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const statusStyle = (s) => {
   const v = String(s || '').toLowerCase();
@@ -105,8 +107,8 @@ const SmsScheduleReport = () => {
               <option value="cancelled">{t("Cancelled")}</option>
               <option value="failed">{t("Failed")}</option>
             </select>
-            <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={input} />
-            <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={input} />
+            <CustomDatePicker  value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={input} />
+            <CustomDatePicker  value={toDate} onChange={(e) => setToDate(e.target.value)} style={input} />
             <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '10px 16px', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Search size={14} /> {t("Filter")}</button>
           </form>
 

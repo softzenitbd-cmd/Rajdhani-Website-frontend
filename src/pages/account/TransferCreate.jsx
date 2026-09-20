@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import SearchableSelect from '../../components/SearchableSelect';
 import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 // Mirrors the original CRM "নতুন ট্রান্সফার" form:
 // from account (+) → to account (+) → date → description → amount → Add Transfer
@@ -174,8 +176,8 @@ const TransferCreate = () => {
               >
                 {t("📅 Date")}
               </div>
-              <input
-                type="date"
+              <CustomDatePicker
+                
                 name="date"
                 value={formData.date}
                 onChange={handleChange}

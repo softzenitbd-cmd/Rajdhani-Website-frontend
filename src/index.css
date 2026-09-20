@@ -1249,7 +1249,207 @@ html[lang="bn"] textarea {
     width: 220px !important;
     max-width: 85vw !important;
   }
+  .table-controls, .table-header-controls, .table-controls-wrapper {
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin-bottom: 8px !important;
+  }
+  .table-controls > div, .table-header-controls > div, .table-controls-wrapper > div {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+  .table-responsive, .table-responsive-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    border-radius: 4px;
+  }
+
+  /* Compact Table Rules for Mobile Phones - 100% fit, ZERO bottom scroll */
+  .crm-compact-table {
+    font-size: 9px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+  }
+  .crm-compact-table th, .crm-compact-table td {
+    padding: 2px 1px !important;
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    vertical-align: top !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  .crm-compact-table th {
+    font-size: 8.5px !important;
+    padding: 4px 1px !important;
+    text-align: center !important;
+    font-weight: bold !important;
+  }
+  .crm-compact-table .col-id {
+    width: 20px !important;
+    text-align: center !important;
+    padding: 4px 1px !important;
+  }
+  .crm-compact-table .col-image {
+    width: 48px !important;
+    text-align: center !important;
+    padding: 2px 1px !important;
+  }
+  .crm-compact-table .col-details {
+    width: 37% !important;
+    padding: 2px 3px !important;
+  }
+  .crm-compact-table .col-subtable {
+    width: 34% !important;
+    padding: 0 !important;
+  }
+  .crm-compact-table .col-action {
+    width: 54px !important;
+    text-align: center !important;
+    padding: 2px 1px !important;
+  }
+  
+  .crm-compact-avatar {
+    width: 32px !important;
+    height: 32px !important;
+    margin: 0 auto 2px !important;
+  }
+  .crm-avatar-btn-group {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 1px !important;
+    justify-content: center !important;
+    width: 100% !important;
+  }
+  .crm-avatar-btn {
+    padding: 2px 3px !important;
+    font-size: 7.5px !important;
+    border-radius: 2px !important;
+    flex: 1 1 50% !important;
+  }
+
+  .crm-details-grid {
+    display: grid !important;
+    grid-template-columns: auto 4px 1fr !important;
+    gap: 1px 2px !important;
+    font-size: 8.5px !important;
+    line-height: 1.2 !important;
+  }
+  .crm-details-grid > div {
+    min-width: 0 !important;
+    word-break: break-word !important;
+  }
+
+  .crm-subtable {
+    width: 100% !important;
+    font-size: 8px !important;
+    border-collapse: collapse !important;
+  }
+  .crm-subtable td {
+    padding: 2px 2px !important;
+    font-size: 8px !important;
+    line-height: 1.15 !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  .crm-action-col {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    align-items: center !important;
+    width: 100% !important;
+  }
+  .crm-action-col button {
+    padding: 3px 2px !important;
+    font-size: 8px !important;
+    width: 100% !important;
+    justify-content: center !important;
+    gap: 1px !important;
+    border-radius: 2px !important;
+  }
+
+  /* Form Grids on mobile stack into 1 column except 2-col rows */
+  .form-grid:not(.form-row-2col), .filter-grid, .filter-section {
+    grid-template-columns: 1fr !important;
+    display: grid !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+  .form-row-2col {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  .form-row-2col > * {
+    flex: 1 1 50% !important;
+    min-width: 0 !important;
+  }
+  /* PrintHeader compact on mobile */
+  .receipt-header-card, .receipt-header-text {
+    padding: 8px 12px !important;
+    margin-bottom: 12px !important;
+    border-width: 1px !important;
+  }
+  .receipt-header-title {
+    font-size: 18px !important;
+  }
+  .receipt-header-logo {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  /* Bottom form actions stack cleanly on phone */
+  .form-bottom-actions {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  .form-bottom-actions .btn-danger {
+    width: 100% !important;
+    order: 2;
+  }
+  .form-bottom-actions .form-action-group {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    width: 100% !important;
+    order: 1;
+  }
+  .form-bottom-actions .form-action-group button {
+    flex: 1 1 45% !important;
+    padding: 10px 8px !important;
+    font-size: 12px !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+  /* Floating FAB on mobile */
+  .floating-shortcut-fab-container {
+    bottom: 16px !important;
+    right: 16px !important;
+  }
+  .floating-shortcut-fab-btn {
+    width: 44px !important;
+    height: 44px !important;
+  }
+  .floating-shortcut-popup {
+    bottom: 56px !important;
+    right: 0 !important;
+    width: 220px !important;
+    max-width: 85vw !important;
+  }
 }
 
 
 
+/* Custom Date Picker Overrides */
+.custom-datepicker-wrapper { display: block; width: 100%; height: 100%; }
+.custom-datepicker-wrapper .react-datepicker-wrapper { display: block; width: 100%; height: 100%; }
+.custom-datepicker-input { width: 100%; box-sizing: border-box; }
+.react-datepicker__input-container { width: 100%; height: 100%; }

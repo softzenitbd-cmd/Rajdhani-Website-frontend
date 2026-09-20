@@ -20,7 +20,6 @@ const SupplierCreate = () => {
     phone: '',
     previousDue: '',
     address: '',
-    domain: '',
     group: '',
     bankInfo: 'Bank Name:\nAccount Number:\nAccount Description:'
   });
@@ -68,7 +67,6 @@ const SupplierCreate = () => {
       company_name: formData.companyName,
       phone: formData.phone,
       address: formData.address || "",
-      domain: formData.domain || "",
       previous_due: formData.previousDue || "0.00",
       group: formData.group,
       bank_info: formData.bankInfo
@@ -139,13 +137,7 @@ const SupplierCreate = () => {
               </div>
             </div>
 
-            <div className="form-group">
-              <div className="form-input floating-label">
-                <div className="input-icon">🌐</div>
-                <input type="text" placeholder=" " name="domain" value={formData.domain} onChange={handleInputChange} />
-                <label>{t("Domain")}</label>
-              </div>
-            </div>
+
 
             <div className="form-group">
               <div className="input-group">

@@ -9,6 +9,8 @@ import SearchableSelect from '../../components/SearchableSelect';
 import AddOptionModal from '../../components/AddOptionModal';
 import AddClientModal from '../../components/AddClientModal';
 import { useToast } from '../../context/ToastContext';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const LoanReceiveCreate = () => {
   const toast = useToast();
@@ -146,7 +148,7 @@ const LoanReceiveCreate = () => {
                 <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 1 }}>
                   <Calendar size={12} /> {t("Date")}
                 </div>
-                <input type="date" name="date" value={formData.date} onChange={handleChange} style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: 'var(--fs-14, 14px)', outline: 'none', background: 'white' }} />
+                <CustomDatePicker  name="date" value={formData.date} onChange={handleChange} style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: 'var(--fs-14, 14px)', outline: 'none', background: 'white' }} />
               </div>
             </div>
 

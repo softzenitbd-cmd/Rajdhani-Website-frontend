@@ -9,6 +9,8 @@ import { ENDPOINTS } from '../../../api/endpoints';
 import { exportToExcel } from '../../../utils/excelExporter';
 import { useTranslation } from 'react-i18next';
 import crmService from '../../../services/crmService';
+import CustomDatePicker from '../../../components/CustomDatePicker';
+
 
 const ClientImageUploader = ({ client, onUploadSuccess }) => {
   const { patch } = useApi();
@@ -122,8 +124,8 @@ const CollectionDateModal = ({ isOpen, onClose, client, onUpdate }) => {
             }}>
               {t("Due Collection Date", "বাকি গ্রহণের তারিখ")}
             </label>
-            <input 
-              type="date" 
+            <CustomDatePicker 
+               
               value={date}
               onChange={(e) => setDate(e.target.value)}
               style={{ width: '100%', padding: '16px 12px', border: '1px solid #93c5fd', borderRadius: '8px', fontSize: 'var(--fs-14, 14px)', outline: 'none' }}
@@ -364,8 +366,8 @@ const ClientList = () => {
           <div className="form-group">
             <label style={{ display: 'block', marginBottom: '6px', fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold' }}>{t("Search By Date")}</label>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ flex: 1, minWidth: 0, padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
-              <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ flex: 1, minWidth: 0, padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
+              <CustomDatePicker  value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ flex: 1, minWidth: 0, padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
+              <CustomDatePicker  value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ flex: 1, minWidth: 0, padding: '12px', border: '1px solid #93c5fd', borderRadius: '6px', outline: 'none' }} />
             </div>
           </div>
 

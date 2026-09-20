@@ -7,6 +7,8 @@ import { purchaseService } from '../../services/purchaseService';
 import { crmService } from '../../services/crmService';
 import { exportToExcel } from '../../utils/excelExporter';
 import { useToast } from '../../context/ToastContext';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const PurchaseReturnList = () => {
   const toast = useToast();
@@ -208,14 +210,14 @@ const PurchaseReturnList = () => {
           <div>
             <div style={{ fontSize: 'var(--fs-12, 12px)', marginBottom: '4px' }}>{t('common.search_by_date')}</div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <input 
-                type="date" 
+              <CustomDatePicker 
+                 
                 value={filters.fromDate}
                 onChange={(e) => handleFilterChange('fromDate', e.target.value)}
                 style={{ padding: '10px', width: '100%', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none' }} 
               />
-              <input 
-                type="date" 
+              <CustomDatePicker 
+                 
                 value={filters.toDate}
                 onChange={(e) => handleFilterChange('toDate', e.target.value)}
                 style={{ padding: '10px', width: '100%', border: '1px solid #0ea5e9', borderRadius: '4px', outline: 'none' }} 

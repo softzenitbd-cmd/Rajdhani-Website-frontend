@@ -15,6 +15,8 @@ import AddAccountModal from '../../components/AddAccountModal';
 import AddOptionModal from '../../components/AddOptionModal';
 import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 /**
  * Modernized Update Expense Modal matching the user reference screenshot:
@@ -305,8 +307,8 @@ const ExpenseEditModal = ({ isOpen, expense, onClose, onSuccess }) => {
                     <span>{t("Date")}</span>
                     <span style={{ color: '#ef4444' }}>*</span>
                   </label>
-                  <input
-                    type="date"
+                  <CustomDatePicker
+                    
                     name="date"
                     value={formData.date}
                     onChange={handleChange}

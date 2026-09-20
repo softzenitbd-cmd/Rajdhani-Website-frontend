@@ -7,6 +7,8 @@ import SearchableSelect from '../../components/SearchableSelect';
 import { accountingService } from '../../services/accountingService';
 import { crmService } from '../../services/crmService';
 import { useToast } from '../../context/ToastContext';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const SupplierPayment = () => {
   const { t } = useTranslation();
@@ -134,7 +136,7 @@ const SupplierPayment = () => {
                 <label className="form-label" style={{ display: 'block', marginBottom: '8px', background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: 'var(--fs-12, 12px)' }}>
                   {t("Date")}
                 </label>
-                <input type="date" className="input-outline" value={paymentForm.date} onChange={e => setPaymentForm({...paymentForm, date: e.target.value})} required />
+                <CustomDatePicker  className="input-outline" value={paymentForm.date} onChange={e => setPaymentForm({...paymentForm, date: e.target.value})} required />
               </div>
               <div>
                 <label className="form-label" style={{ display: 'block', marginBottom: '8px', background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: 'var(--fs-12, 12px)' }}>
@@ -220,15 +222,15 @@ const SupplierPayment = () => {
           <div style={{ flex: 1 }}>
             <label className="filter-label">{t('common.search_by_date')}</label>
             <div style={{ display: 'flex' }}>
-              <input 
-                type="date" 
+              <CustomDatePicker 
+                 
                 className="input-outline" 
                 style={{ borderRadius: '8px 0 0 8px', borderRight: 'none' }} 
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
               />
-              <input 
-                type="date" 
+              <CustomDatePicker 
+                 
                 className="input-outline" 
                 style={{ borderRadius: '0 8px 8px 0' }} 
                 value={toDate}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { RotateCcw, Trash2, Eye, Plus, RefreshCw } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { purchaseService } from '../../services/purchaseService';
 import { crmService } from '../../services/crmService';
 import { useToast } from '../../context/ToastContext';
@@ -116,6 +116,32 @@ const PurchaseList = () => {
     }
     return true;
   });
+
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.printPurchase && purchases.length > 0) {
+      const targetId = location.state.printPurchase;
+      // Also check invoice string just in case targetId is the invoice number
+      let purchaseToPrint = purchases.find(p => String(p.id) === String(targetId) || p.invoice === targetId);
+      
+      // Fallback: If ID wasn't provided in state (targetId === true), just pick the first purchase (newest)
+      if (!purchaseToPrint && targetId === true) {
+        purchaseToPrint = purchases[0];
+      }
+      
+      if (purchaseToPrint) {
+        setSelectedPurchase(purchaseToPrint);
+        setShowViewModal(true);
+        // Automatically trigger print dialog after modal renders
+        setTimeout(() => {
+          window.print();
+        }, 500);
+        // Clean up the location state so it doesn't trigger on reload
+        window.history.replaceState({}, document.title);
+      }
+    }
+  }, [purchases, location.state]);
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px', background: 'white' }}>

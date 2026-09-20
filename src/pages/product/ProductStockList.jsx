@@ -4,6 +4,8 @@ import PrintHeader from '../../components/PrintHeader';
 import { RotateCcw, RefreshCw } from 'lucide-react';
 import { productService } from '../../services/productService';
 import { useToast } from '../../context/ToastContext';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const ProductStockList = () => {
   const toast = useToast();
@@ -169,14 +171,14 @@ const ProductStockList = () => {
           <div style={{ gridColumn: '1 / 3' }}>
             <div style={{ fontSize: 'var(--fs-12, 12px)', marginBottom: '4px' }}>{t('common.search_by_date')}</div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <input 
-                type="date" 
+              <CustomDatePicker 
+                 
                 value={filters.fromDate}
                 onChange={(e) => handleFilterChange('fromDate', e.target.value)}
                 style={{ flex: 1, padding: '14px', border: '1px solid #e2e8f0', borderRadius: '8px', outline: 'none' }} 
               />
-              <input 
-                type="date" 
+              <CustomDatePicker 
+                 
                 value={filters.toDate}
                 onChange={(e) => handleFilterChange('toDate', e.target.value)}
                 style={{ flex: 1, padding: '14px', border: '1px solid #e2e8f0', borderRadius: '8px', outline: 'none' }} 

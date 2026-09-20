@@ -5,6 +5,8 @@ import { Printer } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
 
 const Profit = () => {
   const toast = useToast();
@@ -65,15 +67,15 @@ const Profit = () => {
             <label className="filter-label" style={{ display: 'block', marginBottom: '8px', textAlign: 'center', fontWeight: 'bold' }}>{t('common.search_by_date')}</label>
             <div style={{ display: 'flex', gap: '12px' }}>
               <div style={{ display: 'flex', flex: 1 }}>
-                <input 
-                  type="date" 
+                <CustomDatePicker 
+                   
                   value={fromDate} 
                   onChange={(e) => setFromDate(e.target.value)}
                   className="input-outline" 
                   style={{ borderRadius: '8px 0 0 8px', borderRight: 'none', width: '50%', padding: '10px' }} 
                 />
-                <input 
-                  type="date" 
+                <CustomDatePicker 
+                   
                   value={toDate} 
                   onChange={(e) => setToDate(e.target.value)}
                   className="input-outline" 
