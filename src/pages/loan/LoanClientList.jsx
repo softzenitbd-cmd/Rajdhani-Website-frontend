@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { RotateCcw, Printer, Plus, ArrowLeft, Layers, ChevronDown, Eye, Edit, Trash2, DollarSign, FileText, ToggleLeft, ArrowUpDown } from 'lucide-react';
+import { Plus, ArrowLeft, Layers, ChevronDown, Eye, Edit, Trash2, DollarSign, FileText, ToggleLeft, ArrowUpDown } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { loanService } from '../../services/loanService';
 import QuickEditModal from '../../components/QuickEditModal';
@@ -11,6 +11,45 @@ import { exportVisibleTable } from '../../utils/tableExport';
 import { useApi } from '../../hooks/useApi';
 import { ENDPOINTS } from '../../api/endpoints';
 import SearchableSelect from '../../components/SearchableSelect';
+import CustomDatePicker from '../../components/CustomDatePicker';
+
+const normalizeDate = (d) => {
+  if (!d) return '';
+  const s = String(d).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  if (/^\d{2}-\d{2}-\d{4}/.test(s)) {
+    const [day, month, year] = s.split('-');
+    return `${year}-${month}-${day}`;
+  }
+  if (/^\d{2}\/\d{2}\/\d{4}/.test(s)) {
+    const [day, month, year] = s.split('/');
+    return `${year}-${month}-${day}`;
+  }
+  const parsed = new Date(s);
+  if (!isNaN(parsed.getTime())) {
+    return parsed.toISOString().split('T')[0];
+  }
+  return s;
+};
+
+const formatDisplayDate = (d) => {
+  if (!d) return '-';
+  const s = String(d).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    const [y, m, day] = s.slice(0, 10).split('-');
+    return `${day}-${m}-${y}`;
+  }
+  if (/^\d{2}-\d{2}-\d{4}/.test(s)) return s;
+  if (/^\d{2}\/\d{2}\/\d{4}/.test(s)) return s.replace(/\//g, '-');
+  const dateObj = new Date(s);
+  if (!isNaN(dateObj.getTime())) {
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const y = dateObj.getFullYear();
+    return `${day}-${m}-${y}`;
+  }
+  return s;
+};
 
 const LoanClientList = () => {
   const { t } = useTranslation();
@@ -46,9 +85,34 @@ const LoanClientList = () => {
   const fetchLoanClients = async () => {
     try {
       setLoading(true);
-      const res = await loanService.getLoanAccounts().catch(() => []);
-      const data = Array.isArray(res) ? res : (res?.results || []);
-      setLoanClients(data);
+      const [accountsRes, receivesRes, paymentsRes] = await Promise.allSettled([
+        loanService.getLoanAccounts(),
+        loanService.getLoanReceives(),
+        loanService.getLoanPayments()
+      ]);
+      const data = accountsRes.status === 'fulfilled' ? (Array.isArray(accountsRes.value) ? accountsRes.value : (accountsRes.value?.results || accountsRes.value?.data || [])) : [];
+      const receives = receivesRes.status === 'fulfilled' ? (Array.isArray(receivesRes.value) ? receivesRes.value : (receivesRes.value?.results || receivesRes.value?.data || [])) : [];
+      const payments = paymentsRes.status === 'fulfilled' ? (Array.isArray(paymentsRes.value) ? paymentsRes.value : (paymentsRes.value?.results || paymentsRes.value?.data || [])) : [];
+
+      const enriched = data.map(client => {
+        const cId = String(client.id || client.uuid);
+        const clientReceives = receives.filter(r => String(r.loan_account?.id || r.loan_account?.uuid || r.loan_account || r.account_id || r.loan_account_id) === cId);
+        const clientPayments = payments.filter(p => String(p.loan_account?.id || p.loan_account?.uuid || p.loan_account || p.account_id || p.loan_account_id) === cId);
+
+        const totalReceive = clientReceives.reduce((sum, r) => sum + (Number(String(r.amount || r.credit || 0).replace(/,/g, '')) || 0), 0);
+        const totalPayment = clientPayments.reduce((sum, p) => sum + (Number(String(p.amount || p.debit || 0).replace(/,/g, '')) || 0), 0);
+        const prevDue = Number(String(client.previous_due || 0).replace(/,/g, '')) || 0;
+        const balance = prevDue + totalReceive - totalPayment;
+
+        return {
+          ...client,
+          total_receive: totalReceive,
+          total_payment: totalPayment,
+          balance: balance
+        };
+      });
+
+      setLoanClients(enriched);
     } catch (error) {
       console.error("Error fetching loan clients:", error);
       setLoanClients([]);
@@ -84,8 +148,14 @@ const LoanClientList = () => {
   const visibleClients = (loanClients || [])
     .filter((c) => !search || `${c.name || ''} ${c.phone || ''} ${c.address || ''}`.toLowerCase().includes(search.toLowerCase()))
     .filter((c) => !searchGroup || String(c.group || c.group_id) === String(searchGroup))
-    .filter((c) => !fromDate || String(c.created_at || '').split('T')[0] >= fromDate)
-    .filter((c) => !toDate || String(c.created_at || '').split('T')[0] <= toDate)
+    .filter((c) => {
+      const cDate = normalizeDate(c.created_at || c.date);
+      const normFrom = normalizeDate(fromDate);
+      const normTo = normalizeDate(toDate);
+      if (normFrom && cDate && cDate < normFrom) return false;
+      if (normTo && cDate && cDate > normTo) return false;
+      return true;
+    })
     .slice(0, entries);
 
   return (
@@ -132,9 +202,9 @@ const LoanClientList = () => {
           </div>
           <div>
             <label className="filter-label" style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', fontWeight: '600', textAlign: 'center' }}>{t("Search By Date")}</label>
-            <div style={{ display: 'flex' }}>
-              <input type="text" placeholder="DD/MM/YYYY" className="input-outline" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={{ borderRight: 'none', borderRadius: '4px 0 0 4px', width: '50%', height: '38px', padding: '0 12px', border: '1px solid #cbd5e1' }} />
-              <input type="text" placeholder="DD/MM/YYYY" className="input-outline" value={toDate} onChange={(e) => setToDate(e.target.value)} style={{ borderRadius: '0 4px 4px 0', width: '50%', height: '38px', padding: '0 12px', border: '1px solid #cbd5e1' }} />
+            <div style={{ display: 'flex', border: '1px solid #cbd5e1', borderRadius: '4px', overflow: 'hidden', background: 'white', height: '38px', alignItems: 'center' }}>
+              <CustomDatePicker style={{ width: '50%', border: 'none', borderRight: '1px solid #cbd5e1', padding: '0 10px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', outline: 'none', height: '100%' }} value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+              <CustomDatePicker style={{ width: '50%', border: 'none', padding: '0 10px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', outline: 'none', height: '100%' }} value={toDate} onChange={(e) => setToDate(e.target.value)} />
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end' }}>
@@ -171,9 +241,6 @@ const LoanClientList = () => {
                     <ArrowUpDown size={12} style={{ opacity: 0.7 }} />
                   </div>
                 </th>
-                <th style={{ color: 'white', padding: '12px 16px', textAlign: 'center', width: '140px', borderRight: '1px solid #d1d5db', fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold' }}>
-                  {t("IMAGE")}
-                </th>
                 <th style={{ color: 'white', padding: '12px 16px', textAlign: 'left', borderRight: '1px solid #d1d5db', fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span>{t("CLIENT DETAILS")}</span>
@@ -202,23 +269,6 @@ const LoanClientList = () => {
                   <td style={{ padding: '12px 16px', borderRight: '1px solid #d1d5db', verticalAlign: 'top' }}>
                     <div style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold' }}>{index + 1}</div>
                   </td>
-
-                  {/* Image Column */}
-                  <td style={{ padding: '12px 16px', borderRight: '1px solid #d1d5db', verticalAlign: 'top' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <div style={{ width: '80px', height: '80px', borderRadius: '50%', border: '1px dashed #cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', marginBottom: '12px' }}>
-                         {/* Circle placeholder */}
-                         <div style={{ width: '50%', height: '50%', border: '1px solid #cbd5e1', borderRadius: '50%', position: 'relative' }}>
-                            <div style={{ position: 'absolute', top: 0, left: '50%', width: '1px', height: '100%', background: '#cbd5e1' }}></div>
-                            <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: '1px', background: '#cbd5e1' }}></div>
-                         </div>
-                      </div>
-                      <div style={{ display: 'flex', borderRadius: '4px', overflow: 'hidden' }}>
-                        <button style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '4px 8px', fontSize: 'var(--fs-10, 10px)', cursor: 'pointer', fontWeight: 'bold' }}>Choose a file</button>
-                        <button style={{ background: '#64748b', color: 'white', border: 'none', padding: '4px 8px', fontSize: 'var(--fs-10, 10px)', cursor: 'pointer', fontWeight: 'bold' }}>Save</button>
-                      </div>
-                    </div>
-                  </td>
                   
                   {/* Client Details Column */}
                   <td style={{ padding: '16px', borderRight: '1px solid #d1d5db', verticalAlign: 'top', textAlign: 'left' }}>
@@ -228,7 +278,7 @@ const LoanClientList = () => {
                       <div style={{ textAlign: 'left' }}>{t("Client Group")}</div><div>:</div><div style={{ textAlign: 'left' }}>{client.group || '-'}</div>
                       <div style={{ textAlign: 'left' }}>{t("Address")}</div><div>:</div><div style={{ textAlign: 'left' }}>{client.address || '-'}</div>
                       <div style={{ textAlign: 'left' }}>{t("Status")}</div><div>:</div><div style={{ textAlign: 'left' }}>{client.status === 1 || client.status === undefined ? t("Activated") : t("Deactivated")}</div>
-                      <div style={{ textAlign: 'left' }}>{t("Created At")}</div><div>:</div><div style={{ textAlign: 'left' }}>{client.created_at ? new Date(client.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, ' ') : '-'}</div>
+                      <div style={{ textAlign: 'left' }}>{t("Created At")}</div><div>:</div><div style={{ textAlign: 'left' }}>{formatDisplayDate(client.created_at)}</div>
                     </div>
                   </td>
 
@@ -238,19 +288,19 @@ const LoanClientList = () => {
                       <tbody>
                         <tr>
                           <td style={{ borderBottom: '1px solid #cbd5e1', padding: '4px 8px', borderRight: '1px solid #cbd5e1', fontWeight: '600' }}>{t("Previous Due")}</td>
-                          <td style={{ borderBottom: '1px solid #cbd5e1', padding: '4px 8px', fontWeight: '700' }}>{client.previous_due || '0.00'} ৳</td>
+                          <td style={{ borderBottom: '1px solid #cbd5e1', padding: '4px 8px', fontWeight: '700' }}>{Number(client.previous_due || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ৳</td>
                         </tr>
                         <tr>
                           <td style={{ borderBottom: '1px solid #cbd5e1', padding: '4px 8px', borderRight: '1px solid #cbd5e1', fontWeight: '600' }}>{t("Loan Payment")}</td>
-                          <td style={{ borderBottom: '1px solid #cbd5e1', padding: '4px 8px', fontWeight: '700' }}>0 ৳</td>
+                          <td style={{ borderBottom: '1px solid #cbd5e1', padding: '4px 8px', fontWeight: '700', color: Number(client.total_payment || 0) > 0 ? '#b91c1c' : 'inherit' }}>{Number(client.total_payment || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ৳</td>
                         </tr>
                         <tr>
                           <td style={{ borderBottom: '1px solid #cbd5e1', padding: '4px 8px', borderRight: '1px solid #cbd5e1', fontWeight: '600' }}>{t("Loan Receive")}</td>
-                          <td style={{ borderBottom: '1px solid #cbd5e1', padding: '4px 8px', fontWeight: '700' }}>0 ৳</td>
+                          <td style={{ borderBottom: '1px solid #cbd5e1', padding: '4px 8px', fontWeight: '700', color: Number(client.total_receive || 0) > 0 ? '#15803d' : 'inherit' }}>{Number(client.total_receive || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ৳</td>
                         </tr>
                         <tr>
                           <td style={{ padding: '4px 8px', borderRight: '1px solid #cbd5e1', fontWeight: '600' }}>{t("Balance")}</td>
-                          <td style={{ padding: '4px 8px', fontWeight: '700' }}>{client.previous_due || '0.00'} ৳</td>
+                          <td style={{ padding: '4px 8px', fontWeight: '700', color: '#0f172a' }}>{Number(client.balance !== undefined ? client.balance : (client.previous_due || 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ৳</td>
                         </tr>
                       </tbody>
                     </table>
@@ -293,12 +343,12 @@ const LoanClientList = () => {
               ))}
               {loading && (
                 <tr>
-                  <td colSpan="5" style={{ textAlign: 'center', padding: '24px' }}>{t("Loading loan clients...")}</td>
+                  <td colSpan="4" style={{ textAlign: 'center', padding: '24px' }}>{t("Loading loan clients...")}</td>
                 </tr>
               )}
               {!loading && loanClients.length === 0 && (
                 <tr>
-                  <td colSpan="5" style={{ textAlign: 'center', padding: '24px' }}>{t("No loan clients found.")}</td>
+                  <td colSpan="4" style={{ textAlign: 'center', padding: '24px' }}>{t("No loan clients found.")}</td>
                 </tr>
               )}
             </tbody>
