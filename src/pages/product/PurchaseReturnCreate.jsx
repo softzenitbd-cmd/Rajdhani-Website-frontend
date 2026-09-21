@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { Settings, Barcode, Calendar, Trash2, Plus, List } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 import SearchableSelect from '../../components/SearchableSelect';
 import AddOptionModal from '../../components/AddOptionModal';
@@ -17,6 +17,9 @@ import CustomDatePicker from '../../components/CustomDatePicker';
 const PurchaseReturnCreate = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { id } = useParams();
+  const location = useLocation();
+  const returnDataState = location.state?.returnData;
 
   const [formData, setFormData] = useState({
     supplier: '',
@@ -194,7 +197,7 @@ const PurchaseReturnCreate = () => {
       <div className="premium-card" style={{ background: 'white', borderRadius: '8px', overflow: 'hidden' }}>
         <div className="premium-header" style={{ padding: '16px 24px', background: 'white', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 className="premium-title" style={{ fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', textTransform: 'uppercase', color: '#1e293b', margin: 0 }}>
-            {t("Purchase Return Create")}
+            {id ? t("Purchase Return Update") : t("Purchase Return Create")}
           </h2>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button type="button" onClick={() => navigate('/product/purchase-return/list')} className="btn" style={{ background: 'var(--text-muted)', color: 'white', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'var(--fs-13, 13px)' }}>
@@ -384,7 +387,7 @@ const PurchaseReturnCreate = () => {
                 className="btn-primary" 
                 style={{ padding: '14px 48px', background: 'var(--success)', color: 'white', border: 'none', borderRadius: '4px', fontSize: 'var(--fs-15, 15px)', fontWeight: 'bold', cursor: 'pointer' }}
               >
-                {submitting ? t("Submitting...") : t("Purchase Return")}
+                {submitting ? t("Submitting...") : (id ? t("Update Return") : t("Purchase Return"))}
               </button>
             </div>
           </form>

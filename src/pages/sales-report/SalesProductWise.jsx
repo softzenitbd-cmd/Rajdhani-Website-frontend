@@ -231,18 +231,33 @@ const SalesProductWise = () => {
                   reports.map((row, idx) => (
                     <tr key={row.id || idx}>
                       <td style={{ padding: '12px' }}>{idx + 1}</td>
-                      <td style={{ padding: '12px' }}>{row.date || row.issued_date || '-'}</td>
-                      <td style={{ padding: '12px' }}>{row.voucher || row.invoice_id || '-'}</td>
+                      <td style={{ padding: '12px' }}>{(() => {
+        let d = row.date || row.issued_date || row.created_at;
+        if (!d) return '-';
+        try {
+          const dt = new Date(d);
+          if (isNaN(dt.getTime())) return d;
+          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          return dt.getDate() + ' ' + months[dt.getMonth()] + ' ' + dt.getFullYear();
+        } catch(e) { return d; }
+      })()}</td>
+                      <td style={{ padding: '12px' }}>{(() => {
+        let v = row.invoice?.invoice_id || row.invoice?.id || row.invoice_no || row.voucher || row.invoice_id;
+        if (typeof v === 'string' && v.length > 20 && v.includes('-')) {
+           v = row.invoice?.voucher_no || row.voucher_no || '-';
+        }
+        return v || '-';
+      })()}</td>
                       <td style={{ padding: '12px' }}>{row.client_name || row.client || '-'}</td>
                       <td style={{ padding: '12px' }}>{row.product_name || row.product || '-'}</td>
                       <td style={{ padding: '12px' }}>{row.unit_name || row.unit || t("PEACE")}</td>
                       <td style={{ padding: '12px' }}>{row.qty || row.quantity || 0}</td>
-                      <td style={{ padding: '12px' }}>৳{Number(row.price || row.unit_price || 0).toFixed(2)}</td>
-                      <td style={{ padding: '12px' }}>৳{Number(row.total || row.total_amount || 0).toFixed(2)}</td>
-                      <td style={{ padding: '12px' }}>৳{Number(row.dis || row.discount || 0).toFixed(2)}</td>
-                      <td style={{ padding: '12px' }}>৳{Number(row.grandTotal || row.grand_total || row.total || 0).toFixed(2)}</td>
-                      <td style={{ padding: '12px' }}>৳{Number(row.receive || row.receive_amount || 0).toFixed(2)}</td>
-                      <td style={{ padding: '12px' }}>৳{Number(row.due || row.due_amount || 0).toFixed(2)}</td>
+                      <td style={{ padding: '12px' }}>{Number(row.price || row.unit_price || 0).toFixed(2)}</td>
+                      <td style={{ padding: '12px' }}>{Number(row.total || row.total_amount || 0).toFixed(2)}</td>
+                      <td style={{ padding: '12px' }}>{Number(row.dis || row.discount || 0).toFixed(2)}</td>
+                      <td style={{ padding: '12px' }}>{Number(row.grandTotal || row.grand_total || row.total || 0).toFixed(2)}</td>
+                      <td style={{ padding: '12px' }}>{Number(row.receive || row.receive_amount || 0).toFixed(2)}</td>
+                      <td style={{ padding: '12px' }}>{Number(row.due || row.due_amount || 0).toFixed(2)}</td>
                     </tr>
                   ))
                 )}

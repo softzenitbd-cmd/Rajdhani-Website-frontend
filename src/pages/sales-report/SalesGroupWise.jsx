@@ -172,8 +172,23 @@ const SalesGroupWise = () => {
                       return (
                         <tr key={row.id || index}>
                           <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{index + 1}</td>
-                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{row.date || row.issued_date || '-'}</td>
-                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{row.voucher || row.invoice_id || '-'}</td>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{(() => {
+        let d = row.date || row.issued_date || row.created_at;
+        if (!d) return '-';
+        try {
+          const dt = new Date(d);
+          if (isNaN(dt.getTime())) return d;
+          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          return dt.getDate() + ' ' + months[dt.getMonth()] + ' ' + dt.getFullYear();
+        } catch(e) { return d; }
+      })()}</td>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{(() => {
+        let v = row.invoice?.invoice_id || row.invoice?.id || row.invoice_no || row.voucher || row.invoice_id;
+        if (typeof v === 'string' && v.length > 20 && v.includes('-')) {
+           v = row.invoice?.voucher_no || row.voucher_no || '-';
+        }
+        return v || '-';
+      })()}</td>
                           
                           {/* Nested columns for items */}
                           <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
@@ -200,17 +215,17 @@ const SalesGroupWise = () => {
                           <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                               {items.map((item, idx) => (
-                                <div key={idx} style={{ padding: '6px', borderBottom: '1px solid #94a3b8', flex: 1, minHeight: '26px' }}>৳{Number(item.price).toFixed(2)}</div>
+                                <div key={idx} style={{ padding: '6px', borderBottom: '1px solid #94a3b8', flex: 1, minHeight: '26px' }}>{Number(item.price).toFixed(2)}</div>
                               ))}
                             </div>
                           </td>
 
                           {/* Totals side */}
-                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>৳{Number(row.total || row.total_amount || 0).toFixed(2)}</td>
-                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>৳{Number(row.discount || 0).toFixed(2)}</td>
-                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>৳{Number(row.grandTotal || row.grand_total || row.total || 0).toFixed(2)}</td>
-                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>৳{Number(row.receiveAmount || row.receive_amount || row.receive || 0).toFixed(2)}</td>
-                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>৳{Number(row.dueAmount || row.due_amount || row.due || 0).toFixed(2)}</td>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{Number(row.total || row.total_amount || 0).toFixed(2)}</td>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{Number(row.discount || 0).toFixed(2)}</td>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{Number(row.grandTotal || row.grand_total || row.total || 0).toFixed(2)}</td>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{Number(row.receiveAmount || row.receive_amount || row.receive || 0).toFixed(2)}</td>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{Number(row.dueAmount || row.due_amount || row.due || 0).toFixed(2)}</td>
                         </tr>
                       );
                     })

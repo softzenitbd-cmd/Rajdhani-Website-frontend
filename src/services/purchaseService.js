@@ -58,6 +58,14 @@ export const purchaseService = {
     return await apiClient.post(ENDPOINTS.PURCHASE_RETURNS, data);
   },
 
+  getPurchaseReturnById: async (id) => {
+    return await apiClient.get(`${ENDPOINTS.PURCHASE_RETURNS}${id}/`);
+  },
+
+  updatePurchaseReturn: async (id, data) => {
+    return await apiClient.patch(`${ENDPOINTS.PURCHASE_RETURNS}${id}/`, data);
+  },
+
   deletePurchaseReturn: async (id) => {
     return await apiClient.delete(`${ENDPOINTS.PURCHASE_RETURNS}${id}/`);
   }

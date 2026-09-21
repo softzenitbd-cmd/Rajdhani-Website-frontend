@@ -39,8 +39,9 @@ const PurchaseReturnList = () => {
         crmService.getSuppliers().catch(() => null)
       ]);
 
+      let sList = [];
       if (supRes) {
-        const sList = Array.isArray(supRes) ? supRes : (supRes?.results || []);
+        sList = Array.isArray(supRes) ? supRes : (supRes?.results || []);
         setSuppliers(sList);
       }
 
@@ -74,7 +75,8 @@ const PurchaseReturnList = () => {
             date: formattedDate,
             invoice: invoiceNo,
             supplier: supName,
-            total: parseFloat(item.total || item.total_amount || 0).toFixed(2),
+            supplierId: item.supplier,
+            total: parseFloat(item.total || item.total_amount || item.total_due || 0).toFixed(2),
             items: item.items || []
           };
         }));
@@ -301,7 +303,7 @@ const PurchaseReturnList = () => {
                           <Trash2 size={14} />
                         </button>
                         <button 
-                          onClick={() => navigate('/product/purchase-return/add-new')} 
+                          onClick={() => navigate(`/product/purchase-return/edit/${ret.id}`, { state: { returnData: ret } })} 
                           className="action-btn-sm" 
                           title={t("Edit / New Return")}
                           style={{ background: 'var(--info)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }}

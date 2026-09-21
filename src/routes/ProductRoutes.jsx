@@ -33,6 +33,7 @@ const ProductRoutes = () => {
         <Route path="purchase/report" element={<PurchaseReport />} />
         {/* Purchase Return Routes */}
         <Route path="purchase-return/add-new" element={<PurchaseReturnCreate />} />
+        <Route path="purchase-return/edit/:id" element={<PurchaseReturnCreate />} />
         <Route path="purchase-return/list" element={<PurchaseReturnList />} />
         <Route path="purchase-return/report" element={<PurchaseReturnReport />} />
         <Route path="stock" element={<ProductStockList />} />

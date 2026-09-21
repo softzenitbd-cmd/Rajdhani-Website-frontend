@@ -80,29 +80,29 @@ const ReceiveCreate = () => {
 
     setClientLiveDue(initialDue);
 
-    // Fetch live accurate due from client due report or client ledger
-    crmService
-      .getClientDueReport({ client_id: formData.clientId })
-      .then((res) => {
-        const list = Array.isArray(res) ? res : (res?.results || res?.data || []);
-        if (list.length > 0) {
-          const row = list[0];
-          const due = Number(row.current_due ?? row.total_due ?? row.balance ?? row.due ?? row.due_amount ?? row.previous_due ?? initialDue);
-          setClientLiveDue(due);
-        }
-      })
-      .catch(() => {
-        accountingService
-          .getClientLedger(formData.clientId)
-          .then((ledgerRes) => {
-            const due = Number(ledgerRes?.client?.current_due ?? ledgerRes?.current_due ?? ledgerRes?.previous_due ?? initialDue);
-            setClientLiveDue(due);
-          })
-          .catch(() => {});
+    // Calculate accurate due matching Client Statement
+    accountingService.getClientLedger(formData.clientId).then(ledgerRes => {
+      const rawList = Array.isArray(ledgerRes) ? ledgerRes : (ledgerRes?.ledger || ledgerRes?.transactions || ledgerRes?.statement || ledgerRes?.results || []);
+      const summary = ledgerRes && !Array.isArray(ledgerRes) ? ledgerRes : null;
+      let running = Number(summary?.opening_balance || summary?.previous_due || client?.previous_due || initialDue);
+      
+      rawList.forEach(r => {
+        const t = String(r.type || r.transaction_type || '').toLowerCase();
+        const debit = Number(r.debit ?? 0);
+        const credit = Number(r.credit ?? 0);
+        const isReturn = /return/.test(t) && !/money/.test(t);
+        const isMoneyReturn = /money|refund/.test(t);
+        const bill = Number(r.bill ?? r.grand_total ?? r.total ?? (r.debit !== undefined && !isMoneyReturn ? debit : 0));
+        const salesReturn = Number(r.sales_return ?? r.return_amount ?? (r.credit !== undefined && isReturn ? credit : 0));
+        const receive = Number(r.receive ?? r.payment ?? r.amount_received ?? (r.credit !== undefined && !isReturn ? credit : 0));
+        const moneyReturn = Number(r.money_return ?? (r.debit !== undefined && isMoneyReturn ? debit : 0));
+        running = running + bill - salesReturn - receive + moneyReturn;
       });
+      setClientLiveDue(running);
+    }).catch(() => setClientLiveDue(initialDue));
   }, [formData.clientId, clients]);
 
-  const dueAmount = clientLiveDue !== null
+  const dueAmount = clientLiveDue !== null ? clientLiveDue : 0;
 
 
   const handleChange = (e) => {

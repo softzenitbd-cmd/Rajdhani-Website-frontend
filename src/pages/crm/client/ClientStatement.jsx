@@ -269,8 +269,9 @@ const ClientStatement = () => {
     const receive = Number(r.receive ?? r.payment ?? r.amount_received ?? (r.credit !== undefined && !isReturn ? credit : 0));
     const moneyReturn = Number(r.money_return ?? (r.debit !== undefined && isMoneyReturn ? debit : 0));
     const labourCost = Number(r.labour_cost ?? 0);
-    if (r.balance === undefined) running = running + bill - salesReturn - receive + moneyReturn;
-    return { ...r, _bill: bill, _salesReturn: salesReturn, _receive: receive, _moneyReturn: moneyReturn, _labourCost: labourCost, _balance: r.balance !== undefined ? Number(r.balance) : running };
+    
+    running = running + bill - salesReturn - receive + moneyReturn;
+    return { ...r, _bill: bill, _salesReturn: salesReturn, _receive: receive, _moneyReturn: moneyReturn, _labourCost: labourCost, _balance: running };
   });
 
   // Prepend Opening Balance row if we have client context
@@ -428,13 +429,13 @@ const ClientStatement = () => {
                           <div style={{ display: 'flex', flexDirection: 'column' }}>
                             {r.items.map((item, idx) => (
                               <div key={idx} style={{ padding: '6px 8px', borderBottom: idx < r.items.length - 1 ? '1px solid #e2e8f0' : 'none' }}>
-                                {Number(item.quantity || 1).toFixed(4)}
+                                {Number(item.quantity || 1)}
                               </div>
                             ))}
                           </div>
                         ) : (
                           <div style={cellPad}>
-                            {r.isOpening ? '-' : (r.quantity ?? r.qty ?? (r._bill > 0 ? '1.0000' : '-'))}
+                            {r.isOpening ? '-' : (r.quantity ?? r.qty ?? (r._bill > 0 ? 1 : '-'))}
                           </div>
                         )}
                       </td>

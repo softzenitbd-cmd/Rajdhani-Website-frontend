@@ -50,32 +50,53 @@ const PurchaseReturnReport = () => {
       if (combinedReturns.length > 0) {
         let flattened = [];
         combinedReturns.forEach((ret, idx) => {
+          let displayDate = ret.date || '2026-08-24';
+          if (displayDate.includes('-')) {
+             const parts = displayDate.split('T')[0].split('-');
+             if (parts.length === 3) {
+                 displayDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+             }
+          }
+          
+          let supName = ret.supplier || 'Supplier';
+          if (supName && sList.length > 0) {
+              const matchedSup = sList.find(s => String(s.id) === String(supName) || String(s.uuid) === String(supName));
+              if (matchedSup) {
+                  supName = matchedSup.name || matchedSup.supplier_name || supName;
+              }
+          }
+
           if (ret.items && ret.items.length > 0) {
             ret.items.forEach((item, itemIdx) => {
+              const bPrice = parseFloat(item.buyingPrice || item.buying_price || item.price || 0);
+              const sPrice = parseFloat(item.salePrice || item.sale_price || item.selling_price || 0);
+              const q = Number(item.quantity || 1);
+              
               flattened.push({
                 id: `${ret.id}-${itemIdx + 1}`,
-                date: ret.date || '2026-08-24',
-                supplier: ret.supplier || 'Supplier',
-                product: item.name || 'Product',
+                date: displayDate,
+                supplier: supName,
+                product: item.name || item.product_name || 'Product',
                 group: item.group || 'GENERAL',
-                buy: parseFloat(item.buyingPrice || item.buying_price || 0).toFixed(2),
-                sell: parseFloat(item.salePrice || item.sale_price || 0).toFixed(2),
-                qty: item.quantity || 1,
-                total: (parseFloat(item.buyingPrice || 0) * Number(item.quantity || 1)).toFixed(2),
+                buy: bPrice.toFixed(2),
+                sell: sPrice.toFixed(2),
+                qty: q,
+                total: (bPrice * q).toFixed(2),
                 desc: 'Returned item'
               });
             });
           } else {
+            const fallbackTotal = parseFloat(ret.grand_total || ret.total_amount || ret.total_due || ret.total || 0);
             flattened.push({
               id: ret.id || idx + 1,
-              date: ret.date || '2026-08-24',
-              supplier: ret.supplier || 'Supplier',
+              date: displayDate,
+              supplier: supName,
               product: 'General Return Package',
               group: 'GENERAL',
-              buy: parseFloat(ret.total || 0).toFixed(2),
-              sell: parseFloat(ret.total_sale || ret.total || 0).toFixed(2),
+              buy: fallbackTotal.toFixed(2),
+              sell: parseFloat(ret.total_sale || fallbackTotal).toFixed(2),
               qty: 1,
-              total: parseFloat(ret.total || 0).toFixed(2),
+              total: fallbackTotal.toFixed(2),
               desc: ret.invoice ? `Invoice #${ret.invoice}` : 'Return'
             });
           }
