@@ -199,6 +199,8 @@ export const accountingService = {
     if (filters.to_date) params.to_date = filters.to_date;
     if (filters.month) params.month = filters.month;
     if (filters.year) params.year = filters.year;
+    if (filters.page) params.page = filters.page;
+    if (filters.page_size) params.page_size = filters.page_size;
     return await apiClient.get(ENDPOINTS.ACCOUNTING_EXPENSES, { params });
   },
 

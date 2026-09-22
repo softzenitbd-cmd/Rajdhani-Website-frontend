@@ -6,7 +6,9 @@ import { useNavigate } from 'react-router-dom';
 import { productService } from '../../services/productService';
 import { exportToExcel } from '../../utils/excelExporter';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 import CustomDatePicker from '../../components/CustomDatePicker';
+import Pagination from '../../components/Pagination';
 
 
 const ProductList = () => {
@@ -19,6 +21,11 @@ const ProductList = () => {
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const confirm = useConfirm();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [limit, setLimit] = useState(50);
+
   const [filters, setFilters] = useState({
     search: '',
     group: '',
@@ -29,7 +36,7 @@ const ProductList = () => {
 
   const handleExportExcel = () => {
     const dataToExport = products.map((p, index) => ({
-      'SL': index + 1,
+      'SL': (currentPage - 1) * limit + index + 1,
       'Product Name': p.name,
       'Buying Price (BDT)': p.purchase_price || p.buy || '0.00',
       'Selling Price (BDT)': p.sales_price || p.sell || '0.00',
@@ -58,9 +65,10 @@ const ProductList = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const res = await productService.getProducts(filters);
+      const res = await productService.getProducts({ ...filters, page: currentPage, page_size: limit });
       const apiData = Array.isArray(res) ? res : (res?.results || []);
       const combined = apiData;
+      setTotalCount(res?.count || combined.length);
       
       // Filter if search query exists
       const finalProducts = filters.search 
@@ -71,6 +79,10 @@ const ProductList = () => {
             return nameMatch || barcodeMatch;
           })
         : combined;
+        
+      if (filters.search) {
+          setTotalCount(finalProducts.length);
+      }
         
       setProducts(finalProducts);
     } catch (err) {
@@ -87,11 +99,12 @@ const ProductList = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [filters]);
+  }, [filters, currentPage, limit]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
+    setCurrentPage(1);
   };
 
   const handleClearFilters = () => {
@@ -102,10 +115,19 @@ const ProductList = () => {
       from_date: '',
       to_date: ''
     });
+    setCurrentPage(1);
   };
 
   const handleDeleteProduct = async (id) => {
-    if (!window.confirm(t("Are you sure you want to delete this product?"))) return;
+    const isConfirmed = await confirm({
+      title: t("Delete Product"),
+      message: t("Are you sure you want to delete this product?"),
+      confirmText: t("Delete"),
+      cancelText: t("Cancel"),
+    });
+
+    if (!isConfirmed) return;
+
     try {
       await productService.deleteProduct(id);
       
@@ -113,7 +135,7 @@ const ProductList = () => {
       toast.success(t("Product deleted successfully!"));
     } catch (err) {
       console.error("Error deleting product:", err);
-      setProducts(prev => prev.filter(p => p.id !== id));
+      toast.error(t("Failed to delete product."));
     }
   };
 
@@ -254,35 +276,45 @@ const ProductList = () => {
                   <td colSpan="7" style={{ textAlign: 'center', padding: '24px' }}>{t("No products found.")}</td>
                 </tr>
               ) : (
-                products.map((prod, index) => (
-                  <tr key={prod.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-12, 12px)' }}>
-                    <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
-                    <td style={{ textAlign: 'left', padding: '8px', borderRight: '1px solid #e2e8f0' }}>
-                      <div style={{ fontWeight: 'bold' }}>{prod.name}</div>
-                      <div style={{ color: 'var(--text-muted)' }}>
-                        {t("Buy Price: ৳")}{prod.purchase_price || prod.buy || '0.00'} {t("| Sell Price: ৳")}{prod.sales_price || prod.sell || '0.00'} {t("| Unit:")} {prod.unit_name || prod.unit || t("PEACE")}
-                      </div>
-                    </td>
-                    <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.code || prod.barcode || '-'}</td>
-                    <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.stockWarning || '1'}</td>
-                    <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.stock || prod.openingStock || '0.00'}</td>
-                    <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.created_at ? new Date(prod.created_at).toLocaleDateString() : (prod.createdAt || '-')}</td>
-                    <td style={{ textAlign: 'center', padding: '8px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
-                        <button onClick={() => navigate('/product/create', { state: { product: prod } })} className="action-btn-sm edit" style={{ background: 'var(--info)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title={t("Edit Product")}>
-                          <Edit size={14} />
-                        </button>
-                        <button onClick={() => handleDeleteProduct(prod.id)} className="action-btn-sm delete" style={{ background: 'var(--danger)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title={t("Delete Product")}>
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                products.map((prod, index) => {
+                  const globalIndex = (currentPage - 1) * limit + index + 1;
+                  return (
+                    <tr key={prod.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-12, 12px)' }}>
+                      <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{globalIndex}</td>
+                      <td style={{ textAlign: 'left', padding: '8px', borderRight: '1px solid #e2e8f0' }}>
+                        <div style={{ fontWeight: 'bold' }}>{prod.name}</div>
+                        <div style={{ color: 'var(--text-muted)' }}>
+                          {t("Buy Price: ৳")}{prod.purchase_price || prod.buy || '0.00'} {t("| Sell Price: ৳")}{prod.sales_price || prod.sell || '0.00'} {t("| Unit:")} {prod.unit_name || prod.unit || t("PEACE")}
+                        </div>
+                      </td>
+                      <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.code || prod.barcode || '-'}</td>
+                      <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.stockWarning || '1'}</td>
+                      <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.stock || prod.openingStock || '0.00'}</td>
+                      <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.created_at ? new Date(prod.created_at).toLocaleDateString() : (prod.createdAt || '-')}</td>
+                      <td style={{ textAlign: 'center', padding: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
+                          <button onClick={() => navigate('/product/create', { state: { product: prod } })} className="action-btn-sm edit" style={{ background: 'var(--info)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title={t("Edit Product")}>
+                            <Edit size={14} />
+                          </button>
+                          <button onClick={() => handleDeleteProduct(prod.id)} className="action-btn-sm delete" style={{ background: 'var(--danger)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title={t("Delete Product")}>
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
+
+        <Pagination 
+          currentPage={currentPage}
+          totalItems={totalCount}
+          pageSize={limit}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );

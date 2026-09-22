@@ -5,6 +5,7 @@ import { Printer, RotateCcw, Plus, ArrowLeft, Play } from 'lucide-react';
 import PrintHeader from '../../components/PrintHeader';
 import SearchableSelect from '../../components/SearchableSelect';
 import { accountingService } from '../../services/accountingService';
+import { fmtDate } from '../../utils/apiHelpers';
 import { exportVisibleTable } from '../../utils/tableExport';
 import QuickEditModal from '../../components/QuickEditModal';
 import CustomDatePicker from '../../components/CustomDatePicker';
@@ -197,7 +198,7 @@ const TransferList = () => {
               visible.map((row, idx) => (
                 <tr key={row.key} style={{ textAlign: 'center' }}>
                   <td style={cell}>{idx + 1}</td>
-                  <td style={cell}>{row.date}</td>
+                  <td style={cell}>{fmtDate(row.date)}</td>
                   <td style={cell}>{row.party}</td>
                   <td style={cell}>{t(row.type)}</td>
                   <td style={cell}>{row.account}</td>
@@ -246,3 +247,4 @@ const TransferList = () => {
 };
 
 export default TransferList;
+

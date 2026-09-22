@@ -45,10 +45,10 @@ const ClientStatement = () => {
       if (f.from_date) params.from_date = f.from_date;
       if (f.to_date) params.to_date = f.to_date;
 
-      const [ledgerRes, invoicesRes, returnsRes, productsRes, saleItemsRes] = await Promise.allSettled([
+      const [ledgerRes, invoicesRes, returnsRes, productsRes, saleItemsRes, receivesRes] = await Promise.allSettled([
         f.client
-          ? accountingService.getClientLedger(f.client, params)
-          : accountingService.getDepositReport(params),
+          ? accountingService.getClientLedger(f.client, params).catch(() => [])
+          : accountingService.getDepositReport(params).catch(() => []),
         f.client
           ? saleService.getSalesInvoices({ client: f.client, from_date: f.from_date, to_date: f.to_date }).catch(() => [])
           : Promise.resolve([]),
@@ -58,6 +58,9 @@ const ClientStatement = () => {
         productService.getProducts().catch(() => []),
         f.client
           ? saleService.getSaleItems().catch(() => [])
+          : Promise.resolve([]),
+        f.client
+          ? accountingService.getReceives({ client: f.client, from_date: f.from_date, to_date: f.to_date }).catch(() => [])
           : Promise.resolve([])
       ]);
 
@@ -128,7 +131,53 @@ const ClientStatement = () => {
       }
 
       // Process ledger transactions and enrich them with item details
-      const rawList = toList(res?.ledger || res?.transactions || res?.statement || res?.results || res);
+      let rawList = toList(res?.ledger || res?.transactions || res?.statement || res?.results || res);
+
+      // FALLBACK for missing ledger API: Construct from invoices, returns, receives
+      if (rawList.length === 0 && f.client) {
+        const receives = toList(receivesRes?.status === 'fulfilled' ? receivesRes.value : []);
+        
+        invoices.forEach(inv => {
+          rawList.push({
+            date: inv.date || inv.created_at,
+            type: 'Sale Invoice',
+            reference: `Invoice: ${inv.invoice_no || inv.invoice_id || inv.id}`,
+            debit: Number(inv.grand_total || inv.total_amount || inv.total || inv.bill || 0),
+            credit: 0,
+            invoice: inv.id,
+            id: `inv-${inv.id}`,
+            description: `Sale Invoice ${inv.invoice_no || inv.id}`
+          });
+        });
+        
+        returns.forEach(ret => {
+          rawList.push({
+            date: ret.date || ret.created_at,
+            type: 'Sales Return',
+            reference: `Return: ${ret.return_no || ret.id}`,
+            debit: 0,
+            credit: Number(ret.total_amount || ret.return_amount || ret.total || 0),
+            invoice: ret.invoice,
+            id: `ret-${ret.id}`,
+            description: `Sales Return ${ret.return_no || ret.id}`
+          });
+        });
+        
+        receives.forEach(rec => {
+          rawList.push({
+            date: rec.date || rec.created_at,
+            type: 'Receive',
+            reference: `Receipt: ${rec.receipt_no || rec.id}`,
+            debit: 0,
+            credit: Number(rec.amount || rec.total || 0),
+            receive: Number(rec.amount || rec.total || 0),
+            id: `rec-${rec.id}`,
+            description: `Receive Payment ${rec.receipt_no || rec.id}`
+          });
+        });
+        
+        rawList.sort((a, b) => new Date(a.date) - new Date(b.date));
+      }
 
       const list = rawList.map((r) => {
         const refStr = String(r.reference || r.description || '');

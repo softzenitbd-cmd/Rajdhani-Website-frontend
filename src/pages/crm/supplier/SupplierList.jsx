@@ -268,8 +268,17 @@ const SupplierList = () => {
                             <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{Number(supplier.stats?.payment || supplier.paid || 0).toFixed(2)}</td>
                           </tr>
                           <tr>
-                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0', background: '#3b82f6', color: 'white' }}>{t("Due")}</td>
-                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0', background: '#3b82f6', color: 'white', fontWeight: 'bold' }}>{Number(supplier.stats?.due || supplier.due || supplier.previous_due || 0).toFixed(2)}</td>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>
+                              <span style={{ 
+                                background: Number(supplier.stats?.due || supplier.due || supplier.previous_due || 0) > 0 ? '#ef4444' : Number(supplier.stats?.due || supplier.due || supplier.previous_due || 0) < 0 ? '#10b981' : '#64748b', 
+                                color: 'white', padding: '2px 6px', borderRadius: '4px' 
+                              }}>
+                                {Number(supplier.stats?.due || supplier.due || supplier.previous_due || 0) < 0 ? t("Advance") : t("Due")}
+                              </span>
+                            </td>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0', fontWeight: 'bold' }}>
+                              {Math.abs(Number(supplier.stats?.due || supplier.due || supplier.previous_due || 0)).toFixed(2)}
+                            </td>
                           </tr>
                         </tbody>
                       </table>

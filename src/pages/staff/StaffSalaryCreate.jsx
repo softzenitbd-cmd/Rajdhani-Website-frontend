@@ -5,6 +5,7 @@ import PrintHeader from '../../components/PrintHeader';
 import staffApi from '../../api/staffApi';
 import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 import { toList, today, money, MONTHS, YEARS } from '../../utils/apiHelpers';
 import { useTranslation } from 'react-i18next';
 import CustomDatePicker from '../../components/CustomDatePicker';
@@ -21,6 +22,7 @@ const StaffSalaryCreate = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
+  const confirm = useConfirm();
   const now = new Date();
 
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -69,7 +71,9 @@ const StaffSalaryCreate = () => {
     if (!account) return toast.error(t("Select an account to pay from"));
     if (!category) return toast.error(t("Select an expense category"));
     if (selectedRows.length === 0) return toast.error(t("Select at least one staff with an amount"));
-    if (!window.confirm(t("Pay salary to {{v0}} staff, total ৳ {{v1}}?", { v0: selectedRows.length, v1: money(total) }))) return;
+    
+    const isConfirmed = await confirm(t("Pay salary to {{v0}} staff, total ৳ {{v1}}?", { v0: selectedRows.length, v1: money(total) }));
+    if (!isConfirmed) return;
 
     const label = `Salary ${MONTHS[month - 1]} ${year}`;
     try {
@@ -178,7 +182,10 @@ const StaffSalaryCreate = () => {
                     return (
                       <tr key={sid} style={{ borderBottom: '1px solid #e2e8f0', background: i % 2 === 0 ? 'var(--card-header-bg)' : 'white', opacity: r.checked ? 1 : 0.6 }}>
                         <td style={{ ...cell, textAlign: 'center' }}><input type="checkbox" checked={!!r.checked} onChange={(e) => update(sid, 'checked', e.target.checked)} /></td>
-                        <td style={cell}><div style={{ fontWeight: 600 }}>{s.full_name || s.name}</div><div style={{ fontSize: 'var(--fs-11, 11px)', color: '#64748b' }}>{s.phone_number || s.phone}</div></td>
+                        <td style={cell}>
+                          <div style={{ fontWeight: 600 }}>{s.full_name || s.user_details?.full_name || s.name || s.username || s.user_details?.username || 'Staff'}</div>
+                          <div style={{ fontSize: 'var(--fs-11, 11px)', color: '#64748b' }}>{s.phone_number || s.phone || s.user_details?.phone_number}</div>
+                        </td>
                         <td style={cell}>{s.designation_name || s.designation?.name || '-'}</td>
                         <td style={cell}><input type="number" min="0" step="0.01" value={r.amount} onChange={(e) => update(sid, 'amount', e.target.value)} style={{ ...inputStyle, padding: '6px 8px', borderColor: '#e2e8f0' }} /></td>
                         <td style={{ ...cell, borderRight: 'none' }}><input value={r.note} onChange={(e) => update(sid, 'note', e.target.value)} placeholder={t("optional")} style={{ ...inputStyle, padding: '6px 8px', borderColor: '#e2e8f0' }} /></td>

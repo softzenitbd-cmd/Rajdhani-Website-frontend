@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { List, User, Phone, Mail, MapPin, Banknote, Lock, Plus } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import staffApi from '../../api/staffApi';
 import { useToast } from '../../context/ToastContext';
 import { toList, today } from '../../utils/apiHelpers';
@@ -53,7 +53,10 @@ const StaffCreate = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams();
+  const location = useLocation();
   const toast = useToast();
+  
+  const staffDataState = location.state?.staffData;
 
   const [form, setForm] = useState(emptyForm);
   const [image, setImage] = useState(null);
@@ -107,29 +110,37 @@ const StaffCreate = () => {
   // Edit mode: preload the staff record
   useEffect(() => {
     if (!id) return;
-    staffApi
-      .getStaff(id)
-      .then((s) => {
-        if (!s) return;
-        const user = s.user && typeof s.user === 'object' ? s.user : {};
-        setForm({
-          username: s.username || user.username || '',
-          password: '',
-          full_name: s.full_name || user.full_name || s.name || '',
-          phone_number: s.phone_number || user.phone_number || s.phone || '',
-          email: s.email || user.email || '',
-          present_address: s.present_address || user.present_address || s.address || '',
-          department: idOf(s.department),
-          designation: idOf(s.designation),
-          basic_salary: s.basic_salary ?? s.salary ?? '',
-          joining_date: s.joining_date ? String(s.joining_date).split('T')[0] : '',
-          status: s.status === 'inactive' || s.status === false || s.status === 0 ? 'inactive' : 'active',
-        });
-        const img = s.image || user.image;
-        if (img) setPreview(img);
-      })
-      .catch((e) => toast.error(e?.message || t("Failed to load staff")));
-  }, [id]);
+    
+    const populateForm = async (s) => {
+      if (!s) return;
+      const user = s.user_details || s.user || {};
+      
+      setForm({
+        username: s.username || user.username || '',
+        password: '',
+        full_name: s.full_name || user.full_name || s.name || '',
+        phone_number: s.phone_number || user.phone_number || s.phone || '',
+        email: s.email || user.email || '',
+        present_address: s.present_address || user.present_address || s.address || '',
+        department: idOf(s.department),
+        designation: idOf(s.designation),
+        basic_salary: s.basic_salary ?? s.salary ?? '',
+        joining_date: s.joining_date ? String(s.joining_date).split('T')[0] : '',
+        status: s.status === 'inactive' || s.status === false || s.status === 0 ? 'inactive' : 'active',
+      });
+      const img = s.image || user.image;
+      if (img) setPreview(img);
+    };
+
+    if (staffDataState) {
+      populateForm(staffDataState);
+    } else {
+      staffApi
+        .getStaff(id)
+        .then(populateForm)
+        .catch((e) => toast.error(e?.message || t("Failed to load staff")));
+    }
+  }, [id, staffDataState]);
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 

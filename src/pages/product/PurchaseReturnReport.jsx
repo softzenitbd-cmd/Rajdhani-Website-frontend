@@ -7,7 +7,7 @@ import { purchaseService } from '../../services/purchaseService';
 import { crmService } from '../../services/crmService';
 import { exportToExcel } from '../../utils/excelExporter';
 import CustomDatePicker from '../../components/CustomDatePicker';
-
+import { fmtDate } from '../../utils/apiHelpers';
 
 const PurchaseReturnReport = () => {
   const { t } = useTranslation();
@@ -299,7 +299,7 @@ const PurchaseReturnReport = () => {
                 filteredReports.map((report, index) => (
                   <tr key={report.id} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-13, 13px)' }}>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
-                    <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{report.date}</td>
+                    <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{fmtDate(report.date)}</td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{report.supplier}</td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{report.product}</td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{report.group}</td>

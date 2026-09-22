@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { purchaseService } from '../../services/purchaseService';
 import { crmService } from '../../services/crmService';
 import { useToast } from '../../context/ToastContext';
+import { fmtDate } from '../../utils/apiHelpers';
 
 const PurchaseList = () => {
   const toast = useToast();
@@ -275,7 +276,7 @@ const PurchaseList = () => {
                 filteredPurchases.map((purchase, index) => (
                   <tr key={purchase.id} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-13, 13px)' }}>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
-                    <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{purchase.date}</td>
+                    <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{fmtDate(purchase.date)}</td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{purchase.invoice}</td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{purchase.supplier}</td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>৳{purchase.total}</td>
@@ -314,7 +315,7 @@ const PurchaseList = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: 'var(--fs-13, 13px)', marginBottom: '20px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
               <div><strong>{t("Supplier:")}</strong> {selectedPurchase.supplier || selectedPurchase.supplier_name || t("GENERAL SUPPLIER")}</div>
-              <div><strong>{t("Purchase Date:")}</strong> {selectedPurchase.date || selectedPurchase.created_at || '-'}</div>
+              <div><strong>{t("Date:")}</strong> {fmtDate(selectedPurchase.date || selectedPurchase.created_at)}</div>
               <div><strong>{t("Category / Memo:")}</strong> {t("PURCHASE INVOICE")}</div>
               <div><strong>{t("Status:")}</strong> <span style={{ color: '#059669', fontWeight: 'bold' }}>{t("RECEIVED")}</span></div>
             </div>

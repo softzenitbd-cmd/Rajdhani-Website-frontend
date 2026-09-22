@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Edit, Plus, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { crmService } from '../../../services/crmService';
 import { useApi } from '../../../hooks/useApi';
 import { ENDPOINTS } from '../../../api/endpoints';
@@ -11,10 +12,18 @@ import CustomDatePicker from '../../../components/CustomDatePicker';
 const SupplierChequeSchedule = () => {
   const { t } = useTranslation();
   const toast = useToast();
+  const navigate = useNavigate();
+  
   const [cheques, setCheques] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
+  
+  // Filters
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedSupplier, setSelectedSupplier] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   
   const [formData, setFormData] = useState({
     supplier: '',
@@ -30,7 +39,6 @@ const SupplierChequeSchedule = () => {
     try {
       const res = await get(ENDPOINTS.CRM_SUPPLIER_CHEQUES);
       let data = res.results || res.data || res || [];
-      // Sort by date descending (latest first)
       data.sort((a, b) => new Date(b.date) - new Date(a.date));
       setCheques(data);
     } catch (err) {
@@ -41,7 +49,20 @@ const SupplierChequeSchedule = () => {
   const fetchSuppliers = async () => {
     try {
       const res = await get(ENDPOINTS.CRM_SUPPLIERS);
-      setSuppliers(res.results || res.data || res || []);
+      const fetchedSuppliers = res.results || res.data || res || [];
+      
+      try {
+        const statsRes = await get(ENDPOINTS.CRM_REPORT_SUPPLIER_DUE);
+        const statsData = statsRes.results || statsRes.data || statsRes || [];
+        
+        const updatedSuppliers = fetchedSuppliers.map(sup => {
+          const stats = statsData.find(s => String(s.supplier_id || s.id || s.uuid) === String(sup.id || sup.uuid));
+          return { ...sup, stats: stats || sup.stats || {} };
+        });
+        setSuppliers(updatedSuppliers);
+      } catch (statsErr) {
+        setSuppliers(fetchedSuppliers);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -97,7 +118,6 @@ const SupplierChequeSchedule = () => {
     try {
       const payload = {
         ...formData,
-        // Ensure numbers are formatted
         amount: parseFloat(formData.amount) || 0
       };
 
@@ -125,7 +145,6 @@ const SupplierChequeSchedule = () => {
     }
   };
 
-  // Helper to find supplier name
   const getSupplierName = (supplierVal) => {
     if (typeof supplierVal === 'object' && supplierVal !== null) {
       return supplierVal.name || 'Unknown';
@@ -134,33 +153,79 @@ const SupplierChequeSchedule = () => {
     return found ? found.name : supplierVal || 'Unknown';
   };
 
+  const filteredCheques = cheques.filter(c => {
+    let match = true;
+    const sId = String(c.supplier?.id || c.supplier?.uuid || c.supplier || '');
+    if (selectedSupplier && sId !== String(selectedSupplier)) {
+      match = false;
+    }
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      const bMatch = (c.bank_name || c.bank || '').toLowerCase().includes(q);
+      const cMatch = (c.cheque_number || c.chequeNo || '').toLowerCase().includes(q);
+      const sMatch = getSupplierName(c.supplier).toLowerCase().includes(q);
+      if (!bMatch && !cMatch && !sMatch) match = false;
+    }
+    
+    // Date filter handling with Date objects to avoid string format issues
+    if (c.date) {
+      const chequeDateObj = new Date(c.date);
+      chequeDateObj.setHours(0, 0, 0, 0);
+      
+      if (fromDate) {
+        const fromDateObj = new Date(fromDate);
+        fromDateObj.setHours(0, 0, 0, 0);
+        if (chequeDateObj < fromDateObj) match = false;
+      }
+      
+      if (toDate) {
+        const toDateObj = new Date(toDate);
+        toDateObj.setHours(0, 0, 0, 0);
+        if (chequeDateObj > toDateObj) match = false;
+      }
+    }
+    
+    return match;
+  });
+
+  const totalAmount = filteredCheques.reduce((sum, c) => sum + (parseFloat(c.amount) || 0), 0);
+
+
   const renderInlineForm = () => (
-    <td colSpan="7" style={{ padding: '20px', background: '#f8fafc', border: '2px solid #3b82f6', borderRadius: '8px', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}>
+    <td colSpan="7" style={{ padding: '20px', background: '#f8fafc', border: '2px solid var(--primary)', borderRadius: '8px', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1.5fr', gap: '20px', marginBottom: '20px' }}>
-        {/* Date Field */}
         <div style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
+          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
              {t("Date")}
           </div>
           <CustomDatePicker 
-             
             name="date"
             value={formData.date}
             onChange={handleChange}
-            style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b' }} 
+            style={{ width: '100%', padding: '12px 16px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b' }} 
           />
         </div>
         
-        {/* Supplier Field */}
         <div style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
-             {t("Supplier")}
+          <div style={{ position: 'absolute', top: '-10px', left: '10px', display: 'flex', gap: '8px' }}>
+            <div style={{ background: 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
+               {t("Supplier")}
+            </div>
+            {formData.supplier && (() => {
+              const selectedSup = suppliers.find(s => String(s.id || s.uuid) === String(formData.supplier));
+              const dueAmt = selectedSup ? Number(selectedSup.stats?.due || selectedSup.due || selectedSup.previous_due || 0) : 0;
+              return (
+                <div style={{ background: dueAmt > 0 ? '#ef4444' : (dueAmt < 0 ? '#10b981' : '#64748b'), color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
+                  {dueAmt < 0 ? `${t("Advance")}: ${Math.abs(dueAmt).toFixed(2)}` : `${t("Due")}: ${dueAmt.toFixed(2)}`}
+                </div>
+              );
+            })()}
           </div>
           <select 
             name="supplier"
             value={formData.supplier}
             onChange={handleChange}
-            style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', background: 'white' }}
+            style={{ width: '100%', padding: '12px 16px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', background: 'white' }}
           >
             <option value="">{t("Select Supplier")}</option>
             {suppliers.map(s => (
@@ -169,9 +234,8 @@ const SupplierChequeSchedule = () => {
           </select>
         </div>
 
-        {/* Bank Name Field */}
         <div style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
+          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
              {t("Bank Name")}
           </div>
           <input 
@@ -180,15 +244,14 @@ const SupplierChequeSchedule = () => {
             value={formData.bank_name}
             onChange={handleChange}
             placeholder={t("e.g. IFIC Bank")}
-            style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b' }} 
+            style={{ width: '100%', padding: '12px 16px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b' }} 
           />
         </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1.5fr', gap: '20px', marginBottom: '20px' }}>
-        {/* Cheque Number Field */}
         <div style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
+          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
              {t("Cheque Number")}
           </div>
           <input 
@@ -197,13 +260,12 @@ const SupplierChequeSchedule = () => {
             value={formData.cheque_number}
             onChange={handleChange}
             placeholder={t("e.g. 8572056")}
-            style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b' }} 
+            style={{ width: '100%', padding: '12px 16px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b' }} 
           />
         </div>
 
-        {/* Amount Field */}
         <div style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: '#3b82f6', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
+          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
              {t("Amount")}
           </div>
           <input 
@@ -212,7 +274,7 @@ const SupplierChequeSchedule = () => {
             value={formData.amount}
             onChange={handleChange}
             placeholder="0.00"
-            style={{ width: '100%', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '6px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b' }} 
+            style={{ width: '100%', padding: '12px 16px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b' }} 
           />
         </div>
         
@@ -220,12 +282,12 @@ const SupplierChequeSchedule = () => {
           <button 
             onClick={handleSave}
             disabled={loading}
-            style={{ flex: 1, background: '#10b981', color: 'white', border: 'none', padding: '12px', borderRadius: '6px', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', cursor: 'pointer' }}>
+            style={{ flex: 1, background: 'var(--success)', color: 'white', border: 'none', padding: '12px', borderRadius: '6px', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', cursor: 'pointer' }}>
             {loading ? t("Saving...") : (isAdding ? t("Save Cheque") : t("Update Cheque"))}
           </button>
           <button 
             onClick={() => { setIsAdding(false); setEditingId(null); }}
-            style={{ background: '#ef4444', color: 'white', border: 'none', padding: '12px 16px', borderRadius: '6px', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', cursor: 'pointer' }}>
+            style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '12px 16px', borderRadius: '6px', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', cursor: 'pointer' }}>
             {t("Cancel")}
           </button>
         </div>
@@ -234,90 +296,139 @@ const SupplierChequeSchedule = () => {
   );
 
   return (
-    <div className="dashboard-content" style={{ paddingBottom: '50px' }}>
-      <div className="card" style={{ border: 'none', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
-        <div className="card-header" style={{ background: '#22c55e', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px' }}>
-          <h2 style={{ margin: 0, fontSize: 'var(--fs-16, 16px)', fontWeight: 'bold' }}>{t("Supplier Cheque Schedule")}</h2>
-          <button onClick={handleAddClick} className="btn" style={{ background: '#10b981', color: 'white', border: '1px solid rgba(255,255,255,0.3)', padding: '6px 16px', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Plus size={16} /> {t("Add")}
+    <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
+      {/* Header */}
+      <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2 className="card-title">{t("SUPPLIER CHEQUE SCHEDULE")}</h2>
+        <div className="card-actions">
+          <button className="btn btn-primary" onClick={handleAddClick} style={{ padding: '6px 12px', background: 'var(--success)' }}>
+            <Plus size={14} /> {t("Add Cheque")}
           </button>
         </div>
+      </div>
 
-        <div className="card-body" style={{ padding: '24px', background: 'white' }}>
-          {/* Table */}
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-12, 12px)', minWidth: '800px' }}>
-              <thead>
-                <tr style={{ background: '#cbd5e1', color: '#334155' }}>
-                  <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #e2e8f0' }}>{t("ID NO")}</th>
-                  <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #e2e8f0' }}>{t("DATE")}</th>
-                  <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #e2e8f0' }}>{t("SUPPLIER")}</th>
-                  <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #e2e8f0' }}>{t("BANK")}</th>
-                  <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #e2e8f0' }}>{t("CHEQUE NO")}</th>
-                  <th style={{ padding: '12px', textAlign: 'right', border: '1px solid #e2e8f0' }}>{t("AMOUNT")}</th>
-                  <th style={{ padding: '12px', textAlign: 'center', border: '1px solid #e2e8f0' }}>{t("ACTION")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {/* Inline Add Form at the top */}
-                {isAdding && (
-                  <tr>
-                    {renderInlineForm()}
-                  </tr>
-                )}
+      <div className="card-body">
 
-                {cheques.length === 0 && !isAdding && (
-                  <tr>
-                    <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
-                      {loading ? t("Loading...") : t("No cheques found")}
-                    </td>
-                  </tr>
-                )}
-
-                {cheques.map((cheque, index) => {
-                  const cId = cheque.id || cheque.uuid;
-                  return (
-                    <React.Fragment key={cId}>
-                      <tr style={{ borderBottom: '1px solid #e2e8f0', background: index % 2 === 0 ? 'white' : '#f8fafc' }}>
-                        <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{index + 1}</td>
-                        <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{cheque.date || '-'}</td>
-                        <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{getSupplierName(cheque.supplier)}</td>
-                        <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{cheque.bank_name || cheque.bank || '-'}</td>
-                        <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{cheque.cheque_number || cheque.chequeNo || '-'}</td>
-                        <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #e2e8f0', fontWeight: '600' }}>{parseFloat(cheque.amount || 0).toFixed(2)}</td>
-                        <td style={{ padding: '8px 12px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                          <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                            <button 
-                              onClick={() => handleEditClick(cheque)}
-                              style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}
-                              title={t("Edit")}
-                            >
-                              <Edit size={14} />
-                            </button>
-                            <button 
-                              onClick={() => handleDelete(cId)}
-                              style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}
-                              title={t("Delete")}
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                      
-                      {/* Inline Edit Form */}
-                      {editingId === cId && (
-                        <tr>
-                          {renderInlineForm()}
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </tbody>
-            </table>
+        {/* Filters */}
+        <div className="form-grid" style={{ gridTemplateColumns: '1fr 1.5fr 1.5fr 1fr', marginBottom: '24px', alignItems: 'flex-end', gap: '16px' }}>
+          <div className="form-group">
+            <label style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: '600', marginBottom: '8px', color: 'var(--primary)' }}>{t("Search All")}</label>
+            <div className="form-input floating-label">
+              <input type="text" placeholder=" " value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <label>{t("Search")}</label>
+            </div>
+          </div>
+          
+          <div className="form-group">
+            <label style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: '600', marginBottom: '8px' }}>{t("Search By Supplier")}</label>
+            <div className="form-input floating-label">
+              <select value={selectedSupplier} onChange={(e) => setSelectedSupplier(e.target.value)}>
+                <option value="">{t("Select Supplier")}</option>
+                {suppliers.map(s => (
+                  <option key={s.id || s.uuid} value={s.id || s.uuid}>{s.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
+          <div className="form-group">
+            <label style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: '600', marginBottom: '8px' }}>{t("Search By Date")}</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <div className="form-input floating-label" style={{ flex: 1, padding: '0 8px' }}>
+                <CustomDatePicker value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+              </div>
+              <div className="form-input floating-label" style={{ flex: 1, padding: '0 8px' }}>
+                <CustomDatePicker value={toDate} onChange={(e) => setToDate(e.target.value)} />
+              </div>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <button 
+              className="btn btn-outline" 
+              style={{ height: '48px', width: '100%', background: '#718096', color: 'white', justifyContent: 'center' }}
+              onClick={() => { setSearchTerm(''); setSelectedSupplier(''); setFromDate(''); setToDate(''); }}
+            >
+              {t("Clear Filter")}
+            </button>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div style={{ overflowX: 'auto', border: '1px solid var(--secondary)', borderRadius: '8px' }}>
+          <table className="custom-table" style={{ width: '100%', minWidth: '800px' }}>
+            <thead>
+              <tr>
+                <th width="80" style={{ textAlign: 'center' }}>{t("ID NO ↕")}</th>
+                <th width="150" style={{ textAlign: 'left' }}>{t("DATE ↕")}</th>
+                <th style={{ textAlign: 'left' }}>{t("SUPPLIER ↕")}</th>
+                <th style={{ textAlign: 'left' }}>{t("BANK ↕")}</th>
+                <th style={{ textAlign: 'left' }}>{t("CHEQUE NO ↕")}</th>
+                <th style={{ textAlign: 'right' }}>{t("AMOUNT ↕")}</th>
+                <th width="120" style={{ textAlign: 'center' }}>{t("ACTION ↕")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isAdding && <tr>{renderInlineForm()}</tr>}
+
+              {filteredCheques.length === 0 && !isAdding && (
+                <tr>
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
+                    {loading ? t("Loading...") : t("No cheques found")}
+                  </td>
+                </tr>
+              )}
+
+              {filteredCheques.map((cheque, index) => {
+                const cId = cheque.id || cheque.uuid;
+                return (
+                  <React.Fragment key={cId}>
+                    <tr>
+                      <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>{index + 1}</td>
+                      <td style={{ verticalAlign: 'middle' }}>{cheque.date ? new Date(cheque.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}</td>
+                      <td style={{ verticalAlign: 'middle' }}>{getSupplierName(cheque.supplier)}</td>
+                      <td style={{ verticalAlign: 'middle' }}>{cheque.bank_name || cheque.bank || '-'}</td>
+                      <td style={{ verticalAlign: 'middle' }}>{cheque.cheque_number || cheque.chequeNo || '-'}</td>
+                      <td style={{ verticalAlign: 'middle', textAlign: 'right', fontWeight: '600', color: '#1e293b' }}>{parseFloat(cheque.amount || 0).toFixed(2)}</td>
+                      <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                          <button 
+                            onClick={() => handleEditClick(cheque)}
+                            style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                            title={t("Edit")}
+                          >
+                            <Edit size={14} />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(cId)}
+                            style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                            title={t("Delete")}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    
+                    {editingId === cId && (
+                      <tr>
+                        {renderInlineForm()}
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+            {filteredCheques.length > 0 && !isAdding && (
+              <tfoot>
+                <tr style={{ background: '#e2e8f0', color: '#1e293b' }}>
+                  <td colSpan="5" style={{ textAlign: 'right', padding: '12px', fontWeight: 'bold' }}>{t("Total Amount:")}</td>
+                  <td style={{ textAlign: 'right', padding: '12px', fontWeight: 'bold', fontSize: 'var(--fs-14, 14px)' }}>{totalAmount.toFixed(2)}</td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            )}
+          </table>
         </div>
       </div>
     </div>

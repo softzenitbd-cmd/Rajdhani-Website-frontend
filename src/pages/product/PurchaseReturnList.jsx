@@ -8,6 +8,7 @@ import { crmService } from '../../services/crmService';
 import { exportToExcel } from '../../utils/excelExporter';
 import { useToast } from '../../context/ToastContext';
 import CustomDatePicker from '../../components/CustomDatePicker';
+import { fmtDate } from '../../utils/apiHelpers';
 
 
 const PurchaseReturnList = () => {
@@ -280,7 +281,7 @@ const PurchaseReturnList = () => {
                 filteredReturns.map((ret, index) => (
                   <tr key={ret.id} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-13, 13px)' }}>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
-                    <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{ret.date}</td>
+                    <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{fmtDate(ret.date)}</td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{ret.invoice}</td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{ret.supplier}</td>
                     <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0', fontWeight: 'bold' }}>৳ {ret.total}</td>
@@ -326,7 +327,7 @@ const PurchaseReturnList = () => {
           <div className="printable-modal-content" style={{ background: 'white', width: '700px', maxWidth: '95vw', borderRadius: '12px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', maxHeight: '90vh', overflowY: 'auto' }}>
             
             {/* Header / Brand Banner for Print & View */}
-            <PrintHeader />
+            <PrintHeader showOnScreen={true} />
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '2px solid #0ea5e9', paddingBottom: '12px' }}>
               <div>
@@ -338,7 +339,7 @@ const PurchaseReturnList = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: 'var(--fs-13, 13px)', marginBottom: '20px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
               <div><strong>{t("Supplier Name:")}</strong> {selectedReturn.supplier}</div>
-              <div><strong>{t("Return Date:")}</strong> {selectedReturn.date}</div>
+              <div><strong>{t("Return Date:")}</strong> {fmtDate(selectedReturn.date)}</div>
               <div><strong>{t("Invoice Number:")}</strong> {selectedReturn.invoice}</div>
               <div><strong>{t("Grand Total:")}</strong> <span style={{ color: '#ef4444', fontWeight: 'bold' }}>৳ {selectedReturn.total}</span></div>
             </div>

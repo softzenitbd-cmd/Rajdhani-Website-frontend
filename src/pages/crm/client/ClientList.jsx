@@ -10,6 +10,7 @@ import { exportToExcel } from '../../../utils/excelExporter';
 import { useTranslation } from 'react-i18next';
 import crmService from '../../../services/crmService';
 import CustomDatePicker from '../../../components/CustomDatePicker';
+import Pagination from '../../../components/Pagination';
 
 
 const ClientImageUploader = ({ client, onUploadSuccess }) => {
@@ -182,6 +183,9 @@ const ClientList = () => {
   const [toDate, setToDate] = useState('');
   const [viewClient, setViewClient] = useState(null);
   const [dateModalClient, setDateModalClient] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [limit, setLimit] = useState(50);
   
   const { get, del, patch, loading } = useApi();
 
@@ -261,6 +265,9 @@ const ClientList = () => {
       if (selectedGroup) params.append('group', selectedGroup);
       if (fromDate) params.append('from_date', fromDate);
       if (toDate) params.append('to_date', toDate);
+      
+      params.append('page', currentPage);
+      params.append('page_size', limit);
 
       if (params.toString()) {
         url += `?${params.toString()}`;
@@ -268,6 +275,7 @@ const ClientList = () => {
       
       const res = await get(url);
       const fetchedClients = res.results || res.data || res || [];
+      setTotalCount(res.count || fetchedClients.length);
       
       try {
         const statsRes = await crmService.getClientDueReport();
@@ -296,14 +304,18 @@ const ClientList = () => {
       fetchClients();
     }, 300); // 300ms debounce for search
     return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, selectedGroup, fromDate, toDate]);
+  }, [searchTerm, selectedGroup, fromDate, toDate, currentPage, limit]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedGroup, fromDate, toDate, limit]);
 
   // Use the fetched clients directly
   const filteredClients = clients;
 
   const handleExportExcel = () => {
     const dataToExport = filteredClients.map((c, i) => ({
-      'SL': i + 1,
+      'SL': (currentPage - 1) * limit + i + 1,
       'Client Code': c.client_code || c.code || '-',
       'Company Name': c.company_name || c.name || '-',
       'Owner Name': c.owner_name || c.name || '-',
@@ -385,11 +397,7 @@ const ClientList = () => {
         {/* Table Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ fontSize: 'var(--fs-14, 14px)', color: 'var(--text-main)' }}>
-            {t("Show")} 
-            <select style={{ margin: '0 8px', padding: '4px', border: '1px solid var(--secondary)', borderRadius: '4px' }}>
-              <option>25</option>
-            </select>
-            {t("entries")}
+            {t("Showing")} {filteredClients.length} {t("entries")}
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button className="btn" onClick={handleExportExcel} style={{ background: '#059669', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-12, 12px)', borderRadius: '4px', cursor: 'pointer' }}>
@@ -437,9 +445,11 @@ const ClientList = () => {
               ) : filteredClients.length === 0 ? (
                 <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>{t("No clients found.")}</td></tr>
               ) : (
-                filteredClients.map((client, index) => (
+                filteredClients.map((client, index) => {
+                  const globalIndex = (currentPage - 1) * limit + index + 1;
+                  return (
                   <tr key={client.id || client.uuid || index}>
-                    <td style={{ verticalAlign: 'top', paddingTop: '16px', textAlign: 'center' }}>{index + 1}</td>
+                    <td style={{ verticalAlign: 'top', paddingTop: '16px', textAlign: 'center' }}>{globalIndex}</td>
                     
                     <td style={{ verticalAlign: 'top', paddingTop: '16px', fontSize: 'var(--fs-13, 13px)' }}>
                       <div style={{ display: 'grid', gridTemplateColumns: '110px 10px 1fr', gap: '4px', marginBottom: '4px', textAlign: 'left' }}>
@@ -663,11 +673,19 @@ const ClientList = () => {
                       )}
                     </td>
                 </tr>
-              ))
+                );
+              })
             )}
             </tbody>
           </table>
         </div>
+
+        <Pagination 
+          currentPage={currentPage}
+          totalItems={totalCount}
+          pageSize={limit}
+          onPageChange={setCurrentPage}
+        />
 
       </div>
 

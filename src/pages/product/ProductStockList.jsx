@@ -6,6 +6,7 @@ import { productService } from '../../services/productService';
 import { useToast } from '../../context/ToastContext';
 import CustomDatePicker from '../../components/CustomDatePicker';
 import { exportVisibleTable } from '../../utils/tableExport';
+import { fmtDate } from '../../utils/apiHelpers';
 
 const normalizeDate = (d) => {
   if (!d) return '';
@@ -329,7 +330,7 @@ const ProductStockList = () => {
                 displayedStocks.map((stock, index) => (
                   <tr key={stock.id || index} style={{ background: index % 2 === 0 ? 'white' : '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-13, 13px)' }}>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', fontWeight: 'bold' }}>{index + 1}</td>
-                    <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', fontSize: 'var(--fs-12, 12px)' }}>{stock.date}</td>
+                    <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', fontSize: 'var(--fs-12, 12px)' }}>{fmtDate(stock.date)}</td>
                     <td style={{ textAlign: 'left', padding: '10px 12px', borderRight: '1px solid #e2e8f0' }}>
                       <div style={{ fontWeight: '700', color: '#1e293b' }}>{stock.product}</div>
                       <div style={{ fontSize: 'var(--fs-11, 11px)', color: '#64748b', marginTop: '2px' }}>{t("Buy Price:")} {stock.buyPrice} {t("| Sell Price:")} {stock.sellPrice}</div>
@@ -371,3 +372,5 @@ const ProductStockList = () => {
 };
 
 export default ProductStockList;
+
+

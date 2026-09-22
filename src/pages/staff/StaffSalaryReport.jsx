@@ -6,6 +6,7 @@ import TableToolbar from '../../components/TableToolbar';
 import staffApi from '../../api/staffApi';
 import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 import { toList, fmtDate, nameOf, money, MONTHS, YEARS } from '../../utils/apiHelpers';
 import { useTranslation } from 'react-i18next';
 
@@ -14,6 +15,7 @@ const StaffSalaryReport = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
+  const confirm = useConfirm();
   const now = new Date();
 
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -36,7 +38,15 @@ const StaffSalaryReport = () => {
   // POST /api/accounting/staff-payments/generate/ – one pending salary per active staff
   const generatePayroll = async () => {
     if (!genAccount) return toast.error(t("Select the account the salaries will be paid from"));
-    if (!window.confirm(t("Generate pending salaries for every active staff for {{v0}} {{v1}}?", { v0: t(MONTHS[month - 1]), v1: year }))) return;
+    
+    const isConfirmed = await confirm({
+      title: t("Generate Payroll"),
+      message: t("Generate pending salaries for every active staff for {{v0}} {{v1}}?", { v0: t(MONTHS[month - 1]), v1: year }),
+      confirmText: t("Yes, Generate")
+    });
+    
+    if (!isConfirmed) return;
+    
     try {
       setGenerating(true);
       const res = await accountingService.generateStaffPayroll({ month, year, account_id: genAccount });
@@ -52,7 +62,14 @@ const StaffSalaryReport = () => {
   // PATCH /api/accounting/expenses/<id>/ { status: true }
   const isPaid = (r) => r.status === true || r.status === 1 || r.status === '1' || String(r.status).toLowerCase() === 'paid';
   const markPaid = async (r) => {
-    if (!window.confirm(t("Mark {{v0}}'s salary of ৳ {{v1}} as paid?", { v0: nameOf(r.staff_name || r.staff || r.staff_id), v1: money(r.amount) }))) return;
+    const isConfirmed = await confirm({
+      title: t("Mark as Paid"),
+      message: t("Mark {{v0}}'s salary of ৳ {{v1}} as paid?", { v0: nameOf(r.staff_name || r.staff || r.staff_id), v1: money(r.amount) }),
+      confirmText: t("Yes, Mark Paid")
+    });
+    
+    if (!isConfirmed) return;
+    
     try {
       setMarking(r.id);
       await accountingService.updateStaffPaymentStatus(r.id, true);

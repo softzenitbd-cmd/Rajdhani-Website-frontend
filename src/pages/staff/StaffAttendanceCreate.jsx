@@ -160,8 +160,8 @@ const StaffAttendanceCreate = () => {
                     const r = rows[sid] || {};
                     return (
                       <tr key={sid} style={{ borderBottom: '1px solid #e2e8f0', background: index % 2 === 0 ? 'var(--card-header-bg)' : 'white' }}>
-                        <td style={cell}>{s.full_name || s.name}</td>
-                        <td style={cell}>{s.phone || '-'}</td>
+                        <td style={cell}>{s.full_name || s.user_details?.full_name || s.name || s.username || s.user_details?.username || 'Staff'}</td>
+                        <td style={cell}>{s.phone_number || s.phone || s.user_details?.phone_number || '-'}</td>
                         <td style={cell}><input type="time" value={r.in_time || ''} onChange={(e) => update(sid, 'in_time', e.target.value)} style={timeInput} /></td>
                         <td style={cell}><input type="time" value={r.out_time || ''} onChange={(e) => update(sid, 'out_time', e.target.value)} style={timeInput} /></td>
                         <td style={{ ...cell, borderRight: 'none' }}>

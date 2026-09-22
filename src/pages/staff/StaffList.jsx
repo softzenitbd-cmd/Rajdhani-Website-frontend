@@ -4,10 +4,12 @@ import TableToolbar from '../../components/TableToolbar';
 import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import staffApi from '../../api/staffApi';
+import { getUserList } from '../../api/authApi';
 import { useToast } from '../../context/ToastContext';
 import { useConfirm } from '../../context/ConfirmContext';
 import { toList, fmtDate, nameOf, money } from '../../utils/apiHelpers';
 import { useTranslation } from 'react-i18next';
+import Pagination from '../../components/Pagination';
 
 // status is the string 'active' | 'inactive' (older rows may carry a boolean)
 const isActive = (s) => (typeof s.status === 'string' ? s.status.toLowerCase() === 'active' : (s.is_active ?? s.status ?? true));
@@ -23,7 +25,10 @@ const StaffList = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [department, setDepartment] = useState('');
-  const [entries, setEntries] = useState(50);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit, setLimit] = useState(50);
+  const [totalCount, setTotalCount] = useState(0);
+  const [openActionId, setOpenActionId] = useState(null);
 
   const load = async (params = { search, department }) => {
     try {
@@ -31,8 +36,12 @@ const StaffList = () => {
       const filters = {};
       if (params.search) filters.search = params.search;
       if (params.department) filters.department = params.department;
+      filters.page = currentPage;
+      filters.page_size = limit;
       const res = await staffApi.getStaffList(filters);
-      setRows(toList(res));
+      const dataList = toList(res);
+      setRows(dataList);
+      setTotalCount(res.count || dataList.length);
     } catch (e) {
       toast.error(e.message || t("Failed to load staff"));
     } finally {
@@ -43,7 +52,24 @@ const StaffList = () => {
   useEffect(() => {
     load();
     staffApi.getDepartments().then((r) => setDepartments(toList(r))).catch(() => {});
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentPage, limit]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const getStaffName = (s) => {
+    if (!s) return 'Unknown';
+    const u = s.user_details || s.user || {};
+    const name = s.full_name || u.full_name || s.name || s.username || u.username || `${s.first_name || u.first_name || ''} ${s.last_name || u.last_name || ''}`.trim();
+    return name || 'Staff';
+  };
+  
+  const getStaffEmail = (s) => {
+    const u = s.user_details || s.user || {};
+    return s.email || u.email || '-';
+  };
+  
+  const getStaffPhone = (s) => {
+    const u = s.user_details || s.user || {};
+    return s.phone_number || s.phone || u.phone_number || u.phone || '-';
+  };
 
   const handleDelete = async (row) => {
     const rid = row.id || row.uuid;
@@ -66,10 +92,11 @@ const StaffList = () => {
   const reset = () => {
     setSearch('');
     setDepartment('');
+    setCurrentPage(1);
     load({ search: '', department: '' });
   };
 
-  const visible = rows.slice(0, entries);
+  const visible = rows;
   const excelData = visible.map((s, i) => ({
     SL: i + 1,
     Name: s.full_name || s.user?.full_name || s.name,
@@ -116,7 +143,7 @@ const StaffList = () => {
             </button>
           </form>
 
-          <TableToolbar entries={entries} setEntries={setEntries} total={rows.length} excelData={excelData} excelName="Staff_List" onReload={() => load()} onReset={reset} />
+          <TableToolbar total={totalCount} excelData={excelData} excelName="Staff_List" onReload={() => load()} onReset={reset} />
 
           {/* Table View */}
           <div className="table-responsive" style={{ width: '100%', overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
@@ -124,55 +151,52 @@ const StaffList = () => {
               <thead>
                 <tr style={{ background: '#718096', color: 'white' }}>
                   <th style={{ width: '40px', textAlign: 'center', padding: '8px 4px' }}>{t("SL")}</th>
-                  <th style={{ textAlign: 'center', padding: '8px 4px' }}>{t("IMAGE")}</th>
                   <th style={{ padding: '8px 6px' }}>{t("NAME")}</th>
-                  <th style={{ padding: '8px 6px' }}>{t("PHONE")}</th>
-                  <th style={{ padding: '8px 6px' }}>{t("E-MAIL")}</th>
-                  <th style={{ padding: '8px 6px' }}>{t("DEPARTMENT")}</th>
-                  <th style={{ padding: '8px 6px' }}>{t("DESIGNATION")}</th>
-                  <th style={{ textAlign: 'right', padding: '8px 6px' }}>{t("SALARY")}</th>
-                  <th style={{ padding: '8px 6px' }}>{t("JOINING")}</th>
-                  <th style={{ textAlign: 'center', padding: '8px 4px' }}>{t("STATUS")}</th>
+                  <th style={{ padding: '8px 6px' }}>{t("PHONE NUMBER")}</th>
+                  <th style={{ padding: '8px 6px' }}>{t("EMAIL")}</th>
+                  <th style={{ padding: '8px 6px' }}>{t("PASSWORD")}</th>
+                  <th style={{ padding: '8px 6px' }}>{t("ROLE")}</th>
+                  <th style={{ padding: '8px 6px', textAlign: 'center' }}>{t("PERMISSION")}</th>
+                  <th style={{ padding: '8px 6px' }}>{t("CREATED AT")}</th>
                   <th className="action-column" style={{ textAlign: 'center', padding: '8px 4px' }}>{t("ACTION")}</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="11" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("Loading staff...")}</td></tr>
+                  <tr><td colSpan="9" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("Loading staff...")}</td></tr>
                 ) : visible.length === 0 ? (
-                  <tr><td colSpan="11" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("No staff found")}</td></tr>
+                  <tr><td colSpan="9" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("No staff found")}</td></tr>
                 ) : (
                   visible.map((s, i) => {
-                    const active = isActive(s);
+                    const sid = s.id || s.uuid;
+                    const globalIndex = (currentPage - 1) * limit + i + 1;
                     return (
-                      <tr key={s.id || s.uuid || i} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                        <td style={{ textAlign: 'center', padding: '6px 4px' }}>{i + 1}</td>
-                        <td style={{ textAlign: 'center', padding: '6px 4px' }}>
-                          {(s.image || s.user?.image) ? (
-                            <img src={s.image || s.user?.image} alt="" style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }} />
-                          ) : (
-                            <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#e0e7ff', color: '#4338ca', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '11px' }}>
-                              {String(s.full_name || s.user?.full_name || s.name || '?').charAt(0).toUpperCase()}
+                      <tr key={sid || i} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ textAlign: 'center', padding: '6px 4px' }}>{globalIndex}</td>
+                        <td style={{ padding: '8px 6px', fontWeight: 600 }}>{getStaffName(s)}</td>
+                        <td style={{ padding: '8px 6px' }}>{getStaffPhone(s)}</td>
+                        <td style={{ padding: '8px 6px' }}>{getStaffEmail(s)}</td>
+                        <td style={{ padding: '8px 6px' }}>{s.user_details?.username || '-'}</td>
+                        <td style={{ padding: '8px 6px' }}>{nameOf(s.designation_name || s.designation_details || s.designation) || s.user_details?.role || '-'}</td>
+                        <td style={{ padding: '8px 6px', textAlign: 'center' }}>
+                          <button style={{ background: '#10b981', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("Permissions")}</button>
+                        </td>
+                        <td style={{ padding: '8px 6px' }}>{fmtDate(s.created_at)}</td>
+                        <td className="action-column" style={{ padding: '6px', textAlign: 'center', position: 'relative' }}>
+                          <button 
+                            onClick={() => setOpenActionId(openActionId === sid ? null : sid)} 
+                            style={{ background: '#10b981', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', margin: '0 auto', fontSize: 'var(--fs-12, 12px)' }}
+                          >
+                            {t("Action")} <span style={{ fontSize: '8px' }}>▼</span>
+                          </button>
+                          {openActionId === sid && (
+                            <div style={{ position: 'absolute', top: '100%', right: '50%', transform: 'translateX(50%)', background: 'white', border: '1px solid #e2e8f0', borderRadius: '4px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', zIndex: 10, minWidth: '130px', textAlign: 'left', padding: '4px 0' }}>
+                              <div style={{ padding: '6px 12px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)' }} onMouseOver={e=>e.target.style.background='#f1f5f9'} onMouseOut={e=>e.target.style.background='white'}>{t("Assign Role")}</div>
+                              <div style={{ padding: '6px 12px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)' }} onMouseOver={e=>e.target.style.background='#f1f5f9'} onMouseOut={e=>e.target.style.background='white'}>{t("Assign Permission")}</div>
+                              <div onClick={() => { setOpenActionId(null); navigate(`/staff/edit/${sid}`, { state: { staffData: s } }); }} style={{ padding: '6px 12px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)' }} onMouseOver={e=>e.target.style.background='#f1f5f9'} onMouseOut={e=>e.target.style.background='white'}>{t("Edit")}</div>
+                              <div onClick={() => { setOpenActionId(null); handleDelete(s); }} style={{ padding: '6px 12px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)' }} onMouseOver={e=>e.target.style.background='#f1f5f9'} onMouseOut={e=>e.target.style.background='white'}>{t("Delete")}</div>
                             </div>
                           )}
-                        </td>
-                        <td style={{ padding: '8px 6px', fontWeight: 600 }}>{s.full_name || s.user?.full_name || s.name}</td>
-                        <td style={{ padding: '8px 6px' }}>{s.phone_number || s.user?.phone_number || s.phone || '-'}</td>
-                        <td style={{ padding: '8px 6px' }}>{s.email || '-'}</td>
-                        <td style={{ padding: '8px 6px' }}>{nameOf(s.department_name || s.department_details || s.department)}</td>
-                        <td style={{ padding: '8px 6px' }}>{nameOf(s.designation_name || s.designation_details || s.designation)}</td>
-                        <td style={{ padding: '8px 6px', textAlign: 'right' }}>{(s.basic_salary ?? s.salary) !== undefined && (s.basic_salary ?? s.salary) !== null ? money(s.basic_salary ?? s.salary) : '-'}</td>
-                        <td style={{ padding: '8px 6px' }}>{fmtDate(s.joining_date || s.created_at)}</td>
-                        <td style={{ padding: '8px 6px', textAlign: 'center' }}>
-                          <span style={{ background: active ? '#dcfce7' : '#fee2e2', color: active ? '#166534' : '#991b1b', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>
-                            {active ? t("Active") : t("Inactive")}
-                          </span>
-                        </td>
-                        <td className="action-column" style={{ padding: '6px' }}>
-                          <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
-                            <button onClick={() => navigate(`/staff/edit/${s.id || s.uuid}`)} title={t("Edit")} style={{ background: 'var(--info)', color: 'white', border: 'none', padding: '4px 6px', borderRadius: '3px', cursor: 'pointer' }}><Pencil size={12} /></button>
-                            <button onClick={() => handleDelete(s)} title={t("Delete")} style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '4px 6px', borderRadius: '3px', cursor: 'pointer' }}><Trash2 size={12} /></button>
-                          </div>
                         </td>
                       </tr>
                     );
@@ -181,6 +205,13 @@ const StaffList = () => {
               </tbody>
             </table>
           </div>
+
+          <Pagination 
+            currentPage={currentPage}
+            totalItems={totalCount}
+            pageSize={limit}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </div>

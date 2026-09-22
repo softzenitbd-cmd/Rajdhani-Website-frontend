@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { List, Layers, Plus, X, FileText } from 'lucide-react';
+import { List, Layers, Plus, X, FileText, Printer } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
 import SearchableSelect from '../../components/SearchableSelect';
@@ -21,6 +21,7 @@ const ReceiveCreate = () => {
   const [accounts, setAccounts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [receiptModal, setReceiptModal] = useState(null);
 
   const [formData, setFormData] = useState({
     clientId: location.state?.clientId || '',
@@ -137,9 +138,19 @@ const ReceiveCreate = () => {
       if (formData.category) payload.category = formData.category;
       if (formData.description) payload.reference = formData.description;
 
-      await accountingService.createReceive(payload);
+      const createdReceive = await accountingService.createReceive(payload);
       toast.success(t("Receive recorded successfully!"));
-      navigate('/account/receive-list');
+      
+      setReceiptModal({
+        ...createdReceive,
+        amount: formData.amount,
+        date: formData.date,
+        client: selectedClient,
+        client_name: selectedClient?.name || 'Walk-in',
+        due: (dueAmount - Number(formData.amount)).toFixed(2),
+        reference: formData.description
+      });
+      
     } catch (error) {
       console.error("Error creating receive:", error);
       const errorDetail = error.response?.data ? JSON.stringify(error.response.data, null, 2) : error.message;
@@ -147,6 +158,14 @@ const ReceiveCreate = () => {
     } finally {
       setSubmitting(false);
     }
+  };
+  const handlePrintReceipt = () => {
+    const printContents = document.getElementById('print-receipt-section').innerHTML;
+    const originalContents = document.body.innerHTML;
+    document.body.innerHTML = printContents;
+    window.print();
+    document.body.innerHTML = originalContents;
+    window.location.reload();
   };
 
   return (
@@ -350,6 +369,77 @@ const ReceiveCreate = () => {
           }
         }}
       />
+
+      {/* Money Receipt Modal */}
+      {receiptModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <div style={{ background: 'white', width: '800px', maxWidth: '95%', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '90vh' }}>
+            {/* Header */}
+            <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
+              <h3 style={{ margin: 0, fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', color: '#1e293b' }}>{t("Money Receipt")}</h3>
+              <button onClick={() => { setReceiptModal(null); window.location.reload(); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            {/* Body */}
+            <div style={{ padding: '20px', overflowY: 'auto', flex: 1, backgroundColor: 'white' }} id="print-receipt-section">
+              <PrintHeader showOnScreen={true} />
+              <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 'var(--fs-16, 16px)', margin: '16px 0', borderBottom: '1px solid black', paddingBottom: '4px' }}>
+                জমা রশিদ
+              </div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid black', fontSize: 'var(--fs-14, 14px)' }}>
+                <tbody>
+                  <tr>
+                    <td style={{ padding: '8px', border: '1px solid black', width: '40%' }}>Receipt No</td>
+                    <td style={{ padding: '8px', border: '1px solid black', width: '60%' }}>
+                      #{receiptModal.receipt_no || receiptModal.receipt_number || (receiptModal.id ? `RCP-${String(receiptModal.id).slice(0, 8)}` : 'N/A')}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '8px', border: '1px solid black' }}>তারিখ</td>
+                    <td style={{ padding: '8px', border: '1px solid black' }}>{receiptModal.date ? String(receiptModal.date).split('T')[0] : ''}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '8px', border: '1px solid black' }}>নাম</td>
+                    <td style={{ padding: '8px', border: '1px solid black' }}>{receiptModal.client_name}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '8px', border: '1px solid black' }}>মোবাইল</td>
+                    <td style={{ padding: '8px', border: '1px solid black' }}>{receiptModal.client?.phone || receiptModal.client?.mobile || '-'}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '8px', border: '1px solid black' }}>ঠিকানা</td>
+                    <td style={{ padding: '8px', border: '1px solid black' }}>{receiptModal.client?.address || '-'}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '8px', border: '1px solid black' }}>বিবরণ</td>
+                    <td style={{ padding: '8px', border: '1px solid black' }}>{receiptModal.reference || '-'}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '8px', border: '1px solid black' }}>জমা টাকা</td>
+                    <td style={{ padding: '8px', border: '1px solid black' }}>{Number(receiptModal.amount || 0).toFixed(2)}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '8px', border: '1px solid black' }}>বাকি</td>
+                    <td style={{ padding: '8px', border: '1px solid black' }}>{receiptModal.due}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer */}
+            <div style={{ padding: '16px 20px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: '10px', background: '#f8fafc' }}>
+              <button onClick={handlePrintReceipt} style={{ background: '#10b981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+                <Printer size={16} /> Print
+              </button>
+              <button onClick={() => { setReceiptModal(null); window.location.reload(); }} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+                <X size={16} /> Close & Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

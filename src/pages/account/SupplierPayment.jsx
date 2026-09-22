@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import SearchableSelect from '../../components/SearchableSelect';
 import ExpenseEditModal from './ExpenseEditModal';
 import { accountingService } from '../../services/accountingService';
+import { fmtDate } from '../../utils/apiHelpers';
 import { crmService } from '../../services/crmService';
 import { useToast } from '../../context/ToastContext';
 import CustomDatePicker from '../../components/CustomDatePicker';
@@ -256,7 +257,7 @@ const SupplierPayment = () => {
             {payments.map((item, index) => (
               <tr key={item.id || index}>
                 <td>{index + 1}</td>
-                <td>{item.date}</td>
+                <td>{fmtDate(item.date)}</td>
                 <td>{item.supplier_name || item.supplier?.name || t("Supplier")}</td>
                 <td>{item.id?.toString().slice(-6) || '-'}</td>
                 <td>{item.category_name || item.category?.name || '-'}</td>
@@ -465,3 +466,4 @@ const SupplierPayment = () => {
 };
 
 export default SupplierPayment;
+

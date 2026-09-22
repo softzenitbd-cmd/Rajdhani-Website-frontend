@@ -83,7 +83,7 @@ const StaffPaymentCreate = () => {
       account: form.account,
       category: form.category,
       amount: String(form.amount),
-      description: form.description || `${selectedStaff?.full_name || selectedStaff?.name || 'Staff'} ${form.payment_type}`,
+      description: form.description || `${selectedStaff?.full_name || selectedStaff?.user_details?.full_name || selectedStaff?.name || selectedStaff?.username || selectedStaff?.user_details?.username || 'Staff'} ${form.payment_type}`,
       date: form.date,
       status: 1,
     };
@@ -120,17 +120,27 @@ const StaffPaymentCreate = () => {
             <div>
               <label style={labelStyle}>{t("Staff *")}</label>
               <SearchableSelect
-                options={staff.map((s) => ({
-                  value: s.id || s.uuid,
-                  label: `${s.full_name || s.name}${(s.phone_number || s.phone) ? ` (${s.phone_number || s.phone})` : ''}`,
-                  searchValue: `${s.full_name || s.name} ${s.phone_number || s.phone || ''}`
-                }))}
+                options={staff.map((s) => {
+                  const u = s.user_details || s.user || {};
+                  const name = s.full_name || u.full_name || s.name || s.username || u.username || 'Staff';
+                  const phone = s.phone_number || s.phone || u.phone_number || u.phone;
+                  return {
+                    value: s.id || s.uuid,
+                    label: `${name}${phone ? ` (${phone})` : ''}`,
+                    searchValue: `${name} ${phone || ''}`
+                  };
+                })}
                 value={form.staff}
                 onChange={(val) => set('staff', val)}
                 placeholder={t("Select staff")}
               />
-              {selectedStaff?.salary !== undefined && selectedStaff?.salary !== null && (
-                <div style={{ fontSize: 'var(--fs-12, 12px)', color: '#64748b', marginTop: '4px' }}>{t("Monthly salary: ৳")} {money(selectedStaff.salary)}</div>
+              {selectedStaff && (
+                <div style={{ fontSize: 'var(--fs-13, 13px)', color: '#0f172a', marginTop: '8px', fontWeight: '600', padding: '8px', background: '#f8fafc', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ marginBottom: '4px' }}>{t("Monthly Salary")}: ৳ {money(selectedStaff.basic_salary || selectedStaff.salary || 0)}</div>
+                  <div style={{ color: Number(selectedStaff.basic_salary || selectedStaff.salary || 0) - Number(form.amount || 0) < 0 ? '#ef4444' : '#10b981' }}>
+                    {t("Monthly Due")}: ৳ {money(Number(selectedStaff.basic_salary || selectedStaff.salary || 0) - Number(form.amount || 0))}
+                  </div>
+                </div>
               )}
             </div>
             <div>

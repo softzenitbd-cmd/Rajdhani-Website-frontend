@@ -8,9 +8,9 @@ import { saleService } from '../../services/saleService';
 import { crmService } from '../../services/crmService';
 import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
-import { useConfirm } from '../../context/ConfirmContext';
 import { exportVisibleTable } from '../../utils/tableExport';
 import CustomDatePicker from '../../components/CustomDatePicker';
+import Pagination from '../../components/Pagination';
 import { companyStore, companyHeaderImage } from '../../services/companyStore';
 
 
@@ -37,7 +37,9 @@ const InvoiceList = () => {
   const [loading, setLoading] = useState(true);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
-  const [entriesLimit, setEntriesLimit] = useState('All');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit, setLimit] = useState(50);
+  const [totalCount, setTotalCount] = useState(0);
   const [companyInfo, setCompanyInfo] = useState(() => companyStore.getCached());
 
   useEffect(() => {
@@ -75,9 +77,10 @@ const InvoiceList = () => {
   const fetchInvoices = async () => {
     try {
       setLoading(true);
-      const res = await saleService.getSalesInvoices(filters);
+      const res = await saleService.getSalesInvoices({ ...filters, page: currentPage, page_size: limit });
       const data = Array.isArray(res) ? res : (res?.results || []);
       setInvoices(data);
+      setTotalCount(res?.count || data.length);
     } catch (err) {
       console.error("Error fetching sales invoices:", err);
       setInvoices([]);
@@ -92,11 +95,12 @@ const InvoiceList = () => {
 
   useEffect(() => {
     fetchInvoices();
-  }, [filters]);
+  }, [filters, currentPage, limit]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
+    setCurrentPage(1);
   };
 
   const handleClearFilters = () => {
@@ -108,6 +112,7 @@ const InvoiceList = () => {
       search: '',
       status: 1
     });
+    setCurrentPage(1);
   };
 
   const handleDeleteInvoice = async (inv) => {
@@ -136,7 +141,7 @@ const InvoiceList = () => {
     }
   };
 
-  const displayedInvoices = entriesLimit === 'All' ? invoices : invoices.slice(0, Number(entriesLimit));
+  const displayedInvoices = invoices;
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px', background: 'white' }}>
@@ -244,19 +249,7 @@ const InvoiceList = () => {
         {/* Toolbar Row: Show entries left, Export buttons right */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ fontSize: 'var(--fs-13, 13px)', color: '#334155', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span>Show</span>
-            <select 
-              value={entriesLimit} 
-              onChange={(e) => setEntriesLimit(e.target.value)}
-              style={{ padding: '4px 8px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: 'var(--fs-13, 13px)', outline: 'none', cursor: 'pointer' }}
-            >
-              <option value="All">All</option>
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-            </select>
-            <span>entries</span>
+            {t("Showing")} {displayedInvoices.length} {t("entries")}
           </div>
 
           <div style={{ display: 'flex', gap: '6px' }}>
@@ -315,6 +308,7 @@ const InvoiceList = () => {
             </thead>
             <tbody>
               {displayedInvoices.map((inv, index) => {
+                const globalIndex = (currentPage - 1) * limit + index + 1;
                 const clientObj = (clients || []).find(c => String(c.id) === String(inv.client || inv.client_id));
                 const clientName = inv.client_name || inv.clientName || (clientObj ? (clientObj.name || clientObj.company_name) : (inv.client === 'C.CASTOMER' ? 'C.CASTOMER' : (inv.client || 'C.CASTOMER')));
                 const clientPhone = clientObj?.phone || clientObj?.contact_person || '01';
@@ -328,7 +322,7 @@ const InvoiceList = () => {
 
                 return (
                   <tr key={inv.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-12, 12px)' }}>
-                    <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
+                    <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{globalIndex}</td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{formattedDate}</td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', lineHeight: '1.4' }}>
                       <div style={{ fontWeight: '500' }}>Name: {clientName}</div>
@@ -385,6 +379,13 @@ const InvoiceList = () => {
             </tbody>
           </table>
         </div>
+
+        <Pagination 
+          currentPage={currentPage}
+          totalItems={totalCount}
+          pageSize={limit}
+          onPageChange={setCurrentPage}
+        />
       </div>
 
       {/* POS / Printable Invoice Modal */}

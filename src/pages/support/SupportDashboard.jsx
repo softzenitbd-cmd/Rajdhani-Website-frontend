@@ -219,7 +219,7 @@ const SupportDashboard = () => {
                   ].map((inv, idx) => (
                     <tr key={idx} style={{ borderBottom: idx < 2 ? '1px solid #f1f5f9' : 'none' }}>
                       <td style={{ padding: '16px 0', color: '#10b981', fontWeight: '500' }}>{inv.id}</td>
-                      <td style={{ padding: '16px 0', color: '#0f172a' }}>{inv.date}</td>
+                      <td style={{ padding: '16px 0', color: '#0f172a' }}>{fmtDate(inv.date)}</td>
                       <td style={{ padding: '16px 0', color: '#0f172a', fontWeight: 'bold' }}>{inv.total}</td>
                       <td style={{ padding: '16px 0' }}>
                         <span style={{ background: inv.color, color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)' }}>{inv.status}</span>
@@ -251,3 +251,4 @@ const SupportDashboard = () => {
 };
 
 export default SupportDashboard;
+

@@ -360,6 +360,14 @@ const ReceiveList = () => {
                     <td style={{ padding: '8px', border: '1px solid black' }}>{receiptModal.client_name || receiptModal.client?.name || 'Walk-in'}</td>
                   </tr>
                   <tr>
+                    <td style={{ padding: '8px', border: '1px solid black' }}>মোবাইল</td>
+                    <td style={{ padding: '8px', border: '1px solid black' }}>{receiptModal.client?.phone || receiptModal.client?.mobile || '-'}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '8px', border: '1px solid black' }}>ঠিকানা</td>
+                    <td style={{ padding: '8px', border: '1px solid black' }}>{receiptModal.client?.address || '-'}</td>
+                  </tr>
+                  <tr>
                     <td style={{ padding: '8px', border: '1px solid black' }}>বিবরণ</td>
                     <td style={{ padding: '8px', border: '1px solid black' }}>{getDescription(receiptModal)}</td>
                   </tr>

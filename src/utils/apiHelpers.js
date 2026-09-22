@@ -21,12 +21,19 @@ export const today = () => {
   return `${d.getFullYear()}-${m}-${day}`;
 };
 
-/** "2026-09-12T10:00:00Z" → "12 Sep 2026" */
 export const fmtDate = (v) => {
   if (!v) return '-';
   const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return String(v).split('T')[0];
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  if (Number.isNaN(d.getTime())) {
+    // If it's already a string like "2026-09-22", try parsing it manually to reverse it
+    const parts = String(v).split('T')[0].split('-');
+    if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    return String(v).split('T')[0];
+  }
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
 };
 
 /** Pull a display name out of a relation that may be an id, a string or a nested object */

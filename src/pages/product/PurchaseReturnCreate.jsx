@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { Settings, Barcode, Calendar, Trash2, Plus, List } from 'lucide-react';
+import { List, Settings, Calendar, Barcode, Trash2, Edit, Plus, Search, CheckCircle, Save, X } from 'lucide-react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 import SearchableSelect from '../../components/SearchableSelect';
@@ -32,6 +32,7 @@ const PurchaseReturnCreate = () => {
   const [products, setProducts] = useState([]);
   const [items, setItems] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [receiptModal, setReceiptModal] = useState(null);
 
   const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
 
@@ -52,16 +53,51 @@ const PurchaseReturnCreate = () => {
 
       setSuppliers(supData);
       setProducts(prodData);
+      
+      return prodData; // Return products to be used in fetching existing return
     } catch (err) {
       toast.error(err?.message || t("Failed to load suppliers / products"));
       setSuppliers([]);
       setProducts([]);
+      return [];
     }
   };
 
   useEffect(() => {
-    fetchPrerequisites();
-  }, []);
+    const init = async () => {
+      const prodData = await fetchPrerequisites();
+      
+      if (id) {
+        try {
+          const ret = await purchaseService.getPurchaseReturnById(id);
+          setFormData(prev => ({
+            ...prev,
+            supplier: ret.supplier || ret.supplier_id || '',
+            date: ret.date ? ret.date.split('T')[0] : prev.date
+          }));
+          
+          if (ret.items && Array.isArray(ret.items)) {
+            const mappedItems = ret.items.map(item => {
+              const prod = prodData.find(p => String(p.id) === String(item.product));
+              return {
+                id: item.product, // Product UUID
+                itemId: item.id, // The specific item ID (for updating)
+                name: prod ? (prod.name || prod.title) : 'Product',
+                quantity: Number(item.quantity) || 1,
+                buyingPrice: Number(item.buying_price) || 0,
+                salePrice: Number(item.selling_price) || 0,
+                barcode: prod ? (prod.code || prod.barcode || `BC-${prod.id}`) : ''
+              };
+            });
+            setItems(mappedItems);
+          }
+        } catch (err) {
+          toast.error(err?.message || t("Failed to load return details."));
+        }
+      }
+    };
+    init();
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -170,6 +206,7 @@ const PurchaseReturnCreate = () => {
       total_due: Number(totalBuying).toFixed(2),
       status: 1,
       items: items.map(i => ({
+        ...(i.itemId ? { id: i.itemId } : {}),
         product: i.id,
         quantity: String(i.quantity),
         buying_price: Number(i.buyingPrice).toFixed(2),
@@ -180,9 +217,36 @@ const PurchaseReturnCreate = () => {
     };
 
     try {
-      await purchaseService.createPurchaseReturn(payload);
-      toast.success(t("Purchase Return created successfully!"));
-      navigate('/product/purchase-return/list');
+      let createdReturn;
+      if (id) {
+        createdReturn = await purchaseService.updatePurchaseReturn(id, payload);
+        toast.success(t("Purchase Return updated successfully!"));
+      } else {
+        createdReturn = await purchaseService.createPurchaseReturn(payload);
+        toast.success(t("Purchase Return created successfully!"));
+      }
+      
+      const supplierName = suppliers.find(s => String(s.id) === String(formData.supplier))?.name || 'Unknown';
+      const invoiceNum = createdReturn?.invoice || createdReturn?.invoice_no || 
+        (createdReturn?.id ? (String(createdReturn.id).length > 8 ? `RET-${String(createdReturn.id).split('-')[0]}` : createdReturn.id) : 'N/A');
+
+      setReceiptModal({
+        ...createdReturn,
+        supplierName,
+        date: formData.date,
+        items: payload.items.map(i => {
+           const productData = products.find(p => String(p.id) === String(i.product));
+           return {
+              name: productData?.name || productData?.title || 'Product',
+              quantity: i.quantity,
+              buyingPrice: i.buying_price,
+              total: i.total_buying_price
+           };
+        }),
+        total: payload.grand_total,
+        invoice: invoiceNum
+      });
+      
     } catch (err) {
       console.error("Error creating purchase return:", err);
       toast.error(err?.message || t("Failed to create purchase return."));
@@ -401,6 +465,85 @@ const PurchaseReturnCreate = () => {
         title={t("Add Supplier")}
         label={t("Supplier Name")}
       />
+
+      {/* Return Voucher Modal on Success */}
+      {receiptModal && (
+        <div className="printable-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="printable-modal-content" style={{ background: 'white', width: '700px', maxWidth: '95vw', borderRadius: '12px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', maxHeight: '90vh', overflowY: 'auto' }}>
+            
+            <PrintHeader showOnScreen={true} />
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '2px solid #0ea5e9', paddingBottom: '12px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', color: '#0f172a' }}>{t("Purchase Return Voucher")}</h3>
+                <span style={{ fontSize: 'var(--fs-13, 13px)', color: '#64748b', fontWeight: '600' }}>{t("Invoice #")}{receiptModal.invoice}</span>
+              </div>
+              <button onClick={() => { setReceiptModal(null); window.location.reload(); }} className="no-print" style={{ border: 'none', background: '#f1f5f9', padding: '6px', borderRadius: '50%', cursor: 'pointer', color: '#64748b' }}><X size={20} /></button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: 'var(--fs-13, 13px)', marginBottom: '20px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <div><strong>{t("Supplier Name:")}</strong> {receiptModal.supplierName}</div>
+              <div><strong>{t("Return Date:")}</strong> {receiptModal.date}</div>
+              <div><strong>{t("Invoice Number:")}</strong> {receiptModal.invoice}</div>
+              <div><strong>{t("Grand Total:")}</strong> <span style={{ color: '#ef4444', fontWeight: 'bold' }}>৳ {receiptModal.total}</span></div>
+            </div>
+
+            {receiptModal.items && receiptModal.items.length > 0 && (
+              <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px', fontSize: 'var(--fs-13, 13px)' }}>
+                <thead>
+                  <tr style={{ background: '#1e293b', color: 'white' }}>
+                    <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', width: '40px' }}>{t("SL")}</th>
+                    <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'left' }}>{t("Product Name")}</th>
+                    <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', width: '60px' }}>{t("Qty")}</th>
+                    <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'right', width: '100px' }}>{t("Rate")}</th>
+                    <th style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'right', width: '110px' }}>{t("Total")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {receiptModal.items.map((item, idx) => (
+                    <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>{idx + 1}</td>
+                      <td style={{ padding: '8px', border: '1px solid #e2e8f0', fontWeight: '500' }}>{item.name}</td>
+                      <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>{item.quantity}</td>
+                      <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right' }}>৳ {(Number(item.buyingPrice) || 0).toFixed(2)}</td>
+                      <td style={{ padding: '8px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 'bold' }}>৳ {(Number(item.total) || 0).toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr style={{ background: '#f1f5f9', fontWeight: 'bold' }}>
+                    <td colSpan="2" style={{ padding: '10px', textAlign: 'right', border: '1px solid #cbd5e1' }}>{t("Total Amount")}</td>
+                    <td style={{ padding: '10px', textAlign: 'center', border: '1px solid #cbd5e1' }}>
+                      {receiptModal.items.reduce((s, i) => s + (Number(i.quantity) || 0), 0)}
+                    </td>
+                    <td style={{ border: '1px solid #cbd5e1' }}></td>
+                    <td style={{ padding: '10px', textAlign: 'right', border: '1px solid #cbd5e1', color: '#059669', fontSize: 'var(--fs-14, 14px)' }}>৳ {receiptModal.total}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            )}
+
+            {/* Signature Footer for Print */}
+            <div className="print-only" style={{ display: 'none', justifyContent: 'space-between', marginTop: '60px', paddingTop: '20px' }}>
+              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: 'var(--fs-12, 12px)' }}>
+                {t("Supplier / Receiver Signature")}
+              </div>
+              <div style={{ textAlign: 'center', borderTop: '1px solid #94a3b8', width: '180px', paddingTop: '4px', fontSize: 'var(--fs-12, 12px)' }}>
+                {t("Authorized Signature")}
+              </div>
+            </div>
+
+            <div className="no-print" style={{ textAlign: 'right', marginTop: '16px' }}>
+              <button onClick={() => window.print()} className="btn" style={{ background: 'var(--success)', color: 'white', padding: '10px 24px', borderRadius: '6px', marginRight: '8px', fontWeight: '600' }}>
+                {t("🖨️ Print Memo")}
+              </button>
+              <button onClick={() => { setReceiptModal(null); window.location.reload(); }} className="btn" style={{ background: '#64748b', color: 'white', padding: '10px 20px', borderRadius: '6px' }}>
+                {t("Close & Continue")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
