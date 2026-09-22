@@ -481,7 +481,20 @@ const ClientList = () => {
                           <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Receive")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'collection', 'receive', 'payment', 'paid', 'total_receive').toFixed(2)}</td></tr>
                           <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Sales Return")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'sales_return', 'return_amount').toFixed(2)}</td></tr>
                           <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Money Return")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'money_return', 'return').toFixed(2)}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}><span style={{ background: '#ef4444', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>{t("Due")}</span></td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0', fontWeight: 'bold' }}>{num(client, 'due', 'current_due', 'balance').toFixed(2)}</td></tr>
+                          <tr>
+                            <td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Due")}</td>
+                            <td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0', fontWeight: 'bold' }}>
+                              <span style={{ 
+                                color: num(client, 'due', 'current_due', 'balance') > 0 ? '#dc2626' : '#059669', 
+                                background: num(client, 'due', 'current_due', 'balance') > 0 ? '#fee2e2' : '#dcfce7',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                display: 'inline-block'
+                              }}>
+                                {num(client, 'due', 'current_due', 'balance').toFixed(2)}
+                              </span>
+                            </td>
+                          </tr>
                           <tr 
                             style={{ cursor: 'pointer', transition: 'background 0.2s' }} 
                             onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
