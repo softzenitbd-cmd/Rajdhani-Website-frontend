@@ -482,17 +482,18 @@ const ClientList = () => {
                           <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Sales Return")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'sales_return', 'return_amount').toFixed(2)}</td></tr>
                           <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Money Return")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'money_return', 'return').toFixed(2)}</td></tr>
                           <tr>
-                            <td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Due")}</td>
-                            <td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0', fontWeight: 'bold' }}>
+                            <td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>
                               <span style={{ 
-                                color: num(client, 'due', 'current_due', 'balance') > 0 ? '#dc2626' : '#059669', 
-                                background: num(client, 'due', 'current_due', 'balance') > 0 ? '#fee2e2' : '#dcfce7',
-                                padding: '2px 6px',
-                                borderRadius: '4px',
-                                display: 'inline-block'
+                                background: num(client, 'due', 'current_due', 'balance') > 0 ? '#ef4444' : num(client, 'due', 'current_due', 'balance') < 0 ? '#10b981' : '#64748b', 
+                                color: 'white', 
+                                padding: '2px 6px', 
+                                borderRadius: '4px' 
                               }}>
-                                {num(client, 'due', 'current_due', 'balance').toFixed(2)}
+                                {num(client, 'due', 'current_due', 'balance') < 0 ? t("Advance") : t("Due")}
                               </span>
+                            </td>
+                            <td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0', fontWeight: 'bold' }}>
+                              {Math.abs(num(client, 'due', 'current_due', 'balance')).toFixed(2)}
                             </td>
                           </tr>
                           <tr 
@@ -856,13 +857,15 @@ const ClientList = () => {
 
                 {/* Total Due */}
                 <div style={{ display: 'grid', gridTemplateColumns: '120px 15px 1fr', alignItems: 'center', paddingTop: '4px', borderTop: '1px dashed #cbd5e1' }}>
-                  <span style={{ fontWeight: '700', color: '#1e293b' }}>{t("Total Due")}</span>
+                  <span style={{ fontWeight: '700', color: '#1e293b' }}>
+                    {Number(viewClient.due || viewClient.previous_due || 0) < 0 ? t("Total Advance") : t("Total Due")}
+                  </span>
                   <span style={{ color: '#94a3b8' }}>:</span>
                   <div>
                     <span 
                       style={{ 
-                        color: Number(viewClient.due || viewClient.previous_due || 0) > 0 ? '#dc2626' : '#059669', 
-                        background: Number(viewClient.due || viewClient.previous_due || 0) > 0 ? '#fee2e2' : '#dcfce7',
+                        background: Number(viewClient.due || viewClient.previous_due || 0) > 0 ? '#ef4444' : Number(viewClient.due || viewClient.previous_due || 0) < 0 ? '#10b981' : '#64748b', 
+                        color: 'white',
                         fontWeight: '700', 
                         fontSize: 'var(--fs-14, 14px)',
                         padding: '3px 10px',
@@ -870,7 +873,7 @@ const ClientList = () => {
                         display: 'inline-block'
                       }}
                     >
-                      ৳ {Number(viewClient.due || viewClient.previous_due || 0).toFixed(2)}
+                      ৳ {Math.abs(Number(viewClient.due || viewClient.previous_due || 0)).toFixed(2)}
                     </span>
                   </div>
                 </div>
