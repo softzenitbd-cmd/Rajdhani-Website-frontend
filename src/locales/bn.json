@@ -1431,5 +1431,7 @@
   "Update Expense": "খরচ আপডেট করুন",
   "Add New Expense Category": "নতুন খরচ ক্যাটাগরি যোগ করুন",
   "Failed to update expense": "খরচ আপডেট করতে ব্যর্থ হয়েছে",
-  "Staff Payment": "স্টাফ পেমেন্ট"
+  "Staff Payment": "স্টাফ পেমেন্ট",
+  "sidebar.money_return_list": "মানি রিটার্ন লিস্ট",
+  "Search Category...": "ক্যাটাগরি খুঁজুন..."
 }

@@ -266,6 +266,7 @@ const MoneyReturn = () => {
                       setFormData((prev) => ({ ...prev, categoryId: val }))
                     }
                     placeholder={t("Select Category")}
+                    searchPlaceholder={t("Search Category...")}
                     onAddClick={() => navigate("/settings/expense-category")}
                   />
                 </div>
