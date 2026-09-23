@@ -129,7 +129,7 @@ const ExpenseEditModal = ({ isOpen, expense, onClose, onSuccess }) => {
 
   // Determine clean display ID
   const rawId = expense.reference || expense.id_no || expense.id || '';
-  const displayId = String(rawId).length > 12 ? String(rawId).slice(0, 8) : String(rawId);
+  const displayId = String(rawId).length > 12 ? String(rawId).replace(/\D/g, '').padEnd(6, '0').slice(0, 6) : String(rawId);
 
   return (
     <>

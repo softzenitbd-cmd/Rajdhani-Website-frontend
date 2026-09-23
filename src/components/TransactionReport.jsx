@@ -162,7 +162,7 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
       <tr key={r.id || i} style={{ borderBottom: '1px solid #e2e8f0' }}>
         <td style={{ padding: '8px', textAlign: 'center' }}>{globalIndex}</td>
         <td style={{ padding: '8px', textAlign: 'center' }}>{fmtDate(r.date)}</td>
-        <td style={{ padding: '8px', textAlign: 'center' }}>{r.invoice_id || r.voucher_no || r.reference || (r.id ? '#' + String(r.id).slice(0, 8).toUpperCase() : '-')}</td>
+        <td style={{ padding: '8px', textAlign: 'center' }}>{r.invoice_id || r.voucher_no || r.reference || (r.id ? String(r.id).replace(/\D/g, '').padEnd(6, '0').slice(0, 6).toUpperCase() : '-')}</td>
         <td style={{ padding: '8px' }}>{partyName(r)}</td>
         <td style={{ padding: '8px', textAlign: 'center' }}>{categoryName(r)}</td>
         <td style={{ padding: '8px', textAlign: 'center' }}>{accountName(r)}</td>

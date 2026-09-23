@@ -228,7 +228,7 @@ const PurchaseReturnCreate = () => {
       
       const supplierName = suppliers.find(s => String(s.id) === String(formData.supplier))?.name || 'Unknown';
       const invoiceNum = createdReturn?.invoice || createdReturn?.invoice_no || 
-        (createdReturn?.id ? (String(createdReturn.id).length > 8 ? `RET-${String(createdReturn.id).split('-')[0]}` : createdReturn.id) : 'N/A');
+        (createdReturn?.id ? (String(createdReturn.id).length > 8 ? `RET-${String(createdReturn.id).replace(/\D/g, '').padEnd(6, '0').slice(0, 6)}` : createdReturn.id) : 'N/A');
 
       setReceiptModal({
         ...createdReturn,

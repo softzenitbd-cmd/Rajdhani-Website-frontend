@@ -261,7 +261,7 @@ const MoneyReturnList = () => {
                     <td style={cell}>{globalIndex}</td>
                     <td style={cell}>{fmtDate(row.date)}</td>
                     <td style={cell}>{receiptFor(row)}</td>
-                    <td style={cell} title={row.id}>{row.reference || row.idNo || (row.id ? '#' + String(row.id).split('-')[0].toUpperCase() : (globalIndex).toString().padStart(4, '0'))}</td>
+                    <td style={cell} title={row.id}>{row.reference || row.idNo || (row.id ? String(row.id).replace(/\D/g, '').padEnd(6, '0').slice(0, 6) : (globalIndex).toString().padStart(4, '0'))}</td>
                     <td style={cell}>{row.category_name || row.category || ''}</td>
                     <td style={cell}>{row.account_name || row.account || ''}</td>
                     <td style={cell}>{row.cheque_no || ''}</td>

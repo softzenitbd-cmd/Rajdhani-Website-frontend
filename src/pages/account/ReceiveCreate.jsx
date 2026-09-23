@@ -410,7 +410,7 @@ const ReceiveCreate = () => {
                   <tr>
                     <td style={{ padding: '8px', border: '1px solid black', width: '40%' }}>Receipt No</td>
                     <td style={{ padding: '8px', border: '1px solid black', width: '60%' }}>
-                      #{receiptModal.receipt_no || receiptModal.receipt_number || (receiptModal.id ? `RCP-${String(receiptModal.id).slice(0, 8)}` : 'N/A')}
+                      #{receiptModal.receipt_no || receiptModal.receipt_number || (receiptModal.id ? `RCP-${String(receiptModal.id).replace(/\D/g, '').padEnd(6, '0').slice(0, 6)}` : 'N/A')}
                     </td>
                   </tr>
                   <tr>

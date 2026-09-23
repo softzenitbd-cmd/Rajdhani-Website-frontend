@@ -122,14 +122,14 @@ const ReceiveList = () => {
       if (typeof row.invoice === 'string') return row.invoice;
       if (row.invoice.invoice_number) return row.invoice.invoice_number;
       if (row.invoice.invoice_id) return row.invoice.invoice_id;
-      if (row.invoice.id) return String(row.invoice.id).slice(0, 8);
+      if (row.invoice.id) return String(row.invoice.id).replace(/\D/g, '').padEnd(6, '0').slice(0, 6);
     }
     if (row.sale_invoice) return row.sale_invoice;
     if (row.transaction_type === 'Invoice' || row.type === 'Invoice') {
       if (row.reference && (String(row.reference).startsWith('INV') || String(row.reference).startsWith('Invoice') || String(row.reference).includes('Payment for'))) {
         return String(row.reference).replace('Payment for ', '');
       }
-      if (row.id) return `INV-${String(row.id).slice(0, 8)}`;
+      if (row.id) return `INV-${String(row.id).replace(/\D/g, '').padEnd(6, '0').slice(0, 6)}`;
     }
     return '-';
   };
@@ -138,7 +138,7 @@ const ReceiveList = () => {
     if (row.receipt_no) return row.receipt_no;
     if (row.receipt_number) return row.receipt_number;
     if (row.voucher_no) return row.voucher_no;
-    if (row.id) return `RCP-${String(row.id).slice(0, 8)}`;
+    if (row.id) return `RCP-${String(row.id).replace(/\D/g, '').padEnd(6, '0').slice(0, 6)}`;
     return '-';
   };
 

@@ -218,7 +218,7 @@ const ClientStatement = () => {
         let cleanDescription = r.description || r.reference || '-';
 
         if (matchedInvoice) {
-          const invNo = matchedInvoice.invoice_no || matchedInvoice.invoice_id || matchedInvoice.voucher || (matchedInvoice.id ? `INV-${String(matchedInvoice.id).slice(0, 8)}` : '');
+          const invNo = matchedInvoice.invoice_no || matchedInvoice.invoice_id || matchedInvoice.voucher || (matchedInvoice.id ? `INV-${String(matchedInvoice.id).replace(/\D/g, '').padEnd(6, '0').slice(0, 6)}` : '');
           if (invNo) cleanDescription = `Invoice: ${invNo}`;
 
           const rawItems = Array.isArray(matchedInvoice.items) && matchedInvoice.items.length > 0
@@ -252,7 +252,7 @@ const ClientStatement = () => {
             });
           }
         } else if (matchedReturn) {
-          const retNo = matchedReturn.return_no || matchedReturn.reference || (matchedReturn.id ? `SR-${String(matchedReturn.id).slice(0, 8)}` : '');
+          const retNo = matchedReturn.return_no || matchedReturn.reference || (matchedReturn.id ? `SR-${String(matchedReturn.id).replace(/\D/g, '').padEnd(6, '0').slice(0, 6)}` : '');
           if (retNo) cleanDescription = `Return: ${retNo}`;
 
           const rawItems = Array.isArray(matchedReturn.items) ? matchedReturn.items : [];

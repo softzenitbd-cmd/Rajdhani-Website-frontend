@@ -100,7 +100,7 @@ const SupplierStatement = () => {
             id: p.id || p.uuid,
             date: p.invoice_date || p.date || p.created_at,
             type: t('Purchase'),
-            reference: p.invoice_number || p.invoice_no || p.reference || (p.id ? `INV-${String(p.id).slice(0, 8)}` : '-'),
+            reference: p.invoice_number || p.invoice_no || p.reference || (p.id ? `INV-${String(p.id).replace(/\D/g, '').padEnd(6, '0').slice(0, 6)}` : '-'),
             debit: Number(p.grand_total || p.total_amount || p.net_total || p.total || 0),
             credit: 0,
           });

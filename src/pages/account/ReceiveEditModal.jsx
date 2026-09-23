@@ -181,7 +181,7 @@ const ReceiveEditModal = ({ isOpen, receive, onClose, onSuccess }) => {
 
   // Determine clean display ID
   const rawId = receive.receipt_no || receive.invoice_no || receive.id_no || receive.id || '';
-  const displayId = String(rawId).length > 12 ? String(rawId).slice(0, 8) : String(rawId);
+  const displayId = String(rawId).length > 12 ? String(rawId).replace(/\D/g, '').padEnd(6, '0').slice(0, 6) : String(rawId);
 
   return (
     <>

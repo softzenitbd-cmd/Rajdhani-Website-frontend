@@ -88,7 +88,7 @@ const MoneyReturn = () => {
 
       if (formData.clientId) payload.client = formData.clientId;
       if (formData.categoryId) payload.category = formData.categoryId;
-      if (formData.description) payload.reference = formData.description;
+      if (formData.description) payload.description = formData.description;
 
       await accountingService.createExpense(payload);
       toast.success(t("Money Return recorded successfully!"));

@@ -60,7 +60,7 @@ const SalesCustomerWise = () => {
         map.set(key, {
           key,
           date: row.date || row.issued_date || inv.date,
-          voucher: inv.invoice_id || inv.invoice_no || row.invoice_no || row.voucher || String(key).slice(0, 8),
+          voucher: inv.invoice_id || inv.invoice_no || row.invoice_no || row.voucher || String(key).replace(/\D/g, '').padEnd(6, '0').slice(0, 6),
           client: nameOf(row.client_name || row.client?.client_name || row.client, ''),
           items: [],
           total: 0,
