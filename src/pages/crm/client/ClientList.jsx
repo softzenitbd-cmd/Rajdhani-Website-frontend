@@ -157,12 +157,12 @@ const CollectionDateModal = ({ isOpen, onClose, client, onUpdate }) => {
 
 const num = (obj, ...keys) => {
   for (const k of keys) {
-    if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') {
-      const n = Number(obj[k]);
-      if (!isNaN(n)) return n;
-    }
     if (obj.stats && obj.stats[k] !== undefined && obj.stats[k] !== null && obj.stats[k] !== '') {
       const n = Number(obj.stats[k]);
+      if (!isNaN(n)) return n;
+    }
+    if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') {
+      const n = Number(obj[k]);
       if (!isNaN(n)) return n;
     }
   }
@@ -280,6 +280,7 @@ const ClientList = () => {
       try {
         const statsRes = await crmService.getClientDueReport();
         const statsData = statsRes.results || statsRes.data || statsRes || [];
+        console.log("DEBUG STATS:", JSON.stringify(statsData.slice(0, 5)));
         
         const updatedClients = fetchedClients.map(client => {
           const clientStats = statsData.find(s => String(s.client_id || s.id || s.uuid) === String(client.id || client.uuid));
@@ -447,6 +448,25 @@ const ClientList = () => {
               ) : (
                 filteredClients.map((client, index) => {
                   const globalIndex = (currentPage - 1) * limit + index + 1;
+                  
+                  // Calculate amounts for the Details table
+                  // Note: stats.previous_due often contains the CURRENT due from the report API,
+                  // so we bypass stats and read directly from the base client object for the true Opening Balance.
+                  const prevDue = Number(client.opening_balance ?? client.opening_due ?? client.previous_due ?? 0);
+                  const bill = num(client, 'sales', 'sales_amount', 'total_sales', 'bill');
+                  const totalBill = num(client, 'total_bill') || (prevDue + bill);
+                  const receive = num(client, 'collection', 'receive', 'payment', 'paid', 'total_receive', 'amount_received');
+                  const salesReturn = num(client, 'sales_return', 'return_amount');
+                  const moneyReturn = num(client, 'money_return', 'return');
+                  
+                  // The API 'due' field is unreliable (often returns 0), 
+                  // so we must calculate it manually from the visible fields.
+                  const apiDue = num(client, 'due', 'current_due', 'balance', 'total_due', 'due_amount');
+                  const calculatedDue = totalBill - receive - salesReturn + moneyReturn;
+                  
+                  // Use API due if available and non-zero, otherwise fallback to calculated
+                  const finalDue = apiDue !== 0 ? apiDue : calculatedDue;
+
                   return (
                   <tr key={client.id || client.uuid || index}>
                     <td style={{ verticalAlign: 'top', paddingTop: '16px', textAlign: 'center' }}>{globalIndex}</td>
@@ -474,23 +494,23 @@ const ClientList = () => {
                     <td style={{ verticalAlign: 'top', padding: '0' }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-12, 12px)', border: '1px solid #94a3b8', textAlign: 'left' }}>
                         <tbody>
-                          <tr><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left', width: '50%' }}>{t("Previous Due")}</td><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{num(client, 'previous_due', 'opening_due', 'prevDue').toFixed(2)}</td></tr>
-                          <tr><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{t("Bill")}</td><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{num(client, 'sales', 'sales_amount', 'total_sales', 'bill').toFixed(2)}</td></tr>
-                          <tr><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{t("Total Bill")}</td><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{(num(client, 'total_bill') || (num(client, 'previous_due', 'opening_due', 'prevDue') + num(client, 'sales', 'sales_amount', 'total_sales', 'bill'))).toFixed(2)}</td></tr>
-                          <tr><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{t("Receive")}</td><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{num(client, 'collection', 'receive', 'payment', 'paid', 'total_receive').toFixed(2)}</td></tr>
-                          <tr><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{t("Sales Return")}</td><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{num(client, 'sales_return', 'return_amount').toFixed(2)}</td></tr>
-                          <tr><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{t("Money Return")}</td><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{num(client, 'money_return', 'return').toFixed(2)}</td></tr>
+                          <tr><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left', width: '50%' }}>{t("Previous Due")}</td><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{prevDue.toFixed(2)}</td></tr>
+                          <tr><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{t("Bill")}</td><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{bill.toFixed(2)}</td></tr>
+                          <tr><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{t("Total Bill")}</td><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{totalBill.toFixed(2)}</td></tr>
+                          <tr><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{t("Receive")}</td><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{receive.toFixed(2)}</td></tr>
+                          <tr><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{t("Sales Return")}</td><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{salesReturn.toFixed(2)}</td></tr>
+                          <tr><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{t("Money Return")}</td><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{moneyReturn.toFixed(2)}</td></tr>
                           <tr>
                             <td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>
                               <span style={{ 
-                                background: num(client, 'due', 'current_due', 'balance') > 0 ? '#ef4444' : num(client, 'due', 'current_due', 'balance') < 0 ? '#10b981' : '#64748b', 
+                                background: finalDue > 0 ? '#ef4444' : finalDue < 0 ? '#10b981' : '#64748b', 
                                 color: 'white', padding: '1px 6px', borderRadius: '4px' 
                               }}>
-                                {num(client, 'due', 'current_due', 'balance') < 0 ? t("Advance") : t("Due")}
+                                {finalDue < 0 ? t("Advance") : t("Due")}
                               </span>
                             </td>
                             <td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>
-                              {Math.abs(num(client, 'due', 'current_due', 'balance')).toFixed(2)}
+                              {Math.abs(finalDue).toFixed(2)}
                             </td>
                           </tr>
                           <tr 
@@ -684,7 +704,7 @@ const ClientList = () => {
 
                           {/* View Statement */}
                           <div 
-                            onClick={() => navigate('/crm/client-statement')} 
+                            onClick={() => navigate('/crm/client-statement', { state: { clientId: client.id || client.uuid } })} 
                             style={{ 
                               padding: '8px 12px', 
                               fontSize: 'var(--fs-13, 13px)', 

@@ -64,7 +64,6 @@ const DueCollectionDate = () => {
       const params = {};
       if (filters.searchAll) params.search = filters.searchAll;
       if (filters.clientGroup) params.group = filters.clientGroup;
-      if (filters.startDate) params.due_date = filters.startDate;
       
       const res = await crmService.getClients(params);
       const data = Array.isArray(res) ? res : (res?.results || []);
@@ -84,7 +83,17 @@ const DueCollectionDate = () => {
             due: stats.due !== undefined ? stats.due : client.due,
             due_date: client.due_date || stats.due_date
           };
-        }).filter(c => Number(c.due || c.previous_due || 0) > 0 && Boolean(c.due_date));
+        }).filter(c => {
+          const hasDue = Number(c.due || c.previous_due || 0) > 0;
+          const hasDate = Boolean(c.due_date);
+          if (!hasDue || !hasDate) return false;
+          
+          const cDate = String(c.due_date).split('T')[0];
+          if (filters.startDate && cDate < filters.startDate) return false;
+          if (filters.endDate && cDate > filters.endDate) return false;
+          
+          return true;
+        });
         setClients(mergedData);
       } catch (err) {
         console.error("Failed to fetch client stats", err);

@@ -8,6 +8,7 @@ import { saleService } from '../../services/saleService';
 import { crmService } from '../../services/crmService';
 import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 import { exportVisibleTable } from '../../utils/tableExport';
 import CustomDatePicker from '../../components/CustomDatePicker';
 import Pagination from '../../components/Pagination';

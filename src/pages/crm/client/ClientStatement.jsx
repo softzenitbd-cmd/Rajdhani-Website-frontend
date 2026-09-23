@@ -304,8 +304,25 @@ const ClientStatement = () => {
 
   const selectedClient = clients.find((c) => String(c.id || c.uuid) === String(filters.client));
 
-  // Running balance calculation
-  let running = Number(summary?.opening_balance || summary?.previous_due || selectedClient?.previous_due || 0);
+  // Calculate sum of all transactions first to find true opening balance
+  const sumOfTransactions = rows.reduce((acc, r) => {
+    const t = String(r.type || r.transaction_type || '').toLowerCase();
+    const debit = Number(r.debit ?? 0);
+    const credit = Number(r.credit ?? 0);
+    const isReturn = /return/.test(t) && !/money/.test(t);
+    const isMoneyReturn = /money|refund/.test(t);
+    const bill = Number(r.bill ?? r.grand_total ?? r.total ?? (r.debit !== undefined && !isMoneyReturn ? debit : 0));
+    const salesReturn = Number(r.sales_return ?? r.return_amount ?? (r.credit !== undefined && isReturn ? credit : 0));
+    const receive = Number(r.receive ?? r.payment ?? r.amount_received ?? (r.credit !== undefined && !isReturn ? credit : 0));
+    const moneyReturn = Number(r.money_return ?? (r.debit !== undefined && isMoneyReturn ? debit : 0));
+    return acc + bill - salesReturn - receive + moneyReturn;
+  }, 0);
+
+  // The true Opening Balance = Current Due - Sum of all transactions
+  const currentDue = Number(selectedClient?.due ?? selectedClient?.current_due ?? selectedClient?.total_due ?? selectedClient?.previous_due ?? summary?.due ?? 0);
+  const trueOpeningBalance = currentDue - sumOfTransactions;
+
+  let running = trueOpeningBalance;
   
   let computed = rows.slice(0, entries).map((r) => {
     const t = String(r.type || r.transaction_type || '').toLowerCase();
@@ -325,7 +342,7 @@ const ClientStatement = () => {
 
   // Prepend Opening Balance row if we have client context
   if (selectedClient && computed.length >= 0) {
-    const ob = Number(summary?.opening_balance || summary?.previous_due || selectedClient?.previous_due || 0);
+    const ob = trueOpeningBalance;
     computed = [
       {
         isOpening: true,

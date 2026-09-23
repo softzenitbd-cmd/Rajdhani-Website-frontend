@@ -85,7 +85,24 @@ const ReceiveCreate = () => {
     accountingService.getClientLedger(formData.clientId).then(ledgerRes => {
       const rawList = Array.isArray(ledgerRes) ? ledgerRes : (ledgerRes?.ledger || ledgerRes?.transactions || ledgerRes?.statement || ledgerRes?.results || []);
       const summary = ledgerRes && !Array.isArray(ledgerRes) ? ledgerRes : null;
-      let running = Number(summary?.opening_balance || summary?.previous_due || client?.previous_due || initialDue);
+      // Calculate sum of all transactions first to find true opening balance
+      const sumOfTransactions = rawList.reduce((acc, r) => {
+        const t = String(r.type || r.transaction_type || '').toLowerCase();
+        const debit = Number(r.debit ?? 0);
+        const credit = Number(r.credit ?? 0);
+        const isReturn = /return/.test(t) && !/money/.test(t);
+        const isMoneyReturn = /money|refund/.test(t);
+        const bill = Number(r.bill ?? r.grand_total ?? r.total ?? (r.debit !== undefined && !isMoneyReturn ? debit : 0));
+        const salesReturn = Number(r.sales_return ?? r.return_amount ?? (r.credit !== undefined && isReturn ? credit : 0));
+        const receive = Number(r.receive ?? r.payment ?? r.amount_received ?? (r.credit !== undefined && !isReturn ? credit : 0));
+        const moneyReturn = Number(r.money_return ?? (r.debit !== undefined && isMoneyReturn ? debit : 0));
+        return acc + bill - salesReturn - receive + moneyReturn;
+      }, 0);
+
+      // The true Opening Balance = Current Due - Sum of all transactions
+      const trueOpeningBalance = initialDue - sumOfTransactions;
+
+      let running = trueOpeningBalance;
       
       rawList.forEach(r => {
         const t = String(r.type || r.transaction_type || '').toLowerCase();
