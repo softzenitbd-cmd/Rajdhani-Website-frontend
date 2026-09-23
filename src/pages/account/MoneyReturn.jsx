@@ -92,7 +92,7 @@ const MoneyReturn = () => {
 
       await accountingService.createExpense(payload);
       toast.success(t("Money Return recorded successfully!"));
-      navigate("/account/expense-list");
+      navigate("/account/money-return-list");
     } catch (error) {
       console.error("Error submitting money return:", error);
       const errorDetail = error.response?.data
