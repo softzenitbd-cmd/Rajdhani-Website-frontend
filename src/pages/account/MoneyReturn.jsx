@@ -418,13 +418,15 @@ const MoneyReturn = () => {
         </div>
       </div>
 
-      <AddOptionModal
+      <ClientCreateModal
         isOpen={isClientModalOpen}
         onClose={() => setIsClientModalOpen(false)}
-        title={t("Quick Add Client")}
-        placeholder={t("Client Name")}
-        onSave={() => {
+        onClientAdded={(newClient) => {
           setIsClientModalOpen(false);
+          loadPrerequisites();
+          if (newClient && newClient.id) {
+            setFormData((prev) => ({ ...prev, clientId: newClient.id }));
+          }
         }}
       />
     </div>
