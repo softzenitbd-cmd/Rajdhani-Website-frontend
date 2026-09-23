@@ -433,10 +433,10 @@ const ClientList = () => {
           <table className="custom-table">
             <thead>
               <tr>
-                <th width="50">{t("ID NO")}</th>
-                <th width="300">{t("CLIENT DETAILS")}</th>
+                <th width="50" style={{ textAlign: 'center' }}>{t("ID ↕")}</th>
+                <th>{t("CUSTOMER DETAILS")}</th>
                 <th>{t("DETAILS")}</th>
-                <th width="100">{t("ACTION")}</th>
+                <th width="120" style={{ textAlign: 'center' }}>{t("ACTION")}</th>
               </tr>
             </thead>
             <tbody>
@@ -450,7 +450,6 @@ const ClientList = () => {
                   return (
                   <tr key={client.id || client.uuid || index}>
                     <td style={{ verticalAlign: 'top', paddingTop: '16px', textAlign: 'center' }}>{globalIndex}</td>
-                    
                     <td style={{ verticalAlign: 'top', paddingTop: '16px', fontSize: 'var(--fs-13, 13px)' }}>
                       <div style={{ display: 'grid', gridTemplateColumns: '110px 10px 1fr', gap: '4px', marginBottom: '4px', textAlign: 'left' }}>
                         <div style={{ fontWeight: '600' }}>{t("Name")}</div><div>:</div><div>{client.name || (client.details && client.details.name)}</div>
@@ -473,26 +472,24 @@ const ClientList = () => {
                     </td>
                     
                     <td style={{ verticalAlign: 'top', padding: '0' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-12, 12px)' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-12, 12px)', border: '1px solid #94a3b8', textAlign: 'left' }}>
                         <tbody>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Previous Due")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'previous_due', 'opening_due', 'prevDue').toFixed(2)}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Bill")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'sales', 'sales_amount', 'total_sales', 'bill').toFixed(2)}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Total Bill")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{(num(client, 'total_bill') || (num(client, 'previous_due', 'opening_due', 'prevDue') + num(client, 'sales', 'sales_amount', 'total_sales', 'bill'))).toFixed(2)}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Receive")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'collection', 'receive', 'payment', 'paid', 'total_receive').toFixed(2)}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Sales Return")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'sales_return', 'return_amount').toFixed(2)}</td></tr>
-                          <tr><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>{t("Money Return")}</td><td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0' }}>{num(client, 'money_return', 'return').toFixed(2)}</td></tr>
+                          <tr><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left', width: '50%' }}>{t("Previous Due")}</td><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{num(client, 'previous_due', 'opening_due', 'prevDue').toFixed(2)}</td></tr>
+                          <tr><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{t("Bill")}</td><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{num(client, 'sales', 'sales_amount', 'total_sales', 'bill').toFixed(2)}</td></tr>
+                          <tr><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{t("Total Bill")}</td><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{(num(client, 'total_bill') || (num(client, 'previous_due', 'opening_due', 'prevDue') + num(client, 'sales', 'sales_amount', 'total_sales', 'bill'))).toFixed(2)}</td></tr>
+                          <tr><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{t("Receive")}</td><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{num(client, 'collection', 'receive', 'payment', 'paid', 'total_receive').toFixed(2)}</td></tr>
+                          <tr><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{t("Sales Return")}</td><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{num(client, 'sales_return', 'return_amount').toFixed(2)}</td></tr>
+                          <tr><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{t("Money Return")}</td><td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{num(client, 'money_return', 'return').toFixed(2)}</td></tr>
                           <tr>
-                            <td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px' }}>
+                            <td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>
                               <span style={{ 
                                 background: num(client, 'due', 'current_due', 'balance') > 0 ? '#ef4444' : num(client, 'due', 'current_due', 'balance') < 0 ? '#10b981' : '#64748b', 
-                                color: 'white', 
-                                padding: '2px 6px', 
-                                borderRadius: '4px' 
+                                color: 'white', padding: '1px 6px', borderRadius: '4px' 
                               }}>
                                 {num(client, 'due', 'current_due', 'balance') < 0 ? t("Advance") : t("Due")}
                               </span>
                             </td>
-                            <td style={{ borderBottom: '1px solid #e2e8f0', padding: '6px 12px', borderLeft: '1px solid #e2e8f0', fontWeight: 'bold' }}>
+                            <td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>
                               {Math.abs(num(client, 'due', 'current_due', 'balance')).toFixed(2)}
                             </td>
                           </tr>
@@ -502,10 +499,10 @@ const ClientList = () => {
                             onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                             onClick={() => setDateModalClient(client)}
                           >
-                            <td style={{ padding: '6px 12px', borderBottom: '1px solid transparent' }}>{t("Collection Date")}</td>
-                            <td style={{ padding: '6px 12px', borderLeft: '1px solid #e2e8f0', borderBottom: '1px solid transparent' }}>
-                              <Calendar size={12} style={{ marginRight: '4px', display: 'inline-block', verticalAlign: 'middle', color: '#2563eb' }}/> 
-                              <span style={{ color: '#2563eb', fontWeight: '600', borderBottom: '1px dashed #2563eb' }}>
+                            <td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>{t("Collection Date")}</td>
+                            <td style={{ border: '1px solid #94a3b8', padding: '2px 8px', textAlign: 'left' }}>
+                              <Calendar size={12} style={{ marginRight: '4px', display: 'inline-block', verticalAlign: 'middle', color: '#1e293b' }}/> 
+                              <span style={{ color: '#1e293b', fontWeight: '600' }}>
                                 {client.due_date ? new Date(client.due_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : t('Set Date')}
                               </span>
                             </td>
@@ -515,27 +512,49 @@ const ClientList = () => {
                     </td>
                     
                     <td style={{ verticalAlign: 'top', paddingTop: '16px', position: 'relative' }} className="action-dropdown-container">
-                      <button 
-                        onClick={() => toggleAction(client.id || client.uuid)}
-                        className="btn" 
-                        style={{ 
-                          background: '#05cd99', 
-                          color: 'white', 
-                          padding: '6px 10px', 
-                          fontSize: 'var(--fs-12, 12px)', 
-                          fontWeight: '600',
-                          borderRadius: '6px', 
-                          width: '100%', 
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          border: 'none',
-                          cursor: 'pointer',
-                          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                        }}
-                      >
-                        {t("Action")} <ChevronDown size={14} />
-                      </button>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <button
+                          className="btn"
+                          style={{
+                            background: '#94a3b8',
+                            color: 'white',
+                            padding: '4px 8px',
+                            fontSize: 'var(--fs-12, 12px)',
+                            fontWeight: '600',
+                            borderRadius: '4px',
+                            border: 'none',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px'
+                          }}
+                          onClick={() => toast.info(t("Wallet Update Coming Soon!"))}
+                        >
+                          <div style={{ width: '12px', height: '12px', border: '2px solid white', borderRadius: '2px' }}></div> {t("Update Wallet")}
+                        </button>
+                        <button 
+                          onClick={() => toggleAction(client.id || client.uuid)}
+                          className="btn" 
+                          style={{ 
+                            background: '#05cd99', 
+                            color: 'white', 
+                            padding: '6px 10px', 
+                            fontSize: 'var(--fs-12, 12px)', 
+                            fontWeight: '600',
+                            borderRadius: '4px', 
+                            width: '100%', 
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            border: 'none',
+                            cursor: 'pointer',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                          }}
+                        >
+                          {t("Action")} <ChevronDown size={14} />
+                        </button>
+                      </div>
                     
                       {activeAction === (client.id || client.uuid) && (
                         <div 
