@@ -536,9 +536,8 @@ const InvoiceCreate = () => {
           <form onSubmit={(e) => e.preventDefault()}>
             {/* Top Row: Customer Selection, Date & Time */}
             <div
-              className="form-grid"
+              className="form-grid invoice-top-grid"
               style={{
-                gridTemplateColumns: "2fr 1fr 1fr",
                 gap: "16px",
                 marginBottom: "24px",
               }}
@@ -649,11 +648,10 @@ const InvoiceCreate = () => {
 
             {/* Second Row: Barcode & Product Selection */}
             <div
-              className="form-grid"
+              className="form-grid invoice-mid-grid"
               style={{
-                gridTemplateColumns: "1fr 1fr",
                 gap: "16px",
-                marginBottom: "150px",
+                marginBottom: "24px",
                 position: "relative",
               }}
             >
@@ -932,9 +930,8 @@ const InvoiceCreate = () => {
 
             {/* Bottom Section */}
             <div
-              className="form-grid"
+              className="form-grid invoice-bottom-grid"
               style={{
-                gridTemplateColumns: "1fr 1fr",
                 gap: "24px",
                 marginBottom: "24px",
               }}
