@@ -558,6 +558,9 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
                     <NavLink to="/account/money-return" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.money_return')}
                     </NavLink>
+                    <NavLink to="/account/money-return-list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                      <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.money_return_list') || 'মানি রিটার্ন লিস্ট'}
+                    </NavLink>
                   </div>
                 )}
               </div>
