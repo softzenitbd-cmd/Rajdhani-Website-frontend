@@ -489,7 +489,7 @@ html[lang="bn"] textarea {
 }
 
 .mobile-menu-btn {
-  display: none !important;
+  display: inline-block;
 }
 
 /* Responsive Media Queries */
@@ -504,7 +504,7 @@ html[lang="bn"] textarea {
 
 @media (max-width: 900px) {
   .mobile-menu-btn {
-    display: inline-block !important;
+    display: inline-block;
   }
   .app-layout {
     position: relative;
