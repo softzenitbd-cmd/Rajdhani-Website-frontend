@@ -337,6 +337,7 @@ const PurchaseReturnCreate = () => {
                   }}
                   clearOnSelect={true}
                   hideOptionsUntilSearch={true}
+                  pushContentBelow={true}
                   placeholder={t("Select Product to Return")}
                   onAddClick={() => setIsProductModalOpen(true)}
                 />

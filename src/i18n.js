@@ -223,11 +223,12 @@ const resources = {
         "user_permissions": "User Permissions"
       },
       "invoice": {
-        "top_banner_shortcut": "ADD INVOICE | CTRL + S = SAVE | ALT + S = SAVE & PRINT | CTRL + D = SAVE AS DRAFT",
+        "page_title": "ADD INVOICE",
+        "shortcut_hint": " | CTRL + S = SAVE | ALT + S = SAVE & PRINT | CTRL + D = SAVE AS DRAFT",
         "select_customer": "Select Customer / Client",
         "issued_date": "Issued Date",
         "barcode_header": "Barcode Number",
-        "barcode_placeholder": "Scan Barcode & Press Enter",
+        "barcode_placeholder": "Barcode Number",
         "select_product": "Select Product",
         "sl": "SL",
         "product": "PRODUCT",
@@ -557,7 +558,8 @@ const resources = {
         "user_permissions": "ইউজার পারমিশন"
       },
       "invoice": {
-        "top_banner_shortcut": "ইনভয়েস যুক্ত করুন | CTRL + S = সংরক্ষণ | ALT + S = সংরক্ষণ & প্রিন্ট | CTRL + D = ড্রাফ্ট হিসেবে সংরক্ষণ",
+        "page_title": "ইনভয়েস যুক্ত করুন",
+        "shortcut_hint": " | CTRL + S = সংরক্ষণ | ALT + S = সংরক্ষণ & প্রিন্ট | CTRL + D = ড্রাফ্ট হিসেবে সংরক্ষণ",
         "select_customer": "কাস্টমার নির্বাচন করুন",
         "issued_date": "প্রদান এর তারিখ",
         "barcode_header": "বারকোড নাম্বার",

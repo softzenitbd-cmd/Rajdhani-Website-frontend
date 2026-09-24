@@ -407,6 +407,7 @@ const PurchaseCreate = () => {
                   }}
                   clearOnSelect={true}
                   hideOptionsUntilSearch={true}
+                  pushContentBelow={true}
                   placeholder={t("Select Product")}
                   onAddClick={() => setIsProductModalOpen(true)}
                 />

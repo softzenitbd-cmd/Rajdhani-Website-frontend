@@ -1453,16 +1453,19 @@ html[lang="bn"] textarea {
 .custom-datepicker-wrapper .react-datepicker-wrapper { display: block; width: 100%; height: 100%; }
 .custom-datepicker-input { width: 100%; box-sizing: border-box; }
 .react-datepicker__input-container { width: 100%; height: 100%; }
-/* Desktop Grids for Invoice Create */
-.invoice-top-grid {
+/* Desktop Grids for Invoice Create.
+   These elements also carry `.form-grid`, whose `repeat(3, 1fr)` in
+   form-styles.css is loaded later — so they need the extra class in the
+   selector to win, otherwise every row gets a third, empty column. */
+.form-grid.invoice-top-grid {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
 }
-.invoice-mid-grid {
+.form-grid.invoice-mid-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
 }
-.invoice-bottom-grid {
+.form-grid.invoice-bottom-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
 }

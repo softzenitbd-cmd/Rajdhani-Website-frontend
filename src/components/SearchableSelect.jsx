@@ -20,6 +20,7 @@ const SearchableSelect = ({
   clearOnSelect = false,
   hideOptionsUntilSearch = false,
   searchPlaceholder = '',
+  pushContentBelow = false,
   className = '',
   style = {}
 }) => {
@@ -53,9 +54,15 @@ const SearchableSelect = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // A "type to search" select waits for 2 characters before listing anything,
+  // the same as the CRM this screen mirrors.
+  const MIN_SEARCH_CHARS = 2;
+  const needsMoreChars =
+    hideOptionsUntilSearch && searchTerm.trim().length < MIN_SEARCH_CHARS;
+
   // Filter options based on search term
   const filteredOptions = options.filter((opt) => {
-    if (hideOptionsUntilSearch && !searchTerm) return false;
+    if (needsMoreChars) return false;
     if (!searchTerm) return true;
     const query = searchTerm.toLowerCase();
     const labelMatch = (opt.label || '').toLowerCase().includes(query);
@@ -243,12 +250,15 @@ const SearchableSelect = ({
         )}
       </div>
 
-      {/* Dropdown Popup Container matching Image 2 */}
+      {/* Dropdown Popup Container matching Image 2.
+          `pushContentBelow` keeps the list in the flow so it moves whatever is
+          under it further down instead of covering it — the invoice product
+          picker needs that, otherwise the list hides the items table. */}
       {isOpen && !disabled && (
         <div
           style={{
-            position: 'absolute',
-            top: '100%',
+            position: pushContentBelow ? 'relative' : 'absolute',
+            top: pushContentBelow ? 'auto' : '100%',
             left: 0,
             right: 0,
             marginTop: '4px',
@@ -274,7 +284,7 @@ const SearchableSelect = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={searchPlaceholder || t('invoice.search_placeholder', 'Type name to search...')}
+              placeholder={searchPlaceholder}
               style={{
                 width: '100%',
                 padding: '5px 8px',
@@ -298,9 +308,9 @@ const SearchableSelect = ({
               fontSize: 'var(--fs-13, 13px)'
             }}
           >
-            {hideOptionsUntilSearch && !searchTerm ? (
-              <div style={{ padding: '12px', textAlign: 'center', color: '#94a3b8' }}>
-                {t("Type to search...")}
+            {needsMoreChars ? (
+              <div style={{ padding: '10px 12px', color: '#475569' }}>
+                {t("Please enter {{count}} or more characters", { count: MIN_SEARCH_CHARS })}
               </div>
             ) : filteredOptions.length === 0 ? (
               <div style={{ padding: '12px', textAlign: 'center', color: '#94a3b8' }}>

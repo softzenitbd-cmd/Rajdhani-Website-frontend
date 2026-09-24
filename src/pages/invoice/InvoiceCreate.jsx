@@ -521,12 +521,12 @@ const InvoiceCreate = () => {
             className="premium-title"
             style={{ fontSize: "var(--fs-14, 14px)", fontWeight: "bold" }}
           >
-            <span>{t("ADD INVOICE")}</span>
+            <span>{t("invoice.page_title", "ADD INVOICE")}</span>
             {/* Keyboard hints are meaningless on a phone — .desktop-shortcut-guide
                 is hidden below 768px (see index.css), same as on Sales Return. */}
             <span className="desktop-shortcut-guide">
               {t(
-                "invoice.top_banner_shortcut",
+                "invoice.shortcut_hint",
                 " | CTRL + S = SAVE | ALT + S = SAVE & PRINT | CTRL + D = SAVE AS DRAFT",
               )}
             </span>
@@ -544,7 +544,8 @@ const InvoiceCreate = () => {
               className="form-grid invoice-top-grid"
               style={{
                 gap: "16px",
-                marginBottom: "24px",
+                marginBottom: "18px",
+                alignItems: "start",
               }}
             >
               {/* Customer */}
@@ -572,15 +573,15 @@ const InvoiceCreate = () => {
                   )}
                   onAddClick={() => setIsClientModalOpen(true)}
                 />
+                {/* Kept in flow: as an absolutely positioned overhang it used
+                    to collide with the "Barcode Number" badge of the next row. */}
                 <div
                   style={{
-                    fontSize: "var(--fs-12, 12px)",
+                    fontSize: "var(--fs-11, 11px)",
                     fontWeight: "bold",
-                    marginTop: "4px",
+                    marginTop: "3px",
                     color: "#0f172a",
-                    position: "absolute",
-                    bottom: "-20px",
-                    left: "4px",
+                    paddingLeft: "4px",
                   }}
                 >
                   {t("common.due", "Due")}: {dueAmount.toFixed(0)}
@@ -656,7 +657,7 @@ const InvoiceCreate = () => {
               className="form-grid invoice-mid-grid"
               style={{
                 gap: "16px",
-                marginBottom: "24px",
+                marginBottom: "14px",
                 position: "relative",
               }}
             >
@@ -685,7 +686,7 @@ const InvoiceCreate = () => {
                     border: "1px solid #e2e8f0",
                     borderRadius: "4px",
                     overflow: "hidden",
-                    background: "var(--card-border)",
+                    background: "white",
                   }}
                 >
                   <div
@@ -736,6 +737,7 @@ const InvoiceCreate = () => {
                   }}
                   clearOnSelect={true}
                   hideOptionsUntilSearch={true}
+                  pushContentBelow={true}
                   placeholder={t("invoice.select_product", "Select Product")}
                   onAddClick={() => setIsProductModalOpen(true)}
                 />
@@ -748,7 +750,7 @@ const InvoiceCreate = () => {
               style={{
                 border: "1px solid #e2e8f0",
                 borderRadius: "6px",
-                marginBottom: "16px",
+                marginBottom: "12px",
                 overflowX: "auto",
               }}
             >
@@ -925,7 +927,7 @@ const InvoiceCreate = () => {
               style={{
                 textAlign: "center",
                 fontSize: "var(--fs-13, 13px)",
-                marginBottom: "24px",
+                marginBottom: "12px",
                 fontWeight: "bold",
               }}
             >
@@ -938,7 +940,7 @@ const InvoiceCreate = () => {
               className="form-grid invoice-bottom-grid"
               style={{
                 gap: "24px",
-                marginBottom: "24px",
+                marginBottom: "14px",
               }}
             >
               {/* Left Column - Accounts */}
@@ -1045,7 +1047,7 @@ const InvoiceCreate = () => {
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
-                      padding: "12px 16px",
+                      padding: "7px 14px",
                       borderBottom: "1px solid #e2e8f0",
                       fontSize: "var(--fs-14, 14px)",
                     }}
@@ -1060,7 +1062,7 @@ const InvoiceCreate = () => {
                       style={{
                         display: "flex",
                         justifyContent: "space-between",
-                        padding: "12px 16px",
+                        padding: "7px 14px",
                         borderBottom: "1px solid #e2e8f0",
                         fontSize: "var(--fs-14, 14px)",
                         color: "#dc2626",
@@ -1075,7 +1077,7 @@ const InvoiceCreate = () => {
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
-                      padding: "12px 16px",
+                      padding: "7px 14px",
                       borderBottom: "1px solid #e2e8f0",
                       fontSize: "var(--fs-14, 14px)",
                     }}
@@ -1087,7 +1089,7 @@ const InvoiceCreate = () => {
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
-                      padding: "12px 16px",
+                      padding: "7px 14px",
                       borderBottom: "1px solid #e2e8f0",
                       fontSize: "var(--fs-14, 14px)",
                       fontWeight: "bold",
@@ -1102,7 +1104,7 @@ const InvoiceCreate = () => {
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
-                      padding: "12px 16px",
+                      padding: "7px 14px",
                       borderBottom: "1px solid #e2e8f0",
                       fontSize: "var(--fs-14, 14px)",
                     }}
@@ -1116,7 +1118,7 @@ const InvoiceCreate = () => {
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
-                      padding: "12px 16px",
+                      padding: "7px 14px",
                       fontSize: "var(--fs-14, 14px)",
                       fontWeight: "bold",
                       color: "#ef4444",
