@@ -755,3 +755,35 @@ input:checked + .slider:before {
   color: var(--primary);
   font-weight: 600;
 }
+
+/* Compact forms for Desktop Mode / Small Laptops */
+@media (max-width: 1300px) {
+  .form-input.floating-label label {
+    font-size: 11px;
+    white-space: normal;
+    line-height: 1.1;
+  }
+  .form-input.floating-label input, 
+  .form-input.floating-label select {
+    padding-top: 16px;
+    padding-bottom: 4px;
+    font-size: 12px;
+  }
+  .form-input.floating-label input:focus ~ label, 
+  .form-input.floating-label input:not(:placeholder-shown) ~ label, 
+  .form-input.floating-label select:focus ~ label, 
+  .form-input.floating-label select:not([value=""]) ~ label {
+    font-size: 9px;
+    top: 10px;
+  }
+  .custom-datepicker-wrapper input {
+    padding: 8px !important;
+    font-size: 11px !important;
+  }
+  .form-group label {
+    font-size: 11px !important;
+  }
+  .btn {
+    font-size: 11px !important;
+  }
+}
