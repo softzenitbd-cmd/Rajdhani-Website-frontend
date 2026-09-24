@@ -10,7 +10,7 @@ import {
   Settings, LogOut, ChevronDown, ChevronRight, X, ShoppingCart
 } from 'lucide-react';
 
-const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
+const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -374,8 +374,12 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
       </div>
 
       <nav className="sidebar-nav" onClick={(e) => {
-        if (e.target.closest('a') && closeSidebar && window.innerWidth <= 900) {
-          closeSidebar();
+        if (e.target.closest('a')) {
+          if (window.innerWidth <= 900) {
+            if (closeSidebar) closeSidebar();
+          } else if (window.innerWidth <= 1300) {
+            if (setIsSidebarCollapsed) setIsSidebarCollapsed(true);
+          }
         }
       }}>
         <NavLink to="/dashboard" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>

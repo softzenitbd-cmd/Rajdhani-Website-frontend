@@ -103,7 +103,7 @@ const AppContent = () => {
 
   return (
     <div className="app-layout">
-      <Sidebar isOpen={isSidebarOpen} isCollapsed={isSidebarCollapsed} closeSidebar={closeSidebar} />
+      <Sidebar isOpen={isSidebarOpen} isCollapsed={isSidebarCollapsed} closeSidebar={closeSidebar} setIsSidebarCollapsed={setIsSidebarCollapsed} />
       <FloatingShortcutMenu />
       
       {/* Mobile Sidebar Overlay */}
