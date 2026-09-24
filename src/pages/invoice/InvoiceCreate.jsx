@@ -521,10 +521,15 @@ const InvoiceCreate = () => {
             className="premium-title"
             style={{ fontSize: "var(--fs-14, 14px)", fontWeight: "bold" }}
           >
-            {t(
-              "invoice.top_banner_shortcut",
-              "ADD INVOICE | CTRL + S = SAVE | ALT + S = SAVE & PRINT | CTRL + D = SAVE AS DRAFT",
-            )}
+            <span>{t("ADD INVOICE")}</span>
+            {/* Keyboard hints are meaningless on a phone — .desktop-shortcut-guide
+                is hidden below 768px (see index.css), same as on Sales Return. */}
+            <span className="desktop-shortcut-guide">
+              {t(
+                "invoice.top_banner_shortcut",
+                " | CTRL + S = SAVE | ALT + S = SAVE & PRINT | CTRL + D = SAVE AS DRAFT",
+              )}
+            </span>
           </h2>
         </div>
 
