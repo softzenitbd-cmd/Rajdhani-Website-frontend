@@ -32,6 +32,7 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
   const [allStaff, setAllStaff] = useState([]);
   const [allSuppliers, setAllSuppliers] = useState([]);
   const [allClients, setAllClients] = useState([]);
+  const [allAccounts, setAllAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [entries, setEntries] = useState(50);
   const [currentPage, setCurrentPage] = useState(1);
@@ -51,6 +52,7 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
     crmService.getClients({ page_size: 1000 }).then(r => setAllClients(toList(r))).catch(() => {});
     crmService.getSuppliers({ page_size: 1000 }).then(r => setAllSuppliers(toList(r))).catch(() => {});
     staffApi.getStaffList({ page_size: 1000 }).then(r => setAllStaff(toList(r))).catch(() => {});
+    accountingService.getAccounts().then(r => setAllAccounts(toList(r))).catch(() => {});
   }, [isDeposit, groupBy]);
 
   const load = async (f = { search, category, party, fromDate, toDate, page: currentPage, page_size: entries }) => {
@@ -105,7 +107,14 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
     }
   };
   const categoryName = (r) => nameOf(r.receive_category || r.expense_category || r.category_name || r.category || r.category_id, 'General');
-  const accountName = (r) => nameOf(r.account_name || r.account || r.account_id, 'Cash');
+  const accountName = (r) => {
+    const act = r.account_name || r.account?.name || r.account || r.account_id;
+    if (typeof act === 'string' && act.length > 20) {
+      const found = allAccounts.find(x => x.id === act || x.uuid === act);
+      if (found) return found.name || found.account_name || 'Cash';
+    }
+    return nameOf(act, 'Cash');
+  };
 
   const groups = useMemo(() => {
     if (!groupBy) return null;

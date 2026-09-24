@@ -75,7 +75,7 @@ const AppContent = () => {
   }, [location.pathname]);
 
   const toggleSidebar = () => {
-    if (window.innerWidth <= 1100) {
+    if (window.innerWidth <= 900) {
       setIsSidebarOpen(!isSidebarOpen);
     } else {
       setIsSidebarCollapsed(!isSidebarCollapsed);

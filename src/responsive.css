@@ -65,9 +65,9 @@
 }
 
 /* ==========================================================================
-   PHONE  (≤ 768px, or any coarse-pointer device under 1100px)
+   PHONE  (≤ 900px)
    ========================================================================== */
-@media (max-width: 768px), (max-width: 1100px) and (hover: none) and (pointer: coarse) {
+@media (max-width: 900px) {
   :root {
     /* Nudge the tiny sizes up so they stay legible on a small screen, and
        pull the display sizes down so headings don't wrap awkwardly. */

@@ -99,6 +99,15 @@ const StaffSalaryReport = () => {
     }
   };
 
+  const getAccountName = (r) => {
+    const act = r.account_name || r.account?.name || r.account || r.account_id;
+    if (typeof act === 'string' && act.length > 20) {
+      const found = accounts.find(x => x.id === act || x.uuid === act);
+      if (found) return found.name || found.account_name || '-';
+    }
+    return nameOf(act);
+  };
+
   useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const visible = rows.slice(0, entries);
@@ -107,7 +116,7 @@ const StaffSalaryReport = () => {
     SL: i + 1,
     Date: fmtDate(r.date),
     Staff: nameOf(r.staff_name || r.staff || r.staff_id),
-    Account: nameOf(r.account_name || r.account || r.account_id),
+    Account: getAccountName(r),
     Description: r.description || '',
     Amount: Number(r.amount || 0),
     Status: isPaid(r) ? 'Paid' : 'Pending',
@@ -185,7 +194,7 @@ const StaffSalaryReport = () => {
                       <td style={{ textAlign: 'center', padding: '10px' }}>{i + 1}</td>
                       <td style={{ padding: '10px' }}>{fmtDate(r.date)}</td>
                       <td style={{ padding: '10px', fontWeight: 600 }}>{nameOf(r.staff_name || r.staff || r.staff_id)}</td>
-                      <td style={{ padding: '10px' }}>{nameOf(r.account_name || r.account || r.account_id)}</td>
+                      <td style={{ padding: '10px' }}>{getAccountName(r)}</td>
                       <td style={{ padding: '10px', color: '#475569' }}>{r.description || '-'}</td>
                       <td style={{ padding: '10px', textAlign: 'right', fontWeight: 'bold', color: '#dc2626' }}>৳ {money(r.amount)}</td>
                       <td style={{ padding: '10px', textAlign: 'center' }} className="action-column">

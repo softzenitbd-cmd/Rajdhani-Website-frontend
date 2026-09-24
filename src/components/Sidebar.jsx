@@ -218,7 +218,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
       }}
     >
       {/* Resizer Handle */}
-      {!isCollapsed && window.innerWidth > 1100 && (
+      {!isCollapsed && window.innerWidth > 900 && (
         <div
           style={{
             position: 'absolute',
@@ -374,7 +374,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar }) => {
       </div>
 
       <nav className="sidebar-nav" onClick={(e) => {
-        if (e.target.closest('a') && closeSidebar && (window.innerWidth <= 768 || (window.innerWidth <= 1100 && window.matchMedia('(hover: none) and (pointer: coarse)').matches))) {
+        if (e.target.closest('a') && closeSidebar && window.innerWidth <= 900) {
           closeSidebar();
         }
       }}>
