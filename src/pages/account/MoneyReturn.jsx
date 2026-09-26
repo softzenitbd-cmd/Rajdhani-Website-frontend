@@ -38,7 +38,7 @@ const MoneyReturn = () => {
       const [accRes, catRes, clientRes] = await Promise.all([
         accountingService.getAccounts(),
         accountingService.getExpenseCategories(),
-        crmService.getClients(),
+        crmService.getClients({ page_size: 1000 }),
       ]);
 
       const accData = Array.isArray(accRes) ? accRes : accRes?.results || [];
@@ -48,10 +48,29 @@ const MoneyReturn = () => {
         : clientRes?.results || [];
 
       setAccounts(accData);
-
       setCategories(catData);
-
       setClients(clientData);
+
+      // Set defaults for form
+      let defaultAccount = '';
+      if (accData.length > 0) {
+        const totalBal = accData.find(a => String(a.name).toLowerCase().includes('total balance'));
+        defaultAccount = totalBal ? totalBal.id : accData[0].id;
+      }
+      let defaultCategory = '';
+      if (catData.length > 0) {
+        const houlad = catData.find(c => {
+          const n = String(c.name).toLowerCase();
+          return n.includes('houlad') || n.includes('হাওলাদ');
+        });
+        defaultCategory = houlad ? houlad.id : catData[0].id;
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        accountId: prev.accountId || defaultAccount,
+        categoryId: prev.categoryId || defaultCategory
+      }));
     } catch (err) {
       toast.error(err?.message || t("Failed to load form data"));
     }

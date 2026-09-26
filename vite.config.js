@@ -21,6 +21,18 @@ export default defineConfig({
         target: 'https://server-rajdhaniserver-dbitqs-9932f2-62-84-177-235.sslip.io',
         changeOrigin: true,
         secure: false,
+      },
+      // Uploaded files (company banner / logo) are served by the backend under
+      // /media; without these the header image 404s against the dev server.
+      '/media': {
+        target: 'https://server-rajdhaniserver-dbitqs-9932f2-62-84-177-235.sslip.io',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/static': {
+        target: 'https://server-rajdhaniserver-dbitqs-9932f2-62-84-177-235.sslip.io',
+        changeOrigin: true,
+        secure: false,
       }
     }
   },

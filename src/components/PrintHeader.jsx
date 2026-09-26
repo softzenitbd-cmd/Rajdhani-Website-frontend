@@ -16,12 +16,16 @@ import { useTranslation } from 'react-i18next';
 const readPrefs = () => ({
   activeCard: appSettingsService.get('print_header_card', 'card2'),
   headerMode: appSettingsService.get('print_header_mode', 'card'),
+  customUrl: appSettingsService.get('print_header_custom_url', null),
 });
 
 const PrintHeader = ({ showOnScreen = false }) => {
   const { t } = useTranslation();
   const [prefs, setPrefs] = useState(readPrefs);
   const [companyInfo, setCompanyInfo] = useState(() => companyStore.getCached());
+  // A banner that cannot be loaded must not leave a broken-image icon on every
+  // report — fall back to the text header instead.
+  const [bannerFailed, setBannerFailed] = useState(false);
 
   useEffect(() => {
     const syncPrefs = () => setPrefs(readPrefs());
@@ -37,18 +41,24 @@ const PrintHeader = ({ showOnScreen = false }) => {
   }, []);
 
   const info = companyInfo || {};
-  const headerImage = companyHeaderImage(info);
-  const { activeCard, headerMode } = prefs;
+  const { activeCard, headerMode, customUrl } = prefs;
+  const headerImage = customUrl || companyHeaderImage(info);
+
+  // A newly uploaded banner deserves a fresh attempt.
+  useEffect(() => {
+    setBannerFailed(false);
+  }, [headerImage]);
 
   const visibilityClass = showOnScreen ? '' : ' print-only';
 
   // 1. Uploaded banner image
-  if (headerMode === 'image' && headerImage) {
+  if (headerMode === 'image' && headerImage && !bannerFailed) {
     return (
       <div className={`receipt-header-image${visibilityClass}`} style={{ marginBottom: '20px', textAlign: 'center' }}>
         <img
           src={headerImage}
           alt={info.company_name || t("Company banner")}
+          onError={() => setBannerFailed(true)}
           style={{
             maxWidth: '100%',
             height: 'auto',

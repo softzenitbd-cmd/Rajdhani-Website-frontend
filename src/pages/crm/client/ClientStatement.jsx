@@ -11,6 +11,8 @@ import { useToast } from '../../../context/ToastContext';
 import { toList, fmtDate, money } from '../../../utils/apiHelpers';
 import { useTranslation } from 'react-i18next';
 import CustomDatePicker from '../../../components/CustomDatePicker';
+import SearchableSelect from '../../../components/SearchableSelect';
+import html2canvas from 'html2canvas';
 
 
 /**
@@ -45,7 +47,7 @@ const ClientStatement = () => {
       if (f.from_date) params.from_date = f.from_date;
       if (f.to_date) params.to_date = f.to_date;
 
-      const [ledgerRes, invoicesRes, returnsRes, productsRes, saleItemsRes, receivesRes] = await Promise.allSettled([
+      const [ledgerRes, invoicesRes, returnsRes, productsRes, saleItemsRes, receivesRes, expensesRes] = await Promise.allSettled([
         f.client
           ? accountingService.getClientLedger(f.client, params).catch(() => [])
           : accountingService.getDepositReport(params).catch(() => []),
@@ -61,6 +63,9 @@ const ClientStatement = () => {
           : Promise.resolve([]),
         f.client
           ? accountingService.getReceives({ client: f.client, from_date: f.from_date, to_date: f.to_date }).catch(() => [])
+          : Promise.resolve([]),
+        f.client
+          ? accountingService.getExpenses({ client: f.client, from_date: f.from_date, to_date: f.to_date }).catch(() => [])
           : Promise.resolve([])
       ]);
 
@@ -69,6 +74,7 @@ const ClientStatement = () => {
       const returns = toList(returnsRes.status === 'fulfilled' ? returnsRes.value : []);
       const products = toList(productsRes.status === 'fulfilled' ? productsRes.value : []);
       const allSaleItems = toList(saleItemsRes.status === 'fulfilled' ? saleItemsRes.value : []);
+      const expenses = toList(expensesRes?.status === 'fulfilled' ? expensesRes.value : []);
 
       const productsMap = new Map();
       products.forEach((p) => {
@@ -178,6 +184,29 @@ const ClientStatement = () => {
         
         rawList.sort((a, b) => new Date(a.date) - new Date(b.date));
       }
+
+      // Always inject expenses (Money Returns) because backend ledger might miss them
+      // Backend has no client filter on expenses, so filter on the client side
+      const clientExpenses = f.client ? expenses.filter(exp => String(exp.client || exp.client_id || exp.client?.id) === String(f.client)) : expenses;
+      
+      clientExpenses.forEach(exp => {
+        // Prevent duplicates if backend already returned it
+        if (!rawList.some(r => String(r.id) === String(exp.id) || String(r.id) === `exp-${exp.id}` || String(r.reference).includes(String(exp.id)))) {
+          const isMr = /money|refund/i.test(exp.transaction_type || '');
+          rawList.push({
+            date: exp.date || exp.created_at,
+            type: exp.transaction_type || 'Expense',
+            reference: exp.reference || `Expense: ${exp.id}`,
+            debit: Number(exp.amount || exp.total || 0),
+            credit: 0,
+            money_return: isMr ? Number(exp.amount || exp.total || 0) : 0,
+            id: `exp-${exp.id}`,
+            description: exp.description || exp.reference || exp.transaction_type || 'Expense'
+          });
+        }
+      });
+      
+      rawList.sort((a, b) => new Date(a.date) - new Date(b.date));
 
       const list = rawList.map((r) => {
         const refStr = String(r.reference || r.description || '');
@@ -304,6 +333,79 @@ const ClientStatement = () => {
 
   const selectedClient = clients.find((c) => String(c.id || c.uuid) === String(filters.client));
 
+  const handleShare = async () => {
+    const element = document.getElementById('statement-content');
+    if (!element) {
+      toast.error(t("Could not generate image."));
+      return;
+    }
+    
+    // Temporarily hide elements with "no-print" class for the screenshot
+    const noPrintElements = element.querySelectorAll('.no-print');
+    noPrintElements.forEach(el => el.style.display = 'none');
+
+    // Temporarily show elements with "print-only" class for the screenshot
+    const printOnlyElements = element.querySelectorAll('.print-only');
+    printOnlyElements.forEach(el => {
+      el.dataset.printOnlyRemoved = 'true';
+      el.classList.remove('print-only');
+    });
+    
+    try {
+      toast.info(t("Generating image for sharing..."));
+      // Wait a moment for any newly visible images (like banners) to load
+      await new Promise(r => setTimeout(r, 500));
+      
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      
+      // Restore no-print elements
+      noPrintElements.forEach(el => el.style.display = '');
+
+      // Restore print-only elements
+      printOnlyElements.forEach(el => {
+        if (el.dataset.printOnlyRemoved) {
+          el.classList.add('print-only');
+          delete el.dataset.printOnlyRemoved;
+        }
+      });
+
+      canvas.toBlob(async (blob) => {
+        if (!blob) throw new Error('Failed to generate image');
+        const file = new File([blob], `Client_Statement_${selectedClient?.name || 'Unknown'}.png`, { type: 'image/png' });
+
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: 'Client Statement',
+            text: `Client Statement for ${selectedClient ? selectedClient.name : 'Client'}`,
+            files: [file]
+          });
+        } else {
+          // Fallback to download if Web Share API doesn't support files (like on Desktop)
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = file.name;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          toast.success(t("Image downloaded. You can now share it manually."));
+        }
+      }, 'image/png');
+    } catch (error) {
+      console.log('Error sharing', error);
+      // Restore no-print elements on error
+      noPrintElements.forEach(el => el.style.display = '');
+      printOnlyElements.forEach(el => {
+        if (el.dataset.printOnlyRemoved) {
+          el.classList.add('print-only');
+          delete el.dataset.printOnlyRemoved;
+        }
+      });
+      toast.error(t("Failed to share image."));
+    }
+  };
+
   // Calculate sum of all transactions first to find true opening balance
   const sumOfTransactions = rows.reduce((acc, r) => {
     const t = String(r.type || r.transaction_type || '').toLowerCase();
@@ -371,18 +473,20 @@ const ClientStatement = () => {
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px', background: 'white' }}>
-      <PrintHeader />
-      
-      <div style={{ padding: '0 20px' }}>
-        <h2 style={{ textAlign: 'center', fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', margin: '20px 0 30px', color: 'black' }}>Client Statement</h2>
+      <div id="statement-content" style={{ background: 'white' }}>
+        <PrintHeader />
+        
+        <div style={{ padding: '0 20px' }}>
+          <h2 style={{ textAlign: 'center', fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', margin: '20px 0 30px', color: 'black' }}>Client Statement</h2>
 
-        <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: 'var(--fs-12, 12px)', color: 'black', fontWeight: '600' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: 'var(--fs-12, 12px)', color: 'black', fontWeight: '600' }}>
           <div>
             {selectedClient ? (
               <>
                 Name : {selectedClient.name} {selectedClient.phone ? `// ${selectedClient.phone}` : ''}<br/>
                 {selectedClient.address ? <>Address : {selectedClient.address}<br/></> : ''}
-                {selectedClient.phone ? <>Contact No : {selectedClient.phone}</> : ''}
+                {selectedClient.phone ? <>Contact No : {selectedClient.phone}<br/></> : ''}
+                <div style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', marginTop: '4px', color: 'black' }}>Due : {money(selectedClient.due ?? selectedClient.current_balance ?? closing)}</div>
               </>
             ) : (
               <>Name : -</>
@@ -396,11 +500,16 @@ const ClientStatement = () => {
         <form className="no-print" onSubmit={(e) => { e.preventDefault(); load(); }} style={{ display: 'flex', gap: '24px', marginBottom: '16px', alignItems: 'flex-start' }}>
           <div style={{ flex: 1 }}>
             <label style={{ display: 'block', fontSize: 'var(--fs-11, 11px)', marginBottom: '4px', color: 'black' }}>Search By Client</label>
-            <select value={filters.client} onChange={(e) => set('client', e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', fontSize: 'var(--fs-12, 12px)' }}>
-              <option value="">{t("Select Client")}</option>
-              {clients.map((c) => <option key={c.id || c.uuid} value={c.id || c.uuid}>{c.name}{c.phone ? ` (${c.phone})` : ''}</option>)}
-            </select>
-            {selectedClient && <div style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', marginTop: '4px', color: 'black' }}>Due : {money(selectedClient.due ?? selectedClient.current_balance ?? closing)}</div>}
+            <SearchableSelect
+              options={clients.map((c) => ({
+                value: c.id || c.uuid,
+                label: `${c.name}${c.phone ? ` (${c.phone})` : ''}`,
+                searchValue: `${c.name} ${c.phone || ''}`
+              }))}
+              value={filters.client}
+              onChange={(val) => set('client', val)}
+              placeholder={t("Select Client")}
+            />
           </div>
           
           <div style={{ flex: 1 }}>
@@ -424,6 +533,9 @@ const ClientStatement = () => {
             </select> entries
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
+            <button type="button" onClick={handleShare} style={{ padding: '6px 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: 'var(--fs-12, 12px)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              Share
+            </button>
             <button type="button" onClick={() => window.print()} style={{ padding: '6px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: 'var(--fs-12, 12px)' }}>
               Print
             </button>
@@ -591,6 +703,7 @@ const ClientStatement = () => {
         </div>
 
       </div>
+    </div>
     </div>
   );
 };

@@ -39,7 +39,7 @@ const SupplierChequeSchedule = () => {
     try {
       const res = await get(ENDPOINTS.CRM_SUPPLIER_CHEQUES);
       let data = res.results || res.data || res || [];
-      data.sort((a, b) => new Date(b.date) - new Date(a.date));
+      data.sort((a, b) => new Date(a.date) - new Date(b.date));
       setCheques(data);
     } catch (err) {
       console.error(err);

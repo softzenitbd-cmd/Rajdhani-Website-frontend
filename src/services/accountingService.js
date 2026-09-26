@@ -195,6 +195,7 @@ export const accountingService = {
     if (filters.staff) params.staff = filters.staff;
     if (filters.account) params.account = filters.account;
     if (filters.category) params.category = filters.category;
+    if (filters.client) params.client = filters.client;
     if (filters.from_date) params.from_date = filters.from_date;
     if (filters.to_date) params.to_date = filters.to_date;
     if (filters.month) params.month = filters.month;

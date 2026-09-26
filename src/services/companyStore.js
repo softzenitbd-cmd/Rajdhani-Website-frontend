@@ -1,4 +1,5 @@
 import { settingService } from './settingService';
+import { getBaseURL } from '../api/apiClient';
 
 /**
  * In-memory copy of the company information (/api/erpsetting/company-info/)
@@ -67,7 +68,19 @@ export const companyStore = {
 };
 
 /** Banner image URL stored on the company row (several field names tolerated). */
-export const companyHeaderImage = (info = companyStore.getCached()) =>
-  info.memo_header_image || info.header_image || info.logo || '';
+export const companyHeaderImage = (info = companyStore.getCached()) => {
+  if (!info) return '';
+  const img = info.memo_header_image || info.header_image || info.logo || '';
+  if (!img) return '';
+  if (/^(https?:|\/\/|blob:|data:)/.test(img)) return img;
+
+  // The backend returns a server-relative path such as "/media/header/logo.png".
+  // It has to be resolved against the API origin — not the app's own origin —
+  // which is exactly what apiClient already works out. In development that is
+  // '' so the path stays relative and Vite proxies /media to the backend
+  // (see vite.config.js); in production it is VITE_API_BASE_URL.
+  const host = getBaseURL().replace(/\/+$/, '');
+  return `${host}/${img.replace(/^\/+/, '')}`;
+};
 
 export default companyStore;

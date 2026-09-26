@@ -50,9 +50,9 @@ const CompanyInformation = () => {
 
   const [companyInfo, setCompanyInfo] = useState(() => ({ ...EMPTY_INFO, ...companyStore.getCached() }));
   const [rightLogoPreview, setRightLogoPreview] = useState(null);
-  const [logo1Preview, setLogo1Preview] = useState(null);
-  const [logo2Preview, setLogo2Preview] = useState(null);
-  const [logo3Preview, setLogo3Preview] = useState(null);
+  
+  const bannerHistory = Array.isArray(settings.banner_history) ? settings.banner_history : [];
+  const [pendingCard, setPendingCard] = useState(activeCard);
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -74,16 +74,35 @@ const CompanyInformation = () => {
     fetchCompanyInfo();
   }, []);
 
+  useEffect(() => {
+    setPendingCard(activeCard);
+  }, [activeCard]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setCompanyInfo((prev) => ({ ...prev, [name]: value }));
   };
 
   // Persist the chosen header style on the server
-  const selectCardAsHeader = async (cardKey, previewObj) => {
+  const saveHeaderSettings = async () => {
     try {
-      await updateSettings({ print_header_card: cardKey, print_header_mode: previewObj?.url ? 'image' : 'card' });
-      setMessage({ type: 'success', text: t("Header updated to {{v0}} across full project!", { v0: cardKey.toUpperCase() }) });
+      if (pendingCard.startsWith('history_')) {
+        const idx = parseInt(pendingCard.split('_')[1]);
+        const customUrl = bannerHistory[idx];
+        await updateSettings({ 
+          print_header_card: pendingCard, 
+          print_header_mode: 'image',
+          print_header_custom_url: customUrl
+        });
+      } else {
+        await updateSettings({ 
+          print_header_card: pendingCard, 
+          print_header_mode: 'card',
+          print_header_custom_url: null
+        });
+      }
+      setMessage({ type: 'success', text: t("Header updated across full project!") });
+      toast.success(t("Header style updated"));
     } catch (err) {
       setMessage({ type: 'error', text: err?.message || 'Failed to save header selection' });
     }
@@ -91,6 +110,12 @@ const CompanyInformation = () => {
 
   // Upload an image and make it the print header (stored on the company row)
   const uploadHeaderImage = async (file) => {
+    const currentBanner = settings.print_header_custom_url || companyHeaderImage(companyInfo);
+    let newHistory = [...bannerHistory];
+    if (currentBanner && !newHistory.includes(currentBanner)) {
+      newHistory = [currentBanner, ...newHistory].slice(0, 3);
+    }
+    
     const formData = new FormData();
     formData.append('memo_header_image', file);
     const saved = await companyStore.save(formData, true);
@@ -99,22 +124,15 @@ const CompanyInformation = () => {
       await companyStore.load(true);
     }
     setCompanyInfo((prev) => ({ ...prev, ...companyStore.getCached() }));
-    await updateSettings({ print_header_mode: 'image' });
+    await updateSettings({ 
+      print_header_mode: 'image',
+      print_header_card: 'custom_upload',
+      print_header_custom_url: null,
+      banner_history: newHistory
+    });
   };
 
-  const handleFileChange = async (e, setPreview, cardKey) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const prevObj = { url: URL.createObjectURL(file), name: file.name };
-    setPreview(prevObj);
-    try {
-      await uploadHeaderImage(file);
-      await updateSettings({ print_header_card: cardKey });
-      setMessage({ type: 'success', text: t("Header image uploaded and activated!") });
-    } catch (err) {
-      setMessage({ type: 'error', text: err?.message || 'Failed to upload header image' });
-    }
-  };
+
 
   const handleLogoChange = async (e) => {
     const file = e.target.files[0];
@@ -183,7 +201,7 @@ const CompanyInformation = () => {
 
         {/* Live Preview */}
         <div style={{ background: '#faf5ff', padding: '16px', borderRadius: '8px', border: '1px dashed #c084fc' }}>
-          <PrintHeader />
+          <PrintHeader showOnScreen={true} />
         </div>
       </div>
 
@@ -283,51 +301,40 @@ const CompanyInformation = () => {
           </form>
 
           {/* Bottom Interactive Header Logo Cards Section */}
-          <div style={{ marginTop: '40px' }}>
+          <div style={{ marginTop: '40px', paddingBottom: '20px' }}>
             <h4 style={{ margin: '0 0 16px 0', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              {t("💡 Select Active Header Style (Click any card below to set as active header)")}
+              {t("💡 Select Active Header Style (Click any card below to select, then click Update)")}
             </h4>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
               {/* Logo 1 Card */}
               <div 
-                onClick={() => selectCardAsHeader('card1', logo1Preview)}
+                onClick={() => setPendingCard(bannerHistory[0] ? 'history_0' : 'card1')}
                 style={{ 
                   display: 'flex', 
                   flexDirection: 'column', 
                   gap: '8px', 
                   cursor: 'pointer', 
-                  border: activeCard === 'card1' ? '2.5px solid #16a34a' : '1px solid #e2e8f0', 
+                  border: (pendingCard === 'history_0' || pendingCard === 'card1') ? '2.5px solid #16a34a' : '1px solid #e2e8f0', 
                   borderRadius: '8px', 
                   padding: '12px',
-                  background: activeCard === 'card1' ? '#f0fdf4' : 'white',
-                  boxShadow: activeCard === 'card1' ? '0 4px 12px rgba(22, 163, 74, 0.2)' : 'none',
+                  background: (pendingCard === 'history_0' || pendingCard === 'card1') ? '#f0fdf4' : 'white',
+                  boxShadow: (pendingCard === 'history_0' || pendingCard === 'card1') ? '0 4px 12px rgba(22, 163, 74, 0.2)' : 'none',
                   transition: 'all 0.2s ease'
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #0ea5e9', borderRadius: '4px', overflow: 'hidden' }}>
-                    <label 
-                      onClick={(e) => e.stopPropagation()} 
-                      style={{ background: '#0ea5e9', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', cursor: 'pointer', margin: 0, whiteSpace: 'nowrap' }}
-                    >
-                      {t("Choose a file")}
-                      <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => handleFileChange(e, setLogo1Preview, 'card1')} />
-                    </label>
-                    <span style={{ padding: '6px 12px', fontSize: 'var(--fs-11, 11px)', color: '#64748b', flex: 1, background: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {logo1Preview ? logo1Preview.name : t("No file chosen")}
-                    </span>
-                  </div>
-                  {activeCard === 'card1' && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '24px' }}>
+                  <span style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', color: '#64748b' }}>{bannerHistory[0] ? t("Previous Banner 1") : t("Template 1")}</span>
+                  {(pendingCard === 'history_0' || pendingCard === 'card1') && (
                     <span style={{ background: '#16a34a', color: 'white', fontSize: 'var(--fs-10, 10px)', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                      <Check size={12} /> {t("ACTIVE")}
+                      <Check size={12} /> {t("SELECTED")}
                     </span>
                   )}
                 </div>
 
                 <div style={{ height: '140px', border: '1px solid #cbd5e1', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', overflow: 'hidden' }}>
-                  {logo1Preview ? (
-                    <img src={logo1Preview.url} alt={t("Logo 1 Preview")} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', padding: '8px' }} />
+                  {bannerHistory[0] ? (
+                    <img src={bannerHistory[0]} alt={t("History 1")} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', padding: '8px' }} />
                   ) : (
                     <div style={{ textAlign: 'center' }}>
                       <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-32, 32px)', color: 'black' }}>{t("Rajdhani")}</h2>
@@ -335,55 +342,36 @@ const CompanyInformation = () => {
                     </div>
                   )}
                 </div>
-
-                <button 
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); selectCardAsHeader('card1', logo1Preview); }} 
-                  style={{ background: activeCard === 'card1' ? '#16a34a' : 'black', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', alignSelf: 'flex-start', cursor: 'pointer', fontWeight: 'bold' }}
-                >
-                  {activeCard === 'card1' ? t("✓ Active Header") : t("Click to Set Header")}
-                </button>
               </div>
               
               {/* Logo 2 Card */}
               <div 
-                onClick={() => selectCardAsHeader('card2', logo2Preview)}
+                onClick={() => setPendingCard(bannerHistory[1] ? 'history_1' : 'card2')}
                 style={{ 
                   display: 'flex', 
                   flexDirection: 'column', 
                   gap: '8px', 
                   cursor: 'pointer', 
-                  border: activeCard === 'card2' ? '2.5px solid #16a34a' : '1px solid #e2e8f0', 
+                  border: (pendingCard === 'history_1' || pendingCard === 'card2') ? '2.5px solid #16a34a' : '1px solid #e2e8f0', 
                   borderRadius: '8px', 
                   padding: '12px',
-                  background: activeCard === 'card2' ? '#f0fdf4' : 'white',
-                  boxShadow: activeCard === 'card2' ? '0 4px 12px rgba(22, 163, 74, 0.2)' : 'none',
+                  background: (pendingCard === 'history_1' || pendingCard === 'card2') ? '#f0fdf4' : 'white',
+                  boxShadow: (pendingCard === 'history_1' || pendingCard === 'card2') ? '0 4px 12px rgba(22, 163, 74, 0.2)' : 'none',
                   transition: 'all 0.2s ease'
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #0ea5e9', borderRadius: '4px', overflow: 'hidden' }}>
-                    <label 
-                      onClick={(e) => e.stopPropagation()}
-                      style={{ background: '#0ea5e9', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', cursor: 'pointer', margin: 0, whiteSpace: 'nowrap' }}
-                    >
-                      {t("Choose a file")}
-                      <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => handleFileChange(e, setLogo2Preview, 'card2')} />
-                    </label>
-                    <span style={{ padding: '6px 12px', fontSize: 'var(--fs-11, 11px)', color: '#64748b', flex: 1, background: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {logo2Preview ? logo2Preview.name : t("Set Header Image")}
-                    </span>
-                  </div>
-                  {activeCard === 'card2' && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '24px' }}>
+                  <span style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', color: '#64748b' }}>{bannerHistory[1] ? t("Previous Banner 2") : t("Template 2")}</span>
+                  {(pendingCard === 'history_1' || pendingCard === 'card2') && (
                     <span style={{ background: '#16a34a', color: 'white', fontSize: 'var(--fs-10, 10px)', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                      <Check size={12} /> {t("ACTIVE")}
+                      <Check size={12} /> {t("SELECTED")}
                     </span>
                   )}
                 </div>
 
                 <div style={{ height: '140px', border: '1px solid #cbd5e1', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', overflow: 'hidden' }}>
-                  {logo2Preview ? (
-                    <img src={logo2Preview.url} alt={t("Logo 2 Preview")} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', padding: '8px' }} />
+                  {bannerHistory[1] ? (
+                    <img src={bannerHistory[1]} alt={t("History 2")} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', padding: '8px' }} />
                   ) : (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                       <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px dashed black', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -397,55 +385,36 @@ const CompanyInformation = () => {
                     </div>
                   )}
                 </div>
-
-                <button 
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); selectCardAsHeader('card2', logo2Preview); }} 
-                  style={{ background: activeCard === 'card2' ? '#16a34a' : 'black', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', alignSelf: 'flex-start', cursor: 'pointer', fontWeight: 'bold' }}
-                >
-                  {activeCard === 'card2' ? t("✓ Active Header") : t("Click to Set Header")}
-                </button>
               </div>
 
               {/* Logo 3 Card */}
               <div 
-                onClick={() => selectCardAsHeader('card3', logo3Preview)}
+                onClick={() => setPendingCard(bannerHistory[2] ? 'history_2' : 'card3')}
                 style={{ 
                   display: 'flex', 
                   flexDirection: 'column', 
                   gap: '8px', 
                   cursor: 'pointer', 
-                  border: activeCard === 'card3' ? '2.5px solid #16a34a' : '1px solid #e2e8f0', 
+                  border: (pendingCard === 'history_2' || pendingCard === 'card3') ? '2.5px solid #16a34a' : '1px solid #e2e8f0', 
                   borderRadius: '8px', 
                   padding: '12px',
-                  background: activeCard === 'card3' ? '#f0fdf4' : 'white',
-                  boxShadow: activeCard === 'card3' ? '0 4px 12px rgba(22, 163, 74, 0.2)' : 'none',
+                  background: (pendingCard === 'history_2' || pendingCard === 'card3') ? '#f0fdf4' : 'white',
+                  boxShadow: (pendingCard === 'history_2' || pendingCard === 'card3') ? '0 4px 12px rgba(22, 163, 74, 0.2)' : 'none',
                   transition: 'all 0.2s ease'
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #0ea5e9', borderRadius: '4px', overflow: 'hidden' }}>
-                    <label 
-                      onClick={(e) => e.stopPropagation()}
-                      style={{ background: '#0ea5e9', color: 'white', padding: '6px 12px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', cursor: 'pointer', margin: 0, whiteSpace: 'nowrap' }}
-                    >
-                      {t("Choose a file")}
-                      <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => handleFileChange(e, setLogo3Preview, 'card3')} />
-                    </label>
-                    <span style={{ padding: '6px 12px', fontSize: 'var(--fs-11, 11px)', color: '#64748b', flex: 1, background: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {logo3Preview ? logo3Preview.name : t("No file chosen")}
-                    </span>
-                  </div>
-                  {activeCard === 'card3' && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '24px' }}>
+                  <span style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', color: '#64748b' }}>{bannerHistory[2] ? t("Previous Banner 3") : t("Template 3")}</span>
+                  {(pendingCard === 'history_2' || pendingCard === 'card3') && (
                     <span style={{ background: '#16a34a', color: 'white', fontSize: 'var(--fs-10, 10px)', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                      <Check size={12} /> {t("ACTIVE")}
+                      <Check size={12} /> {t("SELECTED")}
                     </span>
                   )}
                 </div>
 
                 <div style={{ height: '140px', border: '1px solid #cbd5e1', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', overflow: 'hidden' }}>
-                  {logo3Preview ? (
-                    <img src={logo3Preview.url} alt={t("Logo 3 Preview")} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', padding: '8px' }} />
+                  {bannerHistory[2] ? (
+                    <img src={bannerHistory[2]} alt={t("History 3")} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', padding: '8px' }} />
                   ) : (
                     <div style={{ textAlign: 'center' }}>
                       <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-32, 32px)', color: 'black' }}>{t("Rajdhani")}</h2>
@@ -453,15 +422,17 @@ const CompanyInformation = () => {
                     </div>
                   )}
                 </div>
-
-                <button 
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); selectCardAsHeader('card3', logo3Preview); }} 
-                  style={{ background: activeCard === 'card3' ? '#16a34a' : 'black', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', alignSelf: 'flex-start', cursor: 'pointer', fontWeight: 'bold' }}
-                >
-                  {activeCard === 'card3' ? t("✓ Active Header") : t("Click to Set Header")}
-                </button>
               </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '24px' }}>
+              <button 
+                type="button"
+                onClick={saveHeaderSettings}
+                style={{ background: '#2563eb', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '6px', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.2)' }}
+              >
+                <CheckCircle size={18} /> {t("Update Header Style")}
+              </button>
             </div>
           </div>
 

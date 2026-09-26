@@ -10,7 +10,8 @@ import { fmtDate } from '../../utils/apiHelpers';
 import { crmService } from '../../services/crmService';
 import { useToast } from '../../context/ToastContext';
 import CustomDatePicker from '../../components/CustomDatePicker';
-
+import AddAccountModal from '../../components/AddAccountModal';
+import AddOptionModal from '../../components/AddOptionModal';
 
 const SupplierPayment = () => {
   const { t } = useTranslation();
@@ -18,6 +19,7 @@ const SupplierPayment = () => {
 
   const [suppliers, setSuppliers] = useState([]);
   const [accounts, setAccounts] = useState([]);
+  const [categories, setCategories] = useState([]); // NEW
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,12 +35,15 @@ const SupplierPayment = () => {
     date: new Date().toISOString().split('T')[0],
     supplier: '',
     account: '',
+    category: '', // NEW
     amount: '',
     reference: ''
   });
   const [adding, setAdding] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [idSearch, setIdSearch] = useState('');
+  const [showAddAccount, setShowAddAccount] = useState(false);
+  const [showAddCategory, setShowAddCategory] = useState(false);
 
   const fetchPrerequisites = async () => {
     try {
@@ -49,6 +54,31 @@ const SupplierPayment = () => {
       const accRes = await accountingService.getAccounts().catch(() => []);
       const accData = Array.isArray(accRes) ? accRes : (accRes?.results || []);
       setAccounts(accData);
+      
+      const catRes = await accountingService.getExpenseCategories().catch(() => []);
+      const catData = Array.isArray(catRes) ? catRes : (catRes?.results || []);
+      setCategories(catData);
+
+      // Set defaults for form if not already selected
+      let defaultAccount = '';
+      if (accData.length > 0) {
+        const totalBal = accData.find(a => String(a.name).toLowerCase().includes('total balance'));
+        defaultAccount = totalBal ? totalBal.id : accData[0].id;
+      }
+      let defaultCategory = '';
+      if (catData.length > 0) {
+        const kuray = catData.find(c => {
+          const n = String(c.name).toLowerCase();
+          return n.includes('kuray') || n.includes('supplier') || n.includes('সাপ্লায়ার');
+        });
+        defaultCategory = kuray ? kuray.id : catData[0].id;
+      }
+
+      setPaymentForm(prev => ({
+        ...prev,
+        account: prev.account || defaultAccount,
+        category: prev.category || defaultCategory
+      }));
     } catch (err) {
       console.error("Error fetching suppliers:", err);
     }
@@ -70,13 +100,21 @@ const SupplierPayment = () => {
 
   useEffect(() => {
     fetchPrerequisites();
-    fetchPayments();
   }, []);
 
-  const handleFilter = () => {
+  useEffect(() => {
     const filters = {};
     if (selectedSupplier) filters.supplier = selectedSupplier;
-      if (idSearch) filters.search = idSearch;
+    // Removed idSearch from backend filters since backend does not support partial UUID search
+    if (fromDate) filters.from_date = fromDate;
+    if (toDate) filters.to_date = toDate;
+    fetchPayments(filters);
+  }, [selectedSupplier, fromDate, toDate]);
+
+  const handleFilter = () => {
+    // Left for manual triggering if ever needed
+    const filters = {};
+    if (selectedSupplier) filters.supplier = selectedSupplier;
     if (fromDate) filters.from_date = fromDate;
     if (toDate) filters.to_date = toDate;
     fetchPayments(filters);
@@ -84,9 +122,9 @@ const SupplierPayment = () => {
 
   const handleClearFilter = () => {
     setSelectedSupplier('');
+    setIdSearch('');
     setFromDate('');
     setToDate('');
-    fetchPayments({});
   };
 
   const handleAddPayment = async (e) => {
@@ -102,6 +140,7 @@ const SupplierPayment = () => {
         transaction_type: 'Supplier Payment',
         supplier: paymentForm.supplier,
         account: paymentForm.account,
+        category: paymentForm.category,
         amount: paymentForm.amount,
         date: paymentForm.date,
         reference: paymentForm.reference,
@@ -117,7 +156,25 @@ const SupplierPayment = () => {
     }
   };
 
-  const totalAmount = payments.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+  const handleAddCategory = async (name) => {
+    try {
+      await accountingService.createExpenseCategory({ name });
+      fetchPrerequisites(); // Refresh categories
+      toast.success(t("Category added successfully"));
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const displayedPayments = payments.filter(item => {
+    if (idSearch) {
+      const idStr = item.id?.toString() || '';
+      return idStr.toLowerCase().includes(idSearch.toLowerCase());
+    }
+    return true;
+  });
+
+  const totalAmount = displayedPayments.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
 
   return (
     <div className="premium-card">
@@ -254,9 +311,14 @@ const SupplierPayment = () => {
             </tr>
           </thead>
           <tbody>
-            {payments.map((item, index) => (
-              <tr key={item.id || index}>
-                <td>{index + 1}</td>
+            {displayedPayments.length === 0 ? (
+              <tr>
+                <td colSpan="11" style={{ textAlign: 'center', padding: '16px' }}>No data available in table</td>
+              </tr>
+            ) : (
+              displayedPayments.map((item, index) => (
+                <tr key={item.id || index}>
+                  <td>{index + 1}</td>
                 <td>{fmtDate(item.date)}</td>
                 <td>{item.supplier_name || item.supplier?.name || t("Supplier")}</td>
                 <td>{item.id?.toString().slice(-6) || '-'}</td>
@@ -264,36 +326,59 @@ const SupplierPayment = () => {
                 <td>{item.account_name || item.account?.name || '-'}</td>
                 <td>{item.cheque_no || '-'}</td>
                 <td>{item.reference || item.description || '-'}</td>
-                <td>{item.transaction_type || t("Payment")}</td>
+                <td>
+                  <span style={{
+                    background: (() => {
+                      const typeStr = String(item.transaction_type || '').toLowerCase();
+                      if (typeStr.includes('supplier') || typeStr.includes('সাপ্লায়ার') || typeStr.includes('সাপ্লাইয়ার')) return '#17a2b8';
+                      if (typeStr.includes('staff') || typeStr.includes('স্টাফ')) return '#10b981'; // Green matching the 2nd screenshot
+                      if (typeStr.includes('return') || typeStr.includes('ফেরত')) return '#f59e0b';
+                      if (typeStr.includes('expense') || typeStr.includes('খরচ')) return '#f43f5e';
+                      return '#10b981';
+                    })(),
+                    color: '#000000',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    fontSize: 'var(--fs-12, 12px)',
+                    fontWeight: 'bold',
+                    display: 'inline-block',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {item.transaction_type ? t(item.transaction_type) : t("Payment")}
+                  </span>
+                </td>
                 <td>{item.bank || '-'}</td>
                 <td>৳ {Number(item.amount || 0).toLocaleString()}</td>
-                <td className="no-print">
+                <td className="no-print" style={{ textAlign: 'center' }}>
                   <button 
-                    className="btn-sm btn-outline"
                     onClick={() => { setSelectedPayment(item); setShowViewModal(true); }}
-                    style={{ cursor: 'pointer' }}
+                    style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                    title={t("Print")}
                   >
-                    {t("Print")}
+                    <Printer size={16} />
                   </button>
                 </td>
                 <td className="no-print">
-                  <button 
-                    className="btn-sm btn-primary"
-                    onClick={() => { setSelectedPayment(item); setShowViewModal(true); }}
-                    style={{ cursor: 'pointer', padding: '4px 8px' }}
-                  >
-                    {t("View")}
-                  </button>
-                  <button 
-                    className="btn-sm"
-                    onClick={() => setEditingPayment(item)}
-                    style={{ cursor: 'pointer', background: '#0ea5e9', color: 'white', border: 'none', padding: '4px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: '6px' }}
-                  >
-                    <Edit size={14} /> {t("Edit")}
-                  </button>
+                  <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                    <button 
+                      onClick={() => setEditingPayment(item)}
+                      style={{ background: '#000000', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      title={t("Edit")}
+                    >
+                      <Edit size={16} />
+                    </button>
+                    <button 
+                      onClick={() => toast.info(t("Delete feature coming soon"))}
+                      style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      title={t("Delete")}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </td>
               </tr>
-            ))}
+            ))
+            )}
             {loading && (
               <tr>
                 <td colSpan="13" style={{ padding: '24px', textAlign: 'center', background: 'white' }}>{t("Loading supplier payments...")}</td>
@@ -417,7 +502,10 @@ const SupplierPayment = () => {
                     <CustomDatePicker className="input-outline" value={paymentForm.date} onChange={e => setPaymentForm({...paymentForm, date: e.target.value})} required />
                   </div>
                   <div>
-                    <label className="form-label" style={{ display: 'block', marginBottom: '8px', background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: 'var(--fs-12, 12px)' }}>{t("Select Account")}</label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <label className="form-label" style={{ margin: 0, background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: 'var(--fs-12, 12px)' }}>{t("Select Account")}</label>
+                      <button type="button" onClick={() => setShowAddAccount(true)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '2px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>+</button>
+                    </div>
                     <SearchableSelect
                       options={accounts.map(a => ({ value: a.id, label: a.name, searchValue: a.name }))}
                       value={paymentForm.account}
@@ -432,6 +520,18 @@ const SupplierPayment = () => {
                       value={paymentForm.supplier}
                       onChange={(val) => setPaymentForm({...paymentForm, supplier: val})}
                       placeholder={t("Choose One")}
+                    />
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <label className="form-label" style={{ margin: 0, background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: 'var(--fs-12, 12px)' }}>{t("Category")}</label>
+                      <button type="button" onClick={() => setShowAddCategory(true)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '2px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>+</button>
+                    </div>
+                    <SearchableSelect
+                      options={categories.map(c => ({ value: c.id, label: c.name, searchValue: c.name }))}
+                      value={paymentForm.category}
+                      onChange={(val) => setPaymentForm({...paymentForm, category: val})}
+                      placeholder={t("Choose Category")}
                     />
                   </div>
                   <div>
@@ -461,6 +561,24 @@ const SupplierPayment = () => {
         onClose={() => setEditingPayment(null)}
         onSuccess={() => fetchPayments()}
       />
+      {showAddAccount && (
+        <AddAccountModal
+          isOpen={showAddAccount}
+          onClose={() => setShowAddAccount(false)}
+          onSuccess={() => fetchPrerequisites()}
+        />
+      )}
+
+      {showAddCategory && (
+        <AddOptionModal
+          isOpen={showAddCategory}
+          onClose={() => setShowAddCategory(false)}
+          onSave={handleAddCategory}
+          title={t("Add New Category")}
+          label={t("Category Name")}
+          placeholder={t("Enter category name")}
+        />
+      )}
     </div>
   );
 };

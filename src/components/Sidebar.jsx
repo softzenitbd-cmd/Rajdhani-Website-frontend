@@ -10,6 +10,25 @@ import {
   Settings, LogOut, ChevronDown, ChevronRight, X, ShoppingCart
 } from 'lucide-react';
 
+
+const RefreshNavLink = ({ to, children, className, style, onClick, ...props }) => {
+  const handleClick = (e) => {
+    if (window.location.pathname === to) {
+      e.preventDefault();
+      window.location.reload();
+    }
+    if (onClick) {
+      onClick(e);
+    }
+  };
+  
+  return (
+    <NavLink to={to} className={className} style={style} onClick={handleClick} {...props}>
+      {children}
+    </NavLink>
+  );
+};
+
 const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
@@ -382,12 +401,12 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
           }
         }
       }}>
-        <NavLink to="/dashboard" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
+        <RefreshNavLink to="/dashboard" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
           <div className="nav-item-content">
             <LayoutDashboard size={20} />
             <span>{t('menu.dashboard')}</span>
           </div>
-        </NavLink>
+        </RefreshNavLink>
 
         {/* CRM Menu Group */}
         <div>
@@ -428,24 +447,24 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
                 
                 {clientOpen && (
                   <div style={{ paddingBottom: '8px' }}>
-                    <NavLink to="/crm/client-create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)', paddingLeft: '48px' }}>
+                    <RefreshNavLink to="/crm/client-create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)', paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.add_new_client')}
-                    </NavLink>
-                    <NavLink to="/crm/client-list" className="submenu-item" style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/crm/client-list" className="submenu-item" style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.client_list')}
-                    </NavLink>
-                    <NavLink to="/crm/client-group" className="submenu-item" style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/crm/client-group" className="submenu-item" style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.client_group')}
-                    </NavLink>
-                    <NavLink to="/crm/client-statement" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/crm/client-statement" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.client_statement')}
-                    </NavLink>
-                    <NavLink to="/crm/due-collection-date" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/crm/due-collection-date" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.due_collection_date')}
-                    </NavLink>
-                    <NavLink to="/crm/client-cheque-schedule" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    {/* <RefreshNavLink to="/crm/client-cheque-schedule" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t("Client Cheque Schedule")}
-                    </NavLink>
+                    </RefreshNavLink> */}
                   </div>
                 )}
               </div>
@@ -476,21 +495,21 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
                 </div>
                 {supplierOpen && (
                   <div className="submenu" style={{ marginLeft: '16px', background: 'transparent' }}>
-                    <NavLink to="/crm/supplier-create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    <RefreshNavLink to="/crm/supplier-create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.add_new_supplier')}
-                    </NavLink>
-                    <NavLink to="/crm/supplier-list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/crm/supplier-list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.supplier_list')}
-                    </NavLink>
-                    <NavLink to="/crm/supplier-group" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/crm/supplier-group" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.supplier_group')}
-                    </NavLink>
-                    <NavLink to="/crm/supplier-statement" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/crm/supplier-statement" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.supplier_statement')}
-                    </NavLink>
-                    <NavLink to="/crm/supplier-cheque-schedule" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/crm/supplier-cheque-schedule" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.supplier_cheque_schedule')}
-                    </NavLink>
+                    </RefreshNavLink>
                   </div>
                 )}
               </div>
@@ -525,12 +544,12 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
                 
                 {receiveOpen && (
                   <div>
-                    <NavLink to="/account/receive-create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)', paddingLeft: '48px' }}>
+                    <RefreshNavLink to="/account/receive-create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)', paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.add_new')}
-                    </NavLink>
-                    <NavLink to="/account/receive-list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/account/receive-list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.receive_list')}
-                    </NavLink>
+                    </RefreshNavLink>
                   </div>
                 )}
               </div>
@@ -550,21 +569,21 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
                 
                 {expenseOpen && (
                   <div>
-                    <NavLink to="/account/expense-create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)', paddingLeft: '48px' }}>
+                    <RefreshNavLink to="/account/expense-create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)', paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.add_new')}
-                    </NavLink>
-                    <NavLink to="/account/expense-list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/account/expense-list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.expense')}
-                    </NavLink>
-                    <NavLink to="/account/supplier-payment" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/account/supplier-payment" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.supplier_payment')}
-                    </NavLink>
-                    <NavLink to="/account/money-return" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/account/money-return" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.money_return')}
-                    </NavLink>
-                    <NavLink to="/account/money-return-list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/account/money-return-list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('Money Return List')}
-                    </NavLink>
+                    </RefreshNavLink>
                   </div>
                 )}
               </div>
@@ -583,18 +602,18 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
                 
                 {subAccountOpen && (
                   <div>
-                    <NavLink to="/account/account-create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)', paddingLeft: '48px' }}>
+                    <RefreshNavLink to="/account/account-create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)', paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.account_create')}
-                    </NavLink>
-                    <NavLink to="/account/account-list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/account/account-list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.account_list')}
-                    </NavLink>
-                    <NavLink to="/account/account-balance" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/account/account-balance" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.account_balance')}
-                    </NavLink>
-                    <NavLink to="/account/statement" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/account/statement" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.statement')}
-                    </NavLink>
+                    </RefreshNavLink>
                   </div>
                 )}
               </div>
@@ -613,18 +632,18 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
                 
                 {transferOpen && (
                   <div>
-                    <NavLink to="/account/transfer-create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)', paddingLeft: '48px' }}>
+                    <RefreshNavLink to="/account/transfer-create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)', paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.transfer_create')}
-                    </NavLink>
-                    <NavLink to="/account/transfer-list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/account/transfer-list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.transfer_list')}
-                    </NavLink>
+                    </RefreshNavLink>
                   </div>
                 )}
               </div>
-              <NavLink to="/account/profit" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '32px' }}>
+              <RefreshNavLink to="/account/profit" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '32px' }}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.profit')}
-              </NavLink>
+              </RefreshNavLink>
             </div>
           )}
         </div>
@@ -641,21 +660,21 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
           
           {loanOpen && (
             <div className="submenu">
-              <NavLink to="/loan/client-create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)' }}>
+              <RefreshNavLink to="/loan/client-create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)' }}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.add_new_client')}
-              </NavLink>
-              <NavLink to="/loan/client-list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/loan/client-list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.client_list')}
-              </NavLink>
-              <NavLink to="/loan/receive" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/loan/receive" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.loan_receive')}
-              </NavLink>
-              <NavLink to="/loan/payment" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/loan/payment" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.loan_payment')}
-              </NavLink>
-              <NavLink to="/loan/statement" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/loan/statement" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.loan_statement')}
-              </NavLink>
+              </RefreshNavLink>
             </div>
           )}
         </div>
@@ -671,15 +690,15 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
           
           {invoiceOpen && (
             <div className="submenu">
-              <NavLink to="/invoice/add-new" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)' }}>
+              <RefreshNavLink to="/invoice/add-new" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)' }}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.add_new')}
-              </NavLink>
-              <NavLink to="/invoice/list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/invoice/list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.invoice_list')}
-              </NavLink>
-              <NavLink to="/invoice/draft" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/invoice/draft" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.draft_invoice')}
-              </NavLink>
+              </RefreshNavLink>
               
               {/* Sales Return Submenu Group */}
               <div>
@@ -696,12 +715,12 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
                 
                 {salesReturnOpen && (
                   <div>
-                    <NavLink to="/invoice/sales-return/add-new" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)' }}>
+                    <RefreshNavLink to="/invoice/sales-return/add-new" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.add_return')}
-                    </NavLink>
-                    <NavLink to="/invoice/sales-return/list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/invoice/sales-return/list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.return_list')}
-                    </NavLink>
+                    </RefreshNavLink>
                   </div>
                 )}
               </div>
@@ -735,15 +754,15 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
                 
                 {subProductOpen && (
                   <div>
-                    <NavLink to="/product/create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)', paddingLeft: '48px' }}>
+                    <RefreshNavLink to="/product/create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)', paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.product_create')}
-                    </NavLink>
-                    <NavLink to="/product/list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/product/list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.product_list')}
-                    </NavLink>
-                    <NavLink to="/product/group" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/product/group" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.product_group')}
-                    </NavLink>
+                    </RefreshNavLink>
                     
                     {/* Nested Product Asset Submenu */}
                     <div>
@@ -760,12 +779,12 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
                       
                       {productAssetOpen && (
                         <div>
-                          <NavLink to="/product/unit" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '64px' }}>
+                          <RefreshNavLink to="/product/unit" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '64px' }}>
                             <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.product_unit')}
-                          </NavLink>
-                          <NavLink to="/product/barcode" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '64px' }}>
+                          </RefreshNavLink>
+                          <RefreshNavLink to="/product/barcode" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '64px' }}>
                             <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.product_barcode')}
-                          </NavLink>
+                          </RefreshNavLink>
                         </div>
                       )}
                     </div>
@@ -788,18 +807,18 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
                 
                 {purchaseOpen && (
                   <div>
-                    <NavLink to="/product/purchase/add-new" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)', paddingLeft: '48px' }}>
+                    <RefreshNavLink to="/product/purchase/add-new" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)', paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.add_new')}
-                    </NavLink>
-                    <NavLink to="/product/purchase/list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/product/purchase/list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.purchase_list')}
-                    </NavLink>
-                    <NavLink to="/product/purchase/invoice-list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/product/purchase/invoice-list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.purchase_invoice_list')}
-                    </NavLink>
-                    <NavLink to="/product/purchase/report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/product/purchase/report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.purchase_report')}
-                    </NavLink>
+                    </RefreshNavLink>
                   </div>
                 )}
               </div>
@@ -819,23 +838,23 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
                 
                 {purchaseReturnOpen && (
                   <div>
-                    <NavLink to="/product/purchase-return/add-new" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)', paddingLeft: '48px' }}>
+                    <RefreshNavLink to="/product/purchase-return/add-new" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ color: 'var(--primary)', paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.add_new')}
-                    </NavLink>
-                    <NavLink to="/product/purchase-return/list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/product/purchase-return/list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.purchase_return_list')}
-                    </NavLink>
-                    <NavLink to="/product/purchase-return/report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/product/purchase-return/report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.purchase_return_report')}
-                    </NavLink>
+                    </RefreshNavLink>
                   </div>
                 )}
               </div>
 
               {/* Other standalone submenu items */}
-              <NavLink to="/product/stock" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              <RefreshNavLink to="/product/stock" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.product_stock')}
-              </NavLink>
+              </RefreshNavLink>
             </div>
           )}
         </div>
@@ -851,24 +870,24 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
           
           {smsOpen && (
             <div className="submenu">
-              <NavLink to="/sms/customer" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              <RefreshNavLink to="/sms/customer" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.customer')}
-              </NavLink>
-              <NavLink to="/sms/customer-group" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/sms/customer-group" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.customer_group')}
-              </NavLink>
-              <NavLink to="/sms/supplier" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/sms/supplier" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.supplier')}
-              </NavLink>
-              <NavLink to="/sms/supplier-group" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/sms/supplier-group" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.supplier_group')}
-              </NavLink>
-              <NavLink to="/sms/schedule" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/sms/schedule" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.sms_schedule')}
-              </NavLink>
-              <NavLink to="/sms/schedule-report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/sms/schedule-report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.schedule_report')}
-              </NavLink>
+              </RefreshNavLink>
             </div>
           )}
         </div>
@@ -884,12 +903,12 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
           
           {staffOpen && (
             <div className="submenu">
-              <NavLink to="/staff/create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              <RefreshNavLink to="/staff/create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.staff_create')}
-              </NavLink>
-              <NavLink to="/staff/list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/staff/list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.staff_list')}
-              </NavLink>
+              </RefreshNavLink>
               
               {/* Nested Staff Payment Submenu */}
               <div>
@@ -906,12 +925,12 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
                 
                 {staffPaymentOpen && (
                   <div>
-                    <NavLink to="/staff/payment/create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px', color: 'var(--primary)' }}>
+                    <RefreshNavLink to="/staff/payment/create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px', color: 'var(--primary)' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.payment_create')}
-                    </NavLink>
-                    <NavLink to="/staff/payment/report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/staff/payment/report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.staff_payment_report')}
-                    </NavLink>
+                    </RefreshNavLink>
                   </div>
                 )}
               </div>
@@ -931,12 +950,12 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
                 
                 {staffSalaryOpen && (
                   <div>
-                    <NavLink to="/staff/salary/create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    <RefreshNavLink to="/staff/salary/create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.add_salary')}
-                    </NavLink>
-                    <NavLink to="/staff/salary/report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/staff/salary/report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.salary_report')}
-                    </NavLink>
+                    </RefreshNavLink>
                   </div>
                 )}
               </div>
@@ -956,24 +975,24 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
                 
                 {staffAttendanceOpen && (
                   <div>
-                    <NavLink to="/staff/attendance/create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    <RefreshNavLink to="/staff/attendance/create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.attendance_create')}
-                    </NavLink>
-                    <NavLink to="/staff/attendance/report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/staff/attendance/report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.attendance_report')}
-                    </NavLink>
-                    <NavLink to="/staff/attendance/monthly-report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/staff/attendance/monthly-report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.monthly_attendance_report')}
-                    </NavLink>
+                    </RefreshNavLink>
                   </div>
                 )}
               </div>
-              <NavLink to="/staff/department" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              <RefreshNavLink to="/staff/department" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.staff_department')}
-              </NavLink>
-              <NavLink to="/staff/designation" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/staff/designation" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.staff_designation')}
-              </NavLink>
+              </RefreshNavLink>
             </div>
           )}
         </div>
@@ -990,18 +1009,18 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
           
           {dueReportOpen && (
             <div className="submenu">
-              <NavLink to="/due-report/list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              <RefreshNavLink to="/due-report/list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.due_list')}
-              </NavLink>
-              <NavLink to="/due-report/client-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/due-report/client-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.client_wise')}
-              </NavLink>
-              <NavLink to="/due-report/group-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/due-report/group-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.group_wise')}
-              </NavLink>
-              <NavLink to="/due-report/supplier-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/due-report/supplier-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t("Supplier Due")}
-              </NavLink>
+              </RefreshNavLink>
             </div>
           )}
         </div>
@@ -1018,27 +1037,27 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
           
           {salesReportOpen && (
             <div className="submenu">
-              <NavLink to="/sales-report/all" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              <RefreshNavLink to="/sales-report/all" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.all')}
-              </NavLink>
-              <NavLink to="/sales-report/barcode-search" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/sales-report/barcode-search" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.barcode_search')}
-              </NavLink>
-              <NavLink to="/sales-report/daily" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/sales-report/daily" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.daily')}
-              </NavLink>
-              <NavLink to="/sales-report/customer-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/sales-report/customer-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.customer_wise')}
-              </NavLink>
-              <NavLink to="/sales-report/group-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/sales-report/group-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.group_wise')}
-              </NavLink>
-              <NavLink to="/sales-report/product-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/sales-report/product-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.product_wise')}
-              </NavLink>
-              <NavLink to="/sales-report/product-group-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/sales-report/product-group-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.product_group_wise')}
-              </NavLink>
+              </RefreshNavLink>
             </div>
           )}
         </div>
@@ -1055,15 +1074,15 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
           
           {depositReportOpen && (
             <div className="submenu">
-              <NavLink to="/deposit-report/all" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              <RefreshNavLink to="/deposit-report/all" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.all_deposit')}
-              </NavLink>
-              <NavLink to="/deposit-report/category-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/deposit-report/category-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.category_wise')}
-              </NavLink>
-              <NavLink to="/deposit-report/customer-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/deposit-report/customer-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.customer_wise')}
-              </NavLink>
+              </RefreshNavLink>
             </div>
           )}
         </div>
@@ -1080,15 +1099,15 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
           
           {expenseReportOpen && (
             <div className="submenu">
-              <NavLink to="/expense-report/all" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              <RefreshNavLink to="/expense-report/all" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.all_expense')}
-              </NavLink>
-              <NavLink to="/expense-report/category-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/expense-report/category-wise" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.category_wise')}
-              </NavLink>
-              <NavLink to="/expense-report/supplier-purchase" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/expense-report/supplier-purchase" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.supplier_purchase_payment')}
-              </NavLink>
+              </RefreshNavLink>
             </div>
           )}
         </div>
@@ -1121,12 +1140,12 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
                 
                 {incomeCategoryOpen && (
                   <div>
-                    <NavLink to="/settings/income-category" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    <RefreshNavLink to="/settings/income-category" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.category')}
-                    </NavLink>
-                    <NavLink to="/settings/income-subcategory" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/settings/income-subcategory" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.subcategory')}
-                    </NavLink>
+                    </RefreshNavLink>
                   </div>
                 )}
               </div>
@@ -1146,35 +1165,35 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
                 
                 {expenseCategorySettingOpen && (
                   <div>
-                    <NavLink to="/settings/expense-category" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    <RefreshNavLink to="/settings/expense-category" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.category')}
-                    </NavLink>
-                    <NavLink to="/settings/expense-subcategory" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
+                    </RefreshNavLink>
+                    <RefreshNavLink to="/settings/expense-subcategory" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.subcategory')}
-                    </NavLink>
+                    </RefreshNavLink>
                   </div>
                 )}
               </div>
 
               {/* Other standalone submenu items */}
-              <NavLink to="/settings/shortcut-menu" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              <RefreshNavLink to="/settings/shortcut-menu" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.shortcut_menu')}
-              </NavLink>
-              <NavLink to="/settings/payment-method" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/settings/payment-method" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.payment_method')}
-              </NavLink>
-              <NavLink to="/settings/company-information" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/settings/company-information" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.company_information')}
-              </NavLink>
-              <NavLink to="/settings/bank" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/settings/bank" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.bank_list')}
-              </NavLink>
-              <NavLink to="/settings/settings" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/settings/settings" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('menu.settings')}
-              </NavLink>
-              <NavLink to="/settings/users" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+              </RefreshNavLink>
+              <RefreshNavLink to="/settings/users" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t("Users & Permissions")}
-              </NavLink>
+              </RefreshNavLink>
 
             </div>
           )}

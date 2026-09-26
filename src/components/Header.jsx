@@ -143,7 +143,7 @@ const Header = ({ toggleSidebar }) => {
     <header 
       className="header" 
       style={{ 
-        background: 'linear-gradient(90deg, #c026d3 0%, #a855f7 40%, #6366f1 100%)',
+        background: '#0a4226', // dark green matching screenshot
         color: 'white',
         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
         display: 'flex',
@@ -184,7 +184,7 @@ const Header = ({ toggleSidebar }) => {
               }
             }}
             style={{ 
-              background: '#14b8a6', // teal
+              background: '#000000', // black matching screenshot
               color: 'white', 
               border: 'none', 
               padding: '6px 12px', 

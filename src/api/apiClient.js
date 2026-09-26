@@ -3,7 +3,7 @@ import i18n from '../i18n';
 
 // 1. Determine base URL
 // In development, if VITE_API_BASE_URL is empty, use empty string '' so relative calls (/api/...) get routed through Vite proxy (vite.config.js), avoiding CORS net::ERR_FAILED errors.
-const getBaseURL = () => {
+export const getBaseURL = () => {
   const envUrl = import.meta.env.VITE_API_BASE_URL;
   if (envUrl !== undefined && envUrl !== '') {
     return envUrl;
