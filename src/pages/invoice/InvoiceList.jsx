@@ -10,6 +10,7 @@ import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
 import { useConfirm } from '../../context/ConfirmContext';
 import { exportVisibleTable } from '../../utils/tableExport';
+import { printElement } from '../../utils/printUtils';
 import CustomDatePicker from '../../components/CustomDatePicker';
 import Pagination from '../../components/Pagination';
 import { companyStore, companyHeaderImage } from '../../services/companyStore';
@@ -395,7 +396,7 @@ const InvoiceList = () => {
           <div className="printable-modal-content" style={{ background: '#f8f9fa', width: '100%', maxWidth: '800px', borderRadius: '8px', padding: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', maxHeight: '90vh', overflowY: 'auto' }}>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <button onClick={() => window.print()} className="no-print" style={{ background: '#000', color: 'white', border: 'none', padding: '6px 16px', cursor: 'pointer', borderRadius: '4px', fontWeight: 'bold' }}>
+              <button onClick={() => printElement('pos-receipt-print-area', { withHeader: false, pageSize: '80mm auto', extraCss: 'body { padding: 0 !important; } .pos-receipt-wrapper { width: 100% !important; margin: 0 !important; } .receipt-header-image img { max-width: 100% !important; } table { border-collapse: collapse !important; width: 100% !important; color: black !important; } th, td { border: 1px solid black !important; }' })} className="no-print" style={{ background: '#000', color: 'white', border: 'none', padding: '6px 16px', cursor: 'pointer', borderRadius: '4px', fontWeight: 'bold' }}>
                 🖨️ Printable
               </button>
               <button onClick={() => navigate('/invoice/create')} className="no-print" style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 16px', cursor: 'pointer', borderRadius: '4px', fontWeight: 'bold' }}>
@@ -404,7 +405,7 @@ const InvoiceList = () => {
               <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#e2e8f0', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', color: '#0f172a', fontWeight: 'bold', marginLeft: 'auto' }}>✕ Close</button>
             </div>
 
-            <div className="pos-receipt-wrapper" style={{ margin: '0 auto', width: '380px', background: 'white', padding: '8px', boxSizing: 'border-box' }}>
+            <div id="pos-receipt-print-area" className="pos-receipt-wrapper" style={{ margin: '0 auto', width: '380px', background: 'white', padding: '8px', boxSizing: 'border-box' }}>
               <div style={{ padding: '8px' }}>
                 
                 {/* Dynamic Header */}
