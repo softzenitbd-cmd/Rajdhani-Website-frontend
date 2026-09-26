@@ -58,6 +58,7 @@ const normalizeReportRow = (r) => {
     due: num(inv.due_amount ?? r.current_due),
     due_amount: num(inv.due_amount ?? r.current_due),
     profit: num(r.profit),
+    buy_price: num(r.product_purchase_price ?? r.purchase_price ?? r.buying_price ?? r.cost),
     date: r.date || r.issued_date,
   };
 };
@@ -163,6 +164,7 @@ const buildSalesReport = async (filters = {}) => {
         due: num(inv.total_due ?? inv.due),
         due_amount: num(inv.total_due ?? inv.due),
         profit: cost ? (price - cost) * qty : 0,
+        buy_price: cost,
       });
     });
   });

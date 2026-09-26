@@ -55,6 +55,7 @@ const ProductStockList = () => {
   const [productsList, setProductsList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [entries, setEntries] = useState(50);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [filters, setFilters] = useState({
     searchAll: '',
@@ -178,17 +179,25 @@ const ProductStockList = () => {
   }, [stocks, filters]);
 
   const displayedStocks = useMemo(() => {
-    return filteredStocks.slice(0, entries);
-  }, [filteredStocks, entries]);
+    const startIndex = (currentPage - 1) * entries;
+    return filteredStocks.slice(startIndex, startIndex + entries);
+  }, [filteredStocks, entries, currentPage]);
 
-  const { totalBuySum, totalSellSum, totalStockSum } = useMemo(() => {
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, entries]);
+
+  const { totalBuySum, totalSellSum, totalStockSum, totalOpeningSum, totalBuyQtySum, totalSaleQtySum } = useMemo(() => {
     return filteredStocks.reduce(
       (acc, curr) => ({
         totalBuySum: acc.totalBuySum + parseFloat(curr.totalBuy || 0),
         totalSellSum: acc.totalSellSum + parseFloat(curr.totalSell || 0),
-        totalStockSum: acc.totalStockSum + parseFloat(curr.stock || 0)
+        totalStockSum: acc.totalStockSum + parseFloat(curr.stock || 0),
+        totalOpeningSum: acc.totalOpeningSum + parseFloat(curr.opening || 0),
+        totalBuyQtySum: acc.totalBuyQtySum + parseFloat(curr.buyQty || 0),
+        totalSaleQtySum: acc.totalSaleQtySum + parseFloat(curr.saleQty || 0)
       }),
-      { totalBuySum: 0, totalSellSum: 0, totalStockSum: 0 }
+      { totalBuySum: 0, totalSellSum: 0, totalStockSum: 0, totalOpeningSum: 0, totalBuyQtySum: 0, totalSaleQtySum: 0 }
     );
   }, [filteredStocks]);
 
@@ -349,8 +358,17 @@ const ProductStockList = () => {
             {displayedStocks.length > 0 && (
               <tfoot>
                 <tr style={{ background: '#f1f5f9', fontWeight: 'bold', borderTop: '2px solid #cbd5e1' }}>
-                  <td colSpan="7" style={{ textAlign: 'right', padding: '12px', borderRight: '1px solid #cbd5e1', fontSize: 'var(--fs-12, 12px)', textTransform: 'uppercase' }}>
+                  <td colSpan="4" style={{ textAlign: 'right', padding: '12px', borderRight: '1px solid #cbd5e1', fontSize: 'var(--fs-12, 12px)', textTransform: 'uppercase' }}>
                     {t("Total")} :
+                  </td>
+                  <td style={{ textAlign: 'right', padding: '12px 10px', borderRight: '1px solid #cbd5e1', fontSize: 'var(--fs-12, 12px)' }}>
+                    {totalOpeningSum.toFixed(2)}
+                  </td>
+                  <td style={{ textAlign: 'right', padding: '12px 10px', borderRight: '1px solid #cbd5e1', fontSize: 'var(--fs-12, 12px)' }}>
+                    {totalBuyQtySum.toFixed(2)}
+                  </td>
+                  <td style={{ textAlign: 'right', padding: '12px 10px', borderRight: '1px solid #cbd5e1', fontSize: 'var(--fs-12, 12px)' }}>
+                    {totalSaleQtySum.toFixed(2)}
                   </td>
                   <td style={{ textAlign: 'right', padding: '12px 10px', borderRight: '1px solid #cbd5e1', fontSize: 'var(--fs-12, 12px)' }}>
                     {totalStockSum.toFixed(2)}
@@ -366,6 +384,36 @@ const ProductStockList = () => {
             )}
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {filteredStocks.length > entries && (
+          <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
+            <div style={{ fontSize: 'var(--fs-13, 13px)', color: '#475569' }}>
+              {t("Showing")} {(currentPage - 1) * entries + (filteredStocks.length > 0 ? 1 : 0)} {t("to")} {Math.min(currentPage * entries, filteredStocks.length)} {t("of")} {filteredStocks.length} {t("entries")}
+            </div>
+            <div style={{ display: 'flex', gap: '4px' }}>
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                style={{ padding: '6px 12px', background: currentPage === 1 ? '#e2e8f0' : '#f1f5f9', border: '1px solid #cbd5e1', color: currentPage === 1 ? '#94a3b8' : 'black', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: 'var(--fs-13, 13px)' }}
+              >
+                {t("Previous")}
+              </button>
+              <button 
+                style={{ padding: '6px 12px', background: '#3b82f6', border: '1px solid #3b82f6', color: 'white', fontSize: 'var(--fs-13, 13px)' }}
+              >
+                {currentPage}
+              </button>
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredStocks.length / entries), p + 1))}
+                disabled={currentPage >= Math.ceil(filteredStocks.length / entries)}
+                style={{ padding: '6px 12px', background: currentPage >= Math.ceil(filteredStocks.length / entries) ? '#e2e8f0' : '#f1f5f9', border: '1px solid #cbd5e1', color: currentPage >= Math.ceil(filteredStocks.length / entries) ? '#94a3b8' : 'black', cursor: currentPage >= Math.ceil(filteredStocks.length / entries) ? 'not-allowed' : 'pointer', fontSize: 'var(--fs-13, 13px)' }}
+              >
+                {t("Next")}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

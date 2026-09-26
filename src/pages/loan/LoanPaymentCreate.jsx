@@ -50,6 +50,19 @@ const LoanPaymentCreate = () => {
       setLoanAccounts(loanData);
       setBankAccounts(accData);
       setCategories(catData);
+
+      setFormData(prev => {
+        let newForm = { ...prev };
+        if (!newForm.accountId) {
+          const defaultAcc = accData.find(a => String(a.name).trim().toUpperCase() === 'TOTAL BLANCE');
+          if (defaultAcc) newForm.accountId = defaultAcc.id || defaultAcc.uuid;
+        }
+        if (!newForm.categoryId) {
+          const defaultCat = catData.find(c => String(c.name).trim().toUpperCase() === 'LOON DEWA');
+          if (defaultCat) newForm.categoryId = defaultCat.id || defaultCat.uuid;
+        }
+        return newForm;
+      });
     } catch (err) {
       toast.error(err?.message || t("Failed to load form data"));
     }

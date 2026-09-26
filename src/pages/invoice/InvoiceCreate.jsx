@@ -200,6 +200,18 @@ const InvoiceCreate = () => {
   }, [id]);
 
   useEffect(() => {
+    if (!loadingPrereqs) {
+      const timer = setTimeout(() => {
+        const barcodeInput = document.getElementById('barcodeInput');
+        if (barcodeInput) {
+          barcodeInput.focus();
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [loadingPrereqs]);
+
+  useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.ctrlKey && e.key.toLowerCase() === "s") {
         e.preventDefault();
@@ -277,6 +289,7 @@ const InvoiceCreate = () => {
           {
             id: prod.id,
             name: prod.name || prod.title || "Product",
+            barcode: prod.custom_barcode_no || prod.code || prod.barcode || (String(prod.id).length === 36 ? String(prod.id).substring(0, 8).toUpperCase() : prod.id),
             stock: Number(prod.stock ?? 0),
             price: Number(prod.sales_price || prod.price || 0),
             quantity: 1,
@@ -292,21 +305,23 @@ const InvoiceCreate = () => {
   const handleBarcodeKeyDown = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      const code = e.target.value.trim();
-      if (!code) return;
+      const rawCode = e.target.value;
+      if (!rawCode || !rawCode.trim()) return;
+      const code = rawCode.trim().toLowerCase();
       const prod = products.find(
         (p) =>
-          String(p.code) === code ||
-          String(p.barcode) === code ||
-          String(p.custom_barcode_no) === code ||
-          String(p.id) === code ||
-          String(p.product_code) === code,
+          String(p.code || "").trim().toLowerCase() === code ||
+          String(p.barcode || "").trim().toLowerCase() === code ||
+          String(p.custom_barcode_no || "").trim().toLowerCase() === code ||
+          String(p.id).trim().toLowerCase() === code ||
+          (code.length >= 8 && String(p.id).trim().toLowerCase().startsWith(code)) ||
+          String(p.product_code || "").trim().toLowerCase() === code,
       );
       if (prod) {
         handleSelectProduct(prod.id);
       } else {
         toast.error(
-          t('Product with barcode "{{v0}}" not found.', { v0: code }),
+          t('Product with barcode "{{v0}}" not found.', { v0: rawCode.trim() }),
         );
       }
       setFormData((prev) => ({ ...prev, barcode: "" }));
@@ -496,6 +511,10 @@ const InvoiceCreate = () => {
             }
             
             setFormData(baseForm);
+            setTimeout(() => {
+              const barcodeInput = document.getElementById('barcodeInput');
+              if (barcodeInput) barcodeInput.focus();
+            }, 100);
           }
         }
       }
@@ -700,6 +719,8 @@ const InvoiceCreate = () => {
                     <Barcode size={24} style={{ color: "var(--text-muted)" }} />
                   </div>
                   <input
+                    id="barcodeInput"
+                    autoFocus
                     type="text"
                     name="barcode"
                     placeholder={t(
@@ -708,7 +729,34 @@ const InvoiceCreate = () => {
                     )}
                     value={formData.barcode}
                     onChange={handleChange}
-                    onKeyDown={handleBarcodeKeyDown}
+                    onKeyDown={(e) => {
+                      if (e.key === "Tab" && !e.shiftKey) {
+                        e.preventDefault();
+                        if (e.target.value.trim()) {
+                          handleBarcodeKeyDown({ 
+                            key: "Enter", 
+                            target: e.target, 
+                            preventDefault: () => {} 
+                          });
+                        }
+                        setTimeout(() => {
+                          const inputs = document.querySelectorAll(`input[data-qty-idx]`);
+                          const targetQty = inputs.length > 0 ? inputs[inputs.length - 1] : null;
+                          if (targetQty) {
+                            targetQty.focus();
+                            setTimeout(() => targetQty.select(), 10);
+                          } else {
+                            const receiveInput = document.getElementById("receiveAmountInput");
+                            if (receiveInput) {
+                              receiveInput.focus();
+                              setTimeout(() => receiveInput.select(), 10);
+                            }
+                          }
+                        }, 50);
+                      } else {
+                        handleBarcodeKeyDown(e);
+                      }
+                    }}
                     style={{
                       flex: 1,
                       padding: "12px",
@@ -720,7 +768,29 @@ const InvoiceCreate = () => {
                 </div>
               </div>
 
-              <div className="form-group" style={{ marginBottom: "0" }}>
+              <div 
+                className="form-group" 
+                style={{ marginBottom: "0" }}
+                onKeyDownCapture={(e) => {
+                  if (e.key === "Tab" && !e.shiftKey) {
+                    e.preventDefault();
+                    setTimeout(() => {
+                      const inputs = document.querySelectorAll(`input[data-qty-idx]`);
+                      const targetQty = inputs.length > 0 ? inputs[inputs.length - 1] : null;
+                      if (targetQty) {
+                        targetQty.focus();
+                        setTimeout(() => targetQty.select(), 10);
+                      } else {
+                        const receiveInput = document.getElementById("receiveAmountInput");
+                        if (receiveInput) {
+                          receiveInput.focus();
+                          setTimeout(() => receiveInput.select(), 10);
+                        }
+                      }
+                    }, 50);
+                  }
+                }}
+              >
                 <SearchableSelect
                   options={(products || []).map((p) => {
                     const barcode =
@@ -831,13 +901,24 @@ const InvoiceCreate = () => {
                           {idx + 1}
                         </td>
                         <td style={{ padding: "8px", fontWeight: "500" }}>
-                          {item.name}
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                              <span>{item.name}</span>
+                              {item.barcode && (
+                                <>
+                                  <span style={{ color: "#94a3b8", fontWeight: "600" }}>|</span>
+                                    <span style={{ color: "#334155", fontWeight: "600" }}>
+                                      {item.barcode}
+                                    </span>
+                                </>
+                              )}
+                            </div>
                         </td>
                         <td style={{ padding: "8px", textAlign: "center" }}>
                           {item.stock}
                         </td>
                         <td style={{ padding: "8px", textAlign: "center" }}>
                           <input
+                            tabIndex="-1"
                             type="number"
                             value={item.price}
                             onFocus={(e) => e.target.select()}
@@ -872,7 +953,7 @@ const InvoiceCreate = () => {
                                   const receiveInput = document.getElementById("receiveAmountInput");
                                   if (receiveInput) {
                                     receiveInput.focus();
-                                    receiveInput.select();
+                                    setTimeout(() => setTimeout(() => receiveInput.select(), 10), 10);
                                   }
                                 }
                               }
@@ -1186,10 +1267,6 @@ const InvoiceCreate = () => {
               >
                 {t("invoice.cancel", "Cancel")}
               </button>
-              <div
-                className="form-action-group"
-                style={{ display: "flex", gap: "8px" }}
-              >
                 <button
                   type="button"
                   className="btn-primary"
@@ -1230,7 +1307,6 @@ const InvoiceCreate = () => {
                 >
                   {t("invoice.add_invoice", "Add Invoice")}
                 </button>
-              </div>
             </div>
           </form>
         </div>

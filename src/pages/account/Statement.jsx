@@ -7,6 +7,7 @@ import SearchableSelect from '../../components/SearchableSelect';
 import { accountingService } from '../../services/accountingService';
 import { crmService } from '../../services/crmService';
 import CustomDatePicker from '../../components/CustomDatePicker';
+import { fmtDate } from '../../utils/apiHelpers';
 
 
 const cell = { padding: '10px', border: '1px solid #cbd5e1', textAlign: 'center' };
@@ -198,19 +199,26 @@ const Statement = () => {
                 return (
                   <tr key={row.id || idx}>
                     <td style={cell}>{idx + 1}</td>
-                    <td style={cell}>{row.date ? String(row.date).split('T')[0] : ''}</td>
+                    <td style={cell}>{row.date ? fmtDate(row.date) : ''}</td>
                     <td style={cell}>{row.source || row.client_name || row.supplier_name || ''}</td>
                     <td style={cell}>
-                      <span style={{ background: isDeposit ? '#dcfce7' : '#fee2e2', color: isDeposit ? '#15803d' : '#b91c1c', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>
-                        {row.transaction_type || row.type}
+                      <span style={{ 
+                        background: String(row.transaction_type || row.type).toLowerCase().match(/payment|deposit|receive|স্টাফ|পেমেন্ট/) ? '#10b981' : String(row.transaction_type || row.type).toLowerCase().match(/expense|খরচ/) ? '#f43f5e' : '#3b82f6', 
+                        color: 'black', 
+                        padding: '4px 10px', 
+                        borderRadius: '4px', 
+                        fontSize: 'var(--fs-12, 12px)', 
+                        fontWeight: 'bold' 
+                      }}>
+                        {t(row.transaction_type || row.type)}
                       </span>
                     </td>
                     <td style={cell}>{row.account_name || ''}</td>
                     <td style={cell}>{row.bank_name || row.bank || ''}</td>
                     <td style={cell}>{row.description || ''}</td>
-                    <td style={{ ...cell, color: '#059669', fontWeight: '600' }}>{row.credit ? fmt(row.credit) : '0'}</td>
-                    <td style={{ ...cell, color: '#dc2626', fontWeight: '600' }}>{row.debit ? fmt(row.debit) : '0'}</td>
-                    <td style={{ ...cell, fontWeight: 'bold' }}>{fmt(row.balance)}</td>
+                    <td style={{ ...cell, color: '#10b981', fontWeight: '600' }}>{row.credit ? fmt(row.credit) : '0'}</td>
+                    <td style={{ ...cell, color: '#ef4444', fontWeight: '600' }}>{row.debit ? fmt(row.debit) : '0'}</td>
+                    <td style={{ ...cell, color: 'black', fontWeight: 'bold' }}>{fmt(row.balance)}</td>
                   </tr>
                 );
               })
@@ -219,9 +227,9 @@ const Statement = () => {
           <tfoot>
             <tr style={{ fontWeight: 'bold', background: '#f8fafc' }}>
               <td colSpan="7" style={cell}>{t("Total")}</td>
-              <td style={cell}>{fmt(totalCredit)}</td>
-              <td style={cell}>{fmt(totalDebit)}</td>
-              <td style={cell}>{fmt(totalCredit - totalDebit)}</td>
+              <td style={{ ...cell, color: '#10b981' }}>{fmt(totalCredit)}</td>
+              <td style={{ ...cell, color: '#ef4444' }}>{fmt(totalDebit)}</td>
+              <td style={{ ...cell, color: 'black', fontWeight: 'bold' }}>{fmt(totalCredit - totalDebit)}</td>
             </tr>
           </tfoot>
         </table>

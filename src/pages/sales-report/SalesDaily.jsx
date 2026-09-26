@@ -74,11 +74,12 @@ const SalesDaily = () => {
   const calculateTotals = () => {
     return reports.reduce((acc, row) => ({
       qty: acc.qty + Number(row.qty || row.quantity || 0),
+      buy: acc.buy + Number(row.buy_price || 0) * Number(row.qty || row.quantity || 0),
       total: acc.total + Number(row.total || row.total_amount || 0),
       receive: acc.receive + Number(row.receive || row.receive_amount || 0),
       due: acc.due + Number(row.due || row.due_amount || 0),
       profit: acc.profit + Number(row.profit || 0)
-    }), { qty: 0, total: 0, receive: 0, due: 0, profit: 0 });
+    }), { qty: 0, buy: 0, total: 0, receive: 0, due: 0, profit: 0 });
   };
 
   const totals = calculateTotals();
@@ -188,7 +189,8 @@ const SalesDaily = () => {
                   <th style={{ padding: '10px' }}>{t("BARCODE ⇅")}</th>
                   <th style={{ padding: '10px' }}>{t("UNIT ⇅")}</th>
                   <th style={{ padding: '10px' }}>{t("QTY ⇅")}</th>
-                  <th style={{ padding: '10px' }}>{t("PRICE ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("BUY PRICE ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("SELL PRICE ⇅")}</th>
                   <th style={{ padding: '10px' }}>{t("TOTAL ⇅")}</th>
                   <th style={{ padding: '10px' }}>{t("RECEIVE ⇅")}</th>
                   <th style={{ padding: '10px' }}>{t("DUE ⇅")}</th>
@@ -198,11 +200,11 @@ const SalesDaily = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="13" style={{ padding: '24px', textAlign: 'center' }}>{t("Loading daily sales report...")}</td>
+                    <td colSpan="14" style={{ padding: '24px', textAlign: 'center' }}>{t("Loading daily sales report...")}</td>
                   </tr>
                 ) : reports.length === 0 ? (
                   <tr>
-                    <td colSpan="13" style={{ padding: '24px', textAlign: 'center' }}>{t("No daily sales records found.")}</td>
+                    <td colSpan="14" style={{ padding: '24px', textAlign: 'center' }}>{t("No daily sales records found.")}</td>
                   </tr>
                 ) : (
                   reports.map((row, idx) => (
@@ -230,6 +232,7 @@ const SalesDaily = () => {
                       <td style={{ padding: '8px 4px' }}>{row.barcode || '-'}</td>
                       <td style={{ padding: '8px 4px' }}>{row.unit_name || row.unit || t("PEACE")}</td>
                       <td style={{ padding: '8px 4px' }}>{row.qty || row.quantity || 0}</td>
+                      <td style={{ padding: '8px 4px' }}>{Number(row.buy_price || 0).toFixed(2)}</td>
                       <td style={{ padding: '8px 4px' }}>{Number(row.price || row.unit_price || 0).toFixed(2)}</td>
                       <td style={{ padding: '8px 4px' }}>{Number(row.total || row.total_amount || 0).toFixed(2)}</td>
                       <td style={{ padding: '8px 4px' }}>{Number(row.receive || row.receive_amount || 0).toFixed(2)}</td>
@@ -242,6 +245,7 @@ const SalesDaily = () => {
                 <tr style={{ fontWeight: 'bold', background: '#f8fafc' }}>
                   <td colSpan="7" style={{ padding: '10px', textAlign: 'center' }}>{t('common.total')}</td>
                   <td style={{ padding: '10px' }}>{totals.qty}</td>
+                  <td style={{ padding: '10px' }}>৳{totals.buy.toFixed(2)}</td>
                   <td style={{ padding: '10px' }}>-</td>
                   <td style={{ padding: '10px' }}>৳{totals.total.toFixed(2)}</td>
                   <td style={{ padding: '10px' }}>৳{totals.receive.toFixed(2)}</td>

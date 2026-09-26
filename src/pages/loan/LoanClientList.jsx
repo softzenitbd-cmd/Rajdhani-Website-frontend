@@ -291,12 +291,12 @@ const LoanClientList = () => {
                           <td style={{ borderBottom: '1px solid #cbd5e1', padding: '4px 8px', fontWeight: '700' }}>{Number(client.previous_due || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ৳</td>
                         </tr>
                         <tr>
-                          <td style={{ borderBottom: '1px solid #cbd5e1', padding: '4px 8px', borderRight: '1px solid #cbd5e1', fontWeight: '600' }}>{t("Loan Payment")}</td>
-                          <td style={{ borderBottom: '1px solid #cbd5e1', padding: '4px 8px', fontWeight: '700', color: Number(client.total_payment || 0) > 0 ? '#b91c1c' : 'inherit' }}>{Number(client.total_payment || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ৳</td>
-                        </tr>
-                        <tr>
                           <td style={{ borderBottom: '1px solid #cbd5e1', padding: '4px 8px', borderRight: '1px solid #cbd5e1', fontWeight: '600' }}>{t("Loan Receive")}</td>
                           <td style={{ borderBottom: '1px solid #cbd5e1', padding: '4px 8px', fontWeight: '700', color: Number(client.total_receive || 0) > 0 ? '#15803d' : 'inherit' }}>{Number(client.total_receive || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ৳</td>
+                        </tr>
+                        <tr>
+                          <td style={{ borderBottom: '1px solid #cbd5e1', padding: '4px 8px', borderRight: '1px solid #cbd5e1', fontWeight: '600' }}>{t("Loan Payment")}</td>
+                          <td style={{ borderBottom: '1px solid #cbd5e1', padding: '4px 8px', fontWeight: '700', color: Number(client.total_payment || 0) > 0 ? '#b91c1c' : 'inherit' }}>{Number(client.total_payment || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ৳</td>
                         </tr>
                         <tr>
                           <td style={{ padding: '4px 8px', borderRight: '1px solid #cbd5e1', fontWeight: '600' }}>{t("Balance")}</td>
@@ -331,7 +331,7 @@ const LoanClientList = () => {
                         <style>{`.action-item:hover { background-color: #f8fafc; color: #2563eb !important; }`}</style>
                         <div className="action-item" onClick={() => { setActiveAction(null); }} style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', color: '#334155' }}><ToggleLeft size={16} /> {t("Deactive")}</div>
                         <div className="action-item" onClick={() => { setViewing(client); setActiveAction(null); }} style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', color: '#334155' }}><Eye size={16} /> {t("View")}</div>
-                        <div className="action-item" onClick={() => { navigate('/loan/receive-create', { state: { clientId: client.id || client.uuid } }); setActiveAction(null); }} style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', color: '#334155' }}><DollarSign size={16} /> {t("Receive")}</div>
+
                         <div className="action-item" onClick={() => { setEditing(client); setActiveAction(null); }} style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', color: '#334155' }}><Edit size={16} /> {t("Edit")}</div>
                         <div className="action-item" onClick={() => { handleDelete(client); setActiveAction(null); }} style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', color: '#334155' }}><Trash2 size={16} /> {t("Delete")}</div>
                         <div className="action-item" onClick={() => { navigate('/loan/statement', { state: { clientId: client.id || client.uuid } }); setActiveAction(null); }} style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', color: '#334155' }}><FileText size={16} /> {t("View Statement")}</div>

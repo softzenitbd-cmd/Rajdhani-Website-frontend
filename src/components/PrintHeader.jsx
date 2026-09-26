@@ -64,6 +64,7 @@ const PrintHeader = ({ showOnScreen = false, isPos = false }) => {
           alt={info.company_name || t("Company banner")}
           onError={() => setBannerFailed(true)}
           style={{
+            width: isPos ? '100%' : 'auto',
             maxWidth: '100%',
             height: 'auto',
             maxHeight: '240px',

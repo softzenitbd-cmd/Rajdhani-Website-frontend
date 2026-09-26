@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Printer, RotateCcw, Edit, Plus, Play } from 'lucide-react';
+import { ArrowLeft, Printer, RotateCcw, Edit, Plus, Play, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { accountingService } from '../../services/accountingService';
 import { exportVisibleTable } from '../../utils/tableExport';
 import { printPage } from '../../utils/printUtils';
 import QuickEditModal from '../../components/QuickEditModal';
+import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 
 const cell = { padding: '10px', border: '1px solid #cbd5e1', textAlign: 'center' };
 
@@ -14,6 +16,8 @@ const cell = { padding: '10px', border: '1px solid #cbd5e1', textAlign: 'center'
 const AccountList = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const toast = useToast();
+  const confirm = useConfirm();
 
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +35,18 @@ const AccountList = () => {
       setAccounts([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id, name) => {
+    if (await confirm(t("Delete Account"), t("Are you sure you want to delete '{{v0}}'?", { v0: name }))) {
+      try {
+        await accountingService.deleteAccount(id);
+        toast.success(t("Account deleted successfully"));
+        fetchAccounts();
+      } catch (err) {
+        toast.error(err?.message || t("Failed to delete account"));
+      }
     }
   };
 
@@ -102,9 +118,14 @@ const AccountList = () => {
                       <td style={cell}>{acc.contact_person || ''}</td>
                       <td style={cell}>{acc.phone || ''}</td>
                       <td style={cell} className="no-print">
-                        <button onClick={() => setEditing(acc)} style={{ background: '#1e293b', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer' }} title={t("Edit")}>
-                          <Edit size={14} />
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                          <button onClick={() => setEditing(acc)} style={{ background: '#1e293b', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer' }} title={t("Edit")}>
+                            <Edit size={14} />
+                          </button>
+                          <button onClick={() => handleDelete(acc.id, acc.name)} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer' }} title={t("Delete")}>
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

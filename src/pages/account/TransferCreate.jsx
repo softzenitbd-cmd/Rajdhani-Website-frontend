@@ -142,22 +142,58 @@ const TransferCreate = () => {
         <div style={{ padding: "30px 40px" }}>
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             {/* From Account */}
-            <SearchableSelect
-              options={accountOptions}
-              value={formData.fromAccountId}
-              onChange={(val) => setFormData(prev => ({ ...prev, fromAccountId: val }))}
-              placeholder={t("Select Account")}
-              onAddClick={() => navigate('/account/account-create')}
-            />
+            <div style={{ position: "relative" }} title={t("FROM ACCOUNT")}>
+              <div
+                style={{
+                  position: "absolute",
+                  top: "-10px",
+                  left: "10px",
+                  background: "#ef4444",
+                  color: "white",
+                  padding: "2px 8px",
+                  borderRadius: "4px",
+                  fontSize: 'var(--fs-10, 10px)',
+                  fontWeight: "bold",
+                  zIndex: 10
+                }}
+              >
+                {t("FROM ACCOUNT")}
+              </div>
+              <SearchableSelect
+                options={accountOptions}
+                value={formData.fromAccountId}
+                onChange={(val) => setFormData(prev => ({ ...prev, fromAccountId: val }))}
+                placeholder={t("Select Source Account")}
+                onAddClick={() => navigate('/account/account-create')}
+              />
+            </div>
 
             {/* To Account */}
-            <SearchableSelect
-              options={accountOptions}
-              value={formData.toAccountId}
-              onChange={(val) => setFormData(prev => ({ ...prev, toAccountId: val }))}
-              placeholder={t("Select Account")}
-              onAddClick={() => navigate('/account/account-create')}
-            />
+            <div style={{ position: "relative" }} title={t("TO ACCOUNT")}>
+              <div
+                style={{
+                  position: "absolute",
+                  top: "-10px",
+                  left: "10px",
+                  background: "#10b981",
+                  color: "white",
+                  padding: "2px 8px",
+                  borderRadius: "4px",
+                  fontSize: 'var(--fs-10, 10px)',
+                  fontWeight: "bold",
+                  zIndex: 10
+                }}
+              >
+                {t("TO ACCOUNT")}
+              </div>
+              <SearchableSelect
+                options={accountOptions}
+                value={formData.toAccountId}
+                onChange={(val) => setFormData(prev => ({ ...prev, toAccountId: val }))}
+                placeholder={t("Select Destination Account")}
+                onAddClick={() => navigate('/account/account-create')}
+              />
+            </div>
 
             {/* Date */}
             <div style={{ position: "relative" }}>

@@ -55,7 +55,7 @@ const LoanStatement = () => {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [entries, setEntries] = useState(100);
-  const [sortDesc, setSortDesc] = useState(true);
+  const [sortDesc, setSortDesc] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // 1. Fetch Loan Accounts (Clients)
@@ -246,7 +246,25 @@ const LoanStatement = () => {
     const netBal = selectedClient ? singleClientBalance : sumCredit - sumDebit;
 
     // Step E: Order for display (newest first by default)
-    const displayList = sortDesc ? [...withBalances].reverse() : withBalances;
+    const displayList = sortDesc ? [...withBalances].reverse() : [...withBalances];
+    if (selectedClient && selectedClientObj && num(selectedClientObj.previous_due) !== 0) {
+      const obRow = {
+        id: 'opening_balance_row',
+        displayDate: '-',
+        receipt_no: '-',
+        clientName: selectedClientObj.name,
+        clientPhone: selectedClientObj.phone,
+        description: 'Opening Balance (প্রারম্ভিক ব্যালেন্স)',
+        transaction_type: 'Opening Balance',
+        type: 'Opening Balance',
+        credit: 0,
+        debit: 0,
+        balance: num(selectedClientObj.previous_due),
+        isOpening: true
+      };
+      if (sortDesc) displayList.push(obRow);
+      else displayList.unshift(obRow);
+    }
 
     return {
       processedRows: displayList.slice(0, entries),

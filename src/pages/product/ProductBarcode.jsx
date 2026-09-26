@@ -122,10 +122,11 @@ const ProductBarcode = () => {
               <div style={{ flex: 2 }}>
                 <SearchableSelect
                   options={products.map(p => {
-                    const barcode = p.custom_barcode_no || p.code || p.barcode || '';
+                    const shortId = String(p.id).substring(0, 8).toUpperCase();
+                    const barcode = p.custom_barcode_no || p.code || p.barcode || shortId || '';
                     return {
                       value: p.id,
-                      label: `${p.name} (${barcode || '18647'}) - ৳${p.sales_price || p.price || 0}`,
+                      label: `${p.name} (${barcode}) - ৳${p.sales_price || p.price || 0}`,
                       searchValue: `${p.name} ${barcode}`
                     };
                   })}
@@ -162,7 +163,7 @@ const ProductBarcode = () => {
                 {generatedStickers.map((stk, idx) => (
                   <div key={idx} style={{ width: '140px' }}>
                     <BarcodeSticker 
-                      barcodeValue={stk.code || stk.barcode || `1864${idx}`} 
+                      barcodeValue={stk.custom_barcode_no || stk.code || stk.barcode || String(stk.id).substring(0, 8).toUpperCase()} 
                       name={stk.name} 
                       price={stk.sales_price || stk.price || 0} 
                     />

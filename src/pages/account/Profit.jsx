@@ -4,6 +4,8 @@ import PrintHeader from '../../components/PrintHeader';
 import { Printer } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { accountingService } from '../../services/accountingService';
+import { purchaseService } from '../../services/purchaseService';
+import { saleService } from '../../services/saleService';
 import { useToast } from '../../context/ToastContext';
 import CustomDatePicker from '../../components/CustomDatePicker';
 
@@ -27,7 +29,29 @@ const Profit = () => {
 
       // GET /api/accounting/profit/ → { "Total Sales": "৳ 123.00", ... }
       const res = await accountingService.getProfit(filters);
-      const data = (res && typeof res === 'object') ? res : {};
+      let data = (res && typeof res === 'object') ? { ...res } : {};
+
+      delete data['Total Client Due'];
+      delete data['Total Supplier Due'];
+
+      try {
+        const salesRep = await saleService.getSalesReport(filters);
+        const soldItems = Array.isArray(salesRep) ? salesRep : (salesRep?.results || salesRep?.data || []);
+        let calcBuy = 0;
+        soldItems.forEach((item) => {
+          calcBuy += Number(item.buy_price || 0) * Number(item.qty || item.quantity || 0);
+        });
+        
+        data['Total Buy Price'] = '৳ ' + calcBuy.toFixed(2);
+        
+        const ts = parseFloat(String(data['Total Sales'] || '0').replace(/[^\d.-]/g, '')) || 0;
+        const pp = ts - calcBuy;
+        data['Product Profit'] = '৳ ' + pp.toFixed(2);
+        
+        const te = parseFloat(String(data['Total Expense'] || '0').replace(/[^\d.-]/g, '')) || 0;
+        data['Net Profit'] = '৳ ' + (pp - te).toFixed(2);
+      } catch (e) { console.error(e); }
+
       setProfitData(data);
     } catch (error) {
       toast.error(error?.message || t("Failed to load profit report"));
@@ -109,26 +133,47 @@ const Profit = () => {
                 </tr>
               </thead>
               <tbody>
-                {Object.entries(profitData || {}).map(([key, val], idx) => {
-                  const isHighlight = key.includes('Profit') || key === 'Total Balance';
-                  const isNegative = String(val).includes('-');
-                  return (
-                    <tr key={key} style={{ background: idx % 2 === 0 ? '#ffffff' : '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                      <td style={{ textAlign: 'left', padding: '12px 18px', borderRight: '1px solid #e2e8f0', fontWeight: isHighlight ? 'bold' : '500', color: isHighlight ? 'var(--text-main)' : '#334155' }}>
-                        {key}
-                      </td>
-                      <td style={{ 
-                        textAlign: 'right', 
-                        padding: '12px 18px', 
-                        fontWeight: 'bold', 
-                        fontSize: isHighlight ? '15px' : '14px',
-                        color: isNegative ? '#dc2626' : (isHighlight ? '#059669' : '#0f172a') 
-                      }}>
-                        {typeof val === 'number' ? `৳ ${val.toLocaleString()}` : val}
-                      </td>
-                    </tr>
-                  );
-                })}
+                {(() => {
+                  if (!profitData || Object.keys(profitData).length === 0) return null;
+                  const order = [
+                    "Total Sales",
+                    "Total Receive",
+                    "Discount",
+                    "Total Expense",
+                    "Total Buy Price",
+                    "Total Balance",
+                    "Product Profit",
+                    "Gross Profit",
+                    "Net Profit"
+                  ];
+                  const keys = order.filter(k => profitData[k] !== undefined);
+                  Object.keys(profitData).forEach(k => {
+                    if (!keys.includes(k) && k !== "Total Client Due" && k !== "Total Supplier Due") {
+                      keys.push(k);
+                    }
+                  });
+                  return keys.map((key, idx) => {
+                    const val = profitData[key];
+                    const isHighlight = key.includes('Profit') || key === 'Total Balance';
+                    const isNegative = String(val).includes('-');
+                    return (
+                      <tr key={key} style={{ background: idx % 2 === 0 ? '#ffffff' : '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ textAlign: 'left', padding: '12px 18px', borderRight: '1px solid #e2e8f0', fontWeight: isHighlight ? 'bold' : '500', color: isHighlight ? 'var(--text-main)' : '#334155' }}>
+                          {key}
+                        </td>
+                        <td style={{ 
+                          textAlign: 'right', 
+                          padding: '12px 18px', 
+                          fontWeight: 'bold', 
+                          fontSize: isHighlight ? '15px' : '14px',
+                          color: isNegative ? '#dc2626' : (isHighlight ? '#059669' : '#0f172a') 
+                        }}>
+                          {typeof val === 'number' ? `৳ ${val.toLocaleString()}` : val}
+                        </td>
+                      </tr>
+                    );
+                  });
+                })()}
                 {loading && (
                   <tr>
                     <td colSpan="2" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>{t("Loading profit data...")}</td>
@@ -150,3 +195,4 @@ const Profit = () => {
 };
 
 export default Profit;
+
