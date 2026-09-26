@@ -13,11 +13,15 @@ import { useTranslation } from 'react-i18next';
  *      → general settings keys `print_header_card`, `print_header_mode`
  *        (banner image = company-info `memo_header_image`)
  */
-const readPrefs = () => ({
-  activeCard: appSettingsService.get('print_header_card', 'card2'),
-  headerMode: appSettingsService.get('print_header_mode', 'card'),
-  customUrl: appSettingsService.get('print_header_custom_url', null),
-});
+const readPrefs = () => {
+  const info = companyStore.getCached();
+  const defaultMode = companyHeaderImage(info) ? 'image' : 'card';
+  return {
+    activeCard: appSettingsService.get('print_header_card', 'card2'),
+    headerMode: appSettingsService.get('print_header_mode', defaultMode),
+    customUrl: appSettingsService.get('print_header_custom_url', null),
+  };
+};
 
 const PrintHeader = ({ showOnScreen = false, isPos = false }) => {
   const { t } = useTranslation();
