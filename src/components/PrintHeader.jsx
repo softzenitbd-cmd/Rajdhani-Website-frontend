@@ -19,7 +19,7 @@ const readPrefs = () => ({
   customUrl: appSettingsService.get('print_header_custom_url', null),
 });
 
-const PrintHeader = ({ showOnScreen = false }) => {
+const PrintHeader = ({ showOnScreen = false, isPos = false }) => {
   const { t } = useTranslation();
   const [prefs, setPrefs] = useState(readPrefs);
   const [companyInfo, setCompanyInfo] = useState(() => companyStore.getCached());
@@ -54,7 +54,7 @@ const PrintHeader = ({ showOnScreen = false }) => {
   // 1. Uploaded banner image
   if (headerMode === 'image' && headerImage && !bannerFailed) {
     return (
-      <div className={`receipt-header-image${visibilityClass}`} style={{ marginBottom: '20px', textAlign: 'center' }}>
+      <div className={`receipt-header-image${visibilityClass}`} style={{ marginBottom: isPos ? '8px' : '20px', textAlign: 'center' }}>
         <img
           src={headerImage}
           alt={info.company_name || t("Company banner")}
@@ -62,7 +62,7 @@ const PrintHeader = ({ showOnScreen = false }) => {
           style={{
             maxWidth: '100%',
             height: 'auto',
-            maxHeight: '180px',
+            maxHeight: '240px',
             display: 'block',
             margin: '0 auto',
             borderRadius: '4px',
@@ -76,7 +76,7 @@ const PrintHeader = ({ showOnScreen = false }) => {
   // 2. Card 1 - cursive "Rajdhani Garments"
   if (activeCard === 'card1') {
     return (
-      <div className={`receipt-header-text${visibilityClass}`} style={{ border: '2px solid #000', borderRadius: '8px', padding: '16px 24px', background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', maxWidth: '800px' }}>
+      <div className={`receipt-header-text${visibilityClass}`} style={{ border: isPos ? 'none' : '2px solid #000', borderRadius: isPos ? '0' : '8px', padding: isPos ? '4px 0' : '16px 24px', background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: isPos ? '0 auto 8px auto' : '0 auto 20px auto', maxWidth: '800px' }}>
         <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-36, 36px)', color: 'black', fontWeight: 'bold', display: 'block' }}>{info.company_name || t("Rajdhani")}</h2>
         <h3 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-24, 24px)', color: 'black', display: 'block' }}>{info.company_type || t("Garments")}</h3>
       </div>
@@ -86,7 +86,7 @@ const PrintHeader = ({ showOnScreen = false }) => {
   // 3. Card 3 - cursive "Rajdhani Super Shop"
   if (activeCard === 'card3') {
     return (
-      <div className={`receipt-header-text${visibilityClass}`} style={{ border: '2px solid #000', borderRadius: '8px', padding: '16px 24px', background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', maxWidth: '800px' }}>
+      <div className={`receipt-header-text${visibilityClass}`} style={{ border: isPos ? 'none' : '2px solid #000', borderRadius: isPos ? '0' : '8px', padding: isPos ? '4px 0' : '16px 24px', background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: isPos ? '0 auto 8px auto' : '0 auto 20px auto', maxWidth: '800px' }}>
         <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-36, 36px)', color: 'black', fontWeight: 'bold', display: 'block' }}>{info.company_name || t("Rajdhani")}</h2>
         <h3 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-24, 24px)', color: 'black', display: 'block' }}>{t("Super Shop")}</h3>
       </div>
@@ -96,12 +96,12 @@ const PrintHeader = ({ showOnScreen = false }) => {
   // 4. Default: Card 2 – company name + address + phone from the API
   return (
     <div className={`receipt-header-text receipt-header-card${visibilityClass}`} style={{
-      border: '2px solid #000',
-      borderRadius: '8px',
-      padding: '12px 20px',
+      border: isPos ? 'none' : '2px solid #000',
+      borderRadius: isPos ? '0' : '8px',
+      padding: isPos ? '4px 0' : '12px 20px',
       background: 'white',
       textAlign: 'center',
-      margin: '0 auto 16px auto',
+      margin: isPos ? '0 auto 8px auto' : '0 auto 16px auto',
       maxWidth: '850px'
     }}>
       {info.invoice_greetings && (

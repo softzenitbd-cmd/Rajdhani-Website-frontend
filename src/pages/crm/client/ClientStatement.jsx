@@ -473,11 +473,11 @@ const ClientStatement = () => {
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px', background: 'white' }}>
-      <div id="statement-content" style={{ background: 'white' }}>
+      <div id="statement-content" style={{ background: 'white', paddingTop: '60px' }}>
         <PrintHeader />
         
         <div style={{ padding: '0 20px' }}>
-          <h2 style={{ textAlign: 'center', fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', margin: '20px 0 30px', color: 'black' }}>Client Statement</h2>
+          <h2 style={{ textAlign: 'center', fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', margin: '20px 0 10px', color: 'black' }}>Client Statement</h2>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: 'var(--fs-12, 12px)', color: 'black', fontWeight: '600' }}>
           <div>

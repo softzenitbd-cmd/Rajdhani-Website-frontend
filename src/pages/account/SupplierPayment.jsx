@@ -206,14 +206,14 @@ const SupplierPayment = () => {
       <div className="premium-body" style={{ padding: '0', background: '#f8fafc' }}>
         
         {/* Banner Area */}
-        <div style={{ padding: '24px 24px 0 24px', textAlign: 'center', background: 'white', borderRadius: '12px 12px 0 0' }}>
+        <div style={{ padding: '16px 24px 0 24px', textAlign: 'center', background: 'white', borderRadius: '12px 12px 0 0' }}>
           <PrintHeader showOnScreen={true} />
-          <h2 style={{ fontSize: '18px', fontWeight: 'bold', fontFamily: 'monospace', margin: '16px 0', color: '#000' }}>Supplier Payment List</h2>
+          <h2 className="print-only" style={{ fontSize: '18px', fontWeight: 'bold', fontFamily: 'monospace', margin: '0 0 16px 0', color: '#000' }}>Supplier Payment List</h2>
         </div>
 
-        <div style={{ padding: '24px', background: 'white' }}>
+        <div style={{ padding: '0 24px 24px 24px', background: 'white' }}>
           {/* Title and Top Action Buttons */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingTop: '8px' }}>
             <h3 style={{ margin: 0, fontSize: '18px', color: '#374151', fontWeight: 'normal' }}>Supplier Payment List</h3>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={() => setShowAddModal(true)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 16px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
@@ -226,7 +226,7 @@ const SupplierPayment = () => {
           </div>
 
           {/* Filters Row exactly matching screenshot */}
-          <div className="no-print" style={{ display: 'flex', gap: '16px', marginBottom: '24px', alignItems: 'flex-end' }}>
+          <div className="no-print" style={{ display: 'flex', gap: '16px', marginBottom: '16px', alignItems: 'flex-end' }}>
             <div style={{ width: '20%' }}>
               <label style={{ display: 'inline-block', background: '#0ea5e9', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', marginBottom: '4px' }}>ID Search By</label>
               <input type="text" className="input-outline" placeholder="ID Search By" value={idSearch} onChange={e => setIdSearch(e.target.value)} style={{ width: '100%', height: '38px', borderRadius: '6px' }} />

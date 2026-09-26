@@ -405,23 +405,10 @@ const InvoiceList = () => {
             </div>
 
             <div className="pos-receipt-wrapper" style={{ margin: '0 auto', width: '380px', background: 'white', padding: '8px', boxSizing: 'border-box' }}>
-              <div style={{ border: '2px solid black', padding: '8px' }}>
+              <div style={{ padding: '8px' }}>
                 
                 {/* Dynamic Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
-                  {companyHeaderImage(companyInfo) && (
-                    <img src={companyHeaderImage(companyInfo)} alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'contain', marginRight: '8px' }} />
-                  )}
-                  <div style={{ textAlign: 'center' }}>
-                    <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: 'black' }}>{companyInfo.company_name || 'Rajdhani Super Shop'}</h2>
-                  </div>
-                </div>
-                <div style={{ textAlign: 'center', fontSize: '11px', color: 'black', marginBottom: '2px', fontWeight: 'bold' }}>
-                  {companyInfo.address || 'Address not available'}
-                </div>
-                <div style={{ textAlign: 'center', fontSize: '11px', color: 'black', marginBottom: '8px', fontWeight: 'bold' }}>
-                  MOBILE: {companyInfo.phone || '01700000000'}
-                </div>
+                <PrintHeader showOnScreen={true} isPos={true} />
 
                 {(() => {
                   const clientObj = (clients || []).find(c => String(c.id) === String(selectedInvoice.client || selectedInvoice.client_id));
