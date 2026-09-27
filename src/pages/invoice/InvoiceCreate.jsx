@@ -69,7 +69,10 @@ const InvoiceCreate = () => {
         setFormData({
           clientId: "",
           date: new Date().toISOString().split("T")[0],
-          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          time: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
           barcode: "",
           productId: "",
           totalBalanceAcc: "TOTAL BALENCE",
@@ -80,11 +83,11 @@ const InvoiceCreate = () => {
         });
       };
       window.addEventListener("afterprint", handleAfterPrint);
-      
+
       const timer = setTimeout(() => {
         window.print();
       }, 600);
-      
+
       return () => {
         window.removeEventListener("afterprint", handleAfterPrint);
         clearTimeout(timer);
@@ -186,14 +189,15 @@ const InvoiceCreate = () => {
       ]);
 
       const clientData = Array.isArray(clientRes)
-
         ? clientRes
         : clientRes?.results || [];
       const prodData = Array.isArray(prodRes)
         ? prodRes
         : prodRes?.results || [];
       const accData = Array.isArray(accRes) ? accRes : accRes?.results || [];
-      const incCatData = Array.isArray(incCatRes) ? incCatRes : incCatRes?.results || [];
+      const incCatData = Array.isArray(incCatRes)
+        ? incCatRes
+        : incCatRes?.results || [];
 
       setClients(clientData);
       setProducts(prodData);
@@ -201,12 +205,15 @@ const InvoiceCreate = () => {
       setIncomeCategories(incCatData);
 
       // Silent background load of all products to ensure local barcode search works
-      productService.getProducts({ page_size: 5000 }).then(res => {
-        const allProds = Array.isArray(res) ? res : (res?.results || []);
-        if (allProds.length > prodData.length) {
-          setProducts(allProds);
-        }
-      }).catch(err => console.error("Background product load failed", err));
+      productService
+        .getProducts({ page_size: 5000 })
+        .then((res) => {
+          const allProds = Array.isArray(res) ? res : res?.results || [];
+          if (allProds.length > prodData.length) {
+            setProducts(allProds);
+          }
+        })
+        .catch((err) => console.error("Background product load failed", err));
 
       if (isEditMode) {
         if (location.state?.invoice) {
@@ -257,7 +264,7 @@ const InvoiceCreate = () => {
   useEffect(() => {
     if (!loadingPrereqs) {
       const timer = setTimeout(() => {
-        const barcodeInput = document.getElementById('barcodeInput');
+        const barcodeInput = document.getElementById("barcodeInput");
         if (barcodeInput) {
           barcodeInput.focus();
         }
@@ -327,7 +334,8 @@ const InvoiceCreate = () => {
 
   const handleSelectProduct = (selectedId, productObj = null) => {
     if (!selectedId) return;
-    const prod = productObj || products.find((p) => String(p.id) === String(selectedId));
+    const prod =
+      productObj || products.find((p) => String(p.id) === String(selectedId));
     if (!prod) return;
 
     setItems((prevItems) => {
@@ -344,7 +352,14 @@ const InvoiceCreate = () => {
           {
             id: prod.id,
             name: prod.name || prod.title || "Product",
-            barcode: prod._scannedBarcode || prod.barcode || prod.custom_barcode_no || prod.code || (String(prod.id).length === 36 ? String(prod.id).substring(0, 8).toUpperCase() : prod.id),
+            barcode:
+              prod._scannedBarcode ||
+              prod.barcode ||
+              prod.custom_barcode_no ||
+              prod.code ||
+              (String(prod.id).length === 36
+                ? String(prod.id).substring(0, 8).toUpperCase()
+                : prod.id),
             stock: Number(prod.stock ?? 0),
             price: Number(prod.sales_price || prod.price || 0),
             quantity: 1,
@@ -365,12 +380,21 @@ const InvoiceCreate = () => {
       const code = rawCode.trim().toLowerCase();
       let prod = products.find(
         (p) =>
-          String(p.code || "").trim().toLowerCase() === code ||
-          String(p.barcode || "").trim().toLowerCase() === code ||
-          String(p.custom_barcode_no || "").trim().toLowerCase() === code ||
+          String(p.code || "")
+            .trim()
+            .toLowerCase() === code ||
+          String(p.barcode || "")
+            .trim()
+            .toLowerCase() === code ||
+          String(p.custom_barcode_no || "")
+            .trim()
+            .toLowerCase() === code ||
           String(p.id).trim().toLowerCase() === code ||
-          (code.length >= 8 && String(p.id).trim().toLowerCase().startsWith(code)) ||
-          String(p.product_code || "").trim().toLowerCase() === code,
+          (code.length >= 8 &&
+            String(p.id).trim().toLowerCase().startsWith(code)) ||
+          String(p.product_code || "")
+            .trim()
+            .toLowerCase() === code,
       );
 
       if (!prod) {
@@ -379,13 +403,18 @@ const InvoiceCreate = () => {
         prod = await productService.findByBarcode(rawCode);
         if (prod) {
           setProducts((prev) =>
-            prev.find((p) => String(p.id) === String(prod.id)) ? prev : [...prev, prod],
+            prev.find((p) => String(p.id) === String(prod.id))
+              ? prev
+              : [...prev, prod],
           );
         }
       }
 
       if (prod) {
-        handleSelectProduct(prod.id, { ...prod, _scannedBarcode: rawCode.trim() });
+        handleSelectProduct(prod.id, {
+          ...prod,
+          _scannedBarcode: rawCode.trim(),
+        });
       } else {
         toast.error(
           t('Product with barcode "{{v0}}" not found.', { v0: rawCode.trim() }),
@@ -555,28 +584,31 @@ const InvoiceCreate = () => {
               receiveAmount: "0",
               sms: false,
             };
-            
+
             // Re-apply default customer
             if (clients && clients.length > 0) {
-              const defaultClient = clients.find((c) => {
-                const name = String(c.name || c.company_name || "").toLowerCase();
-                return (
-                  name.includes("c.customer") ||
-                  name.includes("c.castomer") ||
-                  name.includes("c.coustomer") ||
-                  name.includes("c. customer") ||
-                  name === "default" ||
-                  name.startsWith("c.")
-                );
-              }) || clients[0];
+              const defaultClient =
+                clients.find((c) => {
+                  const name = String(
+                    c.name || c.company_name || "",
+                  ).toLowerCase();
+                  return (
+                    name.includes("c.customer") ||
+                    name.includes("c.castomer") ||
+                    name.includes("c.coustomer") ||
+                    name.includes("c. customer") ||
+                    name === "default" ||
+                    name.startsWith("c.")
+                  );
+                }) || clients[0];
               if (defaultClient) {
                 baseForm.clientId = defaultClient.id;
               }
             }
-            
+
             setFormData(baseForm);
             setTimeout(() => {
-              const barcodeInput = document.getElementById('barcodeInput');
+              const barcodeInput = document.getElementById("barcodeInput");
               if (barcodeInput) barcodeInput.focus();
             }, 100);
           }
@@ -823,14 +855,16 @@ const InvoiceCreate = () => {
                       if (e.key === "Tab" && !e.shiftKey) {
                         e.preventDefault();
                         if (e.target.value.trim()) {
-                          handleBarcodeKeyDown({ 
-                            key: "Enter", 
-                            target: e.target, 
-                            preventDefault: () => {} 
+                          handleBarcodeKeyDown({
+                            key: "Enter",
+                            target: e.target,
+                            preventDefault: () => {},
                           });
                         }
                         setTimeout(() => {
-                          const productSearch = document.getElementById("productSearchDropdown");
+                          const productSearch = document.getElementById(
+                            "productSearchDropdown",
+                          );
                           if (productSearch) {
                             productSearch.focus();
                             productSearch.click();
@@ -851,23 +885,26 @@ const InvoiceCreate = () => {
                 </div>
               </div>
 
-              <div 
-                className="form-group" 
+              <div
+                className="form-group"
                 style={{ marginBottom: "0", position: "relative" }}
                 onKeyDownCapture={(e) => {
                   if (e.key === "Tab" && !e.shiftKey) {
                     e.preventDefault();
                     // When leaving Product Search via Tab, focus the first (or last) quantity field
                     setTimeout(() => {
-                      const inputs = document.querySelectorAll(`input[data-qty-idx]`);
+                      const inputs =
+                        document.querySelectorAll(`input[data-qty-idx]`);
                       // Usually they want to edit the quantity of the item they JUST added,
                       // or if they didn't add anything, the most recent one.
-                      const targetQty = inputs.length > 0 ? inputs[inputs.length - 1] : null;
+                      const targetQty =
+                        inputs.length > 0 ? inputs[inputs.length - 1] : null;
                       if (targetQty) {
                         targetQty.focus();
                         setTimeout(() => targetQty.select(), 10);
                       } else {
-                        const receiveInput = document.getElementById("receiveAmountInput");
+                        const receiveInput =
+                          document.getElementById("receiveAmountInput");
                         if (receiveInput) {
                           receiveInput.focus();
                           setTimeout(() => receiveInput.select(), 10);
@@ -895,24 +932,34 @@ const InvoiceCreate = () => {
                   onSearchChange={(val) => {
                     const term = (val || "").trim();
                     if (term.length >= 2) {
-                      if (window.productSearchTimeout) clearTimeout(window.productSearchTimeout);
+                      if (window.productSearchTimeout)
+                        clearTimeout(window.productSearchTimeout);
                       window.productSearchTimeout = setTimeout(async () => {
                         try {
-                          const res = await productService.getProducts({ search: term });
-                          let list = Array.isArray(res) ? res : (res?.results || []);
+                          const res = await productService.getProducts({
+                            search: term,
+                          });
+                          let list = Array.isArray(res)
+                            ? res
+                            : res?.results || [];
 
                           // Typing a barcode the product list cannot match still
                           // has to find the product (the stock report knows it).
                           if (list.length === 0) {
-                            const byBarcode = await productService.findByBarcode(term);
+                            const byBarcode =
+                              await productService.findByBarcode(term);
                             if (byBarcode) list = [byBarcode];
                           }
 
                           if (list.length > 0) {
-                            setProducts(prev => {
+                            setProducts((prev) => {
                               const updated = [...prev];
-                              list.forEach(item => {
-                                if (!updated.find(p => String(p.id) === String(item.id))) {
+                              list.forEach((item) => {
+                                if (
+                                  !updated.find(
+                                    (p) => String(p.id) === String(item.id),
+                                  )
+                                ) {
                                   updated.push(item);
                                 }
                               });
@@ -952,7 +999,11 @@ const InvoiceCreate = () => {
               >
                 <thead>
                   <tr
-                    style={{ background: "#888888", color: "#111827", fontWeight: "bold" }}
+                    style={{
+                      background: "#888888",
+                      color: "#111827",
+                      fontWeight: "bold",
+                    }}
                   >
                     <th style={{ padding: "8px", textAlign: "center" }}>
                       {t("invoice.sl", "SL")}
@@ -1025,7 +1076,7 @@ const InvoiceCreate = () => {
                         justifyContent: "center",
                         alignItems: "center",
                         fontWeight: "500",
-                        fontSize: "12px"
+                        fontSize: "12px",
                       };
                       const ashInput = {
                         border: "1px solid #cbd5e1",
@@ -1039,95 +1090,111 @@ const InvoiceCreate = () => {
                         minHeight: "30px",
                         outline: "none",
                         fontWeight: "500",
-                        fontSize: "12px"
+                        fontSize: "12px",
                       };
 
                       return (
-                      <tr
-                        key={idx}
-                        style={{ background: "#e2e8f0", borderBottom: "1px solid #cbd5e1" }}
-                      >
-                        <td style={{ padding: "4px" }}>
-                          <div style={ashBox}>{idx + 1}</div>
-                        </td>
-                        <td style={{ padding: "4px" }}>
-                          <div style={{...ashBox}}>
-                            {item.name} {item.barcode && `| ${item.barcode}`}
-                          </div>
-                        </td>
-                        <td style={{ padding: "4px" }}>
-                           <div style={ashBox}>{item.stock}</div>
-                        </td>
-                        <td style={{ padding: "4px" }}>
-                          <input
-                            tabIndex="-1"
-                            type="number"
-                            value={item.price}
-                            onFocus={(e) => e.target.select()}
-                            onChange={(e) =>
-                              updateItemField(idx, "price", e.target.value)
-                            }
-                            style={ashInput}
-                          />
-                        </td>
-                        <td style={{ padding: "4px" }}>
-                          <input
-                            data-qty-idx={idx}
-                            type="number"
-                            value={item.quantity}
-                            onFocus={(e) => e.target.select()}
-                            onKeyDown={(e) => {
-                              if (e.key === "Tab" && !e.shiftKey) {
-                                const nextInput = document.querySelector(
-                                  `input[data-qty-idx="${idx + 1}"]`,
-                                );
-                                if (nextInput) {
-                                  e.preventDefault();
-                                  nextInput.focus();
-                                } else {
-                                  e.preventDefault();
-                                  const receiveInput = document.getElementById("receiveAmountInput");
-                                  if (receiveInput) {
-                                    receiveInput.focus();
-                                    setTimeout(() => setTimeout(() => receiveInput.select(), 10), 10);
+                        <tr
+                          key={idx}
+                          style={{
+                            background: "#e2e8f0",
+                            borderBottom: "1px solid #cbd5e1",
+                          }}
+                        >
+                          <td style={{ padding: "4px" }}>
+                            <div style={ashBox}>{idx + 1}</div>
+                          </td>
+                          <td style={{ padding: "4px" }}>
+                            <div style={{ ...ashBox }}>
+                              {item.name} {item.barcode && `| ${item.barcode}`}
+                            </div>
+                          </td>
+                          <td style={{ padding: "4px" }}>
+                            <div style={ashBox}>{item.stock}</div>
+                          </td>
+                          <td style={{ padding: "4px" }}>
+                            <input
+                              tabIndex="-1"
+                              type="number"
+                              value={item.price}
+                              onFocus={(e) => e.target.select()}
+                              onChange={(e) =>
+                                updateItemField(idx, "price", e.target.value)
+                              }
+                              style={ashInput}
+                            />
+                          </td>
+                          <td style={{ padding: "4px" }}>
+                            <input
+                              data-qty-idx={idx}
+                              type="number"
+                              value={item.quantity}
+                              onFocus={(e) => e.target.select()}
+                              onKeyDown={(e) => {
+                                if (e.key === "Tab" && !e.shiftKey) {
+                                  const nextInput = document.querySelector(
+                                    `input[data-qty-idx="${idx + 1}"]`,
+                                  );
+                                  if (nextInput) {
+                                    e.preventDefault();
+                                    nextInput.focus();
+                                  } else {
+                                    e.preventDefault();
+                                    const receiveInput =
+                                      document.getElementById(
+                                        "receiveAmountInput",
+                                      );
+                                    if (receiveInput) {
+                                      receiveInput.focus();
+                                      setTimeout(
+                                        () =>
+                                          setTimeout(
+                                            () => receiveInput.select(),
+                                            10,
+                                          ),
+                                        10,
+                                      );
+                                    }
                                   }
                                 }
+                              }}
+                              onChange={(e) =>
+                                updateItemField(idx, "quantity", e.target.value)
                               }
-                            }}
-                            onChange={(e) =>
-                              updateItemField(idx, "quantity", e.target.value)
-                            }
-                            style={ashInput}
-                          />
-                        </td>
-                        <td style={{ padding: "4px" }}>
-                          <div style={ashBox}>{item.unit}</div>
-                        </td>
-                        <td style={{ padding: "4px" }}>
-                          <div style={ashBox}>{(item.price * item.quantity).toFixed(2)}</div>
-                        </td>
-                        <td style={{ padding: "4px", textAlign: "center" }}>
-                          <button
-                            type="button"
-                            onClick={() => removeItem(idx)}
-                            style={{
-                              border: "none",
-                              background: "#ef4444",
-                              color: "white",
-                              cursor: "pointer",
-                              padding: "6px",
-                              borderRadius: "4px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              margin: "0 auto"
-                            }}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                    )})
+                              style={ashInput}
+                            />
+                          </td>
+                          <td style={{ padding: "4px" }}>
+                            <div style={ashBox}>{item.unit}</div>
+                          </td>
+                          <td style={{ padding: "4px" }}>
+                            <div style={ashBox}>
+                              {(item.price * item.quantity).toFixed(2)}
+                            </div>
+                          </td>
+                          <td style={{ padding: "4px", textAlign: "center" }}>
+                            <button
+                              type="button"
+                              onClick={() => removeItem(idx)}
+                              style={{
+                                border: "none",
+                                background: "#ef4444",
+                                color: "white",
+                                cursor: "pointer",
+                                padding: "6px",
+                                borderRadius: "4px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                margin: "0 auto",
+                              }}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -1390,46 +1457,46 @@ const InvoiceCreate = () => {
               >
                 {t("invoice.cancel", "Cancel")}
               </button>
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={() => handleSaveInvoice(0)}
-                  style={{
-                    background: "#64748b",
-                    padding: "10px 24px",
-                    fontSize: "var(--fs-14, 14px)",
-                    borderRadius: "4px",
-                  }}
-                >
-                  {t("invoice.save_draft", "Save As Draft")}
-                </button>
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={() => handleSaveInvoice(1, true)}
-                  style={{
-                    background: "#3b82f6",
-                    padding: "10px 24px",
-                    fontSize: "var(--fs-14, 14px)",
-                    borderRadius: "4px",
-                  }}
-                >
-                  {t("invoice.save_print", "Save & Print")}
-                </button>
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={() => handleSaveInvoice(1)}
-                  style={{
-                    background: "var(--success)",
-                    padding: "10px 24px",
-                    fontSize: "var(--fs-14, 14px)",
-                    borderRadius: "4px",
-                    fontWeight: "bold",
-                  }}
-                >
-                  {t("invoice.add_invoice", "Add Invoice")}
-                </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => handleSaveInvoice(0)}
+                style={{
+                  background: "#64748b",
+                  padding: "10px 24px",
+                  fontSize: "var(--fs-14, 14px)",
+                  borderRadius: "4px",
+                }}
+              >
+                {t("invoice.save_draft", "Save As Draft")}
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => handleSaveInvoice(1, true)}
+                style={{
+                  background: "#3b82f6",
+                  padding: "10px 24px",
+                  fontSize: "var(--fs-14, 14px)",
+                  borderRadius: "4px",
+                }}
+              >
+                {t("invoice.save_print", "Save & Print")}
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => handleSaveInvoice(1)}
+                style={{
+                  background: "var(--success)",
+                  padding: "10px 24px",
+                  fontSize: "var(--fs-14, 14px)",
+                  borderRadius: "4px",
+                  fontWeight: "bold",
+                }}
+              >
+                {t("invoice.add_invoice", "Add Invoice")}
+              </button>
             </div>
           </form>
         </div>
@@ -1482,124 +1549,528 @@ const InvoiceCreate = () => {
 
       {/* INLINE PRINT MODAL */}
       {printInvoiceData && (
-        <div className="printable-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'white', zIndex: 999999 }}>
-          <div id="pos-receipt-print-area" className="pos-receipt-wrapper" style={{ margin: '0 auto', width: '380px', background: 'white', padding: '8px', boxSizing: 'border-box' }}>
-            <div style={{ padding: '8px' }}>
+        <div
+          className="printable-modal-overlay"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "white",
+            zIndex: 999999,
+          }}
+        >
+          <div
+            id="pos-receipt-print-area"
+            className="pos-receipt-wrapper"
+            style={{
+              margin: "0 auto",
+              width: "380px",
+              background: "white",
+              padding: "8px",
+              boxSizing: "border-box",
+            }}
+          >
+            <div style={{ padding: "8px" }}>
               <PrintHeader showOnScreen={true} isPos={true} />
               {(() => {
                 const selectedInvoice = printInvoiceData;
-                const clientObj = (clients || []).find(c => String(c.id) === String(selectedInvoice.client || selectedInvoice.client_id || selectedInvoice.clientId));
-                const clientDisplay = selectedInvoice.client_name || selectedInvoice.clientName || (clientObj ? (clientObj.name || clientObj.company_name) : (
-                  (selectedInvoice.clientId && !String(selectedInvoice.clientId).includes('-')) ? selectedInvoice.clientId : 'C.CUSTOMER'
-                ));
-                
-                const invoiceBill = Number(selectedInvoice.invoice_bill || selectedInvoice.invoiceBill || (selectedInvoice.items || []).reduce((sum, item) => {
-                    const qty = Number(item.quantity || item.qty || 1);
-                    const rate = Number(item.selling_price || item.price || item.rate || 0);
-                    return sum + (Number(item.total_selling_price || item.total_amount || (qty * rate)) || 0);
-                }, 0) || selectedInvoice.grand_total || 0);
-                
-                const prevDue = Number(selectedInvoice.previous_due || selectedInvoice.previousDue || 0);
-                const discountAmt = Number(selectedInvoice.discountAmount || selectedInvoice.discount || selectedInvoice.total_discount || 0);
+                const clientObj = (clients || []).find(
+                  (c) =>
+                    String(c.id) ===
+                    String(
+                      selectedInvoice.client ||
+                        selectedInvoice.client_id ||
+                        selectedInvoice.clientId,
+                    ),
+                );
+                const clientDisplay =
+                  selectedInvoice.client_name ||
+                  selectedInvoice.clientName ||
+                  (clientObj
+                    ? clientObj.name || clientObj.company_name
+                    : selectedInvoice.clientId &&
+                        !String(selectedInvoice.clientId).includes("-")
+                      ? selectedInvoice.clientId
+                      : "C.CUSTOMER");
+
+                const invoiceBill = Number(
+                  selectedInvoice.invoice_bill ||
+                    selectedInvoice.invoiceBill ||
+                    (selectedInvoice.items || []).reduce((sum, item) => {
+                      const qty = Number(item.quantity || item.qty || 1);
+                      const rate = Number(
+                        item.selling_price || item.price || item.rate || 0,
+                      );
+                      return (
+                        sum +
+                        (Number(
+                          item.total_selling_price ||
+                            item.total_amount ||
+                            qty * rate,
+                        ) || 0)
+                      );
+                    }, 0) ||
+                    selectedInvoice.grand_total ||
+                    0,
+                );
+
+                const prevDue = Number(
+                  selectedInvoice.previous_due ||
+                    selectedInvoice.previousDue ||
+                    0,
+                );
+                const discountAmt = Number(
+                  selectedInvoice.discountAmount ||
+                    selectedInvoice.discount ||
+                    selectedInvoice.total_discount ||
+                    0,
+                );
                 const totalBill = invoiceBill - discountAmt + prevDue;
-                const payment = Number(selectedInvoice.receiveAmount || selectedInvoice.receive_amount || selectedInvoice.paid || 0);
-                const invoiceDue = Math.max(0, invoiceBill - discountAmt - payment);
-                const totalDue = selectedInvoice.total_due !== undefined ? Number(selectedInvoice.total_due) : Math.max(0, totalBill - payment);
+                const payment = Number(
+                  selectedInvoice.receiveAmount ||
+                    selectedInvoice.receive_amount ||
+                    selectedInvoice.paid ||
+                    0,
+                );
+                const invoiceDue = Math.max(
+                  0,
+                  invoiceBill - discountAmt - payment,
+                );
+                const totalDue =
+                  selectedInvoice.total_due !== undefined
+                    ? Number(selectedInvoice.total_due)
+                    : Math.max(0, totalBill - payment);
 
                 let totalQty = 0;
-                (selectedInvoice.items || []).forEach(item => {
+                (selectedInvoice.items || []).forEach((item) => {
                   totalQty += Number(item.quantity || item.qty || 1);
                 });
 
                 return (
                   <>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: 'black', marginBottom: '4px' }}>
+                    <table
+                      style={{
+                        width: "100%",
+                        borderCollapse: "collapse",
+                        fontSize: "12px",
+                        color: "black",
+                        marginBottom: "4px",
+                      }}
+                    >
                       <tbody>
                         <tr>
-                          <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>Client ID No:- {selectedInvoice.client_id || selectedInvoice.clientId || (clientObj ? clientObj.id : '')}</td>
-                          <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>Invoice ID No:- {selectedInvoice.invoice_id || selectedInvoice.invoiceNo || selectedInvoice.id}</td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 4px",
+                              width: "50%",
+                            }}
+                          >
+                            {t("Customer ID")}:-{" "}
+                            {selectedInvoice.client_id ||
+                              selectedInvoice.clientId ||
+                              (clientObj ? clientObj.id : "")}
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 4px",
+                              width: "50%",
+                            }}
+                          >
+                            {t("Invoice ID")}:-{" "}
+                            {selectedInvoice.invoice_id ||
+                              selectedInvoice.invoiceNo ||
+                              selectedInvoice.id}
+                          </td>
                         </tr>
                         <tr>
-                          <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>Client: {clientDisplay}</td>
+                          <td
+                            colSpan="2"
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 4px",
+                            }}
+                          >
+                            {t("Customer")}: {clientDisplay}
+                          </td>
                         </tr>
                         <tr>
-                          <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>Date:- {selectedInvoice.created_at ? new Date(selectedInvoice.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'medium' }) : (selectedInvoice.date || '-')}</td>
+                          <td
+                            colSpan="2"
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 4px",
+                            }}
+                          >
+                            {t("Date")}:-{" "}
+                            {selectedInvoice.created_at
+                              ? (() => {
+                                  const d = new Date(
+                                    selectedInvoice.created_at,
+                                  );
+                                  const day = String(d.getDate()).padStart(
+                                    2,
+                                    "0",
+                                  );
+                                  const month = d
+                                    .toLocaleString("en-US", { month: "short" })
+                                    .toUpperCase();
+                                  const year = d.getFullYear();
+                                  const time = d.toLocaleString("en-US", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    second: "2-digit",
+                                    hour12: true,
+                                  });
+                                  return `${day} ${month} ${year} AT ${time}`;
+                                })()
+                              : selectedInvoice.date || "-"}
+                          </td>
                         </tr>
                         <tr>
-                          <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>Served By:- {selectedInvoice.served_by || 'ADMIN'}</td>
+                          <td
+                            colSpan="2"
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 4px",
+                            }}
+                          >
+                            SERVED BY:- {selectedInvoice.served_by || "ADMIN"}
+                          </td>
                         </tr>
                       </tbody>
                     </table>
 
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: 'black', marginBottom: '0' }}>
+                    <table
+                      style={{
+                        width: "100%",
+                        borderCollapse: "collapse",
+                        fontSize: "12px",
+                        color: "black",
+                        marginBottom: "0",
+                      }}
+                    >
                       <thead>
                         <tr>
-                          <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Name</th>
-                          <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Price</th>
-                          <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Quantity</th>
-                          <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Total</th>
+                          <th
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 4px",
+                              textAlign: "left",
+                              width: "55%",
+                            }}
+                          >
+                            {t("Name")}
+                          </th>
+                          <th
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 4px",
+                              textAlign: "left",
+                            }}
+                          >
+                            {t("Price")}
+                          </th>
+                          <th
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 4px",
+                              textAlign: "left",
+                            }}
+                          >
+                            {t("Quantity")}
+                          </th>
+                          <th
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 4px",
+                              textAlign: "left",
+                            }}
+                          >
+                            {t("Total")}
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
-                        {selectedInvoice.items && selectedInvoice.items.length > 0 ? (
+                        {selectedInvoice.items &&
+                        selectedInvoice.items.length > 0 ? (
                           selectedInvoice.items.map((item, idx) => {
                             const qty = Number(item.quantity || item.qty || 1);
-                            const rate = Number(item.selling_price || item.price || item.rate || 0);
-                            const itemTotal = Number(item.total_selling_price || item.total_amount || (qty * rate) || 0);
-                            const displayItemName = item.name || item.product_name || item.title || 'Item';
+                            const rate = Number(
+                              item.selling_price ||
+                                item.price ||
+                                item.rate ||
+                                0,
+                            );
+                            const itemTotal = Number(
+                              item.total_selling_price ||
+                                item.total_amount ||
+                                qty * rate ||
+                                0,
+                            );
+                            const displayItemName = `${item.name || item.product_name || item.title || "Item"} ${item.barcode ? `(${item.barcode})` : ""}`;
                             return (
                               <tr key={idx}>
-                                <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{displayItemName}</td>
-                                <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{rate}</td>
-                                <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{qty}</td>
-                                <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{itemTotal}</td>
+                                <td
+                                  style={{
+                                    border: "1px solid black",
+                                    padding: "2px 4px",
+                                    textAlign: "left",
+                                  }}
+                                >
+                                  {displayItemName}
+                                </td>
+                                <td
+                                  style={{
+                                    border: "1px solid black",
+                                    padding: "2px 4px",
+                                    textAlign: "left",
+                                  }}
+                                >
+                                  {rate}
+                                </td>
+                                <td
+                                  style={{
+                                    border: "1px solid black",
+                                    padding: "2px 4px",
+                                    textAlign: "left",
+                                  }}
+                                >
+                                  {qty}
+                                </td>
+                                <td
+                                  style={{
+                                    border: "1px solid black",
+                                    padding: "2px 4px",
+                                    textAlign: "left",
+                                  }}
+                                >
+                                  {itemTotal}
+                                </td>
                               </tr>
                             );
                           })
                         ) : (
                           <tr>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>General Item</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{invoiceBill}</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>1</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{invoiceBill}</td>
+                            <td
+                              style={{
+                                border: "1px solid black",
+                                padding: "2px 4px",
+                                textAlign: "left",
+                              }}
+                            >
+                              General Item
+                            </td>
+                            <td
+                              style={{
+                                border: "1px solid black",
+                                padding: "2px 4px",
+                                textAlign: "left",
+                              }}
+                            >
+                              {invoiceBill}
+                            </td>
+                            <td
+                              style={{
+                                border: "1px solid black",
+                                padding: "2px 4px",
+                                textAlign: "left",
+                              }}
+                            >
+                              1
+                            </td>
+                            <td
+                              style={{
+                                border: "1px solid black",
+                                padding: "2px 4px",
+                                textAlign: "left",
+                              }}
+                            >
+                              {invoiceBill}
+                            </td>
                           </tr>
                         )}
                         <tr>
-                          <td colSpan="3" style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right', fontWeight: 'bold' }}>Total Quantity</td>
-                          <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center', fontWeight: 'bold' }}>{totalQty || 1}</td>
+                          <td
+                            colSpan="2"
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 4px",
+                              textAlign: "left",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            {t("Total Quantity")}
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 4px",
+                              textAlign: "left",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            {totalQty || 1}
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 4px",
+                              textAlign: "left",
+                            }}
+                          ></td>
                         </tr>
                       </tbody>
                     </table>
 
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: 'black' }}>
+                    <table
+                      style={{
+                        width: "100%",
+                        borderCollapse: "collapse",
+                        fontSize: "12px",
+                        color: "black",
+                      }}
+                    >
                       <tbody>
                         <tr>
-                          <td style={{ border: '1px solid black', borderTop: 'none', padding: '2px 8px', textAlign: 'right', width: '70%' }}>Invoice Bill :-</td>
-                          <td style={{ border: '1px solid black', borderTop: 'none', padding: '2px 4px', textAlign: 'center' }}>{invoiceBill}</td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              borderTop: "none",
+                              padding: "2px 8px",
+                              textAlign: "right",
+                              width: "70%",
+                            }}
+                          >
+                            {t("Invoice Bill")} =
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              borderTop: "none",
+                              padding: "2px 4px",
+                              textAlign: "right",
+                            }}
+                          >
+                            {invoiceBill}
+                          </td>
                         </tr>
                         <tr>
-                          <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Previous Due :-</td>
-                          <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{prevDue}</td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 8px",
+                              textAlign: "right",
+                            }}
+                          >
+                            {t("Previous Due")} =
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 4px",
+                              textAlign: "right",
+                            }}
+                          >
+                            {prevDue}
+                          </td>
                         </tr>
                         <tr>
-                          <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Total Bill :-</td>
-                          <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{totalBill}</td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 8px",
+                              textAlign: "right",
+                            }}
+                          >
+                            {t("Total Bill")} =
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 4px",
+                              textAlign: "right",
+                            }}
+                          >
+                            {totalBill}
+                          </td>
                         </tr>
                         <tr>
-                          <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Payment :-</td>
-                          <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{payment}</td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 8px",
+                              textAlign: "right",
+                            }}
+                          >
+                            {t("Payment")} =
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 4px",
+                              textAlign: "right",
+                            }}
+                          >
+                            {payment}
+                          </td>
                         </tr>
                         <tr>
-                          <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Invoice Due :-</td>
-                          <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{invoiceDue}</td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 8px",
+                              textAlign: "right",
+                            }}
+                          >
+                            {t("Invoice Due")} =
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 4px",
+                              textAlign: "right",
+                            }}
+                          >
+                            {invoiceDue}
+                          </td>
                         </tr>
                         <tr>
-                          <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Total Due :-</td>
-                          <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{totalDue}</td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 8px",
+                              textAlign: "right",
+                            }}
+                          >
+                            {t("Total Due")} =
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "2px 4px",
+                              textAlign: "right",
+                            }}
+                          >
+                            {totalDue}
+                          </td>
                         </tr>
                         <tr>
-                          <td colSpan="2" style={{ border: '1px solid black', padding: '4px', textAlign: 'center', fontSize: '10px', fontStyle: 'italic', fontWeight: '600' }}>
-                            Software Developed By www.softhostit.com
+                          <td
+                            colSpan="2"
+                            style={{
+                              border: "1px solid black",
+                              padding: "4px",
+                              textAlign: "center",
+                              fontSize: "10px",
+                              fontStyle: "italic",
+                              fontWeight: "600",
+                            }}
+                          >
+                            SOFTWARE DEVELOPED BY WWW.SOFTZENIT.COM
                           </td>
                         </tr>
                       </tbody>

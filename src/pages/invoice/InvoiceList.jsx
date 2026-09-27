@@ -541,7 +541,7 @@ const InvoiceList = () => {
                           </tr>
                           <tr>
                             <td colSpan="2" style={{ border: '1px solid black', padding: '4px', textAlign: 'center', fontSize: '10px', fontStyle: 'italic', fontWeight: '600' }}>
-                              Software Developed By www.softhostit.com
+                            SOFTWARE DEVELOPED BY WWW.SOFTZENIT.COM
                             </td>
                           </tr>
                         </tbody>
