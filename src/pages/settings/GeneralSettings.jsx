@@ -422,30 +422,6 @@ const GeneralSettings = () => {
                 
                 {/* Helpers */}
                 {(() => {
-                  const ColorInput = ({ label, themeKey }) => (
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <div style={{ minHeight: '34px', display: 'flex', alignItems: 'flex-end', marginBottom: '6px' }}>
-                        <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--label-color)', textTransform: 'uppercase', lineHeight: '1.25', letterSpacing: '0.02em' }}>
-                          {label}
-                        </label>
-                      </div>
-                      <div style={{ display: 'flex', height: '38px', minHeight: '38px', maxHeight: '38px', border: '1px solid #cbd5e1', borderRadius: '4px', overflow: 'hidden', background: 'white', boxSizing: 'border-box' }}>
-                        <input
-                          type="color"
-                          value={localTheme[themeKey] || '#ffffff'}
-                          onChange={(e) => handleColorChange(themeKey, e.target.value)}
-                          style={{ width: '40px', minWidth: '40px', height: '100%', padding: '0', border: 'none', cursor: 'pointer', background: 'transparent' }}
-                        />
-                        <input
-                          type="text"
-                          value={localTheme[themeKey] || ''}
-                          onChange={(e) => handleColorChange(themeKey, e.target.value)}
-                          style={{ flex: 1, minWidth: 0, height: '100%', border: 'none', padding: '0 10px', fontSize: '13px', outline: 'none', color: 'var(--text-main, #1e293b)', background: 'transparent', boxSizing: 'border-box' }}
-                        />
-                      </div>
-                    </div>
-                  );
-
                   return (
                     <>
                       <div>
