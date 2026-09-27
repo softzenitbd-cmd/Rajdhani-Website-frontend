@@ -1655,7 +1655,7 @@ const InvoiceCreate = () => {
                       style={{
                         width: "100%",
                         borderCollapse: "collapse",
-                        fontSize: "12px",
+                        fontSize: "10px",
                         color: "black",
                         marginBottom: "4px",
                       }}
@@ -1749,7 +1749,7 @@ const InvoiceCreate = () => {
                       style={{
                         width: "100%",
                         borderCollapse: "collapse",
-                        fontSize: "12px",
+                        fontSize: "10px",
                         color: "black",
                         marginBottom: "0",
                       }}
@@ -2057,7 +2057,7 @@ const InvoiceCreate = () => {
                               border: "1px solid black",
                               padding: "4px",
                               textAlign: "center",
-                              fontSize: "10px",
+                              fontSize: "8px",
                               fontStyle: "italic",
                               fontWeight: "600",
                             }}

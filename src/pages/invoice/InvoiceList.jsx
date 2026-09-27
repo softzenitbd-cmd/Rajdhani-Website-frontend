@@ -453,7 +453,7 @@ const InvoiceList = () => {
                   return (
                     <>
                       {/* Info Table */}
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: 'black', marginBottom: '4px' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px', color: 'black', marginBottom: '4px' }}>
                         <tbody>
                           <tr>
                             <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>কাস্টমার আইডি:- {selectedInvoice.client_id || (clientObj ? clientObj.id : '')}</td>
@@ -479,7 +479,7 @@ const InvoiceList = () => {
                       </table>
 
                       {/* Items Table */}
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: 'black', marginBottom: '0' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px', color: 'black', marginBottom: '0' }}>
                         <thead>
                           <tr>
                             <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left', width: '55%' }}>নাম</th>
@@ -542,7 +542,7 @@ const InvoiceList = () => {
                             <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{totalDue}</td>
                           </tr>
                           <tr>
-                            <td colSpan="4" style={{ border: '1px solid black', padding: '4px', textAlign: 'center', fontSize: '10px', fontStyle: 'italic', fontWeight: '600' }}>
+                            <td colSpan="4" style={{ border: '1px solid black', padding: '4px', textAlign: 'center', fontSize: '8px', fontStyle: 'italic', fontWeight: '600' }}>
                             SOFTWARE DEVELOPED BY WWW.SOFTZENIT.COM
                             </td>
                           </tr>
