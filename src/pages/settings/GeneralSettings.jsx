@@ -7,6 +7,69 @@ import { useAppSettings } from '../../hooks/useAppSettings';
 import { settingService } from '../../services/settingService';
 import PrintHeader from '../../components/PrintHeader';
 
+const TypographySelect = ({ label, value, onChange, options }) => (
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ minHeight: '34px', display: 'flex', alignItems: 'flex-end', marginBottom: '6px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--label-color)', textTransform: 'uppercase', lineHeight: '1.25', letterSpacing: '0.02em' }}>
+                          {label}
+                        </label>
+                      </div>
+                      <select
+                        value={value}
+                        onChange={onChange}
+                        style={{
+                          height: '38px',
+                          minHeight: '38px',
+                          maxHeight: '38px',
+                          boxSizing: 'border-box',
+                          padding: '0 10px',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '4px',
+                          fontSize: '13px',
+                          lineHeight: '36px',
+                          outline: 'none',
+                          background: 'white',
+                          width: '100%',
+                          color: 'var(--text-main, #1e293b)',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {options.map((opt) => (
+                          <option key={opt.value} value={opt.value} style={{ fontSize: '13px' }}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+
+                  
+const ColorInput = ({ label, value, onChange }) => (
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ minHeight: '34px', display: 'flex', alignItems: 'flex-end', marginBottom: '6px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--label-color)', textTransform: 'uppercase', lineHeight: '1.25', letterSpacing: '0.02em' }}>
+                          {label}
+                        </label>
+                      </div>
+                      <div style={{ display: 'flex', height: '38px', minHeight: '38px', maxHeight: '38px', border: '1px solid #cbd5e1', borderRadius: '4px', overflow: 'hidden', background: 'white', boxSizing: 'border-box' }}>
+                        <input
+                          type="color"
+                          value={value || '#ffffff'}
+                          onChange={onChange}
+                          style={{ width: '40px', minWidth: '40px', height: '100%', padding: '0', border: 'none', cursor: 'pointer', background: 'transparent' }}
+                        />
+                        <input
+                          type="text"
+                          value={value || ''}
+                          onChange={onChange}
+                          style={{ flex: 1, minWidth: 0, height: '100%', border: 'none', padding: '0 10px', fontSize: '13px', outline: 'none', color: 'var(--text-main, #1e293b)', background: 'transparent', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                    </div>
+                  );
+
+                  
+
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '_');
 
 // Toggle persisted on the server (general-settings API) under settings[slug(label)]
@@ -359,43 +422,7 @@ const GeneralSettings = () => {
                 
                 {/* Helpers */}
                 {(() => {
-                  const renderTypographySelect = (label, value, onChange, options) => (
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <div style={{ minHeight: '34px', display: 'flex', alignItems: 'flex-end', marginBottom: '6px' }}>
-                        <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--label-color)', textTransform: 'uppercase', lineHeight: '1.25', letterSpacing: '0.02em' }}>
-                          {label}
-                        </label>
-                      </div>
-                      <select
-                        value={value}
-                        onChange={onChange}
-                        style={{
-                          height: '38px',
-                          minHeight: '38px',
-                          maxHeight: '38px',
-                          boxSizing: 'border-box',
-                          padding: '0 10px',
-                          border: '1px solid #cbd5e1',
-                          borderRadius: '4px',
-                          fontSize: '13px',
-                          lineHeight: '36px',
-                          outline: 'none',
-                          background: 'white',
-                          width: '100%',
-                          color: 'var(--text-main, #1e293b)',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        {options.map((opt) => (
-                          <option key={opt.value} value={opt.value} style={{ fontSize: '13px' }}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  );
-
-                  const renderColorInput = (label, themeKey) => (
+                  const ColorInput = ({ label, themeKey }) => (
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <div style={{ minHeight: '34px', display: 'flex', alignItems: 'flex-end', marginBottom: '6px' }}>
                         <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--label-color)', textTransform: 'uppercase', lineHeight: '1.25', letterSpacing: '0.02em' }}>
@@ -490,59 +517,59 @@ const GeneralSettings = () => {
                       <div>
                         <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t("LAYOUT COLOR")}</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px' }}>
-                          {renderColorInput(t("Layout Color"), "--bg-app")}
-                          {renderColorInput(t("Header Color"), "--header-bg")}
+                          <ColorInput label={t("Layout Color")} value={localTheme["--bg-app"]} onChange={(e) => handleColorChange("--bg-app", e.target.value)} />
+                          <ColorInput label={t("Header Color")} value={localTheme["--header-bg"]} onChange={(e) => handleColorChange("--header-bg", e.target.value)} />
                         </div>
                       </div>
 
                       <div>
                         <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t("SIDEBAR COLOR")}</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px' }}>
-                          {renderColorInput(t("Sidebar Color"), "--bg-sidebar")}
-                          {renderColorInput(t("Sidebar Menu Hover Color"), "--sidebar-hover")}
-                          {renderColorInput(t("Sidebar Text Color"), "--text-sidebar")}
+                          <ColorInput label={t("Sidebar Color")} value={localTheme["--bg-sidebar"]} onChange={(e) => handleColorChange("--bg-sidebar", e.target.value)} />
+                          <ColorInput label={t("Sidebar Menu Hover Color")} value={localTheme["--sidebar-hover"]} onChange={(e) => handleColorChange("--sidebar-hover", e.target.value)} />
+                          <ColorInput label={t("Sidebar Text Color")} value={localTheme["--text-sidebar"]} onChange={(e) => handleColorChange("--text-sidebar", e.target.value)} />
                         </div>
                       </div>
 
                       <div>
                         <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t("CARD COLOR")}</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px' }}>
-                          {renderColorInput(t("Card Border Color"), "--card-border")}
-                          {renderColorInput(t("Card Header Color"), "--card-header-bg")}
-                          {renderColorInput(t("Card Body Color"), "--bg-surface")}
-                          {renderColorInput(t("Card Text Color"), "--text-main")}
+                          <ColorInput label={t("Card Border Color")} value={localTheme["--card-border"]} onChange={(e) => handleColorChange("--card-border", e.target.value)} />
+                          <ColorInput label={t("Card Header Color")} value={localTheme["--card-header-bg"]} onChange={(e) => handleColorChange("--card-header-bg", e.target.value)} />
+                          <ColorInput label={t("Card Body Color")} value={localTheme["--bg-surface"]} onChange={(e) => handleColorChange("--bg-surface", e.target.value)} />
+                          <ColorInput label={t("Card Text Color")} value={localTheme["--text-main"]} onChange={(e) => handleColorChange("--text-main", e.target.value)} />
                         </div>
                       </div>
 
                       <div>
                         <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t("INPUT COLOR")}</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px' }}>
-                          {renderColorInput(t("Input Background Color"), "--input-bg")}
-                          {renderColorInput(t("Label Color"), "--label-color")}
-                          {renderColorInput(t("Input Color"), "--input-text")}
+                          <ColorInput label={t("Input Background Color")} value={localTheme["--input-bg"]} onChange={(e) => handleColorChange("--input-bg", e.target.value)} />
+                          <ColorInput label={t("Label Color")} value={localTheme["--label-color"]} onChange={(e) => handleColorChange("--label-color", e.target.value)} />
+                          <ColorInput label={t("Input Color")} value={localTheme["--input-text"]} onChange={(e) => handleColorChange("--input-text", e.target.value)} />
                         </div>
                       </div>
 
                       <div>
                         <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t("TABLE COLOR")}</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px' }}>
-                          {renderColorInput(t("Table Header BG Color"), "--table-header-bg")}
-                          {renderColorInput(t("Table Header Text Color"), "--table-header-text")}
-                          {renderColorInput(t("Table Text Color"), "--table-text")}
-                          {renderColorInput(t("Table Header Border Color"), "--table-border")}
+                          <ColorInput label={t("Table Header BG Color")} value={localTheme["--table-header-bg"]} onChange={(e) => handleColorChange("--table-header-bg", e.target.value)} />
+                          <ColorInput label={t("Table Header Text Color")} value={localTheme["--table-header-text"]} onChange={(e) => handleColorChange("--table-header-text", e.target.value)} />
+                          <ColorInput label={t("Table Text Color")} value={localTheme["--table-text"]} onChange={(e) => handleColorChange("--table-text", e.target.value)} />
+                          <ColorInput label={t("Table Header Border Color")} value={localTheme["--table-border"]} onChange={(e) => handleColorChange("--table-border", e.target.value)} />
                         </div>
                       </div>
 
                       <div>
                         <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t("BUTTON COLOR")}</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px' }}>
-                          {renderColorInput(t("Success Button Color"), "--success")}
-                          {renderColorInput(t("Danger Button Color"), "--danger")}
-                          {renderColorInput(t("Info Button Color"), "--info")}
-                          {renderColorInput(t("Warning Button Color"), "--warning")}
-                          {renderColorInput(t("Primary Button Color"), "--primary")}
-                          {renderColorInput(t("Secondary Button Color"), "--secondary")}
-                          {renderColorInput(t("Dark Button Color"), "--dark")}
+                          <ColorInput label={t("Success Button Color")} value={localTheme["--success"]} onChange={(e) => handleColorChange("--success", e.target.value)} />
+                          <ColorInput label={t("Danger Button Color")} value={localTheme["--danger"]} onChange={(e) => handleColorChange("--danger", e.target.value)} />
+                          <ColorInput label={t("Info Button Color")} value={localTheme["--info"]} onChange={(e) => handleColorChange("--info", e.target.value)} />
+                          <ColorInput label={t("Warning Button Color")} value={localTheme["--warning"]} onChange={(e) => handleColorChange("--warning", e.target.value)} />
+                          <ColorInput label={t("Primary Button Color")} value={localTheme["--primary"]} onChange={(e) => handleColorChange("--primary", e.target.value)} />
+                          <ColorInput label={t("Secondary Button Color")} value={localTheme["--secondary"]} onChange={(e) => handleColorChange("--secondary", e.target.value)} />
+                          <ColorInput label={t("Dark Button Color")} value={localTheme["--dark"]} onChange={(e) => handleColorChange("--dark", e.target.value)} />
                         </div>
                       </div>
 
