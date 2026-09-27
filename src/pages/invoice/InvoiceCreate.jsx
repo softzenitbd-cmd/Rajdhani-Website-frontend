@@ -1668,7 +1668,7 @@ const InvoiceCreate = () => {
                               width: "50%",
                             }}
                           >
-                            {t("Customer ID")}:-{" "}
+                            কাস্টমার আইডি:-{" "}
                             {selectedInvoice.client_id ||
                               selectedInvoice.clientId ||
                               (clientObj ? clientObj.id : "")}
@@ -1680,7 +1680,7 @@ const InvoiceCreate = () => {
                               width: "50%",
                             }}
                           >
-                            {t("Invoice ID")}:-{" "}
+                            ইনভয়েস আইডি:-{" "}
                             {selectedInvoice.invoice_id ||
                               selectedInvoice.invoiceNo ||
                               selectedInvoice.id}
@@ -1694,7 +1694,7 @@ const InvoiceCreate = () => {
                               padding: "2px 4px",
                             }}
                           >
-                            {t("Customer")}: {clientDisplay}
+                            কাস্টমার: {clientDisplay}
                           </td>
                         </tr>
                         <tr>
@@ -1705,7 +1705,7 @@ const InvoiceCreate = () => {
                               padding: "2px 4px",
                             }}
                           >
-                            {t("Date")}:-{" "}
+                            তারিখ:-{" "}
                             {selectedInvoice.created_at
                               ? (() => {
                                   const d = new Date(
@@ -1763,7 +1763,7 @@ const InvoiceCreate = () => {
                               width: "55%",
                             }}
                           >
-                            {t("Name")}
+                            নাম
                           </th>
                           <th
                             style={{
@@ -1772,7 +1772,7 @@ const InvoiceCreate = () => {
                               textAlign: "left",
                             }}
                           >
-                            {t("Price")}
+                            মুল্য
                           </th>
                           <th
                             style={{
@@ -1781,7 +1781,7 @@ const InvoiceCreate = () => {
                               textAlign: "left",
                             }}
                           >
-                            {t("Quantity")}
+                            পরিমাণ
                           </th>
                           <th
                             style={{
@@ -1790,7 +1790,7 @@ const InvoiceCreate = () => {
                               textAlign: "left",
                             }}
                           >
-                            {t("Total")}
+                            মোট
                           </th>
                         </tr>
                       </thead>
@@ -1862,7 +1862,7 @@ const InvoiceCreate = () => {
                                 textAlign: "left",
                               }}
                             >
-                              General Item
+                              সাধারণ আইটেম
                             </td>
                             <td
                               style={{
@@ -1903,7 +1903,7 @@ const InvoiceCreate = () => {
                               fontWeight: "bold",
                             }}
                           >
-                            {t("Total Quantity")}
+                            মোট পরিমাণ
                           </td>
                           <td
                             style={{
@@ -1945,7 +1945,7 @@ const InvoiceCreate = () => {
                               width: "70%",
                             }}
                           >
-                            {t("Invoice Bill")} =
+                            ইনভয়েস বিল =
                           </td>
                           <td
                             style={{
@@ -1966,7 +1966,7 @@ const InvoiceCreate = () => {
                               textAlign: "right",
                             }}
                           >
-                            {t("Previous Due")} =
+                            পূর্বের বাকী =
                           </td>
                           <td
                             style={{
@@ -1986,7 +1986,7 @@ const InvoiceCreate = () => {
                               textAlign: "right",
                             }}
                           >
-                            {t("Total Bill")} =
+                            মোট বিল =
                           </td>
                           <td
                             style={{
@@ -2006,7 +2006,7 @@ const InvoiceCreate = () => {
                               textAlign: "right",
                             }}
                           >
-                            {t("Payment")} =
+                            পেমেন্ট =
                           </td>
                           <td
                             style={{
@@ -2026,7 +2026,7 @@ const InvoiceCreate = () => {
                               textAlign: "right",
                             }}
                           >
-                            {t("Invoice Due")} =
+                            ইনভয়েস বাকি =
                           </td>
                           <td
                             style={{
@@ -2046,7 +2046,7 @@ const InvoiceCreate = () => {
                               textAlign: "right",
                             }}
                           >
-                            {t("Total Due")} =
+                            মোট বাকি =
                           </td>
                           <td
                             style={{

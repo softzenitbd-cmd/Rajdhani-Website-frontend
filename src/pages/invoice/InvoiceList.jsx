@@ -456,17 +456,24 @@ const InvoiceList = () => {
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: 'black', marginBottom: '4px' }}>
                         <tbody>
                           <tr>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>Client ID No:- {selectedInvoice.client_id || (clientObj ? clientObj.id : '')}</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>Invoice ID No:- {selectedInvoice.invoice_id || selectedInvoice.invoiceNo || selectedInvoice.id}</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>কাস্টমার আইডি:- {selectedInvoice.client_id || (clientObj ? clientObj.id : '')}</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>ইনভয়েস আইডি:- {selectedInvoice.invoice_id || selectedInvoice.invoiceNo || selectedInvoice.id}</td>
                           </tr>
                           <tr>
-                            <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>Client: {clientDisplay}</td>
+                            <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>কাস্টমার: {clientDisplay}</td>
                           </tr>
                           <tr>
-                            <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>Date:- {selectedInvoice.created_at ? new Date(selectedInvoice.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'medium' }) : (selectedInvoice.date || '-')}</td>
+                            <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>তারিখ:- {selectedInvoice.created_at ? (() => {
+                              const d = new Date(selectedInvoice.created_at);
+                              const day = String(d.getDate()).padStart(2, '0');
+                              const month = d.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+                              const year = d.getFullYear();
+                              const time = d.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+                              return `${day} ${month} ${year} AT ${time}`;
+                            })() : (selectedInvoice.date || '-')}</td>
                           </tr>
                           <tr>
-                            <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>Served By:- {selectedInvoice.served_by || 'ADMIN'}</td>
+                            <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>SERVED BY:- {selectedInvoice.served_by || 'ADMIN'}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -475,10 +482,10 @@ const InvoiceList = () => {
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: 'black', marginBottom: '0' }}>
                         <thead>
                           <tr>
-                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Name</th>
-                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Price</th>
-                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Quantity</th>
-                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Total</th>
+                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left', width: '55%' }}>নাম</th>
+                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>মুল্য</th>
+                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>পরিমাণ</th>
+                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>মোট</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -487,27 +494,28 @@ const InvoiceList = () => {
                               const qty = Number(item.quantity || item.qty || 1);
                               const rate = Number(item.selling_price || item.price || item.rate || 0);
                               const itemTotal = Number(item.total_selling_price || item.total_amount || (qty * rate) || 0);
-                              const displayItemName = item.name || item.product_name || item.title || 'Item';
+                              const displayItemName = `${item.name || item.product_name || item.title || 'Item'} ${item.barcode ? `(${item.barcode})` : ''}`;
                               return (
                                 <tr key={idx}>
-                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{displayItemName}</td>
-                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{rate}</td>
-                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{qty}</td>
-                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{itemTotal}</td>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>{displayItemName}</td>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>{rate}</td>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>{qty}</td>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>{itemTotal}</td>
                                 </tr>
                               );
                             })
                           ) : (
                             <tr>
-                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>General Item</td>
-                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{invoiceBill}</td>
-                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>1</td>
-                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{invoiceBill}</td>
+                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>সাধারণ আইটেম</td>
+                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>{invoiceBill}</td>
+                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>1</td>
+                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>{invoiceBill}</td>
                             </tr>
                           )}
                           <tr>
-                            <td colSpan="3" style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right', fontWeight: 'bold' }}>Total Quantity</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center', fontWeight: 'bold' }}>{totalQty || 1}</td>
+                            <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left', fontWeight: 'bold' }}>মোট পরিমাণ</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left', fontWeight: 'bold' }}>{totalQty || 1}</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}></td>
                           </tr>
                         </tbody>
                       </table>
@@ -516,28 +524,28 @@ const InvoiceList = () => {
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: 'black' }}>
                         <tbody>
                           <tr>
-                            <td style={{ border: '1px solid black', borderTop: 'none', padding: '2px 8px', textAlign: 'right', width: '70%' }}>Invoice Bill :-</td>
-                            <td style={{ border: '1px solid black', borderTop: 'none', padding: '2px 4px', textAlign: 'center' }}>{invoiceBill}</td>
+                            <td style={{ border: '1px solid black', borderTop: 'none', padding: '2px 8px', textAlign: 'right', width: '70%' }}>ইনভয়েস বিল =</td>
+                            <td style={{ border: '1px solid black', borderTop: 'none', padding: '2px 4px', textAlign: 'right' }}>{invoiceBill}</td>
                           </tr>
                           <tr>
-                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Previous Due :-</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{prevDue}</td>
+                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>পূর্বের বাকী =</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{prevDue}</td>
                           </tr>
                           <tr>
-                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Total Bill :-</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{totalBill}</td>
+                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>মোট বিল =</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{totalBill}</td>
                           </tr>
                           <tr>
-                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Payment :-</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{payment}</td>
+                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>পেমেন্ট =</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{payment}</td>
                           </tr>
                           <tr>
-                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Invoice Due :-</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{invoiceDue}</td>
+                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>ইনভয়েস বাকি =</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{invoiceDue}</td>
                           </tr>
                           <tr>
-                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Total Due :-</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{totalDue}</td>
+                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>মোট বাকি =</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{totalDue}</td>
                           </tr>
                           <tr>
                             <td colSpan="2" style={{ border: '1px solid black', padding: '4px', textAlign: 'center', fontSize: '10px', fontStyle: 'italic', fontWeight: '600' }}>
