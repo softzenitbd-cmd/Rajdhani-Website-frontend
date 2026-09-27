@@ -491,6 +491,7 @@ const GeneralSettings = () => {
                         <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t("LAYOUT COLOR")}</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px' }}>
                           <ColorInput label={t("Layout Color")} themeKey="--bg-app" />
+                          <ColorInput label={t("Header Color")} themeKey="--header-bg" />
                         </div>
                       </div>
 

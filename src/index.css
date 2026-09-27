@@ -1,6 +1,7 @@
 :root {
   /* Dynamic Theme Variables - Controlled via React Context */
   --bg-app: #f4f7fe;
+  --header-bg: #0a4226;
   
   --bg-sidebar: #ffffff;
   --sidebar-hover: #f1f5f9;

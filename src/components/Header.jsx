@@ -143,7 +143,7 @@ const Header = ({ toggleSidebar }) => {
     <header 
       className="header" 
       style={{ 
-        background: '#0a4226', // dark green matching screenshot
+        background: 'var(--header-bg, #0a4226)',
         color: 'white',
         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
         display: 'flex',

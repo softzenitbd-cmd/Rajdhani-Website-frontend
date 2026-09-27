@@ -7,6 +7,7 @@ export const defaultTheme = {
   '--sidebar-font-size': '14px',
   '--sidebar-submenu-font-size': '13px',
   '--bg-app': '#f4f7fe',
+  '--header-bg': '#0a4226',
   '--bg-sidebar': '#ffffff',
   '--sidebar-hover': '#f1f5f9',
   '--text-sidebar': '#64748b',
