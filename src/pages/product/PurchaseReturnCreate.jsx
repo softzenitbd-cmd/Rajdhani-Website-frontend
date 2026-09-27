@@ -45,7 +45,7 @@ const PurchaseReturnCreate = () => {
     try {
       const [supRes, prodRes] = await Promise.all([
         crmService.getSuppliers(),
-        productService.getProducts()
+        productService.getProducts({ page_size: 500 })
       ]);
 
       const supData = Array.isArray(supRes) ? supRes : (supRes?.results || []);

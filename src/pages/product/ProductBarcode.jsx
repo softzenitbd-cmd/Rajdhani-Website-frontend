@@ -64,22 +64,38 @@ const ProductBarcode = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await productService.getProducts().catch(() => null);
+        const res = await productService.getProducts({ page_size: 500 }).catch(() => null);
         const list = Array.isArray(res) ? res : (res?.results || []);
-        const combined = list;
-
-        // Deduplicate items by ID / Name
+        
+        // Deduplicate
         const unique = [];
         const map = new Map();
-        for (const item of combined) {
+        for (const item of list) {
           const key = String(item.id || item.code || item.barcode || item.name).toLowerCase();
           if (!map.has(key)) {
             map.set(key, true);
             unique.push(item);
           }
         }
-
         setProducts(unique);
+
+        // Silent background load of all products
+        productService.getProducts({ page_size: 5000 }).then(bgRes => {
+          const allProds = Array.isArray(bgRes) ? bgRes : (bgRes?.results || []);
+          if (allProds.length > unique.length) {
+            const finalUnique = [];
+            const finalMap = new Map();
+            for (const item of allProds) {
+              const key = String(item.id || item.code || item.barcode || item.name).toLowerCase();
+              if (!finalMap.has(key)) {
+                finalMap.set(key, true);
+                finalUnique.push(item);
+              }
+            }
+            setProducts(finalUnique);
+          }
+        }).catch(err => console.error("Background load failed", err));
+
       } catch (err) {
         console.error("Error fetching products for barcode:", err);
         setProducts([]);
@@ -132,6 +148,29 @@ const ProductBarcode = () => {
                   })}
                   value={selectedProductId}
                   onChange={(val) => setSelectedProductId(val)}
+                  onSearchChange={(val) => {
+                    const term = (val || "").trim();
+                    if (term.length >= 2) {
+                      if (window.productBarcodeTimeout) clearTimeout(window.productBarcodeTimeout);
+                      window.productBarcodeTimeout = setTimeout(async () => {
+                        try {
+                          const res = await productService.getProducts({ search: term });
+                          const list = Array.isArray(res) ? res : (res?.results || []);
+                          if (list.length > 0) {
+                            setProducts(prev => {
+                              const updated = [...prev];
+                              list.forEach(item => {
+                                if (!updated.find(p => String(p.id) === String(item.id))) {
+                                  updated.push(item);
+                                }
+                              });
+                              return updated;
+                            });
+                          }
+                        } catch (e) {}
+                      }, 500);
+                    }
+                  }}
                   placeholder={t("Select Product")}
                   hideOptionsUntilSearch={true}
                 />

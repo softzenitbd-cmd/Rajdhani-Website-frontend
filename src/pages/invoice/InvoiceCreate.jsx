@@ -15,6 +15,7 @@ import AddOptionModal from "../../components/AddOptionModal";
 import AddClientModal from "../../components/AddClientModal";
 import AddProductModal from "../../components/AddProductModal";
 import AddAccountModal from "../../components/AddAccountModal";
+import AddIncomeCategoryModal from "../../components/AddIncomeCategoryModal";
 import SearchableSelect from "../../components/SearchableSelect";
 import { crmService } from "../../services/crmService";
 import { productService } from "../../services/productService";
@@ -33,6 +34,7 @@ const InvoiceCreate = () => {
   const [clients, setClients] = useState([]);
   const [products, setProducts] = useState([]);
   const [accounts, setAccounts] = useState([]);
+  const [incomeCategories, setIncomeCategories] = useState([]);
   const [items, setItems] = useState([]);
   const [loadingPrereqs, setLoadingPrereqs] = useState(true);
 
@@ -57,6 +59,46 @@ const InvoiceCreate = () => {
   const [isTotalBalanceAccModalOpen, setIsTotalBalanceAccModalOpen] =
     useState(false);
   const [isCashSellAccModalOpen, setIsCashSellAccModalOpen] = useState(false);
+  const [printInvoiceData, setPrintInvoiceData] = useState(null);
+
+  useEffect(() => {
+    if (printInvoiceData) {
+      const handleAfterPrint = () => {
+        setPrintInvoiceData(null);
+        setItems([]);
+        setFormData({
+          clientId: "",
+          date: new Date().toISOString().split("T")[0],
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          barcode: "",
+          productId: "",
+          totalBalanceAcc: "TOTAL BALENCE",
+          cashSellAcc: "CASH SELL",
+          discountAmount: "0",
+          receiveAmount: "0",
+          sms: false,
+        });
+      };
+      window.addEventListener("afterprint", handleAfterPrint);
+      
+      const timer = setTimeout(() => {
+        window.print();
+      }, 600);
+      
+      return () => {
+        window.removeEventListener("afterprint", handleAfterPrint);
+        clearTimeout(timer);
+      };
+    }
+  }, [printInvoiceData]);
+
+  // Ensure barcode is always focused when the component mounts
+  useEffect(() => {
+    const barcodeInput = document.getElementById("barcodeInput");
+    if (barcodeInput) {
+      setTimeout(() => barcodeInput.focus(), 100);
+    }
+  }, []);
 
   const populateInvoiceData = (invData, currentProducts = products) => {
     if (!invData) return;
@@ -136,23 +178,35 @@ const InvoiceCreate = () => {
   const fetchPrerequisites = async () => {
     try {
       setLoadingPrereqs(true);
-      const [clientRes, prodRes, accRes] = await Promise.all([
-        crmService.getClients().catch(() => []),
-        productService.getProducts().catch(() => []),
+      const [clientRes, prodRes, accRes, incCatRes] = await Promise.all([
+        crmService.getClients({ page_size: 500 }).catch(() => []),
+        productService.getProducts({ page_size: 500 }).catch(() => []),
         accountingService.getAccounts().catch(() => []),
+        accountingService.getIncomeCategories().catch(() => []),
       ]);
 
       const clientData = Array.isArray(clientRes)
+
         ? clientRes
         : clientRes?.results || [];
       const prodData = Array.isArray(prodRes)
         ? prodRes
         : prodRes?.results || [];
       const accData = Array.isArray(accRes) ? accRes : accRes?.results || [];
+      const incCatData = Array.isArray(incCatRes) ? incCatRes : incCatRes?.results || [];
 
       setClients(clientData);
       setProducts(prodData);
       setAccounts(accData);
+      setIncomeCategories(incCatData);
+
+      // Silent background load of all products to ensure local barcode search works
+      productService.getProducts({ page_size: 5000 }).then(res => {
+        const allProds = Array.isArray(res) ? res : (res?.results || []);
+        if (allProds.length > prodData.length) {
+          setProducts(allProds);
+        }
+      }).catch(err => console.error("Background product load failed", err));
 
       if (isEditMode) {
         if (location.state?.invoice) {
@@ -190,6 +244,7 @@ const InvoiceCreate = () => {
       setClients([]);
       setProducts([]);
       setAccounts([]);
+      setIncomeCategories([]);
     } finally {
       setLoadingPrereqs(false);
     }
@@ -270,9 +325,9 @@ const InvoiceCreate = () => {
     }
   };
 
-  const handleSelectProduct = (selectedId) => {
+  const handleSelectProduct = (selectedId, productObj = null) => {
     if (!selectedId) return;
-    const prod = products.find((p) => String(p.id) === String(selectedId));
+    const prod = productObj || products.find((p) => String(p.id) === String(selectedId));
     if (!prod) return;
 
     setItems((prevItems) => {
@@ -289,7 +344,7 @@ const InvoiceCreate = () => {
           {
             id: prod.id,
             name: prod.name || prod.title || "Product",
-            barcode: prod.custom_barcode_no || prod.code || prod.barcode || (String(prod.id).length === 36 ? String(prod.id).substring(0, 8).toUpperCase() : prod.id),
+            barcode: prod._scannedBarcode || prod.barcode || prod.custom_barcode_no || prod.code || (String(prod.id).length === 36 ? String(prod.id).substring(0, 8).toUpperCase() : prod.id),
             stock: Number(prod.stock ?? 0),
             price: Number(prod.sales_price || prod.price || 0),
             quantity: 1,
@@ -302,13 +357,13 @@ const InvoiceCreate = () => {
     setFormData((prev) => ({ ...prev, productId: "" }));
   };
 
-  const handleBarcodeKeyDown = (e) => {
+  const handleBarcodeKeyDown = async (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
       const rawCode = e.target.value;
       if (!rawCode || !rawCode.trim()) return;
       const code = rawCode.trim().toLowerCase();
-      const prod = products.find(
+      let prod = products.find(
         (p) =>
           String(p.code || "").trim().toLowerCase() === code ||
           String(p.barcode || "").trim().toLowerCase() === code ||
@@ -317,8 +372,20 @@ const InvoiceCreate = () => {
           (code.length >= 8 && String(p.id).trim().toLowerCase().startsWith(code)) ||
           String(p.product_code || "").trim().toLowerCase() === code,
       );
+
+      if (!prod) {
+        // Not in the loaded page of products — ask the server. findByBarcode
+        // also covers older products that only the stock report can resolve.
+        prod = await productService.findByBarcode(rawCode);
+        if (prod) {
+          setProducts((prev) =>
+            prev.find((p) => String(p.id) === String(prod.id)) ? prev : [...prev, prod],
+          );
+        }
+      }
+
       if (prod) {
-        handleSelectProduct(prod.id);
+        handleSelectProduct(prod.id, { ...prod, _scannedBarcode: rawCode.trim() });
       } else {
         toast.error(
           t('Product with barcode "{{v0}}" not found.', { v0: rawCode.trim() }),
@@ -327,7 +394,6 @@ const InvoiceCreate = () => {
       setFormData((prev) => ({ ...prev, barcode: "" }));
     }
   };
-
   const updateItemField = (index, field, value) => {
     setItems((prev) => {
       const updated = [...prev];
@@ -467,9 +533,7 @@ const InvoiceCreate = () => {
             : t("Sales Invoice Created Successfully!"),
         );
         if (shouldPrint) {
-          navigate("/invoice/list", {
-            state: { printInvoice: savedInvoiceObj, shouldPrint },
-          });
+          setPrintInvoiceData(savedInvoiceObj);
         } else {
           if (isEditMode) {
             navigate("/invoice/list");
@@ -531,7 +595,7 @@ const InvoiceCreate = () => {
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: "100px" }}>
-      <div className="premium-card">
+      <div className="premium-card" style={{ overflow: "visible" }}>
         <div
           className="premium-header"
           style={{ padding: "12px 24px", background: "white" }}
@@ -551,6 +615,32 @@ const InvoiceCreate = () => {
             </span>
           </h2>
         </div>
+
+        <style>
+          {`
+            .invoice-fixed-footer {
+              position: fixed;
+              bottom: 0;
+              right: 0;
+              width: calc(100% - 280px); /* 280px is sidebar width */
+              background: white;
+              z-index: 999;
+              padding: 16px 32px;
+              box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
+              display: flex;
+              justify-content: space-between;
+              border-top: 1px solid #e2e8f0;
+              align-items: center;
+              gap: 16px;
+              flex-wrap: wrap;
+            }
+            @media (max-width: 900px) {
+              .invoice-fixed-footer {
+                width: 100%;
+              }
+            }
+          `}
+        </style>
 
         <div
           className="premium-body"
@@ -740,17 +830,10 @@ const InvoiceCreate = () => {
                           });
                         }
                         setTimeout(() => {
-                          const inputs = document.querySelectorAll(`input[data-qty-idx]`);
-                          const targetQty = inputs.length > 0 ? inputs[inputs.length - 1] : null;
-                          if (targetQty) {
-                            targetQty.focus();
-                            setTimeout(() => targetQty.select(), 10);
-                          } else {
-                            const receiveInput = document.getElementById("receiveAmountInput");
-                            if (receiveInput) {
-                              receiveInput.focus();
-                              setTimeout(() => receiveInput.select(), 10);
-                            }
+                          const productSearch = document.getElementById("productSearchDropdown");
+                          if (productSearch) {
+                            productSearch.focus();
+                            productSearch.click();
                           }
                         }, 50);
                       } else {
@@ -770,12 +853,15 @@ const InvoiceCreate = () => {
 
               <div 
                 className="form-group" 
-                style={{ marginBottom: "0" }}
+                style={{ marginBottom: "0", position: "relative" }}
                 onKeyDownCapture={(e) => {
                   if (e.key === "Tab" && !e.shiftKey) {
                     e.preventDefault();
+                    // When leaving Product Search via Tab, focus the first (or last) quantity field
                     setTimeout(() => {
                       const inputs = document.querySelectorAll(`input[data-qty-idx]`);
+                      // Usually they want to edit the quantity of the item they JUST added,
+                      // or if they didn't add anything, the most recent one.
                       const targetQty = inputs.length > 0 ? inputs[inputs.length - 1] : null;
                       if (targetQty) {
                         targetQty.focus();
@@ -792,6 +878,7 @@ const InvoiceCreate = () => {
                 }}
               >
                 <SearchableSelect
+                  id="productSearchDropdown"
                   options={(products || []).map((p) => {
                     const barcode =
                       p.custom_barcode_no || p.code || p.barcode || "";
@@ -804,6 +891,37 @@ const InvoiceCreate = () => {
                   value={formData.productId}
                   onChange={(val) => {
                     if (val) handleSelectProduct(val);
+                  }}
+                  onSearchChange={(val) => {
+                    const term = (val || "").trim();
+                    if (term.length >= 2) {
+                      if (window.productSearchTimeout) clearTimeout(window.productSearchTimeout);
+                      window.productSearchTimeout = setTimeout(async () => {
+                        try {
+                          const res = await productService.getProducts({ search: term });
+                          let list = Array.isArray(res) ? res : (res?.results || []);
+
+                          // Typing a barcode the product list cannot match still
+                          // has to find the product (the stock report knows it).
+                          if (list.length === 0) {
+                            const byBarcode = await productService.findByBarcode(term);
+                            if (byBarcode) list = [byBarcode];
+                          }
+
+                          if (list.length > 0) {
+                            setProducts(prev => {
+                              const updated = [...prev];
+                              list.forEach(item => {
+                                if (!updated.find(p => String(p.id) === String(item.id))) {
+                                  updated.push(item);
+                                }
+                              });
+                              return updated;
+                            });
+                          }
+                        } catch (e) {}
+                      }, 500);
+                    }
                   }}
                   clearOnSelect={true}
                   hideOptionsUntilSearch={true}
@@ -834,12 +952,12 @@ const InvoiceCreate = () => {
               >
                 <thead>
                   <tr
-                    style={{ background: "var(--secondary)", color: "white" }}
+                    style={{ background: "#888888", color: "#111827", fontWeight: "bold" }}
                   >
                     <th style={{ padding: "8px", textAlign: "center" }}>
                       {t("invoice.sl", "SL")}
                     </th>
-                    <th style={{ padding: "8px", textAlign: "left" }}>
+                    <th style={{ padding: "8px", textAlign: "center" }}>
                       {t("invoice.product", "PRODUCT")}
                     </th>
                     <th style={{ padding: "8px", textAlign: "center" }}>
@@ -866,7 +984,7 @@ const InvoiceCreate = () => {
                     <th style={{ padding: "8px", textAlign: "center" }}>
                       {t("invoice.unit", "UNIT")}
                     </th>
-                    <th style={{ padding: "8px", textAlign: "right" }}>
+                    <th style={{ padding: "8px", textAlign: "center" }}>
                       {t("invoice.total", "TOTAL")}
                     </th>
                     <th style={{ padding: "8px", textAlign: "center" }}>
@@ -892,31 +1010,55 @@ const InvoiceCreate = () => {
                       </td>
                     </tr>
                   ) : (
-                    items.map((item, idx) => (
+                    items.map((item, idx) => {
+                      const ashBox = {
+                        border: "1px solid #cbd5e1",
+                        borderRadius: "2px",
+                        padding: "4px 8px",
+                        textAlign: "center",
+                        width: "100%",
+                        boxSizing: "border-box",
+                        background: "white",
+                        color: "#0f172a",
+                        minHeight: "30px",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        fontWeight: "500",
+                        fontSize: "12px"
+                      };
+                      const ashInput = {
+                        border: "1px solid #cbd5e1",
+                        borderRadius: "2px",
+                        padding: "4px 8px",
+                        textAlign: "center",
+                        width: "100%",
+                        boxSizing: "border-box",
+                        background: "white",
+                        color: "#0f172a",
+                        minHeight: "30px",
+                        outline: "none",
+                        fontWeight: "500",
+                        fontSize: "12px"
+                      };
+
+                      return (
                       <tr
                         key={idx}
-                        style={{ borderBottom: "1px solid #e2e8f0" }}
+                        style={{ background: "#e2e8f0", borderBottom: "1px solid #cbd5e1" }}
                       >
-                        <td style={{ padding: "8px", textAlign: "center" }}>
-                          {idx + 1}
+                        <td style={{ padding: "4px" }}>
+                          <div style={ashBox}>{idx + 1}</div>
                         </td>
-                        <td style={{ padding: "8px", fontWeight: "500" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                              <span>{item.name}</span>
-                              {item.barcode && (
-                                <>
-                                  <span style={{ color: "#94a3b8", fontWeight: "600" }}>|</span>
-                                    <span style={{ color: "#334155", fontWeight: "600" }}>
-                                      {item.barcode}
-                                    </span>
-                                </>
-                              )}
-                            </div>
+                        <td style={{ padding: "4px" }}>
+                          <div style={{...ashBox}}>
+                            {item.name} {item.barcode && `| ${item.barcode}`}
+                          </div>
                         </td>
-                        <td style={{ padding: "8px", textAlign: "center" }}>
-                          {item.stock}
+                        <td style={{ padding: "4px" }}>
+                           <div style={ashBox}>{item.stock}</div>
                         </td>
-                        <td style={{ padding: "8px", textAlign: "center" }}>
+                        <td style={{ padding: "4px" }}>
                           <input
                             tabIndex="-1"
                             type="number"
@@ -925,16 +1067,10 @@ const InvoiceCreate = () => {
                             onChange={(e) =>
                               updateItemField(idx, "price", e.target.value)
                             }
-                            style={{
-                              width: "80px",
-                              padding: "4px",
-                              textAlign: "right",
-                              border: "1px solid #cbd5e1",
-                              borderRadius: "4px",
-                            }}
+                            style={ashInput}
                           />
                         </td>
-                        <td style={{ padding: "8px", textAlign: "center" }}>
+                        <td style={{ padding: "4px" }}>
                           <input
                             data-qty-idx={idx}
                             type="number"
@@ -961,44 +1097,37 @@ const InvoiceCreate = () => {
                             onChange={(e) =>
                               updateItemField(idx, "quantity", e.target.value)
                             }
-                            style={{
-                              width: "60px",
-                              padding: "4px",
-                              textAlign: "center",
-                              border: "1px solid #cbd5e1",
-                              borderRadius: "4px",
-                            }}
+                            style={ashInput}
                           />
                         </td>
-                        <td style={{ padding: "8px", textAlign: "center" }}>
-                          {item.unit}
+                        <td style={{ padding: "4px" }}>
+                          <div style={ashBox}>{item.unit}</div>
                         </td>
-                        <td
-                          style={{
-                            padding: "8px",
-                            textAlign: "right",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          ৳ {(item.price * item.quantity).toFixed(2)}
+                        <td style={{ padding: "4px" }}>
+                          <div style={ashBox}>{(item.price * item.quantity).toFixed(2)}</div>
                         </td>
-                        <td style={{ padding: "8px", textAlign: "center" }}>
+                        <td style={{ padding: "4px", textAlign: "center" }}>
                           <button
                             type="button"
                             onClick={() => removeItem(idx)}
                             style={{
                               border: "none",
-                              background: "transparent",
-                              color: "#ef4444",
+                              background: "#ef4444",
+                              color: "white",
                               cursor: "pointer",
-                              padding: "4px",
+                              padding: "6px",
+                              borderRadius: "4px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              margin: "0 auto"
                             }}
                           >
-                            <Trash2 size={18} />
+                            <Trash2 size={16} />
                           </button>
                         </td>
                       </tr>
-                    ))
+                    )})
                   )}
                 </tbody>
               </table>
@@ -1041,6 +1170,7 @@ const InvoiceCreate = () => {
                     })),
                   ]}
                   value={formData.totalBalanceAcc}
+                  disableClear={true}
                   onChange={(val) =>
                     setFormData((prev) => ({ ...prev, totalBalanceAcc: val }))
                   }
@@ -1054,12 +1184,13 @@ const InvoiceCreate = () => {
                 <SearchableSelect
                   options={[
                     { value: "CASH SELL", label: t("CASH SELL") },
-                    ...(accounts || []).map((a) => ({
-                      value: a.id,
-                      label: a.name,
+                    ...(incomeCategories || []).map((c) => ({
+                      value: c.id,
+                      label: c.name,
                     })),
                   ]}
                   value={formData.cashSellAcc}
+                  disableClear={true}
                   onChange={(val) =>
                     setFormData((prev) => ({ ...prev, cashSellAcc: val }))
                   }
@@ -1245,15 +1376,7 @@ const InvoiceCreate = () => {
             </div>
 
             {/* Footer Action Buttons */}
-            <div
-              className="form-bottom-actions"
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: "12px",
-              }}
-            >
+            <div className="invoice-fixed-footer">
               <button
                 type="button"
                 className="btn-danger"
@@ -1345,17 +1468,149 @@ const InvoiceCreate = () => {
           setIsTotalBalanceAccModalOpen(false);
         }}
       />
-      <AddAccountModal
+      <AddIncomeCategoryModal
         isOpen={isCashSellAccModalOpen}
         onClose={() => setIsCashSellAccModalOpen(false)}
-        onSuccess={(newAcc) => {
-          if (newAcc) {
-            setAccounts((prev) => [...prev, newAcc]);
-            setFormData((prev) => ({ ...prev, cashSellAcc: newAcc.id }));
+        onSuccess={(newCat) => {
+          if (newCat) {
+            setIncomeCategories((prev) => [...prev, newCat]);
+            setFormData((prev) => ({ ...prev, cashSellAcc: newCat.id }));
           }
           setIsCashSellAccModalOpen(false);
         }}
       />
+
+      {/* INLINE PRINT MODAL */}
+      {printInvoiceData && (
+        <div className="printable-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'white', zIndex: 999999 }}>
+          <div id="pos-receipt-print-area" className="pos-receipt-wrapper" style={{ margin: '0 auto', width: '380px', background: 'white', padding: '8px', boxSizing: 'border-box' }}>
+            <div style={{ padding: '8px' }}>
+              <PrintHeader showOnScreen={true} isPos={true} />
+              {(() => {
+                const selectedInvoice = printInvoiceData;
+                const clientObj = (clients || []).find(c => String(c.id) === String(selectedInvoice.client || selectedInvoice.client_id || selectedInvoice.clientId));
+                const clientDisplay = selectedInvoice.client_name || selectedInvoice.clientName || (clientObj ? (clientObj.name || clientObj.company_name) : (
+                  (selectedInvoice.clientId && !String(selectedInvoice.clientId).includes('-')) ? selectedInvoice.clientId : 'C.CUSTOMER'
+                ));
+                
+                const invoiceBill = Number(selectedInvoice.invoice_bill || selectedInvoice.invoiceBill || (selectedInvoice.items || []).reduce((sum, item) => {
+                    const qty = Number(item.quantity || item.qty || 1);
+                    const rate = Number(item.selling_price || item.price || item.rate || 0);
+                    return sum + (Number(item.total_selling_price || item.total_amount || (qty * rate)) || 0);
+                }, 0) || selectedInvoice.grand_total || 0);
+                
+                const prevDue = Number(selectedInvoice.previous_due || selectedInvoice.previousDue || 0);
+                const discountAmt = Number(selectedInvoice.discountAmount || selectedInvoice.discount || selectedInvoice.total_discount || 0);
+                const totalBill = invoiceBill - discountAmt + prevDue;
+                const payment = Number(selectedInvoice.receiveAmount || selectedInvoice.receive_amount || selectedInvoice.paid || 0);
+                const invoiceDue = Math.max(0, invoiceBill - discountAmt - payment);
+                const totalDue = selectedInvoice.total_due !== undefined ? Number(selectedInvoice.total_due) : Math.max(0, totalBill - payment);
+
+                let totalQty = 0;
+                (selectedInvoice.items || []).forEach(item => {
+                  totalQty += Number(item.quantity || item.qty || 1);
+                });
+
+                return (
+                  <>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: 'black', marginBottom: '4px' }}>
+                      <tbody>
+                        <tr>
+                          <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>Client ID No:- {selectedInvoice.client_id || selectedInvoice.clientId || (clientObj ? clientObj.id : '')}</td>
+                          <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>Invoice ID No:- {selectedInvoice.invoice_id || selectedInvoice.invoiceNo || selectedInvoice.id}</td>
+                        </tr>
+                        <tr>
+                          <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>Client: {clientDisplay}</td>
+                        </tr>
+                        <tr>
+                          <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>Date:- {selectedInvoice.created_at ? new Date(selectedInvoice.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'medium' }) : (selectedInvoice.date || '-')}</td>
+                        </tr>
+                        <tr>
+                          <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>Served By:- {selectedInvoice.served_by || 'ADMIN'}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: 'black', marginBottom: '0' }}>
+                      <thead>
+                        <tr>
+                          <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Name</th>
+                          <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Price</th>
+                          <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Quantity</th>
+                          <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedInvoice.items && selectedInvoice.items.length > 0 ? (
+                          selectedInvoice.items.map((item, idx) => {
+                            const qty = Number(item.quantity || item.qty || 1);
+                            const rate = Number(item.selling_price || item.price || item.rate || 0);
+                            const itemTotal = Number(item.total_selling_price || item.total_amount || (qty * rate) || 0);
+                            const displayItemName = item.name || item.product_name || item.title || 'Item';
+                            return (
+                              <tr key={idx}>
+                                <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{displayItemName}</td>
+                                <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{rate}</td>
+                                <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{qty}</td>
+                                <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{itemTotal}</td>
+                              </tr>
+                            );
+                          })
+                        ) : (
+                          <tr>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>General Item</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{invoiceBill}</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>1</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{invoiceBill}</td>
+                          </tr>
+                        )}
+                        <tr>
+                          <td colSpan="3" style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right', fontWeight: 'bold' }}>Total Quantity</td>
+                          <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center', fontWeight: 'bold' }}>{totalQty || 1}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: 'black' }}>
+                      <tbody>
+                        <tr>
+                          <td style={{ border: '1px solid black', borderTop: 'none', padding: '2px 8px', textAlign: 'right', width: '70%' }}>Invoice Bill :-</td>
+                          <td style={{ border: '1px solid black', borderTop: 'none', padding: '2px 4px', textAlign: 'center' }}>{invoiceBill}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Previous Due :-</td>
+                          <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{prevDue}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Total Bill :-</td>
+                          <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{totalBill}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Payment :-</td>
+                          <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{payment}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Invoice Due :-</td>
+                          <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{invoiceDue}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Total Due :-</td>
+                          <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{totalDue}</td>
+                        </tr>
+                        <tr>
+                          <td colSpan="2" style={{ border: '1px solid black', padding: '4px', textAlign: 'center', fontSize: '10px', fontStyle: 'italic', fontWeight: '600' }}>
+                            Software Developed By www.softhostit.com
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

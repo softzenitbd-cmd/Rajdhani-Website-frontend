@@ -66,12 +66,12 @@ const PrintHeader = ({ showOnScreen = false, isPos = false }) => {
           style={{
             width: isPos ? '100%' : 'auto',
             maxWidth: '100%',
-            height: 'auto',
+            height: isPos ? '120px' : 'auto',
             maxHeight: '240px',
             display: 'block',
             margin: '0 auto',
             borderRadius: '4px',
-            objectFit: 'contain'
+            objectFit: isPos ? 'fill' : 'contain'
           }}
         />
       </div>

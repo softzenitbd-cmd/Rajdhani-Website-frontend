@@ -22,7 +22,10 @@ const SearchableSelect = ({
   searchPlaceholder = '',
   pushContentBelow = false,
   className = '',
-  style = {}
+  style = {},
+  onSearchChange,
+  disableClear = false,
+  id
 }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -101,6 +104,14 @@ const SearchableSelect = ({
       }, 30);
     } else {
       setIsOpen(false);
+      // Restore focus to the trigger so keyboard navigation (like Tab) doesn't break
+      if (id) {
+        const trigger = document.getElementById(id);
+        if (trigger) trigger.focus();
+      } else if (containerRef.current) {
+        const trigger = containerRef.current.querySelector('div[tabIndex]');
+        if (trigger) trigger.focus();
+      }
     }
   };
 
@@ -167,6 +178,7 @@ const SearchableSelect = ({
         }}
       >
         <div
+          id={id}
           onClick={toggleDropdown}
           onKeyDown={handleKeyDown}
           tabIndex={disabled ? -1 : 0}
@@ -198,7 +210,7 @@ const SearchableSelect = ({
               gap: '4px'
             }}
           >
-            {value && !clearOnSelect ? (
+            {value && !clearOnSelect && !disableClear ? (
               <button
                 type="button"
                 className="clear-btn"
@@ -282,7 +294,11 @@ const SearchableSelect = ({
               ref={searchInputRef}
               type="text"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSearchTerm(val);
+                if (onSearchChange) onSearchChange(val);
+              }}
               onKeyDown={handleKeyDown}
               placeholder={searchPlaceholder}
               style={{

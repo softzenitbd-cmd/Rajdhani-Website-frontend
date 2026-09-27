@@ -1,0 +1,135 @@
+﻿        <div className="printable-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="printable-modal-content" style={{ background: '#f8f9fa', width: '100%', maxWidth: '800px', borderRadius: '8px', padding: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', maxHeight: '90vh', overflowY: 'auto' }}>
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <button onClick={() => printElement('pos-receipt-print-area', { withHeader: false, pageSize: '80mm auto', extraCss: 'body { padding: 0 !important; } .pos-receipt-wrapper { width: 100% !important; margin: 0 !important; } .receipt-header-image img { max-width: 100% !important; } table { border-collapse: collapse !important; width: 100% !important; color: black !important; } th, td { border: 1px solid black !important; }' })} className="no-print" style={{ background: '#000', color: 'white', border: 'none', padding: '6px 16px', cursor: 'pointer', borderRadius: '4px', fontWeight: 'bold' }}>
+                ðŸ–¨ï¸ Printable
+              </button>
+              <button onClick={() => navigate('/invoice/create')} className="no-print" style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 16px', cursor: 'pointer', borderRadius: '4px', fontWeight: 'bold' }}>
+                + Add New
+              </button>
+              <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#e2e8f0', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', color: '#0f172a', fontWeight: 'bold', marginLeft: 'auto' }}>âœ• Close</button>
+            </div>
+
+            <div id="pos-receipt-print-area" className="pos-receipt-wrapper" style={{ margin: '0 auto', width: '380px', background: 'white', padding: '8px', boxSizing: 'border-box' }}>
+              <div style={{ padding: '8px' }}>
+                
+                {/* Dynamic Header */}
+                <PrintHeader showOnScreen={true} isPos={true} />
+
+                {(() => {
+                  const clientObj = (clients || []).find(c => String(c.id) === String(selectedInvoice.client || selectedInvoice.client_id));
+                  const clientDisplay = selectedInvoice.client_name || selectedInvoice.clientName || (clientObj ? (clientObj.name || clientObj.company_name) : (
+                    (selectedInvoice.client && !String(selectedInvoice.client).includes('-')) ? selectedInvoice.client : 'C.CUSTOMER'
+                  ));
+                  
+                  const invoiceBill = Number(selectedInvoice.invoice_bill || selectedInvoice.invoiceBill || (selectedInvoice.items || []).reduce((sum, item) => {
+                      const qty = Number(item.quantity || item.qty || 1);
+                      const rate = Number(item.selling_price || item.price || item.rate || 0);
+                      return sum + (Number(item.total_selling_price || item.total_amount || (qty * rate)) || 0);
+                  }, 0) || selectedInvoice.grand_total || 0);
+                  
+                  const prevDue = Number(selectedInvoice.previous_due || selectedInvoice.previousDue || 0);
+                  const discountAmt = Number(selectedInvoice.discount || selectedInvoice.total_discount || 0);
+                  const totalBill = invoiceBill - discountAmt + prevDue;
+                  const payment = Number(selectedInvoice.receive_amount || selectedInvoice.receiveAmount || selectedInvoice.paid || 0);
+                  const invoiceDue = Math.max(0, invoiceBill - discountAmt - payment);
+                  const totalDue = selectedInvoice.total_due !== undefined ? Number(selectedInvoice.total_due) : Math.max(0, totalBill - payment);
+
+                  let totalQty = 0;
+                  (selectedInvoice.items || []).forEach(item => {
+                    totalQty += Number(item.quantity || item.qty || 1);
+                  });
+
+                  return (
+                    <>
+                      {/* Info Table */}
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: 'black', marginBottom: '4px' }}>
+                        <tbody>
+                          <tr>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>Client ID No:- {selectedInvoice.client_id || (clientObj ? clientObj.id : '')}</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>Invoice ID No:- {selectedInvoice.invoice_id || selectedInvoice.invoiceNo || selectedInvoice.id}</td>
+                          </tr>
+                          <tr>
+                            <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>Client: {clientDisplay}</td>
+                          </tr>
+                          <tr>
+                            <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>Date:- {selectedInvoice.created_at ? new Date(selectedInvoice.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'medium' }) : (selectedInvoice.date || '-')}</td>
+                          </tr>
+                          <tr>
+                            <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>Served By:- {selectedInvoice.served_by || 'ADMIN'}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      {/* Items Table */}
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: 'black', marginBottom: '0' }}>
+                        <thead>
+                          <tr>
+                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Name</th>
+                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Price</th>
+                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Quantity</th>
+                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedInvoice.items && selectedInvoice.items.length > 0 ? (
+                            selectedInvoice.items.map((item, idx) => {
+                              const qty = Number(item.quantity || item.qty || 1);
+                              const rate = Number(item.selling_price || item.price || item.rate || 0);
+                              const itemTotal = Number(item.total_selling_price || item.total_amount || (qty * rate) || 0);
+                              const displayItemName = item.name || item.product_name || item.title || 'Item';
+                              return (
+                                <tr key={idx}>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{displayItemName}</td>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{rate}</td>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{qty}</td>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{itemTotal}</td>
+                                </tr>
+                              );
+                            })
+                          ) : (
+                            <tr>
+                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>General Item</td>
+                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{invoiceBill}</td>
+                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>1</td>
+                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{invoiceBill}</td>
+                            </tr>
+                          )}
+                          <tr>
+                            <td colSpan="3" style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right', fontWeight: 'bold' }}>Total Quantity</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center', fontWeight: 'bold' }}>{totalQty || 1}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      {/* Summary Table */}
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: 'black' }}>
+                        <tbody>
+                          <tr>
+                            <td style={{ border: '1px solid black', borderTop: 'none', padding: '2px 8px', textAlign: 'right', width: '70%' }}>Invoice Bill :-</td>
+                            <td style={{ border: '1px solid black', borderTop: 'none', padding: '2px 4px', textAlign: 'center' }}>{invoiceBill}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Previous Due :-</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{prevDue}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Total Bill :-</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{totalBill}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Payment :-</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{payment}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Invoice Due :-</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{invoiceDue}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Total Due :-</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{totalDue}</td>
+                          </tr>
+                          <tr>
+                            <td colSpan="2" style={{ border: '1px solid black', padding: '4px', textAlign: 'center', fontSize: '10px', fontStyle: 'italic', fontWeight: '600' }}>
+                              Software Developed By www.softhostit.com

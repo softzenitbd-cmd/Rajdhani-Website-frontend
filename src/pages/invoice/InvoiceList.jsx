@@ -25,13 +25,28 @@ const InvoiceList = () => {
 
   useEffect(() => {
     const inv = location.state?.printInvoice;
+    const returnTo = location.state?.returnTo;
+    
     if (inv && typeof inv === 'object') {
       setSelectedInvoice(inv);
       setShowViewModal(true);
       window.history.replaceState({}, '');
-      setTimeout(() => window.print(), 600);
+      
+      const handleAfterPrint = () => {
+        if (returnTo) {
+          navigate(returnTo, { replace: true });
+        }
+      };
+
+      window.addEventListener('afterprint', handleAfterPrint);
+      
+      setTimeout(() => {
+        window.print();
+      }, 600);
+
+      return () => window.removeEventListener('afterprint', handleAfterPrint);
     }
-  }, []);
+  }, [location, navigate]);
 
   const [invoices, setInvoices] = useState([]);
   const [clients, setClients] = useState([]);

@@ -7,6 +7,7 @@ import { useToast } from '../../context/ToastContext';
 import CustomDatePicker from '../../components/CustomDatePicker';
 import { exportVisibleTable } from '../../utils/tableExport';
 import { fmtDate } from '../../utils/apiHelpers';
+import Pagination from '../../components/Pagination';
 
 const normalizeDate = (d) => {
   if (!d) return '';
@@ -56,6 +57,7 @@ const ProductStockList = () => {
   const [loading, setLoading] = useState(false);
   const [entries, setEntries] = useState(50);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   const [filters, setFilters] = useState({
     searchAll: '',
@@ -70,12 +72,21 @@ const ProductStockList = () => {
     try {
       setLoading(true);
       const [stockRes, groupsRes, prodsRes] = await Promise.all([
-        productService.getStockReport({ group_id: filters.group, barcode: filters.barcode }),
+        productService.getStockReport({ 
+          group_id: filters.group, 
+          barcode: filters.barcode,
+          search: filters.searchAll,
+          from_date: filters.fromDate,
+          to_date: filters.toDate,
+          page: currentPage,
+          page_size: entries
+        }),
         productService.groups.getAll().catch(() => null),
         productService.getProducts().catch(() => null)
       ]);
 
       const list = Array.isArray(stockRes) ? stockRes : (stockRes?.results || stockRes?.data || []);
+      setTotalCount(stockRes?.count || list.length);
       const gList = Array.isArray(groupsRes) ? groupsRes : (groupsRes?.results || groupsRes?.data || []);
       const pList = Array.isArray(prodsRes) ? prodsRes : (prodsRes?.results || prodsRes?.data || []);
 
@@ -138,7 +149,18 @@ const ProductStockList = () => {
 
   useEffect(() => {
     fetchStockData();
-  }, []);
+  }, [currentPage, entries]);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (currentPage === 1) {
+        fetchStockData();
+      } else {
+        setCurrentPage(1); // This will trigger the other useEffect
+      }
+    }, 500);
+    return () => clearTimeout(delayDebounceFn);
+  }, [filters]);
 
   const handleFilterChange = (field, val) => {
     setFilters(prev => ({ ...prev, [field]: val }));
@@ -155,40 +177,14 @@ const ProductStockList = () => {
     });
   };
 
-  const filteredStocks = useMemo(() => {
-    const normFrom = normalizeDate(filters.fromDate);
-    const normTo = normalizeDate(filters.toDate);
-
-    return stocks.filter(item => {
-      if (filters.searchAll) {
-        const q = filters.searchAll.toLowerCase();
-        if (!item.product.toLowerCase().includes(q) && !item.group.toLowerCase().includes(q) && !item.barcode.toLowerCase().includes(q)) return false;
-      }
-      if (filters.group && !item.group.toLowerCase().includes(filters.group.toLowerCase())) return false;
-      if (filters.productId && String(item.productId) !== String(filters.productId)) return false;
-      if (filters.barcode && !item.product.toLowerCase().includes(filters.barcode.toLowerCase()) && !item.barcode.toLowerCase().includes(filters.barcode.toLowerCase())) return false;
-
-      if (normFrom || normTo) {
-        const itemDateStr = normalizeDate(item.rawDate || item.date);
-        if (normFrom && itemDateStr && itemDateStr < normFrom) return false;
-        if (normTo && itemDateStr && itemDateStr > normTo) return false;
-      }
-
-      return true;
-    });
-  }, [stocks, filters]);
-
-  const displayedStocks = useMemo(() => {
-    const startIndex = (currentPage - 1) * entries;
-    return filteredStocks.slice(startIndex, startIndex + entries);
-  }, [filteredStocks, entries, currentPage]);
+  const displayedStocks = stocks;
 
   useEffect(() => {
     setCurrentPage(1);
   }, [filters, entries]);
 
   const { totalBuySum, totalSellSum, totalStockSum, totalOpeningSum, totalBuyQtySum, totalSaleQtySum } = useMemo(() => {
-    return filteredStocks.reduce(
+    return displayedStocks.reduce(
       (acc, curr) => ({
         totalBuySum: acc.totalBuySum + parseFloat(curr.totalBuy || 0),
         totalSellSum: acc.totalSellSum + parseFloat(curr.totalSell || 0),
@@ -199,7 +195,7 @@ const ProductStockList = () => {
       }),
       { totalBuySum: 0, totalSellSum: 0, totalStockSum: 0, totalOpeningSum: 0, totalBuyQtySum: 0, totalSaleQtySum: 0 }
     );
-  }, [filteredStocks]);
+  }, [displayedStocks]);
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px', background: 'white' }}>
@@ -386,34 +382,12 @@ const ProductStockList = () => {
         </div>
 
         {/* Pagination Controls */}
-        {filteredStocks.length > entries && (
-          <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
-            <div style={{ fontSize: 'var(--fs-13, 13px)', color: '#475569' }}>
-              {t("Showing")} {(currentPage - 1) * entries + (filteredStocks.length > 0 ? 1 : 0)} {t("to")} {Math.min(currentPage * entries, filteredStocks.length)} {t("of")} {filteredStocks.length} {t("entries")}
-            </div>
-            <div style={{ display: 'flex', gap: '4px' }}>
-              <button 
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                style={{ padding: '6px 12px', background: currentPage === 1 ? '#e2e8f0' : '#f1f5f9', border: '1px solid #cbd5e1', color: currentPage === 1 ? '#94a3b8' : 'black', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: 'var(--fs-13, 13px)' }}
-              >
-                {t("Previous")}
-              </button>
-              <button 
-                style={{ padding: '6px 12px', background: '#3b82f6', border: '1px solid #3b82f6', color: 'white', fontSize: 'var(--fs-13, 13px)' }}
-              >
-                {currentPage}
-              </button>
-              <button 
-                onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredStocks.length / entries), p + 1))}
-                disabled={currentPage >= Math.ceil(filteredStocks.length / entries)}
-                style={{ padding: '6px 12px', background: currentPage >= Math.ceil(filteredStocks.length / entries) ? '#e2e8f0' : '#f1f5f9', border: '1px solid #cbd5e1', color: currentPage >= Math.ceil(filteredStocks.length / entries) ? '#94a3b8' : 'black', cursor: currentPage >= Math.ceil(filteredStocks.length / entries) ? 'not-allowed' : 'pointer', fontSize: 'var(--fs-13, 13px)' }}
-              >
-                {t("Next")}
-              </button>
-            </div>
-          </div>
-        )}
+        <Pagination 
+          currentPage={currentPage}
+          totalItems={totalCount}
+          pageSize={entries}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );

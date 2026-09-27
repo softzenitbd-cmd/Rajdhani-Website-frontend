@@ -47,7 +47,7 @@ const PurchaseCreate = () => {
     try {
       const [supRes, prodRes] = await Promise.all([
         crmService.getSuppliers().catch(() => null),
-        productService.getProducts().catch(() => null)
+        productService.getProducts({ page_size: 500 }).catch(() => null)
       ]);
 
       const supData = Array.isArray(supRes) ? supRes : (supRes?.results || []);
@@ -112,9 +112,11 @@ const PurchaseCreate = () => {
     }
   };
 
-  const handleSelectProduct = (selectedId) => {
+  const handleSelectProduct = (selectedId, fallbackProd = null) => {
     if (!selectedId) return;
-    const prod = products.find(p => String(p.id) === String(selectedId));
+    // fallbackProd covers a product fetched by barcode that is not in the
+    // locally loaded page of products yet.
+    const prod = products.find(p => String(p.id) === String(selectedId)) || fallbackProd;
     if (!prod) return;
 
     setItems(prevItems => {
@@ -138,19 +140,29 @@ const PurchaseCreate = () => {
     setFormData(prev => ({ ...prev, product: '' }));
   };
 
-  const handleBarcodeKeyDown = (e) => {
+  const handleBarcodeKeyDown = async (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       const code = e.target.value.trim();
       if (!code) return;
-      const prod = products.find(p => 
-        String(p.code) === code || 
-        String(p.barcode) === code || 
+      let prod = products.find(p =>
+        String(p.code) === code ||
+        String(p.barcode) === code ||
+        String(p.custom_barcode_no) === code ||
         String(p.id) === code ||
         String(p.product_code) === code
       );
+      if (!prod) {
+        // Ask the server — older products are only resolvable there.
+        prod = await productService.findByBarcode(code);
+        if (prod) {
+          setProducts(prev =>
+            prev.find(p => String(p.id) === String(prod.id)) ? prev : [...prev, prod]
+          );
+        }
+      }
       if (prod) {
-        handleSelectProduct(prod.id);
+        handleSelectProduct(prod.id, prod);
       } else {
         toast.error(t("Product with barcode \"{{v0}}\" not found.", { v0: code }));
       }

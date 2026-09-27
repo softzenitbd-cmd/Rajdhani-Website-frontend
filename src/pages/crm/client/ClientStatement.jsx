@@ -57,7 +57,7 @@ const ClientStatement = () => {
         f.client
           ? saleService.getSalesReturns({ client: f.client, from_date: f.from_date, to_date: f.to_date }).catch(() => [])
           : Promise.resolve([]),
-        productService.getProducts().catch(() => []),
+        productService.getProducts({ page_size: 500 }).catch(() => []),
         f.client
           ? saleService.getSaleItems().catch(() => [])
           : Promise.resolve([]),

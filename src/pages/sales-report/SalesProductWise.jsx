@@ -29,7 +29,7 @@ const SalesProductWise = () => {
   const fetchPrerequisites = async () => {
     try {
       const [prodRes, groupRes] = await Promise.all([
-        productService.getProducts().catch(() => []),
+        productService.getProducts({ page_size: 500 }).catch(() => []),
         productService.groups.getAll().catch(() => [])
       ]);
       setProducts(Array.isArray(prodRes) ? prodRes : (prodRes?.results || []));
