@@ -359,7 +359,7 @@ const GeneralSettings = () => {
                 
                 {/* Helpers */}
                 {(() => {
-                  const TypographySelect = ({ label, value, onChange, options }) => (
+                  const renderTypographySelect = (label, value, onChange, options) => (
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <div style={{ minHeight: '34px', display: 'flex', alignItems: 'flex-end', marginBottom: '6px' }}>
                         <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--label-color)', textTransform: 'uppercase', lineHeight: '1.25', letterSpacing: '0.02em' }}>
@@ -395,7 +395,7 @@ const GeneralSettings = () => {
                     </div>
                   );
 
-                  const ColorInput = ({ label, themeKey }) => (
+                  const renderColorInput = (label, themeKey) => (
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <div style={{ minHeight: '34px', display: 'flex', alignItems: 'flex-end', marginBottom: '6px' }}>
                         <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--label-color)', textTransform: 'uppercase', lineHeight: '1.25', letterSpacing: '0.02em' }}>
@@ -490,59 +490,59 @@ const GeneralSettings = () => {
                       <div>
                         <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t("LAYOUT COLOR")}</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px' }}>
-                          <ColorInput label={t("Layout Color")} themeKey="--bg-app" />
-                          <ColorInput label={t("Header Color")} themeKey="--header-bg" />
+                          {renderColorInput(t("Layout Color"), "--bg-app")}
+                          {renderColorInput(t("Header Color"), "--header-bg")}
                         </div>
                       </div>
 
                       <div>
                         <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t("SIDEBAR COLOR")}</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px' }}>
-                          <ColorInput label={t("Sidebar Color")} themeKey="--bg-sidebar" />
-                          <ColorInput label={t("Sidebar Menu Hover Color")} themeKey="--sidebar-hover" />
-                          <ColorInput label={t("Sidebar Text Color")} themeKey="--text-sidebar" />
+                          {renderColorInput(t("Sidebar Color"), "--bg-sidebar")}
+                          {renderColorInput(t("Sidebar Menu Hover Color"), "--sidebar-hover")}
+                          {renderColorInput(t("Sidebar Text Color"), "--text-sidebar")}
                         </div>
                       </div>
 
                       <div>
                         <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t("CARD COLOR")}</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px' }}>
-                          <ColorInput label={t("Card Border Color")} themeKey="--card-border" />
-                          <ColorInput label={t("Card Header Color")} themeKey="--card-header-bg" />
-                          <ColorInput label={t("Card Body Color")} themeKey="--bg-surface" />
-                          <ColorInput label={t("Card Text Color")} themeKey="--text-main" />
+                          {renderColorInput(t("Card Border Color"), "--card-border")}
+                          {renderColorInput(t("Card Header Color"), "--card-header-bg")}
+                          {renderColorInput(t("Card Body Color"), "--bg-surface")}
+                          {renderColorInput(t("Card Text Color"), "--text-main")}
                         </div>
                       </div>
 
                       <div>
                         <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t("INPUT COLOR")}</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px' }}>
-                          <ColorInput label={t("Input Background Color")} themeKey="--input-bg" />
-                          <ColorInput label={t("Label Color")} themeKey="--label-color" />
-                          <ColorInput label={t("Input Color")} themeKey="--input-text" />
+                          {renderColorInput(t("Input Background Color"), "--input-bg")}
+                          {renderColorInput(t("Label Color"), "--label-color")}
+                          {renderColorInput(t("Input Color"), "--input-text")}
                         </div>
                       </div>
 
                       <div>
                         <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t("TABLE COLOR")}</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px' }}>
-                          <ColorInput label={t("Table Header BG Color")} themeKey="--table-header-bg" />
-                          <ColorInput label={t("Table Header Text Color")} themeKey="--table-header-text" />
-                          <ColorInput label={t("Table Text Color")} themeKey="--table-text" />
-                          <ColorInput label={t("Table Header Border Color")} themeKey="--table-border" />
+                          {renderColorInput(t("Table Header BG Color"), "--table-header-bg")}
+                          {renderColorInput(t("Table Header Text Color"), "--table-header-text")}
+                          {renderColorInput(t("Table Text Color"), "--table-text")}
+                          {renderColorInput(t("Table Header Border Color"), "--table-border")}
                         </div>
                       </div>
 
                       <div>
                         <h4 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t("BUTTON COLOR")}</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px' }}>
-                          <ColorInput label={t("Success Button Color")} themeKey="--success" />
-                          <ColorInput label={t("Danger Button Color")} themeKey="--danger" />
-                          <ColorInput label={t("Info Button Color")} themeKey="--info" />
-                          <ColorInput label={t("Warning Button Color")} themeKey="--warning" />
-                          <ColorInput label={t("Primary Button Color")} themeKey="--primary" />
-                          <ColorInput label={t("Secondary Button Color")} themeKey="--secondary" />
-                          <ColorInput label={t("Dark Button Color")} themeKey="--dark" />
+                          {renderColorInput(t("Success Button Color"), "--success")}
+                          {renderColorInput(t("Danger Button Color"), "--danger")}
+                          {renderColorInput(t("Info Button Color"), "--info")}
+                          {renderColorInput(t("Warning Button Color"), "--warning")}
+                          {renderColorInput(t("Primary Button Color"), "--primary")}
+                          {renderColorInput(t("Secondary Button Color"), "--secondary")}
+                          {renderColorInput(t("Dark Button Color"), "--dark")}
                         </div>
                       </div>
 
