@@ -420,7 +420,7 @@ const InvoiceList = () => {
               <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#e2e8f0', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', color: '#0f172a', fontWeight: 'bold', marginLeft: 'auto' }}>✕ Close</button>
             </div>
 
-            <div id="pos-receipt-print-area" className="pos-receipt-wrapper" style={{ margin: '0 auto', width: '380px', background: 'white', padding: '8px', boxSizing: 'border-box' }}>
+            <div id="pos-receipt-print-area" className="pos-receipt-wrapper" style={{ margin: '0 auto', width: '100%', maxWidth: '300px', background: 'white', padding: '8px', boxSizing: 'border-box' }}>
               <div style={{ padding: '8px' }}>
                 
                 {/* Dynamic Header */}
@@ -517,38 +517,32 @@ const InvoiceList = () => {
                             <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left', fontWeight: 'bold' }}>{totalQty || 1}</td>
                             <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}></td>
                           </tr>
-                        </tbody>
-                      </table>
-
-                      {/* Summary Table */}
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: 'black' }}>
-                        <tbody>
                           <tr>
-                            <td style={{ border: '1px solid black', borderTop: 'none', padding: '2px 8px', textAlign: 'right', width: '70%' }}>ইনভয়েস বিল =</td>
-                            <td style={{ border: '1px solid black', borderTop: 'none', padding: '2px 4px', textAlign: 'right' }}>{invoiceBill}</td>
+                            <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>ইনভয়েস বিল =</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{invoiceBill}</td>
                           </tr>
                           <tr>
-                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>পূর্বের বাকী =</td>
+                            <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>পূর্বের বাকী =</td>
                             <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{prevDue}</td>
                           </tr>
                           <tr>
-                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>মোট বিল =</td>
+                            <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>মোট বিল =</td>
                             <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{totalBill}</td>
                           </tr>
                           <tr>
-                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>পেমেন্ট =</td>
+                            <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>পেমেন্ট =</td>
                             <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{payment}</td>
                           </tr>
                           <tr>
-                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>ইনভয়েস বাকি =</td>
+                            <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>ইনভয়েস বাকি =</td>
                             <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{invoiceDue}</td>
                           </tr>
                           <tr>
-                            <td style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>মোট বাকি =</td>
+                            <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>মোট বাকি =</td>
                             <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{totalDue}</td>
                           </tr>
                           <tr>
-                            <td colSpan="2" style={{ border: '1px solid black', padding: '4px', textAlign: 'center', fontSize: '10px', fontStyle: 'italic', fontWeight: '600' }}>
+                            <td colSpan="4" style={{ border: '1px solid black', padding: '4px', textAlign: 'center', fontSize: '10px', fontStyle: 'italic', fontWeight: '600' }}>
                             SOFTWARE DEVELOPED BY WWW.SOFTZENIT.COM
                             </td>
                           </tr>

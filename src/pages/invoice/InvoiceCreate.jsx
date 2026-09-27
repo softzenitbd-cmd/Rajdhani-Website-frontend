@@ -1566,7 +1566,8 @@ const InvoiceCreate = () => {
             className="pos-receipt-wrapper"
             style={{
               margin: "0 auto",
-              width: "380px",
+              width: "100%",
+              maxWidth: "300px",
               background: "white",
               padding: "8px",
               boxSizing: "border-box",
@@ -1923,26 +1924,13 @@ const InvoiceCreate = () => {
                             }}
                           ></td>
                         </tr>
-                      </tbody>
-                    </table>
-
-                    <table
-                      style={{
-                        width: "100%",
-                        borderCollapse: "collapse",
-                        fontSize: "12px",
-                        color: "black",
-                      }}
-                    >
-                      <tbody>
                         <tr>
                           <td
+                            colSpan="3"
                             style={{
                               border: "1px solid black",
-                              borderTop: "none",
                               padding: "2px 8px",
                               textAlign: "right",
-                              width: "70%",
                             }}
                           >
                             ইনভয়েস বিল =
@@ -1950,7 +1938,6 @@ const InvoiceCreate = () => {
                           <td
                             style={{
                               border: "1px solid black",
-                              borderTop: "none",
                               padding: "2px 4px",
                               textAlign: "right",
                             }}
@@ -1960,6 +1947,7 @@ const InvoiceCreate = () => {
                         </tr>
                         <tr>
                           <td
+                            colSpan="3"
                             style={{
                               border: "1px solid black",
                               padding: "2px 8px",
@@ -1980,6 +1968,7 @@ const InvoiceCreate = () => {
                         </tr>
                         <tr>
                           <td
+                            colSpan="3"
                             style={{
                               border: "1px solid black",
                               padding: "2px 8px",
@@ -2000,6 +1989,7 @@ const InvoiceCreate = () => {
                         </tr>
                         <tr>
                           <td
+                            colSpan="3"
                             style={{
                               border: "1px solid black",
                               padding: "2px 8px",
@@ -2020,6 +2010,7 @@ const InvoiceCreate = () => {
                         </tr>
                         <tr>
                           <td
+                            colSpan="3"
                             style={{
                               border: "1px solid black",
                               padding: "2px 8px",
@@ -2040,6 +2031,7 @@ const InvoiceCreate = () => {
                         </tr>
                         <tr>
                           <td
+                            colSpan="3"
                             style={{
                               border: "1px solid black",
                               padding: "2px 8px",
@@ -2060,7 +2052,7 @@ const InvoiceCreate = () => {
                         </tr>
                         <tr>
                           <td
-                            colSpan="2"
+                            colSpan="4"
                             style={{
                               border: "1px solid black",
                               padding: "4px",
