@@ -124,13 +124,7 @@ const PurchaseCreate = () => {
     if (!prod) return;
 
     setItems(prevItems => {
-      const existingIndex = prevItems.findIndex(i => String(i.id) === String(prod.id));
-      if (existingIndex > -1) {
-        const updated = [...prevItems];
-        updated[existingIndex].quantity += 1;
-        return updated;
-      } else {
-        return [...prevItems, {
+      return [...prevItems, {
           id: prod.id,
           name: prod.name || prod.title || 'Product',
           quantity: Number(prod.stock || prod.opening_stock || 1),
@@ -138,7 +132,6 @@ const PurchaseCreate = () => {
           salePrice: Number(prod.sales_price || prod.selling_price || 0),
           barcode: prod.code || prod.barcode || "-"
         }];
-      }
     });
 
     setFormData(prev => ({ ...prev, product: '' }));
