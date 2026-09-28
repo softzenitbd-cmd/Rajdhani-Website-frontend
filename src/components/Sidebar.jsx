@@ -813,9 +813,6 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
                     <RefreshNavLink to="/product/purchase/list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.purchase_list')}
                     </RefreshNavLink>
-                    <RefreshNavLink to="/product/purchase/invoice-list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
-                      <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.purchase_invoice_list')}
-                    </RefreshNavLink>
                     <RefreshNavLink to="/product/purchase/report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
                       <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.purchase_report')}
                     </RefreshNavLink>
