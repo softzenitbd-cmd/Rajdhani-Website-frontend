@@ -592,19 +592,23 @@ const PurchaseCreate = () => {
                         <td style={{ textAlign: 'right', padding: '10px', fontWeight: 'bold' }}>
                           ৳ {(item.quantity * item.salePrice).toFixed(2)}
                         </td>
-                        <td style={{ textAlign: 'center', padding: '10px', fontSize: 'var(--fs-11, 11px)', color: '#64748b', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.barcode}>
-                          {item.barcode}
-                        </td>
                         <td style={{ textAlign: 'center', padding: '10px' }}>
-                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                            <div style={{ fontSize: 'var(--fs-11, 11px)', color: '#64748b', maxWidth: '80px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.barcode}>
+                              {item.barcode}
+                            </div>
                             <button
                               type="button"
-                              onClick={() => navigate('/product/barcode', { state: { product: item } })}
+                              onClick={() => setBarcodeProductToPrint(item)}
                               style={{ border: 'none', background: '#1e293b', color: 'white', cursor: 'pointer', padding: '4px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                              title={t("Generate Barcode")}
+                              title={t("Print Barcode")}
                             >
                               <Barcode size={16} />
                             </button>
+                          </div>
+                        </td>
+                        <td style={{ textAlign: 'center', padding: '10px' }}>
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
                             <button
                               type="button"
                               onClick={() => removeItem(idx)}
