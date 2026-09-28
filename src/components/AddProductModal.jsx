@@ -116,7 +116,7 @@ const CenteredNestedPopup = ({ isOpen, onClose, onSave, title, label }) => {
           {/* Footer Buttons */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
             <button
-              type="submit"
+              tabIndex="7" type="submit"
               disabled={saving}
               style={{
                 background: '#10b981',
@@ -203,8 +203,8 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
         buying_price: '',
         selling_price: '',
         opening_stock: '',
-        unit: '',
-        group: ''
+        unit: localStorage.getItem('last_unit') || '',
+        group: localStorage.getItem('last_group') || ''
       });
     }
   }, [isOpen]);
@@ -214,6 +214,9 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === 'unit' || name === 'group') {
+      localStorage.setItem('last_' + name, value);
+    }
   };
 
   const handleAddUnit = async (name) => {
@@ -223,6 +226,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
       const newUnit = { ...(res && typeof res === 'object' ? res : {}), id: res?.id || res?.uuid, name: res?.name || name.trim() };
       setUnits((prev) => [...prev, newUnit]);
       setFormData((prev) => ({ ...prev, unit: newUnit.id }));
+      localStorage.setItem('last_unit', newUnit.id);
       toast.success(t("Unit created successfully!"));
     } catch (err) {
       toast.error(err?.message || t("Failed to create unit"));
@@ -238,6 +242,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
       const newGroup = { ...(res && typeof res === 'object' ? res : {}), id: res?.id || res?.uuid, name: res?.name || name.trim() };
       setGroups((prev) => [...prev, newGroup]);
       setFormData((prev) => ({ ...prev, group: newGroup.id }));
+      localStorage.setItem('last_group', newGroup.id);
       toast.success(t("Product Group created successfully!"));
     } catch (err) {
       toast.error(err?.message || t("Failed to create product group"));
@@ -361,7 +366,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                   </label>
                   <input
                     type="text"
-                    name="name"
+                    tabIndex="1" name="name" autoFocus
                     value={formData.name}
                     onChange={handleChange}
                     placeholder={t('product_modal.product_name_placeholder', 'পণ্য নাম')}
@@ -400,7 +405,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                   <input
                     type="number"
                     step="0.01"
-                    name="selling_price"
+                    tabIndex="3" name="selling_price"
                     value={formData.selling_price}
                     onChange={handleChange}
                     placeholder={t('product_modal.selling_price_placeholder', 'বিক্রয় মূল্য')}
@@ -438,7 +443,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                   <input
                     type="number"
                     step="0.01"
-                    name="opening_stock"
+                    tabIndex="4" name="opening_stock"
                     value={formData.opening_stock}
                     onChange={handleChange}
                     placeholder={t('product_modal.opening_stock_placeholder', 'শুরুর স্টক')}
@@ -479,7 +484,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                   <input
                     type="number"
                     step="0.01"
-                    name="buying_price"
+                    tabIndex="2" name="buying_price"
                     value={formData.buying_price}
                     onChange={handleChange}
                     placeholder={t('product_modal.buying_price_placeholder', 'ক্রয় মূল্য')}
@@ -498,7 +503,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                 {/* Select a Unit */}
                 <div style={{ display: 'flex', border: '1px solid #cbd5e1', borderRadius: '6px', overflow: 'hidden' }}>
                   <select
-                    name="unit"
+                    tabIndex="5" name="unit"
                     value={formData.unit}
                     onChange={handleChange}
                     style={{
@@ -538,7 +543,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                 {/* Select Product Group */}
                 <div style={{ display: 'flex', border: '1px solid #cbd5e1', borderRadius: '6px', overflow: 'hidden' }}>
                   <select
-                    name="group"
+                    tabIndex="6" name="group"
                     value={formData.group}
                     onChange={handleChange}
                     style={{

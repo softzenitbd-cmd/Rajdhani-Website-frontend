@@ -125,6 +125,9 @@ const BarcodePrintModal = ({ isOpen, onClose, product }) => {
             align-items: center;
             padding: 2px !important;
           }
+          body.barcode-print-mode .barcode-sticker-wrapper {
+            border: none !important;
+          }
           body.barcode-print-mode svg {
             width: 100% !important;
             height: auto !important;

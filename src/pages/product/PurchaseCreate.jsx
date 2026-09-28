@@ -133,7 +133,7 @@ const PurchaseCreate = () => {
         return [...prevItems, {
           id: prod.id,
           name: prod.name || prod.title || 'Product',
-          quantity: 1,
+          quantity: Number(prod.stock || prod.opening_stock || 1),
           buyingPrice: Number(prod.purchase_price || prod.buying_price || prod.price || 0),
           salePrice: Number(prod.sales_price || prod.selling_price || 0),
           barcode: prod.code || prod.barcode || "-"
@@ -702,37 +702,12 @@ const PurchaseCreate = () => {
                         <div className="invoice-fixed-footer">
               <button
                 type="button"
-                onClick={() => window.history.back()}
-                style={{ background: "var(--danger)", color: "white", padding: "10px 24px", fontSize: "var(--fs-14, 14px)", border: "none", cursor: "pointer", borderRadius: "4px" }}
-              >
-                {t("Cancel")}
-              </button>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={() => handleSubmitPurchase(0)}
-                disabled={submitting}
-                style={{ background: "#64748b", padding: "10px 24px", fontSize: "var(--fs-14, 14px)", borderRadius: "4px", border: 'none', cursor: 'pointer', color: 'white' }}
-              >
-                {t("Save As Draft")}
-              </button>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={() => handleSubmitPurchase(1, true)}
-                disabled={submitting}
-                style={{ background: "#3b82f6", padding: "10px 24px", fontSize: "var(--fs-14, 14px)", borderRadius: "4px", border: 'none', cursor: 'pointer', color: 'white' }}
-              >
-                {t("Save & Print")}
-              </button>
-              <button
-                type="button"
                 className="btn-primary"
                 onClick={() => handleSubmitPurchase(1)}
                 disabled={submitting}
                 style={{ background: "var(--success)", padding: "10px 24px", fontSize: "var(--fs-14, 14px)", borderRadius: "4px", fontWeight: "bold", border: 'none', cursor: 'pointer', color: 'white' }}
               >
-                {t("Submit Purchase")}
+                {t("Buy")}
               </button>
             </div>
           </form>
@@ -758,7 +733,7 @@ const PurchaseCreate = () => {
         onSuccess={(newProd) => { 
           if (newProd) {
             setProducts(prev => [...prev, newProd]);
-            handleSelectProduct(newProd.id);
+            if (!newProd.id) newProd.id = Date.now().toString(); handleSelectProduct(newProd.id, newProd);
             setBarcodeProductToPrint(newProd);
           }
           setIsProductModalOpen(false); 
