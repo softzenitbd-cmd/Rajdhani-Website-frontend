@@ -24,8 +24,8 @@ const ProductCreate = () => {
     wholesale_price: '',
     opening_stock: '',
     stock_warning: '',
-    unit: '',
-    group: '',
+    unit: localStorage.getItem('lastSelectedUnit') || '',
+    group: localStorage.getItem('lastSelectedGroup') || '',
     brand: '',
     color: '',
     size: '',
@@ -96,7 +96,14 @@ const ProductCreate = () => {
   }, []);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (name === 'unit') {
+      localStorage.setItem('lastSelectedUnit', value);
+    }
+    if (name === 'group') {
+      localStorage.setItem('lastSelectedGroup', value);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -158,8 +165,8 @@ const ProductCreate = () => {
           wholesale_price: '',
           stock_warning: '',
           opening_stock: '',
-          unit: '',
-          group: '',
+          unit: formData.unit,
+          group: formData.group,
           brand: '',
           color: '',
           size: '',
@@ -184,6 +191,7 @@ const ProductCreate = () => {
     const newUnit = { ...(res && typeof res === 'object' ? res : {}), id: res?.id || res?.uuid, name: res?.name || unitName };
       setUnits(prev => [...prev, newUnit]);
       setFormData(prev => ({ ...prev, unit: newUnit.id }));
+      localStorage.setItem('lastSelectedUnit', newUnit.id);
       setIsUnitModalOpen(false);
   };
 
@@ -194,6 +202,7 @@ const ProductCreate = () => {
     const newGroup = { ...(res && typeof res === 'object' ? res : {}), id: res?.id || res?.uuid, name: res?.name || groupName };
       setGroups(prev => [...prev, newGroup]);
       setFormData(prev => ({ ...prev, group: newGroup.id }));
+      localStorage.setItem('lastSelectedGroup', newGroup.id);
       setIsGroupModalOpen(false);
   };
 

@@ -8,7 +8,7 @@ import JsBarcode from 'jsbarcode';
 import { useLocation } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 
-const BarcodeSticker = ({ barcodeValue, name, price }) => {
+export const BarcodeSticker = ({ barcodeValue, name, price }) => {
   const { t } = useTranslation();
   const svgRef = useRef(null);
 
@@ -17,10 +17,10 @@ const BarcodeSticker = ({ barcodeValue, name, price }) => {
       try {
         JsBarcode(svgRef.current, String(barcodeValue), {
           format: "CODE128",
-          width: 1.2,
-          height: 30,
+          width: 1.5,
+          height: 45,
           displayValue: true,
-          fontSize: 11,
+          fontSize: 14,
           font: "monospace",
           margin: 4
         });
@@ -31,21 +31,21 @@ const BarcodeSticker = ({ barcodeValue, name, price }) => {
   }, [barcodeValue]);
 
   return (
-    <div style={{ border: '1px dashed #94a3b8', padding: '6px', borderRadius: '4px', textAlign: 'center', background: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+    <div className="barcode-sticker-wrapper" style={{ padding: '6px', textAlign: 'center', background: '#ffffff' }}>
       <div style={{ fontSize: 'var(--fs-9, 9px)', fontWeight: 'bold', textTransform: 'uppercase', color: '#334155', marginBottom: '2px' }}>
         {t("RAJDHANI GARMENTS")}
       </div>
       <div style={{ fontSize: 'var(--fs-10, 10px)', fontWeight: '600', color: '#1e293b', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {name}
       </div>
+
+      <div style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', color: '#000000', marginBottom: '2px' }}>
+        {t("Price: ")}{Math.round(Number(price))}
+      </div>
       
       {/* Real Scannable SVG Barcode */}
       <div style={{ display: 'flex', justifyContent: 'center', margin: '2px 0' }}>
         <svg ref={svgRef} style={{ maxWidth: '100%', height: 'auto' }}></svg>
-      </div>
-
-      <div style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', color: '#2563eb' }}>
-        {t("Price: ৳")}{price}
       </div>
     </div>
   );
@@ -58,7 +58,7 @@ const ProductBarcode = () => {
 
   const [products, setProducts] = useState([]);
   const [selectedProductId, setSelectedProductId] = useState(location.state?.product?.id || '');
-  const [quantity, setQuantity] = useState(10);
+  const [quantity, setQuantity] = useState(1);
   const [generatedStickers, setGeneratedStickers] = useState([]);
 
   useEffect(() => {
@@ -104,19 +104,23 @@ const ProductBarcode = () => {
     fetchProducts();
   }, []);
 
-  const handleCreate = () => {
-    const p = products.find(prod => String(prod.id) === String(selectedProductId));
-    if (!p) {
-      toast.error(t("Please select a product first."));
-      return;
+  useEffect(() => {
+    if (selectedProductId) {
+      const p = products.find(prod => String(prod.id) === String(selectedProductId));
+      if (p) {
+        const count = parseInt(quantity) || 1;
+        const stickers = Array.from({ length: count }, (_, i) => ({
+          ...p,
+          stickerId: `${p.id}-${i}`
+        }));
+        setGeneratedStickers(stickers);
+      } else {
+        setGeneratedStickers([]);
+      }
+    } else {
+      setGeneratedStickers([]);
     }
-    const count = parseInt(quantity) || 1;
-    const stickers = Array.from({ length: count }, (_, i) => ({
-      ...p,
-      stickerId: `${p.id}-${i}`
-    }));
-    setGeneratedStickers(stickers);
-  };
+  }, [selectedProductId, quantity, products]);
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
@@ -185,10 +189,6 @@ const ProductBarcode = () => {
                 placeholder={t("Qty")}
                 style={{ width: '80px', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '4px', textAlign: 'center', fontSize: 'var(--fs-14, 14px)' }}
               />
-
-              <button onClick={handleCreate} className="btn" style={{ background: 'var(--success)', color: 'white', padding: '0 24px', border: 'none', borderRadius: '4px', fontSize: 'var(--fs-14, 14px)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                {t("Create Barcodes")}
-              </button>
             </div>
           </div>
 
@@ -200,7 +200,7 @@ const ProductBarcode = () => {
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
                 {generatedStickers.map((stk, idx) => (
-                  <div key={idx} style={{ width: '140px' }}>
+                  <div key={idx} style={{ width: '160px' }}>
                     <BarcodeSticker 
                       barcodeValue={stk.custom_barcode_no || stk.code || stk.barcode || String(stk.id).substring(0, 8).toUpperCase()} 
                       name={stk.name} 

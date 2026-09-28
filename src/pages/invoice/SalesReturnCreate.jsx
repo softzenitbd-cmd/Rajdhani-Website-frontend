@@ -387,7 +387,7 @@ const SalesReturnCreate = () => {
           <PrintHeader />
           <form onSubmit={(e) => e.preventDefault()}>
             {/* Top Row: Customer, Date, Time on the same line */}
-            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+            <div className="form-grid" style={{ gridTemplateColumns: '2fr 1fr 1fr', gap: '16px', marginBottom: '4px' }}>
               <div className="form-group" style={{ marginBottom: '0' }}>
                 <SearchableSelect
                   options={(clients || []).map((c) => {
@@ -432,10 +432,10 @@ const SalesReturnCreate = () => {
             </div>
 
             {/* Second Row: Barcode & Product Selection */}
-            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '150px', position: 'relative' }}>
-              <div className="form-group" style={{ marginBottom: '0', position: 'relative' }}>
+            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px', position: 'relative' }}>
+              <div className="form-group" style={{ marginBottom: '0', position: 'relative', width: '100%' }}>
                 <div style={{ position: 'absolute', top: '-10px', left: '20px', background: 'var(--primary)', color: 'white', padding: '2px 8px', fontSize: 'var(--fs-10, 10px)', borderRadius: '4px', zIndex: 2 }}>{t("Barcode Number")}</div>
-                <div style={{ display: 'flex', border: '1px solid #e2e8f0', borderRadius: '4px', overflow: 'hidden', background: 'var(--card-border)' }}>
+                <div style={{ display: 'flex', width: '100%', border: '1px solid #e2e8f0', borderRadius: '4px', overflow: 'hidden', background: 'var(--card-border)' }}>
                   <div style={{ padding: '12px', borderRight: '1px solid #cbd5e1', display: 'flex', alignItems: 'center' }}>
                     <Barcode size={24} style={{ color: 'var(--text-muted)' }} />
                   </div>
@@ -446,7 +446,7 @@ const SalesReturnCreate = () => {
                     value={formData.barcode} 
                     onChange={handleChange} 
                     onKeyDown={handleBarcodeKeyDown}
-                    style={{ flex: 1, padding: '12px', border: 'none', outline: 'none', background: 'transparent' }} 
+                    style={{ flex: 1, width: '100%', padding: '12px', border: 'none', outline: 'none', background: 'transparent' }} 
                   />
                 </div>
               </div>

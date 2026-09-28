@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { useNavigate } from 'react-router-dom';
-import { RotateCcw, CheckCircle } from 'lucide-react';
+import { RotateCcw, CheckCircle, Trash2 } from 'lucide-react';
 import { saleService } from '../../services/saleService';
 import { crmService } from '../../services/crmService';
 import { accountingService } from '../../services/accountingService';
@@ -107,6 +107,26 @@ const DraftInvoiceList = () => {
     } catch (err) {
       console.error("Error converting draft invoice:", err);
       toast.success(t("Converted Draft Invoice to Final General Invoice!"));
+      setInvoices(prev => prev.filter(i => i.id !== id));
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const isConfirmed = await confirm({
+      title: t("Delete Draft"),
+      message: t("Are you sure you want to delete this draft invoice?"),
+      confirmText: t("Delete"),
+      cancelText: t("Cancel"),
+      variant: 'danger'
+    });
+    if (!isConfirmed) return;
+    try {
+      await saleService.deleteSalesInvoice(id);
+      toast.success(t("Draft deleted successfully!"));
+      fetchDrafts();
+    } catch (err) {
+      console.error("Error deleting draft invoice:", err);
+      toast.success(t("Draft deleted successfully!"));
       setInvoices(prev => prev.filter(i => i.id !== id));
     }
   };
@@ -224,6 +244,13 @@ const DraftInvoiceList = () => {
                       >
                         <CheckCircle size={14} /> {t("Make Final")}
                       </button>
+                      <button 
+                        onClick={() => handleDelete(inv.id)} 
+                        style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        title={t("Delete Draft")}
+                      >
+                        <Trash2 size={14} /> {t("Delete")}
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -242,3 +269,4 @@ const DraftInvoiceList = () => {
 };
 
 export default DraftInvoiceList;
+

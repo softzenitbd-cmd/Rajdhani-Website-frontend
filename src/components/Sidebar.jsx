@@ -231,7 +231,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
     <aside 
       className={`sidebar ${isOpen ? 'open' : ''} ${isCollapsed ? 'collapsed' : ''}`} 
       style={{ 
-        overflowY: 'auto', 
+        /* overflowY removed to make top banner fixed */
         width: isCollapsed ? undefined : sidebarWidth, 
         transition: isResizing ? 'none' : undefined
       }}
@@ -306,7 +306,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
           <button
             onClick={() => {
               if (closeSidebar) closeSidebar();
-              navigate('/settings/company-information');
+              navigate('/settings/settings');
             }}
             title={t("Settings / Profile Header")}
             style={{

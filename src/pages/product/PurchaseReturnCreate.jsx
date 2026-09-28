@@ -44,7 +44,7 @@ const PurchaseReturnCreate = () => {
   const fetchPrerequisites = async () => {
     try {
       const [supRes, prodRes] = await Promise.all([
-        crmService.getSuppliers(),
+        crmService.getSuppliers({ page_size: 5000 }),
         productService.getProducts({ page_size: 500 })
       ]);
 
@@ -325,8 +325,8 @@ const PurchaseReturnCreate = () => {
                 <SearchableSelect
                   options={products.map(p => ({
                     value: p.id,
-                    label: `${p.name || p.title} ${p.code || p.barcode ? `[${p.code || p.barcode}]` : ''}`,
-                    searchValue: `${p.name || p.title} ${p.code || p.barcode || ''}`
+                    label: `${p.code || p.barcode ? `${p.code || p.barcode}: ` : ''}${p.name || p.title}`,
+                    searchValue: `${p.name || p.title} ${p.code || p.barcode || ''} ${p.sales_price || p.price || 0}`
                   }))}
                   value={formData.product}
                   onChange={(val) => {

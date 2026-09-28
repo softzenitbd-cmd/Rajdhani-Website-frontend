@@ -318,7 +318,6 @@ const InvoiceList = () => {
                 <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t('invoice.discount_header', 'DISCOUNT')}</th>
                 <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t('invoice.receive_amount', 'RECEIVE AMOUNT')}</th>
                 <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t('invoice.total_due', 'DUE AMOUNT')}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t('invoice.type_header', 'TYPE')}</th>
                 <th className="no-print" style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t('invoice.printable', 'PRINTABLE')}</th>
                 <th className="no-print" style={{ textAlign: 'center', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t('invoice.action', 'ACTION')}</th>
               </tr>
@@ -333,20 +332,31 @@ const InvoiceList = () => {
                 const catObj = (accounts || []).find(a => String(a.id) === String(inv.category_id || inv.category || inv.account_id));
                 const categoryName = inv.category_name || (catObj ? catObj.name : (inv.category_id || inv.category || 'CASH SELL'));
 
-                const formattedDate = inv.created_at ? new Date(inv.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : (inv.date ? new Date(inv.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '14 Sep 2026');
+                // Function to format date as DD-MM-YYYY
+                const formatDDMMYYYY = (dateString) => {
+                  if (!dateString) return '';
+                  const d = new Date(dateString);
+                  const day = String(d.getDate()).padStart(2, '0');
+                  const month = String(d.getMonth() + 1).padStart(2, '0');
+                  const year = d.getFullYear();
+                  return `${day}-${month}-${year}`;
+                };
 
-                const invIdNo = inv.invoice_id || inv.invoiceNo || (inv.id ? `Invoice ID: ${inv.id}` : 'Invoice ID: 163725');
+                const formattedDate = inv.created_at ? formatDDMMYYYY(inv.created_at) : (inv.date ? formatDDMMYYYY(inv.date) : '14-09-2026');
+
+                const rawInvId = String(inv.invoice_id || inv.invoiceNo || (inv.id ? `INV-${inv.id}` : 'INV-0054'));
+                const cleanInvId = rawInvId.replace(/^Invoice ID:\s*/i, '');
 
                 return (
                   <tr key={inv.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-12, 12px)' }}>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{globalIndex}</td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{formattedDate}</td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', lineHeight: '1.4' }}>
-                      <div style={{ fontWeight: '500' }}>Name: {clientName}</div>
-                      <div style={{ color: '#64748b', fontSize: 'var(--fs-11, 11px)' }}>Number: {clientPhone}</div>
+                      <div style={{ fontWeight: '500' }}>{clientName}</div>
+                      <div style={{ color: '#64748b', fontSize: 'var(--fs-11, 11px)' }}>{clientPhone}</div>
                     </td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', fontWeight: '500' }}>
-                      {invIdNo.startsWith('Invoice ID:') ? invIdNo : `Invoice ID: ${invIdNo}`}
+                      {cleanInvId}
                     </td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{categoryName}</td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{inv.return_qty || inv.returnQty || 0}</td>
@@ -354,11 +364,6 @@ const InvoiceList = () => {
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{Number(inv.discount || inv.total_discount || 0).toFixed(2)}</td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{Number(inv.receive_amount || inv.receiveAmount || 0).toFixed(2)}</td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{Number(inv.total_due || inv.dueAmount || 0).toFixed(2)}</td>
-                    <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>
-                      <span style={{ padding: '3px 10px', borderRadius: '4px', background: '#10b981', color: 'white', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>
-                        General
-                      </span>
-                    </td>
                     <td className="no-print" style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>
                       <button 
                         onClick={() => { setSelectedInvoice(inv); setShowViewModal(true); }}

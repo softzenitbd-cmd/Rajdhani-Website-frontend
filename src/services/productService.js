@@ -5,7 +5,7 @@ import { toList } from '../utils/apiHelpers';
 // Helper function to generate basic CRUD methods for supporting APIs
 const generateCrudMethods = (endpoint) => ({
   getAll: async (filters = {}) => {
-    const params = {};
+    const params = { page_size: 1000, limit: 1000, pagination: false, no_page: true, ...filters };
     if (filters.search) params.search = filters.search;
     return await apiClient.get(endpoint, { params });
   },

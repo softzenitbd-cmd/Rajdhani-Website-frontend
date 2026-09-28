@@ -224,7 +224,7 @@ const resources = {
       },
       "invoice": {
         "page_title": "ADD INVOICE",
-        "shortcut_hint": " | CTRL + S = SAVE | ALT + S = SAVE & PRINT | CTRL + D = SAVE AS DRAFT",
+        "shortcut_hint": " | S = SAVE | P = SAVE & PRINT | CTRL + D = SAVE AS DRAFT",
         "select_customer": "Select Customer / Client",
         "issued_date": "Issued Date",
         "barcode_header": "Barcode Number",

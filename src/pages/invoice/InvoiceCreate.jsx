@@ -182,7 +182,7 @@ const InvoiceCreate = () => {
     try {
       setLoadingPrereqs(true);
       const [clientRes, prodRes, accRes, incCatRes] = await Promise.all([
-        crmService.getClients({ page_size: 500 }).catch(() => []),
+        crmService.getClients({ page_size: 5000 }).catch(() => []),
         productService.getProducts({ page_size: 500 }).catch(() => []),
         accountingService.getAccounts().catch(() => []),
         accountingService.getIncomeCategories().catch(() => []),
@@ -216,16 +216,21 @@ const InvoiceCreate = () => {
         .catch((err) => console.error("Background product load failed", err));
 
       if (isEditMode) {
-        if (location.state?.invoice) {
+        if (location.state?.invoice && (location.state.invoice.items || location.state.invoice.invoice_items || location.state.invoice.sale_items)) {
           populateInvoiceData(location.state.invoice, prodData);
         } else {
           try {
             const invRes = await saleService.getSalesInvoiceById(id);
             if (invRes) {
               populateInvoiceData(invRes, prodData);
+            } else if (location.state?.invoice) {
+              populateInvoiceData(location.state.invoice, prodData);
             }
           } catch (err) {
             console.error("Error fetching invoice for edit:", err);
+            if (location.state?.invoice) {
+              populateInvoiceData(location.state.invoice, prodData);
+            }
           }
         }
       } else if (clientData && clientData.length > 0) {
@@ -275,6 +280,23 @@ const InvoiceCreate = () => {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Check if user is typing in a text field
+      const isTextInput = (e.target.tagName === 'INPUT' && !['number', 'radio', 'checkbox', 'button', 'submit'].includes(e.target.type)) || e.target.tagName === 'TEXTAREA';
+
+      // Single key shortcuts (only if not typing text)
+      if (!isTextInput && !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
+        if (e.key.toLowerCase() === "s") {
+          e.preventDefault();
+          handleSaveInvoice(1, false);
+          return;
+        }
+        if (e.key.toLowerCase() === "p") {
+          e.preventDefault();
+          handleSaveInvoice(1, true);
+          return;
+        }
+      }
+
       if (e.ctrlKey && e.key.toLowerCase() === "s") {
         e.preventDefault();
         handleSaveInvoice(1, false);
@@ -628,25 +650,7 @@ const InvoiceCreate = () => {
   return (
     <div className="dashboard-content" style={{ paddingBottom: "100px" }}>
       <div className="premium-card" style={{ overflow: "visible" }}>
-        <div
-          className="premium-header"
-          style={{ padding: "12px 24px", background: "white" }}
-        >
-          <h2
-            className="premium-title"
-            style={{ fontSize: "var(--fs-14, 14px)", fontWeight: "bold" }}
-          >
-            <span>{t("invoice.page_title", "ADD INVOICE")}</span>
-            {/* Keyboard hints are meaningless on a phone — .desktop-shortcut-guide
-                is hidden below 768px (see index.css), same as on Sales Return. */}
-            <span className="desktop-shortcut-guide">
-              {t(
-                "invoice.shortcut_hint",
-                " | CTRL + S = SAVE | ALT + S = SAVE & PRINT | CTRL + D = SAVE AS DRAFT",
-              )}
-            </span>
-          </h2>
-        </div>
+
 
         <style>
           {`
@@ -676,10 +680,37 @@ const InvoiceCreate = () => {
 
         <div
           className="premium-body"
-          style={{ background: "white", paddingTop: "16px" }}
+          style={{ background: "white" }}
         >
           <PrintHeader />
           <form onSubmit={(e) => e.preventDefault()}>
+            <div style={{
+              position: 'sticky',
+              top: '58px', /* 58px is the height of the main app header */
+              zIndex: 40,
+              background: 'white',
+              padding: '16px 24px 8px',
+              borderBottom: '1px solid #e2e8f0',
+              margin: '0 -24px 0 -24px',
+            }}>
+              <div
+                className="premium-header"
+                style={{ padding: "0 0 16px 0", background: "white" }}
+              >
+                <h2
+                  className="premium-title"
+                  style={{ fontSize: "var(--fs-14, 14px)", fontWeight: "bold" }}
+                >
+                  <span>{t("invoice.page_title", "ADD INVOICE")}</span>
+                  <span className="desktop-shortcut-guide">
+                    {t(
+                      "invoice.shortcut_hint",
+                      " | S = SAVE | P = SAVE & PRINT | CTRL + D = SAVE AS DRAFT",
+                    )}
+                  </span>
+                </h2>
+              </div>
+
             {/* Top Row: Customer Selection, Date & Time */}
             <div
               className="form-grid invoice-top-grid"
@@ -690,7 +721,7 @@ const InvoiceCreate = () => {
               }}
             >
               {/* Customer */}
-              <div style={{ position: "relative" }}>
+              <div style={{ position: "relative", width: "100%" }}>
                 <SearchableSelect
                   options={(clients || []).map((c) => {
                     const nameStr = c.name || c.company_name || "";
@@ -798,13 +829,13 @@ const InvoiceCreate = () => {
               className="form-grid invoice-mid-grid"
               style={{
                 gap: "16px",
-                marginBottom: "14px",
+                marginBottom: "16px",
                 position: "relative",
               }}
             >
               <div
                 className="form-group"
-                style={{ marginBottom: "0", position: "relative" }}
+                style={{ marginBottom: "0", position: "relative", width: "100%" }}
               >
                 <div
                   style={{
@@ -824,6 +855,7 @@ const InvoiceCreate = () => {
                 <div
                   style={{
                     display: "flex",
+                    width: "100%",
                     border: "1px solid #e2e8f0",
                     borderRadius: "4px",
                     overflow: "hidden",
@@ -876,6 +908,7 @@ const InvoiceCreate = () => {
                     }}
                     style={{
                       flex: 1,
+                      width: "100%",
                       padding: "12px",
                       border: "none",
                       outline: "none",
@@ -895,10 +928,9 @@ const InvoiceCreate = () => {
                     setTimeout(() => {
                       const inputs =
                         document.querySelectorAll(`input[data-qty-idx]`);
-                      // Usually they want to edit the quantity of the item they JUST added,
-                      // or if they didn't add anything, the most recent one.
+                      // They want to start editing from the first item
                       const targetQty =
-                        inputs.length > 0 ? inputs[inputs.length - 1] : null;
+                        inputs.length > 0 ? inputs[0] : null;
                       if (targetQty) {
                         targetQty.focus();
                         setTimeout(() => targetQty.select(), 10);
@@ -921,8 +953,8 @@ const InvoiceCreate = () => {
                       p.custom_barcode_no || p.code || p.barcode || "";
                     return {
                       value: p.id,
-                      label: `${p.name || p.title} ${barcode ? `[${barcode}]` : ""} - ৳${p.sales_price || p.price || 0}`,
-                      searchValue: `${p.name || p.title} ${barcode}`,
+                      label: `${barcode ? `${barcode}: ` : ""}${p.name || p.title}`,
+                      searchValue: `${p.name || p.title} ${barcode} ${p.sales_price || p.price || 0}`,
                     };
                   })}
                   value={formData.productId}
@@ -943,12 +975,16 @@ const InvoiceCreate = () => {
                             ? res
                             : res?.results || [];
 
-                          // Typing a barcode the product list cannot match still
-                          // has to find the product (the stock report knows it).
-                          if (list.length === 0) {
-                            const byBarcode =
-                              await productService.findByBarcode(term);
-                            if (byBarcode) list = [byBarcode];
+                          const exactMatch = list.find((p) => String(p.custom_barcode_no || p.code || p.barcode || "").trim().toLowerCase() === term.toLowerCase());
+                          if (exactMatch) {
+                            list = [exactMatch];
+                          } else {
+                            const byBarcode = await productService.findByBarcode(term);
+                            if (byBarcode && String(byBarcode.custom_barcode_no || byBarcode.code || byBarcode.barcode || "").trim().toLowerCase() === term.toLowerCase()) {
+                              list = [byBarcode];
+                            } else if (byBarcode && list.length === 0) {
+                              list = [byBarcode];
+                            }
                           }
 
                           if (list.length > 0) {
@@ -972,11 +1008,12 @@ const InvoiceCreate = () => {
                   }}
                   clearOnSelect={true}
                   hideOptionsUntilSearch={true}
-                  pushContentBelow={true}
+                  pushContentBelow={false}
                   placeholder={t("invoice.select_product", "Select Product")}
                   onAddClick={() => setIsProductModalOpen(true)}
                 />
               </div>
+            </div>
             </div>
 
             {/* Product Table with Responsive Scroll Wrapper */}

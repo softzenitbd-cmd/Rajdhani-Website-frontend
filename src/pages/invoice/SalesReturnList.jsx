@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
+import { printElement } from '../../utils/printUtils';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { RotateCcw, ArrowUp, Edit, Trash2 } from 'lucide-react';
 import { saleService } from '../../services/saleService';
@@ -331,7 +332,6 @@ const SalesReturnList = () => {
                 <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("DISCOUNT")}</th>
                 <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("RECEIVE AMOUNT")}</th>
                 <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("DUE AMOUNT")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("TYPE")}</th>
                 <th className="no-print" style={{ textAlign: 'center', borderRight: '1px solid #94a3b8', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("PRINTABLE")}</th>
                 <th className="no-print" style={{ textAlign: 'center', padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("ACTION")}</th>
               </tr>
@@ -344,20 +344,37 @@ const SalesReturnList = () => {
 
                 const categoryName = ret.category || ret.category_name || 'MALL FEROT';
 
-                const dateStr = ret.created_at ? (ret.created_at.includes('T') ? ret.created_at.replace('T', ' ').slice(0, 19) : ret.created_at) : (ret.date || '2026-09-15 11:28:09');
+                // Function to format date as DD-MM-YYYY
+                const formatDDMMYYYY = (dateString) => {
+                  if (!dateString) return '';
+                  const d = new Date(dateString);
+                  if (isNaN(d.getTime())) return dateString; // fallback if invalid
+                  const day = String(d.getDate()).padStart(2, '0');
+                  const month = String(d.getMonth() + 1).padStart(2, '0');
+                  const year = d.getFullYear();
+                  return `${day}-${month}-${year}`;
+                };
 
-                const invIdNo = ret.invoice_no || ret.return_invoice_id || ret.invoiceNo || (ret.id ? `Invoice ID: ${ret.id}` : 'Invoice ID: 163873');
+                const dateStr = ret.created_at ? formatDDMMYYYY(ret.created_at) : (ret.date ? formatDDMMYYYY(ret.date) : '15-09-2026');
+
+                const rawInvId = String(ret.invoice_no || ret.return_invoice_id || ret.invoiceNo || (ret.id ? `INV-${ret.id}` : 'INV-163873'));
+                const cleanInvId = rawInvId.replace(/^Invoice ID:\s*/i, '').replace(/^SR-?/i, '');
 
                 return (
                   <tr key={ret.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-12, 12px)' }}>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{index + 1}</td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{dateStr}</td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', lineHeight: '1.4' }}>
-                      <div style={{ fontWeight: '500' }}>Name: {clientName}</div>
-                      <div style={{ color: '#000', fontSize: 'var(--fs-11, 11px)' }}>Number: {clientPhone}</div>
+                      <div style={{ fontWeight: '500' }}>{clientName}</div>
+                      <div style={{ color: '#000', fontSize: 'var(--fs-11, 11px)' }}>{clientPhone}</div>
+                      {(() => {
+                        const clientObj = (clients || []).find(c => String(c.id) === String(ret.client || ret.client_id));
+                        const clientAddress = ret.client_address || clientObj?.address || '';
+                        return clientAddress ? <div style={{ color: '#64748b', fontSize: 'var(--fs-10, 10px)', marginTop: '2px' }}>{clientAddress}</div> : null;
+                      })()}
                     </td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', fontWeight: '500' }}>
-                      {invIdNo.startsWith('Invoice ID:') ? invIdNo : `Invoice ID: ${invIdNo}`}
+                      {cleanInvId}
                     </td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{categoryName}</td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{ret.return_qty || ret.returnQuantity || 0}</td>
@@ -365,11 +382,6 @@ const SalesReturnList = () => {
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{Number(ret.discount || 0).toFixed(2)}</td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{Number(ret.receive_amount || ret.paid_amount || 0).toFixed(2)}</td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{Number(ret.total_due || ret.due_amount || ret.dueAmount || 0).toFixed(2)}</td>
-                    <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>
-                      <span style={{ padding: '3px 10px', borderRadius: '4px', background: '#f59e0b', color: 'white', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>
-                        {t("Return")}
-                      </span>
-                    </td>
                     <td className="no-print" style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
                         <button 
@@ -377,12 +389,6 @@ const SalesReturnList = () => {
                           style={{ width: '90px', background: '#10b981', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                         >
                           <span style={{ fontSize: 'var(--fs-9, 9px)' }}>■</span> {t("Pos View")}
-                        </button>
-                        <button 
-                          onClick={() => { setSelectedReturn(ret); setViewModalType('invoice'); }}
-                          style={{ width: '90px', background: '#10b981', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
-                        >
-                          <span style={{ fontSize: 'var(--fs-9, 9px)' }}>■</span> {t("Invoice View")}
                         </button>
                       </div>
                     </td>
@@ -420,56 +426,212 @@ const SalesReturnList = () => {
       {/* POS / Invoice Printable Modal */}
       {viewModalType && selectedReturn && (
         <div className="printable-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div className="printable-modal-content" style={{ background: 'white', width: viewModalType === 'pos' ? '400px' : '700px', maxWidth: '95vw', borderRadius: '12px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="printable-modal-content" style={{ background: '#f8f9fa', width: '100%', maxWidth: viewModalType === 'pos' ? '800px' : '700px', borderRadius: '8px', padding: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', maxHeight: '90vh', overflowY: 'auto' }}>
             
-            <PrintHeader />
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '2px solid #0ea5e9', paddingBottom: '12px' }}>
-              <div>
-                <h3 style={{ margin: 0, fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', color: '#0f172a' }}>
-                  {viewModalType === 'pos' ? t("Sales Return POS Voucher") : t("Sales Return Invoice Memo")}
-                </h3>
-                <span style={{ fontSize: 'var(--fs-13, 13px)', color: '#64748b', fontWeight: '600' }}>
-                  {selectedReturn.invoice_no || selectedReturn.return_invoice_id || `SR-${selectedReturn.id}`}
-                </span>
-              </div>
-              <button onClick={() => { setViewModalType(null); setSelectedReturn(null); }} className="no-print" style={{ border: 'none', background: '#f1f5f9', padding: '6px 12px', borderRadius: '50%', cursor: 'pointer', color: '#64748b', fontWeight: 'bold' }}>✕</button>
-            </div>
+            {viewModalType === 'pos' ? (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <button onClick={() => printElement('pos-receipt-print-area', { withHeader: false, pageSize: '80mm auto', extraCss: 'body { padding: 0 !important; } .pos-receipt-wrapper { width: 100% !important; margin: 0 !important; } .receipt-header-image img { max-width: 100% !important; } table { border-collapse: collapse !important; width: 100% !important; color: black !important; font-family: Arial, sans-serif !important; } th, td { border: 1px solid black !important; }' })} className="no-print" style={{ background: '#000', color: 'white', border: 'none', padding: '6px 16px', cursor: 'pointer', borderRadius: '4px', fontWeight: 'bold' }}>
+                    🖨️ Printable
+                  </button>
+                  <button onClick={() => { setViewModalType(null); setSelectedReturn(null); }} className="no-print" style={{ border: 'none', background: '#e2e8f0', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', color: '#0f172a', fontWeight: 'bold', marginLeft: 'auto' }}>✕ Close</button>
+                </div>
 
-            <div style={{ marginBottom: '16px', fontSize: 'var(--fs-13, 13px)', color: '#334155' }}>
-              <div><strong>Client:</strong> {selectedReturn.client_name || selectedReturn.client || 'C.CASTOMER'}</div>
-              <div><strong>Phone:</strong> {selectedReturn.client_phone || '01'}</div>
-              <div><strong>Date:</strong> {selectedReturn.created_at || selectedReturn.date || '2026-09-15 11:28:09'}</div>
-              <div><strong>Category:</strong> {selectedReturn.category || 'MALL FEROT'}</div>
-            </div>
+                <div id="pos-receipt-print-area" className="pos-receipt-wrapper" style={{ margin: '0 auto', width: '100%', maxWidth: '300px', background: 'white', padding: '8px', boxSizing: 'border-box' }}>
+                  <div style={{ padding: '8px' }}>
+                    {/* Dynamic Header */}
+                    <PrintHeader showOnScreen={true} isPos={true} />
 
-            <div style={{ borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', padding: '12px 0', marginBottom: '16px', fontSize: 'var(--fs-13, 13px)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span>Bill Amount:</span>
-                <strong>৳ {Number(selectedReturn.bill_amount || selectedReturn.grand_total || 0).toFixed(2)}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span>Discount:</span>
-                <strong>৳ {Number(selectedReturn.discount || 0).toFixed(2)}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span>Receive Amount:</span>
-                <strong>৳ {Number(selectedReturn.receive_amount || selectedReturn.paid_amount || 0).toFixed(2)}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#ef4444' }}>
-                <span>Due Amount:</span>
-                <strong>৳ {Number(selectedReturn.total_due || selectedReturn.due_amount || 0).toFixed(2)}</strong>
-              </div>
-            </div>
+                    {(() => {
+                      const clientObj = (clients || []).find(c => String(c.id) === String(selectedReturn.client_id || selectedReturn.client));
+                      const clientDisplay = selectedReturn.client_name || selectedReturn.clientName || (clientObj ? (clientObj.name || clientObj.company_name) : (
+                        (selectedReturn.client && !String(selectedReturn.client).includes('-')) ? selectedReturn.client : 'C.CUSTOMER'
+                      ));
+                      
+                      const returnBill = Number(selectedReturn.bill_amount || selectedReturn.grand_total || (selectedReturn.items || []).reduce((sum, item) => {
+                          const qty = Number(item.quantity || item.qty || 1);
+                          const rate = Number(item.selling_price || item.price || item.rate || 0);
+                          return sum + (Number(item.total_selling_price || item.total_amount || (qty * rate)) || 0);
+                      }, 0) || 0);
+                      
+                      const payment = Number(selectedReturn.receive_amount || selectedReturn.paid_amount || 0);
+                      
+                      const clientDue = clientObj ? Number(clientObj.due || clientObj.previous_due || clientObj.total_due || clientObj.balance || 0) : 0;
+                      const fallbackPrevDue = clientDue + returnBill - payment;
+                      
+                      let prevDue = fallbackPrevDue;
+                      if (selectedReturn.previous_due !== undefined && selectedReturn.previous_due !== null && Number(selectedReturn.previous_due) !== 0) {
+                        prevDue = Number(selectedReturn.previous_due);
+                      } else if (selectedReturn.previousDue !== undefined && selectedReturn.previousDue !== null && Number(selectedReturn.previousDue) !== 0) {
+                        prevDue = Number(selectedReturn.previousDue);
+                      }
+                      
+                      const currentDue = prevDue - returnBill;
+                      const totalDue = currentDue + payment;
 
-            <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-              <button onClick={() => window.print()} style={{ background: '#2563eb', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: 'var(--fs-13, 13px)' }}>
-                {t("Print")}
-              </button>
-              <button onClick={() => { setViewModalType(null); setSelectedReturn(null); }} style={{ background: '#64748b', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: 'var(--fs-13, 13px)' }}>
-                {t("Close")}
-              </button>
-            </div>
+                      let totalQty = 0;
+                      (selectedReturn.items || []).forEach(item => {
+                        totalQty += Number(item.quantity || item.qty || 1);
+                      });
+
+                      return (
+                        <div style={{ fontFamily: 'Arial, sans-serif' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', color: 'black', marginBottom: '0' }}>
+                            <tbody>
+                              <tr>
+                                <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>Client.ID No:- {selectedReturn.client_id || (clientObj ? clientObj.id : '')}</td>
+                                <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>Return.ID No:- {selectedReturn.return_invoice_id || selectedReturn.invoice_no || selectedReturn.id}</td>
+                              </tr>
+                              <tr>
+                                <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>
+                                  Client: {clientDisplay}<br />
+                                  Phone: {selectedReturn.client_phone || clientObj?.phone || clientObj?.contact_person || '01'}
+                                  {(() => {
+                                    const clientAddress = selectedReturn.client_address || clientObj?.address || '';
+                                    return clientAddress ? <><br />Address: {clientAddress}</> : null;
+                                  })()}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>Date:- {selectedReturn.created_at || selectedReturn.date ? (() => {
+                                  const d = new Date(selectedReturn.created_at || selectedReturn.date);
+                                  const day = String(d.getDate()).padStart(2, '0');
+                                  const month = d.toLocaleString('en-US', { month: 'short' });
+                                  const year = d.getFullYear();
+                                  const time = d.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+                                  return `${day} ${month} ${year} at ${time}`;
+                                })() : '-'}</td>
+                              </tr>
+                              <tr>
+                                <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>Served By:- {selectedReturn.served_by || 'ADMIN'}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', color: 'black', marginBottom: '0' }}>
+                            <thead>
+                              <tr>
+                                <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Name</th>
+                                <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Price</th>
+                                <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Quantity</th>
+                                <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Total</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {selectedReturn.items && selectedReturn.items.length > 0 ? (
+                                selectedReturn.items.map((item, idx) => {
+                                  const qty = Number(item.quantity || item.qty || 1);
+                                  const rate = Number(item.selling_price || item.price || item.rate || 0);
+                                  const itemTotal = Number(item.total_selling_price || item.total_amount || (qty * rate) || 0);
+                                  const displayItemName = `${item.name || item.product_name || item.title || 'Item'} ${item.barcode ? `(${item.barcode})` : ''}`;
+                                  return (
+                                    <tr key={idx}>
+                                      <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{displayItemName}</td>
+                                      <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{rate}</td>
+                                      <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{qty}</td>
+                                      <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{itemTotal}</td>
+                                    </tr>
+                                  );
+                                })
+                              ) : (
+                                <tr>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Return Item</td>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{returnBill}</td>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>1</td>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{returnBill}</td>
+                                </tr>
+                              )}
+                              <tr>
+                                <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>Total Quantity</td>
+                                <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}></td>
+                                <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{totalQty || 1}</td>
+                                <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}></td>
+                              </tr>
+                              <tr>
+                                <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>ইনভয়েস ফেরত =</td>
+                                <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{returnBill}</td>
+                              </tr>
+                              <tr>
+                                <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Previous Due =</td>
+                                <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{prevDue}</td>
+                              </tr>
+                              <tr>
+                                <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>বর্তমান বাকি =</td>
+                                <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{currentDue}</td>
+                              </tr>
+                              <tr>
+                                <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Payment =</td>
+                                <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{payment}</td>
+                              </tr>
+                              <tr>
+                                <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Total Due =</td>
+                                <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{totalDue}</td>
+                              </tr>
+                              <tr>
+                                <td colSpan="4" style={{ border: '1px solid black', padding: '4px', textAlign: 'center', fontSize: '10px', fontWeight: 'bold' }}>
+                                  Software Developed By www.softhostit.com
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <PrintHeader />
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '2px solid #0ea5e9', paddingBottom: '12px' }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', color: '#0f172a' }}>
+                      {t("Sales Return Invoice Memo")}
+                    </h3>
+                    <span style={{ fontSize: 'var(--fs-13, 13px)', color: '#64748b', fontWeight: '600' }}>
+                      {selectedReturn.invoice_no || selectedReturn.return_invoice_id || `SR-${selectedReturn.id}`}
+                    </span>
+                  </div>
+                  <button onClick={() => { setViewModalType(null); setSelectedReturn(null); }} className="no-print" style={{ border: 'none', background: '#f1f5f9', padding: '6px 12px', borderRadius: '50%', cursor: 'pointer', color: '#64748b', fontWeight: 'bold' }}>✕</button>
+                </div>
+
+                <div style={{ marginBottom: '16px', fontSize: 'var(--fs-13, 13px)', color: '#334155' }}>
+                  <div><strong>Client:</strong> {selectedReturn.client_name || selectedReturn.client || 'C.CASTOMER'}</div>
+                  <div><strong>Phone:</strong> {selectedReturn.client_phone || '01'}</div>
+                  <div><strong>Date:</strong> {selectedReturn.created_at || selectedReturn.date || '2026-09-15 11:28:09'}</div>
+                  <div><strong>Category:</strong> {selectedReturn.category || 'MALL FEROT'}</div>
+                </div>
+
+                <div style={{ borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', padding: '12px 0', marginBottom: '16px', fontSize: 'var(--fs-13, 13px)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span>Bill Amount:</span>
+                    <strong>৳ {Number(selectedReturn.bill_amount || selectedReturn.grand_total || 0).toFixed(2)}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span>Discount:</span>
+                    <strong>৳ {Number(selectedReturn.discount || 0).toFixed(2)}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span>Receive Amount:</span>
+                    <strong>৳ {Number(selectedReturn.receive_amount || selectedReturn.paid_amount || 0).toFixed(2)}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#ef4444' }}>
+                    <span>Due Amount:</span>
+                    <strong>৳ {Number(selectedReturn.total_due || selectedReturn.due_amount || 0).toFixed(2)}</strong>
+                  </div>
+                </div>
+
+                <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                  <button onClick={() => window.print()} style={{ background: '#2563eb', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: 'var(--fs-13, 13px)' }}>
+                    {t("Print")}
+                  </button>
+                  <button onClick={() => { setViewModalType(null); setSelectedReturn(null); }} style={{ background: '#64748b', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: 'var(--fs-13, 13px)' }}>
+                    {t("Close")}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -478,4 +640,6 @@ const SalesReturnList = () => {
 };
 
 export default SalesReturnList;
+
+
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, Plus, Trash2, Barcode, HelpCircle, Settings } from 'lucide-react';
+import { Calendar, Plus, Trash2, Barcode, HelpCircle, Settings, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
 import SearchableSelect from '../../components/SearchableSelect';
@@ -8,11 +8,14 @@ import AddOptionModal from '../../components/AddOptionModal';
 import AddSupplierModal from '../../components/AddSupplierModal';
 import AddProductModal from '../../components/AddProductModal';
 import FormSettingsModal from '../../components/FormSettingsModal';
+import BarcodePrintModal from '../../components/BarcodePrintModal';
 import { crmService } from '../../services/crmService';
 import { productService } from '../../services/productService';
 import { purchaseService } from '../../services/purchaseService';
 import settingService from '../../services/settingService';
 import { useToast } from '../../context/ToastContext';
+
+const ashInput = { width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '4px', textAlign: 'center', outline: 'none', background: '#f8fafc' };
 
 const PurchaseCreate = () => {
   const toast = useToast();
@@ -46,7 +49,7 @@ const PurchaseCreate = () => {
   const fetchPrerequisites = async () => {
     try {
       const [supRes, prodRes] = await Promise.all([
-        crmService.getSuppliers().catch(() => null),
+        crmService.getSuppliers({ page_size: 5000 }).catch(() => null),
         productService.getProducts({ page_size: 500 }).catch(() => null)
       ]);
 
@@ -65,6 +68,7 @@ const PurchaseCreate = () => {
   const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [barcodeProductToPrint, setBarcodeProductToPrint] = useState(null);
   
   const [visibleFields, setVisibleFields] = useState({
     invoice_id: true,
@@ -203,7 +207,8 @@ const PurchaseCreate = () => {
       const created = await productService.createProduct({ name: prodName, purchase_price: 0, sales_price: 0 });
       const newProd = { purchase_price: 0, sales_price: 0, ...created, id: created?.id || created?.uuid, name: created?.name || prodName };
       setProducts(prev => [...prev, newProd]);
-      handleSelectProduct(newProd.id);
+      if (!newProd.id) newProd.id = Date.now().toString(); handleSelectProduct(newProd.id, newProd);
+            setBarcodeProductToPrint(newProd);
       setIsProductModalOpen(false);
     } catch (err) {
       toast.error(t("Failed to create product: {{v0}}", { v0: err?.message || t("server error") }));
@@ -241,6 +246,7 @@ const PurchaseCreate = () => {
         account: formData.account || "",
         category: formData.category || "",
         status: status,
+        sms: formData.sms,
         items: items.map(i => ({
           product: i.id,
           quantity: String(i.quantity),
@@ -287,9 +293,12 @@ const PurchaseCreate = () => {
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
-        <div className="premium-header" style={{ padding: '16px 24px', background: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 className="premium-title" style={{ fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', textTransform: 'uppercase' }}>
-            {t("Purchase Create")}
+        <div className="premium-header" style={{ padding: '16px 24px', background: '#22c55e', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 className="premium-title" style={{ fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', textTransform: 'uppercase', color: 'black' }}>
+            <span>{t("Purchase Create")}</span>
+            <span className="desktop-shortcut-guide" style={{ fontWeight: 'normal', fontSize: '12px', color: '#64748b', marginLeft: '6px', textTransform: 'none' }}>
+              | S = SAVE | P = SAVE & PRINT | CTRL + D = {t("SAVE AS DRAFT")}
+            </span>
           </h2>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button 
@@ -354,11 +363,11 @@ const PurchaseCreate = () => {
                   />
                 </div>
               )}
-            </div>
 
-            {/* Additional Fields Row based on form settings */}
-            {(visibleFields.warehouse !== false || visibleFields.category !== false || visibleFields.accounts !== false) && (
-              <div style={{ display: 'flex', gap: '24px', marginBottom: '24px', flexWrap: 'wrap' }}>
+
+
+
+
                 {visibleFields.warehouse !== false && (
                     <div className="form-group" style={{ flex: '1 1 200px', marginBottom: '0', position: 'relative', border: '1px solid #cbd5e1', borderRadius: '8px' }}>
                       <BadgeLabel text={t("Warehouse")} />
@@ -377,39 +386,118 @@ const PurchaseCreate = () => {
                       <input type="text" name="account" value={formData.account} onChange={handleChange} placeholder={t("Account Name")} style={{ width: '100%', padding: '16px', border: 'none', background: 'transparent', outline: 'none' }} />
                     </div>
                 )}
-              </div>
-            )}
+            </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px', alignItems: 'start' }}>
-              {/* Barcode Number */}
-              <div className="form-group" style={{ marginBottom: '0', position: 'relative', border: '1px solid #0ea5e9', borderRadius: '8px', background: 'white' }}>
+
+            <div
+              className="form-grid invoice-mid-grid"
+              style={{
+                gap: "16px",
+                marginBottom: "82px",
+                position: "relative",
+              }}
+            >
+              <div
+                className="form-group"
+                style={{ marginBottom: "0", position: "relative" }}
+              >
                 <BadgeLabel text={t("Barcode Number")} />
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <div style={{ padding: '0 16px', color: 'var(--text-muted)' }}>
-                    <Barcode size={24} />
+                <div
+                  style={{
+                    display: "flex",
+                    border: "1px solid #0ea5e9",
+                    borderRadius: "8px",
+                    overflow: "hidden",
+                    background: "white",
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: "12px",
+                      borderRight: "1px solid #cbd5e1",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Barcode size={24} style={{ color: "var(--text-muted)" }} />
                   </div>
                   <input
+                    id="barcodeInput"
+                    autoFocus
                     type="text"
                     name="barcode"
+                    placeholder={t("Scan Barcode & Press Enter")}
                     value={formData.barcode}
                     onChange={handleChange}
-                    onKeyDown={handleBarcodeKeyDown}
-                    placeholder={t("Barcode Number")}
-                    style={{ flex: 1, padding: '16px 16px 16px 0', border: 'none', outline: 'none', background: 'transparent', color: '#334155' }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Tab" && !e.shiftKey) {
+                        e.preventDefault();
+                        if (e.target.value.trim()) {
+                          handleBarcodeKeyDown({
+                            key: "Enter",
+                            target: e.target,
+                            preventDefault: () => {},
+                          });
+                        }
+                        setTimeout(() => {
+                          const productSearch = document.getElementById(
+                            "productSearchDropdown",
+                          );
+                          if (productSearch) {
+                            productSearch.focus();
+                            productSearch.click();
+                          }
+                        }, 50);
+                      } else {
+                        handleBarcodeKeyDown(e);
+                      }
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: "12px",
+                      border: "none",
+                      outline: "none",
+                      background: "transparent",
+                    }}
                   />
                 </div>
               </div>
 
-              {/* Select Product */}
-              <div className="form-group" style={{ marginBottom: '40px', position: 'relative', border: '1px solid #0ea5e9', borderRadius: '8px', padding: '8px 16px' }}>
+              <div
+                className="form-group"
+                style={{ marginBottom: "0", position: "relative", border: "1px solid #0ea5e9", borderRadius: "8px", padding: "1px" }}
+                onKeyDownCapture={(e) => {
+                  if (e.key === "Tab" && !e.shiftKey) {
+                    e.preventDefault();
+                    setTimeout(() => {
+                      const inputs = document.querySelectorAll(`input[data-qty-idx]`);
+                      const targetQty = inputs.length > 0 ? inputs[0] : null;
+                      if (targetQty) {
+                        targetQty.focus();
+                        setTimeout(() => targetQty.select(), 10);
+                      } else {
+                        const receiveInput = document.getElementById("receiveAmountInput");
+                        if (receiveInput) {
+                          receiveInput.focus();
+                          setTimeout(() => receiveInput.select(), 10);
+                        }
+                      }
+                    }, 50);
+                  }
+                }}
+              >
                 <BadgeLabel text={t("Product Name")} />
                 <SearchableSelect
+                  id="productSearchDropdown"
                   searchPlaceholder={t("Search by product name or barcode...")}
-                  options={(products || []).map(p => ({
-                    value: p.id,
-                    label: `${p.name || p.title} ${p.code || p.barcode ? `[${p.code || p.barcode}]` : ''}`,
-                    searchValue: `${p.name || p.title} ${p.code || p.barcode || ''}`
-                  }))}
+                  options={(products || []).map((p) => {
+                    const barcode = p.custom_barcode_no || p.code || p.barcode || "";
+                    return {
+                      value: p.id,
+                      label: `${barcode ? `${barcode}: ` : ""}${p.name || p.title}`,
+                      searchValue: `${p.name || p.title} ${barcode} ${p.sales_price || p.price || 0}`,
+                    };
+                  })}
                   value={formData.product}
                   onChange={(val) => {
                     if (val) {
@@ -419,7 +507,7 @@ const PurchaseCreate = () => {
                   }}
                   clearOnSelect={true}
                   hideOptionsUntilSearch={true}
-                  pushContentBelow={true}
+                  
                   placeholder={t("Select Product")}
                   onAddClick={() => setIsProductModalOpen(true)}
                 />
@@ -466,11 +554,18 @@ const PurchaseCreate = () => {
                                 if (nextInput) {
                                   e.preventDefault();
                                   nextInput.focus();
+                                } else {
+                                  e.preventDefault();
+                                  const receiveInput = document.getElementById("receiveAmountInput");
+                                  if (receiveInput) {
+                                    receiveInput.focus();
+                                    receiveInput.select();
+                                  }
                                 }
                               }
                             }}
                             onChange={(e) => updateItemField(idx, 'quantity', e.target.value)}
-                            style={{ width: '60px', padding: '4px', textAlign: 'center', border: '1px solid #cbd5e1', borderRadius: '4px' }}
+                            style={{ ...ashInput, width: '60px', textAlign: 'center' }}
                           />
                         </td>
                         <td style={{ textAlign: 'center', padding: '10px' }}>
@@ -479,7 +574,7 @@ const PurchaseCreate = () => {
                             value={item.buyingPrice}
                             onFocus={(e) => e.target.select()}
                             onChange={(e) => updateItemField(idx, 'buyingPrice', e.target.value)}
-                            style={{ width: '90px', padding: '4px', textAlign: 'right', border: '1px solid #cbd5e1', borderRadius: '4px' }}
+                            style={ashInput}
                           />
                         </td>
                         <td style={{ textAlign: 'right', padding: '10px', fontWeight: 'bold' }}>
@@ -491,7 +586,7 @@ const PurchaseCreate = () => {
                             value={item.salePrice}
                             onFocus={(e) => e.target.select()}
                             onChange={(e) => updateItemField(idx, 'salePrice', e.target.value)}
-                            style={{ width: '90px', padding: '4px', textAlign: 'right', border: '1px solid #cbd5e1', borderRadius: '4px' }}
+                            style={ashInput}
                           />
                         </td>
                         <td style={{ textAlign: 'right', padding: '10px', fontWeight: 'bold' }}>
@@ -582,7 +677,7 @@ const PurchaseCreate = () => {
                 {visibleFields.receive_amount !== false && (
                   <div style={{ position: 'relative', border: '1px solid #0ea5e9', borderRadius: '8px' }}>
                     <BadgeLabel icon={<HelpCircle size={12}/>} text={t("Payment Amount")} />
-                    <input type="number" step="0.01" name="receive_amount" value={formData.receive_amount} onChange={handleChange} placeholder="0" style={{ width: '100%', padding: '16px', border: 'none', outline: 'none', background: 'transparent' }} />
+                    <input id="receiveAmountInput" type="number" step="0.01" name="receive_amount" value={formData.receive_amount} onChange={handleChange} placeholder="0" style={{ width: '100%', padding: '16px', border: 'none', outline: 'none', background: 'transparent' }} />
                   </div>
                 )}
               </div>
@@ -604,43 +699,41 @@ const PurchaseCreate = () => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', borderTop: '1px solid #e2e8f0', paddingTop: '24px' }}>
+                        <div className="invoice-fixed-footer">
               <button
                 type="button"
                 onClick={() => window.history.back()}
-                style={{ background: "#f1f5f9", color: "#475569", padding: "10px 24px", fontSize: "var(--fs-14, 14px)", border: "none", cursor: "pointer", borderRadius: "4px" }}
+                style={{ background: "var(--danger)", color: "white", padding: "10px 24px", fontSize: "var(--fs-14, 14px)", border: "none", cursor: "pointer", borderRadius: "4px" }}
               >
                 {t("Cancel")}
               </button>
-              <div className="form-action-group" style={{ display: "flex", gap: "8px" }}>
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={() => handleSubmitPurchase(0)}
-                  disabled={submitting}
-                  style={{ background: "#64748b", padding: "10px 24px", fontSize: "var(--fs-14, 14px)", borderRadius: "4px", border: 'none', cursor: 'pointer', color: 'white' }}
-                >
-                  {t("Save As Draft")}
-                </button>
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={() => handleSubmitPurchase(1, true)}
-                  disabled={submitting}
-                  style={{ background: "#3b82f6", padding: "10px 24px", fontSize: "var(--fs-14, 14px)", borderRadius: "4px", border: 'none', cursor: 'pointer', color: 'white' }}
-                >
-                  {t("Save & Print")}
-                </button>
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={() => handleSubmitPurchase(1)}
-                  disabled={submitting}
-                  style={{ background: "var(--success)", padding: "10px 24px", fontSize: "var(--fs-14, 14px)", borderRadius: "4px", fontWeight: "bold", border: 'none', cursor: 'pointer', color: 'white' }}
-                >
-                  {submitting ? t("Processing...") : t("Add Invoice")}
-                </button>
-              </div>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => handleSubmitPurchase(0)}
+                disabled={submitting}
+                style={{ background: "#64748b", padding: "10px 24px", fontSize: "var(--fs-14, 14px)", borderRadius: "4px", border: 'none', cursor: 'pointer', color: 'white' }}
+              >
+                {t("Save As Draft")}
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => handleSubmitPurchase(1, true)}
+                disabled={submitting}
+                style={{ background: "#3b82f6", padding: "10px 24px", fontSize: "var(--fs-14, 14px)", borderRadius: "4px", border: 'none', cursor: 'pointer', color: 'white' }}
+              >
+                {t("Save & Print")}
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => handleSubmitPurchase(1)}
+                disabled={submitting}
+                style={{ background: "var(--success)", padding: "10px 24px", fontSize: "var(--fs-14, 14px)", borderRadius: "4px", fontWeight: "bold", border: 'none', cursor: 'pointer', color: 'white' }}
+              >
+                {t("Submit Purchase")}
+              </button>
             </div>
           </form>
         </div>
@@ -666,9 +759,16 @@ const PurchaseCreate = () => {
           if (newProd) {
             setProducts(prev => [...prev, newProd]);
             handleSelectProduct(newProd.id);
+            setBarcodeProductToPrint(newProd);
           }
           setIsProductModalOpen(false); 
         }}
+      />
+
+      <BarcodePrintModal 
+        isOpen={!!barcodeProductToPrint}
+        onClose={() => setBarcodeProductToPrint(null)}
+        product={barcodeProductToPrint}
       />
 
       <FormSettingsModal
@@ -704,4 +804,11 @@ const PurchaseCreate = () => {
 };
 
 export default PurchaseCreate;
+
+
+
+
+
+
+
 
