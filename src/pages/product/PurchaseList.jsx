@@ -81,7 +81,7 @@ const PurchaseList = () => {
 
   useEffect(() => {
     fetchData();
-  }, [filters]);
+  }, []); // Fetch only on mount, frontend filter handles the rest
 
   const handleFilterChange = (field, val) => {
     setFilters(prev => ({ ...prev, [field]: val }));
