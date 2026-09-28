@@ -19,6 +19,10 @@ export const purchaseService = {
     return await apiClient.post(ENDPOINTS.PURCHASE_INVOICES, data);
   },
 
+  getPurchaseInvoiceById: async (id) => {
+    return await apiClient.get(`${ENDPOINTS.PURCHASE_INVOICES}${id}/`);
+  },
+
   updatePurchaseInvoice: async (id, data) => {
     return await apiClient.patch(`${ENDPOINTS.PURCHASE_INVOICES}${id}/`, data);
   },

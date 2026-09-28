@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { RotateCcw, Trash2, Eye, Plus, RefreshCw } from 'lucide-react';
+import { RotateCcw, Trash2, Eye, Plus, RefreshCw, Edit } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { purchaseService } from '../../services/purchaseService';
 import { crmService } from '../../services/crmService';
@@ -61,11 +61,13 @@ const PurchaseList = () => {
           }
 
           return {
+            ...item,
             id: item.id || idx + 1,
             date: item.created_at ? new Date(item.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-',
             invoice: inv,
             supplier: supName || '-',
-            total: parseFloat(item.total_amount || item.grand_total || item.total || 0).toFixed(2)
+            total: parseFloat(item.total_amount || item.grand_total || item.total || 0).toFixed(2),
+            raw: item
           };
         }));
       } else {
@@ -286,7 +288,7 @@ const PurchaseList = () => {
           <table className="custom-table" style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse', border: '1px solid #cbd5e1' }}>
             <thead>
               <tr style={{ background: '#64748b', color: 'white' }}>
-                <th style={{ textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)', borderBottom: '1px solid rgba(255,255,255,0.2)', padding: '12px', fontSize: 'var(--fs-11, 11px)', width: '60px' }}>{t("ID NO ↕")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)', borderBottom: '1px solid rgba(255,255,255,0.2)', padding: '12px', fontSize: 'var(--fs-11, 11px)', width: '60px' }}>{t("ID NO â†•")}</th>
                 <th style={{ textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)', borderBottom: '1px solid rgba(255,255,255,0.2)', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("DATE")}</th>
                 <th style={{ textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)', borderBottom: '1px solid rgba(255,255,255,0.2)', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("INVOICE")}</th>
                 <th style={{ textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)', borderBottom: '1px solid rgba(255,255,255,0.2)', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("SUPPLIER")}</th>
@@ -315,6 +317,7 @@ const PurchaseList = () => {
                         <button onClick={() => handleDelete(purchase.id)} className="action-btn-sm" style={{ background: 'var(--danger)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title={t("Delete Invoice")}>
                           <Trash2 size={14} />
                         </button>
+                        <button onClick={() => navigate(`/product/purchase/edit/${purchase.id}`, { state: { purchaseData: purchase } })} className="action-btn-sm" title={t("Edit Invoice")} style={{ background: 'var(--info)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }}><Edit size={14} /></button>
                       </div>
                     </td>
                   </tr>
@@ -346,7 +349,7 @@ const PurchaseList = () => {
                 <h3 style={{ margin: 0, fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', color: '#0f172a' }}>{t("Purchase Invoice Memo")}</h3>
                 <span style={{ fontSize: 'var(--fs-13, 13px)', color: '#64748b', fontWeight: '600' }}>{t("Invoice #")}{selectedPurchase.invoice || selectedPurchase.invoiceNo || `PUR-${selectedPurchase.id}`}</span>
               </div>
-              <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#f1f5f9', padding: '6px 16px', borderRadius: '50%', cursor: 'pointer', color: '#64748b' }}>✕</button>
+              <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#f1f5f9', padding: '6px 16px', borderRadius: '50%', cursor: 'pointer', color: '#64748b' }}>âœ•</button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: 'var(--fs-13, 13px)', marginBottom: '20px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
@@ -407,7 +410,7 @@ const PurchaseList = () => {
 
             <div className="no-print" style={{ textAlign: 'right', marginTop: '16px' }}>
               <button onClick={() => window.print()} className="btn" style={{ background: 'var(--success)', color: 'white', padding: '10px 24px', borderRadius: '6px', marginRight: '8px', fontWeight: '600' }}>
-                {t("🖨️ Print Memo")}
+                {t("ðŸ–¨ï¸ Print Memo")}
               </button>
               <button onClick={() => setShowViewModal(false)} className="btn" style={{ background: '#64748b', color: 'white', padding: '10px 20px', borderRadius: '6px' }}>
                 {t("Close")}
@@ -421,4 +424,6 @@ const PurchaseList = () => {
 };
 
 export default PurchaseList;
+
+
 

@@ -449,7 +449,7 @@
   "Edit Expense & Re-adjust": "খরচ সম্পাদনা ও পুনঃসমন্বয়",
   "Edit Expense • Ref:": "খরচ সম্পাদনা • রেফ:",
   "Edit Expense Category": "খরচ ক্যাটাগরি সম্পাদনা করুন",
-  "Edit Invoice": "ইনভয়েস সম্পাদনা",
+  "Edit Invoice": "চালান পরিবর্তন",
   "Edit Loan Client": "লোন ক্লায়েন্ট সম্পাদনা",
   "Edit Loan Payment": "লোন পেমেন্ট সম্পাদনা",
   "Edit Loan Receive": "লোন গ্রহণ সম্পাদনা",
@@ -1443,5 +1443,8 @@
   "Year": "বছর",
   "Yes": "হ্যাঁ",
   "Your Info": "আপনার তথ্য",
-  "Zip Code": "জিপ কোড"
+  "Zip Code": "জিপ কোড",
+  "Edit Purchase": "ক্রয় চালান পরিবর্তন",
+  "Purchase invoice updated successfully!": "ক্রয় চালান সফলভাবে আপডেট করা হয়েছে!",
+  "Failed to update purchase: {{v0}}": "ক্রয় আপডেট করতে ব্যর্থ: {{v0}}"
 }

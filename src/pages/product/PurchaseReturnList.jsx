@@ -137,9 +137,34 @@ const PurchaseReturnList = () => {
   const filteredReturns = returns.filter(r => {
     if (filters.supplier && !r.supplier.toLowerCase().includes(filters.supplier.toLowerCase())) return false;
     if (filters.invoiceNo && !r.invoice.toLowerCase().includes(filters.invoiceNo.toLowerCase())) return false;
+    
+    if (filters.fromDate) {
+      const rowDate = new Date(r.date);
+      const fromD = new Date(filters.fromDate);
+      if (rowDate < fromD) return false;
+    }
+    
+    if (filters.toDate) {
+      const rowDate = new Date(r.date);
+      const toD = new Date(filters.toDate);
+      if (rowDate > toD) return false;
+    }
+
     if (filters.productName || filters.barcode) {
-      const q = (filters.productName || filters.barcode).toLowerCase();
-      if (!r.supplier.toLowerCase().includes(q) && !r.invoice.toLowerCase().includes(q)) return false;
+      const qName = filters.productName?.toLowerCase() || '';
+      const qBarcode = filters.barcode?.toLowerCase() || '';
+      
+      const hasMatch = r.items?.some(item => {
+        const iName = (item.name || item.product_name || "").toLowerCase();
+        const iBarcode = (item.barcode || item.code || "").toLowerCase();
+        
+        let match = true;
+        if (qName && !iName.includes(qName)) match = false;
+        if (qBarcode && !iBarcode.includes(qBarcode)) match = false;
+        return match;
+      });
+      
+      if (!hasMatch) return false;
     }
     return true;
   });
@@ -317,6 +342,17 @@ const PurchaseReturnList = () => {
                 ))
               )}
             </tbody>
+            {filteredReturns.length > 0 && (
+              <tfoot>
+                <tr style={{ background: '#f8fafc', fontWeight: 'bold' }}>
+                  <td colSpan="4" style={{ textAlign: 'right', padding: '12px', borderRight: '1px solid #e2e8f0' }}>{t("Total Balance")}</td>
+                  <td style={{ textAlign: 'center', padding: '12px', borderRight: '1px solid #e2e8f0', color: '#059669' }}>
+                    ৳ {filteredReturns.reduce((sum, ret) => sum + (Number(ret.total) || 0), 0).toFixed(2)}
+                  </td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            )}
           </table>
         </div>
       </div>

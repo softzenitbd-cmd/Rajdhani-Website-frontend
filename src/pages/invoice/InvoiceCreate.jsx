@@ -216,7 +216,12 @@ const InvoiceCreate = () => {
         .catch((err) => console.error("Background product load failed", err));
 
       if (isEditMode) {
-        if (location.state?.invoice && (location.state.invoice.items || location.state.invoice.invoice_items || location.state.invoice.sale_items)) {
+        if (
+          location.state?.invoice &&
+          (location.state.invoice.items ||
+            location.state.invoice.invoice_items ||
+            location.state.invoice.sale_items)
+        ) {
           populateInvoiceData(location.state.invoice, prodData);
         } else {
           try {
@@ -281,10 +286,21 @@ const InvoiceCreate = () => {
   useEffect(() => {
     const handleKeyDown = (e) => {
       // Check if user is typing in a text field
-      const isTextInput = (e.target.tagName === 'INPUT' && !['number', 'radio', 'checkbox', 'button', 'submit'].includes(e.target.type)) || e.target.tagName === 'TEXTAREA';
+      const isTextInput =
+        (e.target.tagName === "INPUT" &&
+          !["number", "radio", "checkbox", "button", "submit"].includes(
+            e.target.type,
+          )) ||
+        e.target.tagName === "TEXTAREA";
 
       // Single key shortcuts (only if not typing text)
-      if (!isTextInput && !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
+      if (
+        !isTextInput &&
+        !e.ctrlKey &&
+        !e.altKey &&
+        !e.metaKey &&
+        !e.shiftKey
+      ) {
         if (e.key.toLowerCase() === "s") {
           e.preventDefault();
           handleSaveInvoice(1, false);
@@ -650,8 +666,6 @@ const InvoiceCreate = () => {
   return (
     <div className="dashboard-content" style={{ paddingBottom: "100px" }}>
       <div className="premium-card" style={{ overflow: "visible" }}>
-
-
         <style>
           {`
             .invoice-fixed-footer {
@@ -678,21 +692,20 @@ const InvoiceCreate = () => {
           `}
         </style>
 
-        <div
-          className="premium-body"
-          style={{ background: "white" }}
-        >
+        <div className="premium-body" style={{ background: "white" }}>
           <PrintHeader />
           <form onSubmit={(e) => e.preventDefault()}>
-            <div style={{
-              position: 'sticky',
-              top: '58px', /* 58px is the height of the main app header */
-              zIndex: 40,
-              background: 'white',
-              padding: '16px 24px 8px',
-              borderBottom: '1px solid #e2e8f0',
-              margin: '0 -24px 0 -24px',
-            }}>
+            <div
+              style={{
+                position: "sticky",
+                top: "58px" /* 58px is the height of the main app header */,
+                zIndex: 40,
+                background: "white",
+                padding: "16px 24px 8px",
+                borderBottom: "1px solid #e2e8f0",
+                margin: "0 -24px 0 -24px",
+              }}
+            >
               <div
                 className="premium-header"
                 style={{ padding: "0 0 16px 0", background: "white" }}
@@ -711,309 +724,336 @@ const InvoiceCreate = () => {
                 </h2>
               </div>
 
-            {/* Top Row: Customer Selection, Date & Time */}
-            <div
-              className="form-grid invoice-top-grid"
-              style={{
-                gap: "16px",
-                marginBottom: "18px",
-                alignItems: "start",
-              }}
-            >
-              {/* Customer */}
-              <div style={{ position: "relative", width: "100%" }}>
-                <SearchableSelect
-                  options={(clients || []).map((c) => {
-                    const nameStr = c.name || c.company_name || "";
-                    const isDefault =
-                      /c\.?\s*customer|c\.?\s*castomer|c\.?\s*coustomer|^c\.|default/i.test(
-                        nameStr,
-                      );
-                    return {
-                      value: c.id,
-                      label: `${nameStr}${isDefault ? " (Default)" : ""} ${c.phone ? `(${c.phone})` : ""}`,
-                      searchValue: `${nameStr} ${c.phone || ""}`,
-                    };
-                  })}
-                  value={formData.clientId}
-                  onChange={(val) =>
-                    setFormData((prev) => ({ ...prev, clientId: val }))
-                  }
-                  placeholder={t(
-                    "invoice.select_customer",
-                    "Select Customer / Client",
-                  )}
-                  onAddClick={() => setIsClientModalOpen(true)}
-                />
-                {/* Kept in flow: as an absolutely positioned overhang it used
-                    to collide with the "Barcode Number" badge of the next row. */}
-                <div
-                  style={{
-                    fontSize: "var(--fs-11, 11px)",
-                    fontWeight: "bold",
-                    marginTop: "3px",
-                    color: "#0f172a",
-                    paddingLeft: "4px",
-                  }}
-                >
-                  {t("common.due", "Due")}: {dueAmount.toFixed(0)}
-                </div>
-              </div>
-
-              {/* Date */}
-              <div style={{ position: "relative" }}>
-                <div
-                  className="badge-date"
-                  style={{ background: "var(--info)" }}
-                >
-                  <Calendar size={12} />{" "}
-                  {t("invoice.issued_date", "Issued Date")}
-                </div>
-                <input
-                  type="date"
-                  name="date"
-                  className="input-date"
-                  value={formData.date}
-                  onChange={handleChange}
-                  onClick={(e) => {
-                    try {
-                      e.target.showPicker();
-                    } catch (err) {}
-                  }}
-                  onFocus={(e) => {
-                    try {
-                      e.target.showPicker();
-                    } catch (err) {}
-                  }}
-                  style={{ cursor: "pointer", width: "100%" }}
-                />
-              </div>
-
-              {/* Time */}
+              {/* Top Row: Customer Selection, Date & Time */}
               <div
+                className="form-grid invoice-top-grid"
                 style={{
-                  position: "relative",
-                  display: "flex",
-                  alignItems: "center",
+                  gap: "16px",
+                  marginBottom: "18px",
+                  alignItems: "start",
                 }}
               >
-                <input
-                  type="text"
-                  name="time"
-                  value={formData.time}
-                  onChange={handleChange}
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    paddingRight: "40px",
-                    border: "1px solid #e2e8f0",
-                    borderRadius: "4px",
-                    outline: "none",
-                    height: "48px",
-                    boxSizing: "border-box",
-                  }}
-                />
-                <Clock
-                  size={16}
-                  style={{
-                    position: "absolute",
-                    right: "12px",
-                    color: "#94a3b8",
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Second Row: Barcode & Product Selection */}
-            <div
-              className="form-grid invoice-mid-grid"
-              style={{
-                gap: "16px",
-                marginBottom: "16px",
-                position: "relative",
-              }}
-            >
-              <div
-                className="form-group"
-                style={{ marginBottom: "0", position: "relative", width: "100%" }}
-              >
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "-10px",
-                    left: "20px",
-                    background: "var(--primary)",
-                    color: "white",
-                    padding: "2px 8px",
-                    fontSize: "var(--fs-10, 10px)",
-                    borderRadius: "4px",
-                    zIndex: 2,
-                  }}
-                >
-                  {t("invoice.barcode_header", "Barcode Number")}
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    width: "100%",
-                    border: "1px solid #e2e8f0",
-                    borderRadius: "4px",
-                    overflow: "hidden",
-                    background: "white",
-                  }}
-                >
+                {/* Customer */}
+                <div style={{ position: "relative", width: "100%" }}>
+                  <SearchableSelect
+                    options={(clients || []).map((c) => {
+                      const nameStr = c.name || c.company_name || "";
+                      const isDefault =
+                        /c\.?\s*customer|c\.?\s*castomer|c\.?\s*coustomer|^c\.|default/i.test(
+                          nameStr,
+                        );
+                      return {
+                        value: c.id,
+                        label: `${nameStr}${isDefault ? " (Default)" : ""} ${c.phone ? `(${c.phone})` : ""}`,
+                        searchValue: `${nameStr} ${c.phone || ""}`,
+                      };
+                    })}
+                    value={formData.clientId}
+                    onChange={(val) =>
+                      setFormData((prev) => ({ ...prev, clientId: val }))
+                    }
+                    placeholder={t(
+                      "invoice.select_customer",
+                      "Select Customer / Client",
+                    )}
+                    onAddClick={() => setIsClientModalOpen(true)}
+                  />
+                  {/* Kept in flow: as an absolutely positioned overhang it used
+                    to collide with the "Barcode Number" badge of the next row. */}
                   <div
                     style={{
-                      padding: "12px",
-                      borderRight: "1px solid #cbd5e1",
-                      display: "flex",
-                      alignItems: "center",
+                      fontSize: "var(--fs-11, 11px)",
+                      fontWeight: "bold",
+                      marginTop: "3px",
+                      color: "#0f172a",
+                      paddingLeft: "4px",
                     }}
                   >
-                    <Barcode size={24} style={{ color: "var(--text-muted)" }} />
+                    {t("common.due", "Due")}: {dueAmount.toFixed(0)}
+                  </div>
+                </div>
+
+                {/* Date */}
+                <div style={{ position: "relative" }}>
+                  <div
+                    className="badge-date"
+                    style={{ background: "var(--info)" }}
+                  >
+                    <Calendar size={12} />{" "}
+                    {t("invoice.issued_date", "Issued Date")}
                   </div>
                   <input
-                    id="barcodeInput"
-                    autoFocus
-                    type="text"
-                    name="barcode"
-                    placeholder={t(
-                      "invoice.barcode_placeholder",
-                      "Scan Barcode & Press Enter",
-                    )}
-                    value={formData.barcode}
+                    type="date"
+                    name="date"
+                    className="input-date"
+                    value={formData.date}
                     onChange={handleChange}
-                    onKeyDown={(e) => {
-                      if (e.key === "Tab" && !e.shiftKey) {
-                        e.preventDefault();
-                        if (e.target.value.trim()) {
-                          handleBarcodeKeyDown({
-                            key: "Enter",
-                            target: e.target,
-                            preventDefault: () => {},
-                          });
-                        }
-                        setTimeout(() => {
-                          const productSearch = document.getElementById(
-                            "productSearchDropdown",
-                          );
-                          if (productSearch) {
-                            productSearch.focus();
-                            productSearch.click();
-                          }
-                        }, 50);
-                      } else {
-                        handleBarcodeKeyDown(e);
-                      }
+                    onClick={(e) => {
+                      try {
+                        e.target.showPicker();
+                      } catch (err) {}
                     }}
+                    onFocus={(e) => {
+                      try {
+                        e.target.showPicker();
+                      } catch (err) {}
+                    }}
+                    style={{ cursor: "pointer", width: "100%" }}
+                  />
+                </div>
+
+                {/* Time */}
+                <div
+                  style={{
+                    position: "relative",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <input
+                    type="text"
+                    name="time"
+                    value={formData.time}
+                    onChange={handleChange}
                     style={{
-                      flex: 1,
                       width: "100%",
                       padding: "12px",
-                      border: "none",
+                      paddingRight: "40px",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "4px",
                       outline: "none",
-                      background: "transparent",
+                      height: "48px",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                  <Clock
+                    size={16}
+                    style={{
+                      position: "absolute",
+                      right: "12px",
+                      color: "#94a3b8",
                     }}
                   />
                 </div>
               </div>
 
+              {/* Second Row: Barcode & Product Selection */}
               <div
-                className="form-group"
-                style={{ marginBottom: "0", position: "relative" }}
-                onKeyDownCapture={(e) => {
-                  if (e.key === "Tab" && !e.shiftKey) {
-                    e.preventDefault();
-                    // When leaving Product Search via Tab, focus the first (or last) quantity field
-                    setTimeout(() => {
-                      const inputs =
-                        document.querySelectorAll(`input[data-qty-idx]`);
-                      // They want to start editing from the first item
-                      const targetQty =
-                        inputs.length > 0 ? inputs[0] : null;
-                      if (targetQty) {
-                        targetQty.focus();
-                        setTimeout(() => targetQty.select(), 10);
-                      } else {
-                        const receiveInput =
-                          document.getElementById("receiveAmountInput");
-                        if (receiveInput) {
-                          receiveInput.focus();
-                          setTimeout(() => receiveInput.select(), 10);
-                        }
-                      }
-                    }, 50);
-                  }
+                className="form-grid invoice-mid-grid"
+                style={{
+                  gap: "16px",
+                  marginBottom: "16px",
+                  position: "relative",
                 }}
               >
-                <SearchableSelect
-                  id="productSearchDropdown"
-                  options={(products || []).map((p) => {
-                    const barcode =
-                      p.custom_barcode_no || p.code || p.barcode || "";
-                    return {
-                      value: p.id,
-                      label: `${barcode ? `${barcode}: ` : ""}${p.name || p.title}`,
-                      searchValue: `${p.name || p.title} ${barcode} ${p.sales_price || p.price || 0}`,
-                    };
-                  })}
-                  value={formData.productId}
-                  onChange={(val) => {
-                    if (val) handleSelectProduct(val);
+                <div
+                  className="form-group"
+                  style={{
+                    marginBottom: "0",
+                    position: "relative",
+                    width: "100%",
                   }}
-                  onSearchChange={(val) => {
-                    const term = (val || "").trim();
-                    if (term.length >= 2) {
-                      if (window.productSearchTimeout)
-                        clearTimeout(window.productSearchTimeout);
-                      window.productSearchTimeout = setTimeout(async () => {
-                        try {
-                          const res = await productService.getProducts({
-                            search: term,
-                          });
-                          let list = Array.isArray(res)
-                            ? res
-                            : res?.results || [];
-
-                          const exactMatch = list.find((p) => String(p.custom_barcode_no || p.code || p.barcode || "").trim().toLowerCase() === term.toLowerCase());
-                          if (exactMatch) {
-                            list = [exactMatch];
-                          } else {
-                            const byBarcode = await productService.findByBarcode(term);
-                            if (byBarcode && String(byBarcode.custom_barcode_no || byBarcode.code || byBarcode.barcode || "").trim().toLowerCase() === term.toLowerCase()) {
-                              list = [byBarcode];
-                            } else if (byBarcode && list.length === 0) {
-                              list = [byBarcode];
-                            }
-                          }
-
-                          if (list.length > 0) {
-                            setProducts((prev) => {
-                              const updated = [...prev];
-                              list.forEach((item) => {
-                                if (
-                                  !updated.find(
-                                    (p) => String(p.id) === String(item.id),
-                                  )
-                                ) {
-                                  updated.push(item);
-                                }
-                              });
-                              return updated;
+                >
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "-10px",
+                      left: "20px",
+                      background: "var(--primary)",
+                      color: "white",
+                      padding: "2px 8px",
+                      fontSize: "var(--fs-10, 10px)",
+                      borderRadius: "4px",
+                      zIndex: 2,
+                    }}
+                  >
+                    {t("invoice.barcode_header", "Barcode Number")}
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      width: "100%",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "4px",
+                      overflow: "hidden",
+                      background: "white",
+                    }}
+                  >
+                    <div
+                      style={{
+                        padding: "12px",
+                        borderRight: "1px solid #cbd5e1",
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Barcode
+                        size={24}
+                        style={{ color: "var(--text-muted)" }}
+                      />
+                    </div>
+                    <input
+                      id="barcodeInput"
+                      autoFocus
+                      type="text"
+                      name="barcode"
+                      placeholder={t(
+                        "invoice.barcode_placeholder",
+                        "Scan Barcode & Press Enter",
+                      )}
+                      value={formData.barcode}
+                      onChange={handleChange}
+                      onKeyDown={(e) => {
+                        if (e.key === "Tab" && !e.shiftKey) {
+                          e.preventDefault();
+                          if (e.target.value.trim()) {
+                            handleBarcodeKeyDown({
+                              key: "Enter",
+                              target: e.target,
+                              preventDefault: () => {},
                             });
                           }
-                        } catch (e) {}
-                      }, 500);
+                          setTimeout(() => {
+                            const productSearch = document.getElementById(
+                              "productSearchDropdown",
+                            );
+                            if (productSearch) {
+                              productSearch.focus();
+                              productSearch.click();
+                            }
+                          }, 50);
+                        } else {
+                          handleBarcodeKeyDown(e);
+                        }
+                      }}
+                      style={{
+                        flex: 1,
+                        width: "100%",
+                        padding: "12px",
+                        border: "none",
+                        outline: "none",
+                        background: "transparent",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div
+                  className="form-group"
+                  style={{ marginBottom: "0", position: "relative" }}
+                  onKeyDownCapture={(e) => {
+                    if (e.key === "Tab" && !e.shiftKey) {
+                      e.preventDefault();
+                      // When leaving Product Search via Tab, focus the first (or last) quantity field
+                      setTimeout(() => {
+                        const inputs =
+                          document.querySelectorAll(`input[data-qty-idx]`);
+                        // They want to start editing from the first item
+                        const targetQty = inputs.length > 0 ? inputs[0] : null;
+                        if (targetQty) {
+                          targetQty.focus();
+                          setTimeout(() => targetQty.select(), 10);
+                        } else {
+                          const receiveInput =
+                            document.getElementById("receiveAmountInput");
+                          if (receiveInput) {
+                            receiveInput.focus();
+                            setTimeout(() => receiveInput.select(), 10);
+                          }
+                        }
+                      }, 50);
                     }
                   }}
-                  clearOnSelect={true}
-                  hideOptionsUntilSearch={true}
-                  pushContentBelow={false}
-                  placeholder={t("invoice.select_product", "Select Product")}
-                  onAddClick={() => setIsProductModalOpen(true)}
-                />
+                >
+                  <SearchableSelect
+                    id="productSearchDropdown"
+                    options={(products || []).map((p) => {
+                      const barcode =
+                        p.custom_barcode_no || p.code || p.barcode || "";
+                      return {
+                        value: p.id,
+                        label: `${barcode ? `${barcode}: ` : ""}${p.name || p.title}`,
+                        searchValue: `${p.name || p.title} ${barcode} ${p.sales_price || p.price || 0}`,
+                      };
+                    })}
+                    value={formData.productId}
+                    onChange={(val) => {
+                      if (val) handleSelectProduct(val);
+                    }}
+                    onSearchChange={(val) => {
+                      const term = (val || "").trim();
+                      if (term.length >= 2) {
+                        if (window.productSearchTimeout)
+                          clearTimeout(window.productSearchTimeout);
+                        window.productSearchTimeout = setTimeout(async () => {
+                          try {
+                            const res = await productService.getProducts({
+                              search: term,
+                            });
+                            let list = Array.isArray(res)
+                              ? res
+                              : res?.results || [];
+
+                            const exactMatch = list.find(
+                              (p) =>
+                                String(
+                                  p.custom_barcode_no ||
+                                    p.code ||
+                                    p.barcode ||
+                                    "",
+                                )
+                                  .trim()
+                                  .toLowerCase() === term.toLowerCase(),
+                            );
+                            if (exactMatch) {
+                              list = [exactMatch];
+                            } else {
+                              const byBarcode =
+                                await productService.findByBarcode(term);
+                              if (
+                                byBarcode &&
+                                String(
+                                  byBarcode.custom_barcode_no ||
+                                    byBarcode.code ||
+                                    byBarcode.barcode ||
+                                    "",
+                                )
+                                  .trim()
+                                  .toLowerCase() === term.toLowerCase()
+                              ) {
+                                list = [byBarcode];
+                              } else if (byBarcode && list.length === 0) {
+                                list = [byBarcode];
+                              }
+                            }
+
+                            if (list.length > 0) {
+                              setProducts((prev) => {
+                                const updated = [...prev];
+                                list.forEach((item) => {
+                                  if (
+                                    !updated.find(
+                                      (p) => String(p.id) === String(item.id),
+                                    )
+                                  ) {
+                                    updated.push(item);
+                                  }
+                                });
+                                return updated;
+                              });
+                            }
+                          } catch (e) {}
+                        }, 500);
+                      }
+                    }}
+                    clearOnSelect={true}
+                    hideOptionsUntilSearch={true}
+                    pushContentBelow={false}
+                    placeholder={t("invoice.select_product", "Select Product")}
+                    onAddClick={() => setIsProductModalOpen(true)}
+                  />
+                </div>
               </div>
-            </div>
             </div>
 
             {/* Product Table with Responsive Scroll Wrapper */}

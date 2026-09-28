@@ -28,6 +28,7 @@ const ProductRoutes = () => {
         {/* Placeholder for nested menus */}
         {/* Purchase Routes */}
         <Route path="purchase/add-new" element={<PurchaseCreate />} />
+        <Route path="purchase/edit/:id" element={<PurchaseCreate />} />
         <Route path="purchase/list" element={<PurchaseList />} />
         <Route path="purchase/invoice-list" element={<PurchaseInvoiceList />} />
         <Route path="purchase/report" element={<PurchaseReport />} />
