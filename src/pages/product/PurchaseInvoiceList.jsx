@@ -141,7 +141,7 @@ const PurchaseInvoiceList = () => {
             <select 
               value={filters.supplier}
               onChange={(e) => handleFilterChange('supplier', e.target.value)}
-              style={{ padding: '10px', width: '100%', border: '1px solid #38bdf8', borderRadius: '4px', outline: 'none', background: 'white' }}
+              style={{ padding: '10px', width: '100%', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', background: 'white' }}
             >
               <option value="">{t("Select Supplier")}</option>
               {suppliers.map(s => (
@@ -157,7 +157,7 @@ const PurchaseInvoiceList = () => {
               placeholder={t("Product Name...")} 
               value={filters.productName}
               onChange={(e) => handleFilterChange('productName', e.target.value)}
-              style={{ padding: '10px', width: '100%', border: '1px solid #38bdf8', borderRadius: '4px', outline: 'none' }} 
+              style={{ padding: '10px', width: '100%', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none' }} 
             />
           </div>
 
@@ -168,7 +168,7 @@ const PurchaseInvoiceList = () => {
               placeholder={t("Barcode...")} 
               value={filters.barcode}
               onChange={(e) => handleFilterChange('barcode', e.target.value)}
-              style={{ padding: '10px', width: '100%', border: '1px solid #38bdf8', borderRadius: '4px', outline: 'none' }} 
+              style={{ padding: '10px', width: '100%', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none' }} 
             />
           </div>
 
@@ -179,13 +179,13 @@ const PurchaseInvoiceList = () => {
                  
                 value={filters.from_date}
                 onChange={(e) => handleFilterChange('from_date', e.target.value)}
-                style={{ padding: '10px', width: '100%', border: '1px solid #38bdf8', borderRadius: '4px', outline: 'none', color: '#64748b' }} 
+                style={{ padding: '10px', width: '100%', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', color: '#64748b' }} 
               />
               <CustomDatePicker 
                  
                 value={filters.to_date}
                 onChange={(e) => handleFilterChange('to_date', e.target.value)}
-                style={{ padding: '10px', width: '100%', border: '1px solid #38bdf8', borderRadius: '4px', outline: 'none', color: '#64748b' }} 
+                style={{ padding: '10px', width: '100%', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', color: '#64748b' }} 
               />
             </div>
           </div>
@@ -231,16 +231,16 @@ const PurchaseInvoiceList = () => {
         <div style={{ overflowX: 'auto' }}>
           <table className="custom-table" style={{ width: '100%', minWidth: '1200px', borderCollapse: 'collapse', border: '1px solid #cbd5e1' }}>
             <thead>
-              <tr style={{ background: '#94a3b8', color: 'black' }}>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)', width: '60px' }}>{t("ID NO ↕")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("DATE")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("SUPPLIER")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("PRODUCT")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("BUYING")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("SELLING")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("QUANTITY")}</th>
-                <th style={{ textAlign: 'center', borderRight: '1px solid #cbd5e1', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("TOTAL")}</th>
-                <th style={{ textAlign: 'center', borderBottom: '1px solid #cbd5e1', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("DESCRIPTION")}</th>
+              <tr style={{ background: '#64748b', color: 'white' }}>
+                <th style={{ textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)', borderBottom: '1px solid rgba(255,255,255,0.2)', padding: '12px', fontSize: 'var(--fs-11, 11px)', width: '60px' }}>{t("ID NO ↕")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)', borderBottom: '1px solid rgba(255,255,255,0.2)', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("DATE")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)', borderBottom: '1px solid rgba(255,255,255,0.2)', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("SUPPLIER")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)', borderBottom: '1px solid rgba(255,255,255,0.2)', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("PRODUCT")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)', borderBottom: '1px solid rgba(255,255,255,0.2)', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("BUYING")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)', borderBottom: '1px solid rgba(255,255,255,0.2)', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("SELLING")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)', borderBottom: '1px solid rgba(255,255,255,0.2)', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("QUANTITY")}</th>
+                <th style={{ textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.2)', borderBottom: '1px solid rgba(255,255,255,0.2)', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("TOTAL")}</th>
+                <th style={{ textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.2)', padding: '12px', fontSize: 'var(--fs-11, 11px)' }}>{t("DESCRIPTION")}</th>
               </tr>
             </thead>
             <tbody>
