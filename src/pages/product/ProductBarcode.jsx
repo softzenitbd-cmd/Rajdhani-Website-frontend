@@ -17,12 +17,12 @@ export const BarcodeSticker = ({ barcodeValue, name, price }) => {
       try {
         JsBarcode(svgRef.current, String(barcodeValue), {
           format: "CODE128",
-          width: 1.5,
-          height: 45,
+          width: 1.2,
+          height: 35,
           displayValue: true,
-          fontSize: 14,
+          fontSize: 11,
           font: "monospace",
-          margin: 4
+          margin: 2
         });
       } catch (err) {
         console.error("Barcode generation error:", err);

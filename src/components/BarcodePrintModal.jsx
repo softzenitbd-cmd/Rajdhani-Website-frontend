@@ -9,6 +9,12 @@ const BarcodePrintModal = ({ isOpen, onClose, product }) => {
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
+    if (product) {
+      setQuantity(Number(product.stock || product.opening_stock || 1));
+    }
+  }, [product]);
+
+  useEffect(() => {
     if (isOpen) {
       document.body.classList.add('barcode-print-mode');
       const timer = setTimeout(() => {
