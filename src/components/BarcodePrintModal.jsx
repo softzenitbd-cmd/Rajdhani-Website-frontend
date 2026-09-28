@@ -11,11 +11,15 @@ const BarcodePrintModal = ({ isOpen, onClose, product }) => {
   useEffect(() => {
     if (isOpen) {
       document.body.classList.add('barcode-print-mode');
+      const timer = setTimeout(() => {
+        window.print();
+        onClose();
+      }, 500);
+      return () => clearTimeout(timer);
     } else {
       document.body.classList.remove('barcode-print-mode');
     }
-    return () => document.body.classList.remove('barcode-print-mode');
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   if (!isOpen || !product) return null;
 
@@ -28,7 +32,7 @@ const BarcodePrintModal = ({ isOpen, onClose, product }) => {
 
   return (
     <div className="modal-overlay no-print-overlay" style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.5)", zIndex: 99999 }}>
-      <div className="modal-content" style={{ maxWidth: '600px', width: '90%', zIndex: 10000 }}>
+      <div className="modal-content" style={{ display: 'none' }}>
         <div className="modal-header">
           <h3>{t("Print Barcode")} - {product.name}</h3>
           <button onClick={onClose} className="btn-icon"><X size={20} /></button>
