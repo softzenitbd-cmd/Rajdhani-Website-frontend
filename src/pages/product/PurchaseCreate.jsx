@@ -565,7 +565,7 @@ const PurchaseCreate = () => {
                               }
                             }}
                             onChange={(e) => updateItemField(idx, 'quantity', e.target.value)}
-                            style={{ ...ashInput, width: '60px', textAlign: 'center' }}
+                            style={{ ...ashInput, width: '100px', textAlign: 'center' }}
                           />
                         </td>
                         <td style={{ textAlign: 'center', padding: '10px' }}>
