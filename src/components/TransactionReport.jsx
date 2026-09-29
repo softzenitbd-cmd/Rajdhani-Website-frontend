@@ -55,6 +55,38 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
     accountingService.getAccounts().then(r => setAllAccounts(toList(r))).catch(() => {});
   }, [isDeposit, groupBy]);
 
+  const getCategoryName = (r, allCats) => {
+    let cid = r.receive_category || r.expense_category || r.category_name || r.category || r.category_id;
+    if (cid && typeof cid === 'object') return nameOf(cid);
+    
+    if (cid) {
+      const found = allCats.find(c => String(c.id) === String(cid) || String(c.uuid) === String(cid) || c.name === cid);
+      if (found) return found.name;
+      return String(cid);
+    }
+
+    const typeStr = r.transaction_type || r.type || '';
+    if (typeStr) {
+       const foundType = allCats.find(c => c.name?.toLowerCase() === typeStr.toLowerCase());
+       if (foundType) return foundType.name;
+    }
+
+    if (allCats && allCats.length > 0) {
+      for (const k of Object.keys(r)) {
+         const val = r[k];
+         if (val && typeof val !== 'object') {
+            const found = allCats.find(c => String(c.id) === String(val) || String(c.uuid) === String(val));
+            if (found) return found.name;
+         } else if (val && typeof val === 'object') {
+            const found = allCats.find(c => String(c.id) === String(val.id) || c.name === val.name);
+            if (found) return found.name;
+         }
+      }
+    }
+    
+    return nameOf(cid, 'General');
+  };
+
   const load = async (f = { search, category, party, fromDate, toDate, page: currentPage, page_size: entries }) => {
     try {
       setLoading(true);
@@ -73,13 +105,62 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
 
       const res = isDeposit ? await accountingService.getDepositReport(filters) : await accountingService.getExpenseReport(filters);
       let list = toList(res);
+      
+      // Workaround: Backend deposit report is missing client info, but getReceives has it.
+      if (isDeposit) {
+        try {
+          const rRes = await accountingService.getReceives(filters);
+          const receives = toList(rRes);
+          if (receives.length > 0) {
+            list = list.map(r => {
+              const match = receives.find(rc => 
+                (rc.id && rc.id === r.id) || 
+                (rc.voucher_no && rc.voucher_no === r.voucher_no) || 
+                (rc.invoice_id && rc.invoice_id === r.invoice_id) ||
+                (rc.reference && rc.reference === r.reference) ||
+                (rc.invoice_number && rc.invoice_number === (r.invoice_id || r.invoice_number))
+              );
+              if (match) {
+                return { 
+                  ...r, 
+                  client: match.client || r.client,
+                  client_id: match.client_id || r.client_id,
+                  client_name: match.client_name || r.client_name,
+                  client_phone: match.client_phone || r.client_phone,
+                  client_address: match.client_address || r.client_address
+                };
+              }
+              return r;
+            });
+          }
+        } catch (e) {
+          console.error("Failed to fetch receives for client info merge", e);
+        }
+      }
+
+      // Client-side fallback filtering (only for category and party if backend misses them)
+      if (f.category) {
+        const selectedCat = categories.find(c => String(c.id) === String(f.category) || String(c.uuid) === String(f.category));
+        const selectedCatName = selectedCat ? selectedCat.name : f.category;
+        
+        list = list.filter(r => {
+           const c1 = String(r.category_id || r.category || r.receive_category || r.expense_category);
+           if (c1 === String(f.category)) return true;
+           if (getCategoryName(r, categories) === selectedCatName) return true;
+           return false;
+        });
+      }
+      if (f.party) {
+        if (groupBy === 'client') list = list.filter(r => String(r.client_id || r.client) === String(f.party));
+        if (groupBy === 'supplier') list = list.filter(r => String(r.supplier_id || r.supplier) === String(f.party));
+      }
+      
       setTotalCount(res?.count || list.length);
       
       if (groupBy === 'supplier') {
-        // supplier payment report: keep rows that belong to a supplier
         const supplierRows = list.filter((r) => r.supplier || r.supplier_id || r.supplier_name || /supplier|purchase/i.test(r.transaction_type || ''));
         if (supplierRows.length) list = supplierRows;
-        setTotalCount(list.length); // Update total count if filtered client-side
+        setTotalCount(list.length);
       }
       setRows(list);
     } catch (e) {
@@ -89,7 +170,7 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
     }
   };
 
-  useEffect(() => { load(); }, [currentPage, entries]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { load(); }, [currentPage, entries, allClients, categories]);
 
   const reset = () => {
     setSearch(''); setCategory(''); setParty(''); setFromDate(''); setToDate(''); setCurrentPage(1);
@@ -98,15 +179,64 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
 
   const partyName = (r) => {
     if (isDeposit) {
-      const c = r.client_name || r.client?.name || r.client?.company_name || allClients.find(x => x.id === r.client)?.name || allClients.find(x => x.id === r.client)?.company_name;
-      return c ? nameOf(c) : 'Walk-in';
+      let clientObj = null;
+      let cId = r.client_id || r.client;
+      
+      // Fallback: Check if it's inside an invoice object
+      if (!cId && r.invoice && typeof r.invoice === 'object') {
+        cId = r.invoice.client || r.invoice.client_id;
+      }
+      if (!cId && r.sale_invoice && typeof r.sale_invoice === 'object') {
+        cId = r.sale_invoice.client || r.sale_invoice.client_id;
+      }
+      if (!cId && r.sale && typeof r.sale === 'object') {
+        cId = r.sale.client || r.sale.client_id;
+      }
+
+      if (cId) {
+        clientObj = (typeof cId === 'object') ? cId : allClients.find(x => String(x.id) === String(cId) || String(x.uuid) === String(cId));
+      }
+      
+      let cName = r.client_name || clientObj?.name || clientObj?.company_name || clientObj?.client_name;
+      if (!cName && r.invoice && typeof r.invoice === 'object') cName = r.invoice.client_name;
+      if (!cName && r.sale_invoice && typeof r.sale_invoice === 'object') cName = r.sale_invoice.client_name;
+      if (!cName) cName = r.source || r.party_name || '-';
+
+      let cPhone = r.client_phone || r.phone || clientObj?.phone || clientObj?.mobile;
+      if (!cPhone && r.invoice && typeof r.invoice === 'object') cPhone = r.invoice.client_phone || r.invoice.phone;
+      if (!cPhone && r.sale_invoice && typeof r.sale_invoice === 'object') cPhone = r.sale_invoice.client_phone || r.sale_invoice.phone;
+      cPhone = cPhone || '';
+
+      let cAddress = r.client_address || r.address || clientObj?.address;
+      if (!cAddress && r.invoice && typeof r.invoice === 'object') cAddress = r.invoice.client_address || r.invoice.address;
+      if (!cAddress && r.sale_invoice && typeof r.sale_invoice === 'object') cAddress = r.sale_invoice.client_address || r.sale_invoice.address;
+      cAddress = cAddress || '';
+      
+      let parts = [];
+      if (cName && cName !== '-') parts.push(cName);
+      if (cPhone) parts.push(cPhone);
+      if (cAddress) parts.push(cAddress);
+      
+      return parts.length > 0 ? parts.join(' | ') : 'Walk-in';
     } else {
-      const sp = r.supplier_name || r.supplier?.name || allSuppliers.find(x => x.id === r.supplier)?.name || allSuppliers.find(x => x.id === r.supplier)?.company_name;
-      const st = r.staff_name || r.staff?.name || r.staff?.full_name || allStaff.find(x => x.id === r.staff)?.full_name || allStaff.find(x => x.id === r.staff)?.user_details?.full_name;
+      let spObj = null;
+      const sId = r.supplier_id || r.supplier;
+      if (sId) {
+        spObj = (typeof sId === 'object') ? sId : allSuppliers.find(x => String(x.id) === String(sId) || String(x.uuid) === String(sId));
+      }
+      const sp = r.supplier_name || spObj?.name || spObj?.company_name;
+      
+      let stObj = null;
+      const stId = r.staff_id || r.staff;
+      if (stId) {
+        stObj = (typeof stId === 'object') ? stId : allStaff.find(x => String(x.id) === String(stId) || String(x.uuid) === String(stId));
+      }
+      const st = r.staff_name || stObj?.name || stObj?.full_name || stObj?.user_details?.full_name;
+      
       return sp ? nameOf(sp) : (st ? nameOf(st) : '-');
     }
   };
-  const categoryName = (r) => nameOf(r.receive_category || r.expense_category || r.category_name || r.category || r.category_id, 'General');
+  const categoryName = (r) => getCategoryName(r, categories);
   const accountName = (r) => {
     const act = r.account_name || r.account?.name || r.account || r.account_id;
     if (typeof act === 'string' && act.length > 20) {
@@ -126,7 +256,7 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
       map[key].total += Number(r.amount || 0);
     });
     return Object.values(map).sort((a, b) => b.total - a.total);
-  }, [rows, groupBy]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [rows, groupBy, allClients]); 
 
   const total = rows.reduce((s, r) => s + Number(r.amount || 0), 0);
   const visible = rows;

@@ -12,9 +12,17 @@ const SmsCustomer = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    crmService
-      .getClients()
-      .then((r) => setContacts(toList(r).map((c) => ({ id: c.id || c.uuid, name: c.name, phone: c.phone || c.mobile, group: c.group }))))
+    crmService.getClients({ page_size: 5000 })
+      .then((r) => setContacts(toList(r).map((c) => ({
+        id: c.id || c.uuid,
+        name: c.name,
+        phone: c.phone || c.mobile,
+        group: c.group,
+        address: c.address || c.client_address || (c.details && c.details.address) || '',
+        client_id: c.client_id || c.customer_id || c.code || '',
+        due: Number(c.due || c.current_due || c.total_due || c.balance || c.previous_due || 0),
+        due_date: c.due_date ? c.due_date.split('T')[0] : null
+      }))))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);

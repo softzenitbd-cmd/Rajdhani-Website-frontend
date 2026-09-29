@@ -18,6 +18,7 @@ const SalesGroupWise = () => {
   const [showReport, setShowReport] = useState(true);
   const [reports, setReports] = useState([]);
   const [groups, setGroups] = useState([]);
+  const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const [filters, setFilters] = useState({
@@ -32,6 +33,8 @@ const SalesGroupWise = () => {
       try {
         const res = await crmService.getClientGroups().catch(() => []);
         setGroups(Array.isArray(res) ? res : (res?.results || []));
+        const clientsRes = await crmService.getClients().catch(() => []);
+        setClients(Array.isArray(clientsRes) ? clientsRes : (clientsRes?.results || []));
       } catch (err) {
         console.error("Error fetching client groups:", err);
       }
@@ -57,6 +60,64 @@ const SalesGroupWise = () => {
   useEffect(() => {
     handleSearch();
   }, []);
+
+  const getVoucherNo = (row) => {
+    let v = row.invoice?.invoice_no || row.invoice_no || row.voucher_no || row.invoice?.voucher_no || row.invoice?.invoice_id || row.voucher || row.invoice_id || row.invoice?.id || row.id;
+    if (typeof v === 'string' && v.length > 20 && v.includes('-')) {
+       v = row.invoice?.voucher_no || row.voucher_no || v.split('-')[0];
+    }
+    return v || '-';
+  };
+
+  const groupedReports = [];
+  const invoiceGroups = {};
+  reports.forEach((row) => {
+    // If the API returned nested items, flatten them first or just group
+    // But assuming it's flat rows like daily sales
+    const v = getVoucherNo(row);
+    if (!invoiceGroups[v] || v === '-') {
+      const newGroup = {
+        voucher_no: v,
+        raw: row,
+        products: row.items ? row.items : [row], // handle if backend already grouped
+        total: Number(row.total || row.total_amount || 0),
+        dis: Number(row.discount || row.dis || 0),
+        grandTotal: Number(row.grandTotal || row.grand_total || row.total || 0),
+        receive: Number(row.receiveAmount || row.receive_amount || row.receive || 0),
+        due: Number(row.dueAmount || row.due_amount || row.due || 0)
+      };
+      if (v !== '-') invoiceGroups[v] = newGroup;
+      groupedReports.push(newGroup);
+    } else {
+      if (row.items) {
+        invoiceGroups[v].products.push(...row.items);
+      } else {
+        invoiceGroups[v].products.push(row);
+      }
+      invoiceGroups[v].total += Number(row.total || row.total_amount || 0);
+      invoiceGroups[v].dis += Number(row.discount || row.dis || 0);
+      invoiceGroups[v].grandTotal += Number(row.grandTotal || row.grand_total || row.total || 0);
+    }
+  });
+
+  const calculateTotals = () => {
+    return groupedReports.reduce((acc, group) => {
+      let groupQty = 0;
+      group.products.forEach(p => {
+        groupQty += Number(p.qty || p.quantity || 0);
+      });
+      return {
+        qty: acc.qty + groupQty,
+        total: acc.total + group.total,
+        dis: acc.dis + group.dis,
+        grandTotal: acc.grandTotal + group.grandTotal,
+        receive: acc.receive + group.receive,
+        due: acc.due + group.due
+      };
+    }, { qty: 0, total: 0, dis: 0, grandTotal: 0, receive: 0, due: 0 });
+  };
+
+  const totals = calculateTotals();
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
@@ -125,7 +186,7 @@ const SalesGroupWise = () => {
             {/* Controls */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{ fontSize: 'var(--fs-12, 12px)', color: 'var(--text-muted)' }}>
-                {t("Showing")} {reports.length} {t("entries")}
+                {t("Showing")} {groupedReports.length} {t("entries")}
               </div>
               
               <div style={{ display: 'flex', gap: '2px' }}>
@@ -146,6 +207,7 @@ const SalesGroupWise = () => {
                     <th style={{ width: '40px', padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("SL ⇅")}</th>
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("ISSUED DATE ⇅")}</th>
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("VOUCHER NO ⇅")}</th>
+                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("CLIENT ⇅")}</th>
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', minWidth: '150px', fontWeight: '600' }}>{t("PRODUCT ⇅")}</th>
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("UNIT ⇅")}</th>
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("QUANTITY ⇅")}</th>
@@ -153,22 +215,23 @@ const SalesGroupWise = () => {
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("TOTAL ⇅")}</th>
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("DISCOUNT ⇅")}</th>
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("GRAND TOTAL ⇅")}</th>
-                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("RECEIVE AMOUNT ⇅")}</th>
-                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("DUE AMOUNT ⇅")}</th>
+                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("RECEIVE ⇅")}</th>
+                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("DUE ⇅")}</th>
                   </tr>
                 </thead>
                 <tbody style={{ background: '#f8fafc' }}>
                   {loading ? (
                     <tr>
-                      <td colSpan="12" style={{ padding: '24px', textAlign: 'center' }}>{t("Loading report...")}</td>
+                      <td colSpan="13" style={{ padding: '24px', textAlign: 'center' }}>{t("Loading report...")}</td>
                     </tr>
-                  ) : reports.length === 0 ? (
+                  ) : groupedReports.length === 0 ? (
                     <tr>
-                      <td colSpan="12" style={{ padding: '24px', textAlign: 'center' }}>{t("No records found.")}</td>
+                      <td colSpan="13" style={{ padding: '24px', textAlign: 'center' }}>{t("No records found.")}</td>
                     </tr>
                   ) : (
-                    reports.map((row, index) => {
-                      const items = row.items || [{ product: row.product_name || row.product || '-', unit: row.unit_name || row.unit || 'PEACE', qty: row.qty || 1, price: row.price || 0 }];
+                    groupedReports.map((group, index) => {
+                      const row = group.raw;
+                      const items = group.products;
                       return (
                         <tr key={row.id || index}>
                           <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{index + 1}</td>
@@ -182,54 +245,74 @@ const SalesGroupWise = () => {
           return dt.getDate() + ' ' + months[dt.getMonth()] + ' ' + dt.getFullYear();
         } catch(e) { return d; }
       })()}</td>
-                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{(() => {
-        let v = row.invoice?.invoice_id || row.invoice?.id || row.invoice_no || row.voucher || row.invoice_id;
-        if (typeof v === 'string' && v.length > 20 && v.includes('-')) {
-           v = row.invoice?.voucher_no || row.voucher_no || '-';
-        }
-        return v || '-';
-      })()}</td>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{group.voucher_no}</td>
                           
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>
+                            <div>{(() => {
+                              const cName = row.client_name || row.client?.client_name || row.client || '-';
+                              const cPhone = row.client_phone || row.phone || row.client?.phone || row.client?.mobile || row.invoice?.client?.phone || (clients.find(c => String(c.id || c.uuid) === String(row.client_id))?.phone) || (clients.find(c => (c.name || c.company_name) === (row.client_name || row.client))?.phone) || '';
+                              const cAddress = row.client_address || row.address || row.client?.address || row.invoice?.client?.address || (clients.find(c => String(c.id || c.uuid) === String(row.client_id))?.address) || (clients.find(c => (c.name || c.company_name) === (row.client_name || row.client))?.address) || '';
+                              
+                              let parts = [];
+                              if (cName && cName !== '-') parts.push(cName);
+                              if (cPhone) parts.push(cPhone);
+                              if (cAddress) parts.push(cAddress);
+                              
+                              return parts.length > 0 ? parts.join(' | ') : '-';
+                            })()}</div>
+                          </td>
+
                           {/* Nested columns for items */}
                           <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                               {items.map((item, idx) => (
-                                <div key={idx} style={{ padding: '6px', borderBottom: '1px solid #94a3b8', flex: 1, minHeight: '26px' }}>{item.product}</div>
+                                <div key={idx} style={{ padding: '6px', borderBottom: idx < items.length - 1 ? '1px solid #94a3b8' : 'none', flex: 1, minHeight: '26px' }}>{item.product_name || item.product || '-'}</div>
                               ))}
                             </div>
                           </td>
                           <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                               {items.map((item, idx) => (
-                                <div key={idx} style={{ padding: '6px', borderBottom: '1px solid #94a3b8', flex: 1, minHeight: '26px' }}>{item.unit}</div>
+                                <div key={idx} style={{ padding: '6px', borderBottom: idx < items.length - 1 ? '1px solid #94a3b8' : 'none', flex: 1, minHeight: '26px' }}>{item.unit_name || item.unit || 'PEACE'}</div>
                               ))}
                             </div>
                           </td>
                           <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                               {items.map((item, idx) => (
-                                <div key={idx} style={{ padding: '6px', borderBottom: '1px solid #94a3b8', flex: 1, minHeight: '26px' }}>{item.qty}</div>
+                                <div key={idx} style={{ padding: '6px', borderBottom: idx < items.length - 1 ? '1px solid #94a3b8' : 'none', flex: 1, minHeight: '26px' }}>{item.qty || item.quantity || 1}</div>
                               ))}
                             </div>
                           </td>
                           <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                               {items.map((item, idx) => (
-                                <div key={idx} style={{ padding: '6px', borderBottom: '1px solid #94a3b8', flex: 1, minHeight: '26px' }}>{Number(item.price).toFixed(2)}</div>
+                                <div key={idx} style={{ padding: '6px', borderBottom: idx < items.length - 1 ? '1px solid #94a3b8' : 'none', flex: 1, minHeight: '26px' }}>{Number(item.price || item.unit_price || 0).toFixed(2)}</div>
                               ))}
                             </div>
                           </td>
 
                           {/* Totals side */}
-                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{Number(row.total || row.total_amount || 0).toFixed(2)}</td>
-                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{Number(row.discount || 0).toFixed(2)}</td>
-                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{Number(row.grandTotal || row.grand_total || row.total || 0).toFixed(2)}</td>
-                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{Number(row.receiveAmount || row.receive_amount || row.receive || 0).toFixed(2)}</td>
-                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{Number(row.dueAmount || row.due_amount || row.due || 0).toFixed(2)}</td>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{group.total.toFixed(2)}</td>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{group.dis.toFixed(2)}</td>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{group.grandTotal.toFixed(2)}</td>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{group.receive.toFixed(2)}</td>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{group.due.toFixed(2)}</td>
                         </tr>
                       );
                     })
                   )}
+                  {/* Total Row */}
+                  <tr style={{ fontWeight: 'bold', background: '#f8fafc' }}>
+                    <td colSpan="6" style={{ padding: '12px', textAlign: 'center', border: '1px solid #94a3b8' }}>{t('common.total')}</td>
+                    <td style={{ padding: '12px', border: '1px solid #94a3b8' }}>{totals.qty}</td>
+                    <td style={{ padding: '12px', border: '1px solid #94a3b8' }}>-</td>
+                    <td style={{ padding: '12px', border: '1px solid #94a3b8' }}>৳{totals.total.toFixed(2)}</td>
+                    <td style={{ padding: '12px', border: '1px solid #94a3b8' }}>৳{totals.dis.toFixed(2)}</td>
+                    <td style={{ padding: '12px', border: '1px solid #94a3b8' }}>৳{totals.grandTotal.toFixed(2)}</td>
+                    <td style={{ padding: '12px', border: '1px solid #94a3b8' }}>৳{totals.receive.toFixed(2)}</td>
+                    <td style={{ padding: '12px', border: '1px solid #94a3b8' }}>৳{totals.due.toFixed(2)}</td>
+                  </tr>
                 </tbody>
               </table>
             </div>

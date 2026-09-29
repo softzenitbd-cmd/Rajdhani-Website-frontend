@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { RotateCcw, RefreshCw, FileSpreadsheet, Printer } from 'lucide-react';
+import { RotateCcw, RefreshCw, FileSpreadsheet, Printer , Share2} from 'lucide-react';
+import { shareAsPDF } from '../../utils/pdfShare';
 import { productService } from '../../services/productService';
 import { useToast } from '../../context/ToastContext';
 import CustomDatePicker from '../../components/CustomDatePicker';
@@ -74,6 +75,7 @@ const ProductStockList = () => {
       const [stockRes, groupsRes, prodsRes] = await Promise.all([
         productService.getStockReport({ 
           group_id: filters.group, 
+            product_id: filters.productId, 
           barcode: filters.barcode,
           search: filters.searchAll,
           from_date: filters.fromDate,
@@ -82,7 +84,7 @@ const ProductStockList = () => {
           page_size: entries
         }),
         productService.groups.getAll().catch(() => null),
-        productService.getProducts().catch(() => null)
+        productService.getProducts({ search: filters.searchAll, barcode: filters.barcode, page_size: 500 }).catch(() => null)
       ]);
 
       const list = Array.isArray(stockRes) ? stockRes : (stockRes?.results || stockRes?.data || []);
@@ -128,6 +130,7 @@ const ProductStockList = () => {
           buyPrice: buy.toFixed(2),
           sellPrice: sell.toFixed(2),
           group: item.group_name || matchedProd?.group_name || '',
+          groupId: item.group_id || matchedProd?.group_id || item.group || matchedProd?.group || '',
           opening: parseFloat(item.opening_stock ?? matchedProd?.opening_stock ?? 0).toFixed(2),
           buyQty: parseFloat(item.buy_qty || item.purchased_qty || 0).toFixed(2),
           saleQty: parseFloat(item.sale_qty || item.sold_qty || 0).toFixed(2),
@@ -177,7 +180,62 @@ const ProductStockList = () => {
     });
   };
 
-  const displayedStocks = stocks;
+  
+const formatToDDMMYYYY = (dateStr) => {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) {
+        const parts = String(dateStr).split('T')[0].split('-');
+        if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        return String(dateStr).split('T')[0];
+    }
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+};
+
+  
+  const displayedStocks = stocks.filter(stock => {
+    let match = true;
+    if (filters.searchAll) {
+      const q = filters.searchAll.toLowerCase();
+      match = match && (
+        (stock.product && String(stock.product).toLowerCase().includes(q)) ||
+        (stock.group && String(stock.group).toLowerCase().includes(q))
+      );
+    }
+    if (filters.group) {
+      // Find the group name for the selected group ID
+      const selectedGroup = groups.find(g => String(g.id) === String(filters.group));
+      const groupName = selectedGroup ? selectedGroup.name : filters.group;
+      
+      match = match && (
+        String(stock.groupId) === String(filters.group) || 
+        String(stock.group) === String(groupName) ||
+        String(stock.group) === String(filters.group)
+      );
+    }
+    if (filters.productId) {
+      match = match && String(stock.productId) === String(filters.productId);
+    }
+    if (filters.barcode) {
+      match = match && (stock.barcode && String(stock.barcode).includes(filters.barcode));
+    }
+    if (filters.fromDate) {
+       const fd = new Date(filters.fromDate);
+       const sd = new Date(stock.date);
+       if (!isNaN(fd) && !isNaN(sd)) match = match && sd >= fd;
+    }
+    if (filters.toDate) {
+       const td = new Date(filters.toDate);
+       td.setDate(td.getDate() + 1);
+       const sd = new Date(stock.date);
+       if (!isNaN(td) && !isNaN(sd)) match = match && sd < td;
+    }
+    return match;
+  });
+
 
   useEffect(() => {
     setCurrentPage(1);
@@ -208,7 +266,7 @@ const ProductStockList = () => {
 
       <div className="card-body" style={{ padding: '0 24px' }}>
         {/* Filters */}
-        <div className="no-print" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr 1fr', gap: '16px', marginBottom: '20px' }}>
+        <div className="no-print" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '16px', marginBottom: '20px' }}>
           <div>
             <input 
               type="text" 
@@ -226,22 +284,11 @@ const ProductStockList = () => {
             >
               <option value="">{t("Select Product Group")}</option>
               {groups.map(g => (
-                <option key={g.id} value={g.name || g.id}>{g.name}</option>
+                <option key={g.id} value={g.id}>{g.name}</option>
               ))}
             </select>
           </div>
-          <div>
-            <select 
-              value={filters.productId} 
-              onChange={(e) => handleFilterChange('productId', e.target.value)}
-              style={{ width: '100%', padding: '12px 14px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', background: 'white', fontSize: 'var(--fs-13, 13px)' }}
-            >
-              <option value="">{t("Select Product")}</option>
-              {productsList.map(p => (
-                <option key={p.id} value={String(p.id)}>{p.name}</option>
-              ))}
-            </select>
-          </div>
+          
           <div>
             <input 
               type="text" 
@@ -296,6 +343,19 @@ const ProductStockList = () => {
             <button onClick={() => window.print()} className="btn" style={{ background: '#4F46E5', color: 'white', padding: '6px 14px', fontSize: 'var(--fs-13, 13px)', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
               <Printer size={15} /> {t("Print")}
             </button>
+              <button onClick={async () => {
+                  const btn = document.activeElement;
+                  if(btn) btn.disabled = true;
+                  try {
+                    await shareAsPDF('.dashboard-content', 'Stock_List.pdf', 'Stock List');
+                  } finally {
+                    if(btn) btn.disabled = false;
+                  }
+                }} 
+                className="btn" style={{ background: '#3b82f6', color: 'white', padding: '6px 14px', fontSize: 'var(--fs-13, 13px)', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
+                <Share2 size={15} /> {t("Share")}
+              </button>
+
             <button onClick={clearFilters} className="btn" style={{ background: '#64748b', color: 'white', padding: '6px 14px', fontSize: 'var(--fs-13, 13px)', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
               <RotateCcw size={15} /> {t("Reset")}
             </button>
@@ -335,7 +395,7 @@ const ProductStockList = () => {
                 displayedStocks.map((stock, index) => (
                   <tr key={stock.id || index} style={{ background: index % 2 === 0 ? 'white' : '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-13, 13px)' }}>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', fontWeight: 'bold' }}>{index + 1}</td>
-                    <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', fontSize: 'var(--fs-12, 12px)' }}>{fmtDate(stock.date)}</td>
+                    <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', fontSize: 'var(--fs-12, 12px)' }}>{stock.date}</td>
                     <td style={{ textAlign: 'left', padding: '10px 12px', borderRight: '1px solid #e2e8f0' }}>
                       <div style={{ fontWeight: '700', color: '#1e293b' }}>{stock.product}</div>
                       <div style={{ fontSize: 'var(--fs-11, 11px)', color: '#64748b', marginTop: '2px' }}>{t("Buy Price:")} {stock.buyPrice} {t("| Sell Price:")} {stock.sellPrice}</div>

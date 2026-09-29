@@ -32,7 +32,7 @@ const StaffPaymentCreate = () => {
     account: '',
     category: '',
     amount: '',
-    payment_type: 'Salary',
+    payment_type: 'Monthly Salary',
     description: '',
   });
 
@@ -43,9 +43,26 @@ const StaffPaymentCreate = () => {
         accountingService.getAccounts(),
         accountingService.getExpenseCategories(),
       ]);
-      setStaff(toList(s));
-      setAccounts(toList(a));
-      setCategories(toList(c));
+      
+      const accountsList = toList(a);
+      const categoriesList = toList(c);
+      
+      setStaff(toList(s).filter(st => st.status !== 'inactive' && st.status !== 0 && st.status !== false));
+      setAccounts(accountsList);
+      setCategories(categoriesList);
+
+      setForm((prev) => {
+        let next = { ...prev };
+        if (!next.account) {
+          const defaultAcc = accountsList.find(acc => acc.name && acc.name.toUpperCase().includes('TOTAL'));
+          if (defaultAcc) next.account = defaultAcc.id || defaultAcc.uuid;
+        }
+        if (!next.category) {
+          const defaultCat = categoriesList.find(cat => cat.name && (cat.name.toUpperCase().includes('STAF') || cat.name.toUpperCase().includes('STAFF')));
+          if (defaultCat) next.category = defaultCat.id || defaultCat.uuid;
+        }
+        return next;
+      });
     } catch (e) {
       toast.error(e.message || t("Failed to load form data"));
     }
@@ -136,9 +153,10 @@ const StaffPaymentCreate = () => {
               />
               {selectedStaff && (
                 <div style={{ fontSize: 'var(--fs-13, 13px)', color: '#0f172a', marginTop: '8px', fontWeight: '600', padding: '8px', background: '#f8fafc', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ marginBottom: '4px' }}>{t("Monthly Salary")}: ৳ {money(selectedStaff.basic_salary || selectedStaff.salary || 0)}</div>
-                  <div style={{ color: Number(selectedStaff.basic_salary || selectedStaff.salary || 0) - Number(form.amount || 0) < 0 ? '#ef4444' : '#10b981' }}>
-                    {t("Monthly Due")}: ৳ {money(Number(selectedStaff.basic_salary || selectedStaff.salary || 0) - Number(form.amount || 0))}
+                  <div style={{ marginBottom: '4px' }}>{t("Monthly Salary")}: ৳ {money(selectedStaff.monthly_salary || selectedStaff.basic_salary || selectedStaff.salary || 0)}</div>
+                  <div style={{ marginBottom: '4px' }}>{t("Weekly Salary")}: ৳ {money(selectedStaff.weekly_salary || 0)}</div>
+                  <div style={{ color: Number(selectedStaff.monthly_salary || selectedStaff.basic_salary || selectedStaff.salary || 0) - Number(form.amount || 0) < 0 ? '#ef4444' : '#10b981' }}>
+                    {t("Monthly Due")}: ৳ {money(Number(selectedStaff.monthly_salary || selectedStaff.basic_salary || selectedStaff.salary || 0) - Number(form.amount || 0))}
                   </div>
                 </div>
               )}
@@ -146,7 +164,7 @@ const StaffPaymentCreate = () => {
             <div>
               <label style={labelStyle}>{t("Payment Type")}</label>
               <select value={form.payment_type} onChange={(e) => set('payment_type', e.target.value)} style={inputStyle}>
-                {['Salary', 'Advance', 'Bonus', 'Overtime', 'Other'].map((t) => <option key={t} value={t}>{t}</option>)}
+                {['Monthly Salary', 'Weekly Salary', 'Advance', 'Bonus', 'Overtime', 'Other'].map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>

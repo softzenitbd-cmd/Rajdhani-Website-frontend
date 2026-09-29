@@ -25,7 +25,7 @@ const StaffMonthlyAttendanceReport = () => {
   const [searched, setSearched] = useState(false);
 
   useEffect(() => {
-    staffApi.getStaffList().then((r) => setStaff(toList(r))).catch(() => {});
+    staffApi.getStaffList().then((r) => setStaff(toList(r).filter(st => st.status !== 'inactive' && st.status !== 0 && st.status !== false))).catch(() => {});
   }, []);
 
   const load = async () => {

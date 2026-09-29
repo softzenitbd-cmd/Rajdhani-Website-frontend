@@ -25,6 +25,7 @@ const StaffSalaryCreate = () => {
   const confirm = useConfirm();
   const now = new Date();
 
+  const [salaryType, setSalaryType] = useState('Monthly');
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
   const [date, setDate] = useState(today());
@@ -41,18 +42,14 @@ const StaffSalaryCreate = () => {
     (async () => {
       try {
         const [s, a, c] = await Promise.all([staffApi.getStaffList(), accountingService.getAccounts(), accountingService.getExpenseCategories()]);
-        const list = toList(s);
+        const list = toList(s).filter(st => st.status !== 'inactive' && st.status !== 0 && st.status !== false);
         setStaff(list);
         setAccounts(toList(a));
         const cats = toList(c);
         setCategories(cats);
         const salaryCat = cats.find((x) => /salary|staff/i.test(x.name || ''));
         if (salaryCat) setCategory(salaryCat.id || salaryCat.uuid);
-        const init = {};
-        list.forEach((st) => {
-          init[st.id || st.uuid] = { checked: Number(st.basic_salary ?? st.salary ?? 0) > 0, amount: st.basic_salary ?? st.salary ?? '', note: '' };
-        });
-        setSheet(init);
+        
       } catch (e) {
         toast.error(e.message || t("Failed to load data"));
       } finally {
@@ -60,6 +57,22 @@ const StaffSalaryCreate = () => {
       }
     })();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  
+  useEffect(() => {
+    if (staff.length === 0) return;
+    const init = {};
+    staff.forEach((st) => {
+      let amt = 0;
+      if (salaryType === 'Weekly') {
+        amt = st.weekly_salary ?? 0;
+      } else {
+        amt = st.monthly_salary ?? st.basic_salary ?? st.salary ?? 0;
+      }
+      init[st.id || st.uuid] = { checked: Number(amt) > 0, amount: amt || '', note: '' };
+    });
+    setSheet(init);
+  }, [salaryType, staff]);
 
   const update = (id, k, v) => setSheet((p) => ({ ...p, [id]: { ...p[id], [k]: v } }));
   const toggleAll = (checked) => setSheet((p) => { const n = {}; Object.keys(p).forEach((k) => { n[k] = { ...p[k], checked }; }); return n; });
@@ -75,7 +88,7 @@ const StaffSalaryCreate = () => {
     const isConfirmed = await confirm(t("Pay salary to {{v0}} staff, total ৳ {{v1}}?", { v0: selectedRows.length, v1: money(total) }));
     if (!isConfirmed) return;
 
-    const label = `Salary ${MONTHS[month - 1]} ${year}`;
+    const label = salaryType === 'Weekly' ? `Weekly Salary ${date}` : `Salary ${MONTHS[month - 1]} ${year}`;
     try {
       setSaving(true);
       const results = await Promise.allSettled(
@@ -126,17 +139,28 @@ const StaffSalaryCreate = () => {
 
           <div className="no-print" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '24px' }}>
             <div>
-              <label style={labelStyle}>{t("Salary Month")}</label>
-              <select value={month} onChange={(e) => setMonth(Number(e.target.value))} style={inputStyle}>
-                {MONTHS.map((m, i) => <option key={m} value={i + 1}>{t(m)}</option>)}
+              <label style={labelStyle}>{t("Salary Type")}</label>
+              <select value={salaryType} onChange={(e) => setSalaryType(e.target.value)} style={inputStyle}>
+                <option value="Monthly">{t("Monthly")}</option>
+                <option value="Weekly">{t("Weekly")}</option>
               </select>
             </div>
-            <div>
-              <label style={labelStyle}>{t("Year")}</label>
-              <select value={year} onChange={(e) => setYear(Number(e.target.value))} style={inputStyle}>
-                {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
-              </select>
-            </div>
+            {salaryType === 'Monthly' && (
+              <>
+                <div>
+                  <label style={labelStyle}>{t("Salary Month")}</label>
+                  <select value={month} onChange={(e) => setMonth(Number(e.target.value))} style={inputStyle}>
+                    {MONTHS.map((m, i) => <option key={m} value={i + 1}>{t(m)}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={labelStyle}>{t("Year")}</label>
+                  <select value={year} onChange={(e) => setYear(Number(e.target.value))} style={inputStyle}>
+                    {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
+                  </select>
+                </div>
+              </>
+            )}
             <div>
               <label style={labelStyle}>{t("Payment Date")}</label>
               <CustomDatePicker  value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle} />
@@ -162,7 +186,7 @@ const StaffSalaryCreate = () => {
               <thead>
                 <tr style={{ background: '#94a3b8', color: 'white', textAlign: 'left', textTransform: 'uppercase', fontSize: 'var(--fs-12, 12px)' }}>
                   <th style={{ ...cell, width: '40px', textAlign: 'center' }}>
-                    <input type="checkbox" checked={staff.length > 0 && selectedRows.length === staff.filter((s) => Number(sheet[s.id || s.uuid]?.amount) > 0).length} onChange={(e) => toggleAll(e.target.checked)} />
+                    <input type="checkbox" checked={staff.length > 0 && staff.every((s) => sheet[s.id || s.uuid]?.checked)} onChange={(e) => toggleAll(e.target.checked)} />
                   </th>
                   <th style={cell}>{t("STAFF")}</th>
                   <th style={cell}>{t("DESIGNATION")}</th>

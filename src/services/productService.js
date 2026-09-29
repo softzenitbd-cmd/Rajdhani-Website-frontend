@@ -229,6 +229,7 @@ export const productService = {
   getStockReport: async (filters = {}) => {
     const params = {};
     if (filters.group_id) params.group_id = filters.group_id;
+      if (filters.product_id) params.product_id = filters.product_id;
     if (filters.brand_id) params.brand_id = filters.brand_id;
     if (filters.barcode) params.barcode = filters.barcode;
     if (filters.page) params.page = filters.page;

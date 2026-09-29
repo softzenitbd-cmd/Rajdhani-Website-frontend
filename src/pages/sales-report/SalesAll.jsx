@@ -72,7 +72,10 @@ const SalesAll = () => {
     });
   };
 
+  const totalQty = reports.reduce((sum, item) => sum + Number(item.product_qty ?? item.qty ?? 0), 0);
   const totalSalesAmount = reports.reduce((sum, item) => sum + Number(item.amount || item.total || 0), 0);
+  const totalReceive = reports.reduce((sum, item) => sum + Number(item.invoice?.receive_amount || item.receive || 0), 0);
+  const totalProfit = reports.reduce((sum, item) => sum + Number(item.profit || 0), 0);
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
@@ -162,7 +165,10 @@ const SalesAll = () => {
                   <tr key={row.id || idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
                     <td style={{ padding: '6px 4px', textAlign: 'center' }}>{idx + 1}</td>
                     <td style={{ padding: '6px 4px', textAlign: 'center' }}>{fmtDate(row.date || row.issued_date)}</td>
-                    <td style={{ padding: '6px 4px', textAlign: 'center' }}>{row.client_name || row.client?.client_name || '-'}</td>
+                    <td style={{ padding: '6px 4px', textAlign: 'center' }}>
+                        <div>{row.client_name || row.client?.client_name || '-'}</div>
+                        <div style={{ fontSize: 'var(--fs-9, 9px)', color: '#64748b' }}>{row.client_phone || row.phone || row.client?.phone || row.client?.mobile || row.invoice?.client?.phone || (clients.find(c => String(c.id || c.uuid) === String(row.client_id))?.phone) || (clients.find(c => (c.name || c.company_name) === (row.client_name || row.client))?.phone) || '-'}</div>
+                      </td>
                     <td style={{ padding: '6px 4px', textAlign: 'center', fontWeight: '500' }}>{row.products || row.product || '-'}</td>
                     <td style={{ padding: '6px 4px', textAlign: 'center', color: '#64748b' }}>{row.barcode || '-'}</td>
                     <td style={{ padding: '6px 4px', textAlign: 'center' }}>{row.product_qty ?? row.qty ?? 0}</td>
@@ -177,7 +183,17 @@ const SalesAll = () => {
                     <td colSpan="10" style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>{t("No sales report records found.")}</td>
                   </tr>
                 )}
-              </tbody>
+                            </tbody>
+              <tfoot>
+                <tr style={{ background: '#f8fafc', fontWeight: 'bold' }}>
+                  <td colSpan="5" style={{ padding: '10px 4px', textAlign: 'right' }}>{t("Total:")}</td>
+                  <td style={{ padding: '10px 4px', textAlign: 'center' }}>{totalQty}</td>
+                  <td style={{ padding: '10px 4px', textAlign: 'right' }}>-</td>
+                  <td style={{ padding: '10px 4px', textAlign: 'right', color: '#059669' }}>৳ {totalSalesAmount.toFixed(2)}</td>
+                  <td style={{ padding: '10px 4px', textAlign: 'right', color: '#059669' }}>৳ {totalReceive.toFixed(2)}</td>
+                  <td style={{ padding: '10px 4px', textAlign: 'right', color: '#2563eb' }}>৳ {totalProfit.toFixed(2)}</td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         </div>

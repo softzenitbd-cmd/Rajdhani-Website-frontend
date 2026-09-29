@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { RotateCcw, Trash2, Eye, Plus, RefreshCw, Edit } from 'lucide-react';
+import { RotateCcw, Trash2, Eye, Plus, RefreshCw, Edit, X, Share2} from 'lucide-react';
+import { shareAsPDF } from '../../utils/pdfShare';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { purchaseService } from '../../services/purchaseService';
 import { crmService } from '../../services/crmService';
@@ -274,7 +275,22 @@ const PurchaseList = () => {
             <button className="btn" style={{ background: '#3b82f6', color: 'white', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', border: 'none', borderRight: '1px solid rgba(255,255,255,0.2)' }}>
               PDF
             </button>
-            <button onClick={() => window.print()} className="btn" style={{ background: '#3b82f6', color: 'white', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', border: 'none', borderRight: '1px solid rgba(255,255,255,0.2)' }}>
+            <button 
+                  onClick={async () => {
+                  const btn = document.activeElement;
+                  if(btn) btn.disabled = true;
+                  try {
+                    await shareAsPDF('.modal-content', 'Purchase_Invoice.pdf', 'Purchase Invoice');
+                  } finally {
+                    if(btn) btn.disabled = false;
+                  }
+                }} 
+                  className="btn" 
+                  style={{ background: '#3b82f6', color: 'white', padding: '10px 24px', borderRadius: '6px', marginRight: '8px', fontWeight: '600', display: 'inline-flex', alignItems: 'center' }}
+                >
+                  <Share2 size={16} style={{ marginRight: '6px' }} /> {t("Share")}
+                </button>
+                <button onClick={() => window.print()} className="btn" style={{ background: '#3b82f6', color: 'white', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', border: 'none', borderRight: '1px solid rgba(255,255,255,0.2)' }}>
               Print
             </button>
             <button onClick={clearFilters} className="btn" style={{ background: '#3b82f6', color: 'white', padding: '6px 16px', fontSize: 'var(--fs-12, 12px)', border: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -342,14 +358,14 @@ const PurchaseList = () => {
         <div className="printable-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div className="printable-modal-content" style={{ background: 'white', width: '700px', maxWidth: '95vw', borderRadius: '12px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', maxHeight: '90vh', overflowY: 'auto' }}>
             
-            <PrintHeader />
+            <PrintHeader showOnScreen={true} />
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '2px solid #16a34a', paddingBottom: '12px' }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', color: '#0f172a' }}>{t("Purchase Invoice Memo")}</h3>
                 <span style={{ fontSize: 'var(--fs-13, 13px)', color: '#64748b', fontWeight: '600' }}>{t("Invoice #")}{selectedPurchase.invoice || selectedPurchase.invoiceNo || `PUR-${selectedPurchase.id}`}</span>
               </div>
-              <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#f1f5f9', padding: '6px 16px', borderRadius: '50%', cursor: 'pointer', color: '#64748b' }}>âœ•</button>
+              <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#f1f5f9', padding: '6px 16px', borderRadius: '50%', cursor: 'pointer', color: '#64748b' }}><X size={18} /></button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: 'var(--fs-13, 13px)', marginBottom: '20px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
@@ -409,8 +425,29 @@ const PurchaseList = () => {
             </div>
 
             <div className="no-print" style={{ textAlign: 'right', marginTop: '16px' }}>
-              <button onClick={() => window.print()} className="btn" style={{ background: 'var(--success)', color: 'white', padding: '10px 24px', borderRadius: '6px', marginRight: '8px', fontWeight: '600' }}>
-                {t("ðŸ–¨ï¸ Print Memo")}
+              <button 
+                  onClick={async () => {
+                    if (navigator.share) {
+                      try {
+                        await navigator.share({
+                          title: t("Purchase Invoice Memo"),
+                          text: t("Invoice #") + (selectedPurchase.invoice || selectedPurchase.invoiceNo || `PUR-${selectedPurchase.id}`),
+                          url: window.location.href,
+                        });
+                      } catch (err) {
+                        console.error("Error sharing:", err);
+                      }
+                    } else {
+                      alert(t("Sharing is not supported on this device/browser."));
+                    }
+                  }} 
+                  className="btn" 
+                  style={{ background: '#3b82f6', color: 'white', padding: '10px 24px', borderRadius: '6px', marginRight: '8px', fontWeight: '600', display: 'inline-flex', alignItems: 'center' }}
+                >
+                  <Share2 size={16} style={{ marginRight: '6px' }} /> {t("Share")}
+                </button>
+                <button onClick={() => window.print()} className="btn" style={{ background: 'var(--success)', color: 'white', padding: '10px 24px', borderRadius: '6px', marginRight: '8px', fontWeight: '600' }}>
+                {t("Print Memo")}
               </button>
               <button onClick={() => setShowViewModal(false)} className="btn" style={{ background: '#64748b', color: 'white', padding: '10px 20px', borderRadius: '6px' }}>
                 {t("Close")}

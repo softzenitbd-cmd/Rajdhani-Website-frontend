@@ -40,7 +40,7 @@ const DueSupplierWise = () => {
   const totalDue = data.reduce((sum, item) => sum + (parseFloat(item.due) || 0), 0);
   const excelData = rows.map((r, i) => ({
     SL: i + 1, Supplier: r.supplier_name, Address: r.address || '', Phone: r.phone || '', Group: r.group_name || '',
-    Purchase: Number(r.purchase_amount || 0), Payment: Number(r.payment || 0), Return: Number(r.return_amount || 0), Due: Number(r.due || 0),
+    Purchase: Number(r.purchase_amount || 0), Return: Number(r.return_amount || 0), Payment: Number(r.payment || 0), Due: Number(r.due || 0),
   }));
 
   return (
@@ -85,8 +85,8 @@ const DueSupplierWise = () => {
                   <th style={{ padding: '10px', textAlign: 'left' }}>{t("SUPPLIER INFO")}</th>
                   <th style={{ padding: '10px' }}>{t("GROUP")}</th>
                   <th style={{ padding: '10px' }}>{t("PURCHASE")}</th>
-                  <th style={{ padding: '10px' }}>{t("PAYMENT")}</th>
                   <th style={{ padding: '10px' }}>{t("RETURN")}</th>
+                  <th style={{ padding: '10px' }}>{t("PAYMENT")}</th>
                   <th style={{ padding: '10px' }}>{t("DUE")}</th>
                 </tr>
               </thead>
@@ -105,8 +105,8 @@ const DueSupplierWise = () => {
                     </td>
                     <td style={{ padding: '8px 4px' }}>{row.group_name || '-'}</td>
                     <td style={{ padding: '8px 4px' }}>{money(row.purchase_amount)}</td>
-                    <td style={{ padding: '8px 4px', color: '#059669' }}>{money(row.payment)}</td>
                     <td style={{ padding: '8px 4px' }}>{money(row.return_amount)}</td>
+                    <td style={{ padding: '8px 4px', color: '#059669' }}>{money(row.payment)}</td>
                     <td style={{ padding: '8px 4px', fontWeight: 'bold', color: Number(row.due) > 0 ? '#dc2626' : '#059669' }}>{money(row.due)}</td>
                   </tr>
                 ))}

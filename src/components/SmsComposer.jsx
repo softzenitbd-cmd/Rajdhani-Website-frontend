@@ -28,6 +28,9 @@ const SmsComposer = ({ title, recipientType, contacts = [], groups = null, loadi
   const [message, setMessage] = useState('');
   const [groupId, setGroupId] = useState('');
   const [search, setSearch] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [dueFilter, setDueFilter] = useState('all');
   const [selected, setSelected] = useState(new Set());
   const [mode, setMode] = useState('now'); // 'now' | 'schedule'
   const [scheduleAt, setScheduleAt] = useState('');
@@ -35,16 +38,32 @@ const SmsComposer = ({ title, recipientType, contacts = [], groups = null, loadi
 
   // contacts limited to the chosen group (when groups are used)
   const pool = useMemo(() => {
-    let list = contacts;
-    if (groups && groupId) {
-      list = list.filter((c) => String(c.group?.id || c.group_id || c.group) === String(groupId));
-    }
-    if (search) {
-      const q = search.toLowerCase();
-      list = list.filter((c) => `${c.name || ''} ${c.phone || ''}`.toLowerCase().includes(q));
-    }
-    return list;
-  }, [contacts, groups, groupId, search]);
+      let list = contacts;
+      if (groups && groupId) {
+        list = list.filter((c) => String(c.group?.id || c.group_id || c.group) === String(groupId));
+      }
+      if (dueFilter === 'due') {
+        list = list.filter((c) => Number(c.due) > 0);
+      }
+      if (startDate || endDate) {
+        list = list.filter((c) => {
+          if (!c.due_date) return false;
+          if (startDate && endDate) {
+            return c.due_date >= startDate && c.due_date <= endDate;
+          } else if (startDate) {
+            return c.due_date >= startDate;
+          } else if (endDate) {
+            return c.due_date <= endDate;
+          }
+          return true;
+        });
+      }
+      if (search) {
+        const q = search.toLowerCase();
+        list = list.filter((c) => `${c.name || ''} ${c.phone || ''}`.toLowerCase().includes(q));
+      }
+      return list;
+    }, [contacts, groups, groupId, search, dueFilter, startDate, endDate]);
 
   // selecting a group selects every member of it
   useEffect(() => {
@@ -173,8 +192,18 @@ const SmsComposer = ({ title, recipientType, contacts = [], groups = null, loadi
                 </select>
               </div>
             )}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("Search name / phone")} style={{ ...box, padding: '8px 10px' }} />
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <select value={dueFilter} onChange={(e) => setDueFilter(e.target.value)} style={{ ...box, padding: '8px 10px', width: '130px' }}>
+                <option value="all">{t("All Contacts")}</option>
+                <option value="due">{t("With Due")}</option>
+              </select>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#f8fafc', padding: '4px 8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}>
+                <span style={{ fontSize: '12px', fontWeight: '600', color: '#475569', marginRight: '4px' }}>{t("Due Collection")}:</span>
+                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ padding: '4px', fontSize: '12px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }} />
+                <span style={{ color: '#94a3b8' }}>-</span>
+                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ padding: '4px', fontSize: '12px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' }} />
+              </div>
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("Search name / phone")} style={{ ...box, flex: 1, padding: '8px 10px' }} />
               {onAddNew && (
                 <button type="button" onClick={onAddNew} style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '0 14px', borderRadius: '4px', cursor: 'pointer', whiteSpace: 'nowrap' }}>{t("+ New")}</button>
               )}
@@ -189,10 +218,30 @@ const SmsComposer = ({ title, recipientType, contacts = [], groups = null, loadi
                 <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>{t("No contacts found")}</div>
               ) : (
                 pool.map((c) => (
-                  <div key={c.id} onClick={() => toggle(c.id)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderTop: '1px solid #f1f5f9', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', background: selected.has(c.id) ? '#f0f9ff' : 'white' }}>
-                    {selected.has(c.id) ? <CheckSquare size={16} color="#0ea5e9" /> : <Square size={16} color="#94a3b8" />}
-                    <span style={{ flex: 1 }}>{c.name}</span>
-                    <span style={{ color: c.phone ? '#475569' : '#dc2626' }}>{c.phone || t("no phone")}</span>
+                  <div key={c.id} onClick={() => toggle(c.id)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', background: selected.has(c.id) ? '#f0f9ff' : 'white', transition: 'all 0.2s ease', borderLeft: selected.has(c.id) ? '3px solid #0ea5e9' : '3px solid transparent' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {selected.has(c.id) ? <CheckSquare size={18} color="#0ea5e9" /> : <Square size={18} color="#94a3b8" />}
+                    </div>
+                    
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                      <span style={{ fontWeight: '600', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {c.name} {c.phone ? <span style={{ color: '#64748b', fontWeight: '500' }}>({c.phone})</span> : ''}
+                      </span>
+                      {c.address && <span style={{ fontSize: '11px', color: '#64748b', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.address}</span>}
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      
+
+                      {Number(c.due) > 0 ? (
+                        <div style={{ minWidth: '70px', textAlign: 'right', background: '#fef2f2', padding: '2px 8px', borderRadius: '4px', border: '1px solid #fecaca' }}>
+                          <span style={{ fontSize: '10px', color: '#ef4444', display: 'block', fontWeight: 'bold', textTransform: 'uppercase' }}>{t("Due")}</span>
+                          <span style={{ color: '#dc2626', fontWeight: '700', fontSize: '12px' }}>{Number(c.due).toFixed(2)}</span>
+                        </div>
+                      ) : (
+                        <div style={{ minWidth: '70px' }}></div>
+                      )}
+                    </div>
                   </div>
                 ))
               )}

@@ -31,7 +31,7 @@ const StaffSalaryReport = () => {
   const [marking, setMarking] = useState(null);
 
   useEffect(() => {
-    staffApi.getStaffList().then((r) => setStaff(toList(r))).catch((e) => toast.error(e?.message || t("Failed to load staff")));
+    staffApi.getStaffList().then((r) => setStaff(toList(r).filter(st => st.status !== 'inactive' && st.status !== 0 && st.status !== false))).catch((e) => toast.error(e?.message || t("Failed to load staff")));
     accountingService.getAccounts().then((r) => setAccounts(toList(r))).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

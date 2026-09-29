@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import PrintHeader from './PrintHeader';
 import TableToolbar from './TableToolbar';
+import Pagination from './Pagination';
 import { crmService } from '../services/crmService';
 import { useToast } from '../context/ToastContext';
 import { toList, money, nameOf } from '../utils/apiHelpers';
@@ -25,7 +26,8 @@ const ClientDueReport = ({ mode = 'all', title = 'All Due Report' }) => {
   const [groupId, setGroupId] = useState('');
   const [onlyDue, setOnlyDue] = useState(true);
   const [search, setSearch] = useState('');
-  const [entries, setEntries] = useState(100);
+  const [entries, setEntries] = useState(50);
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -50,20 +52,44 @@ const ClientDueReport = ({ mode = 'all', title = 'All Due Report' }) => {
 
   useEffect(() => { load(); }, [clientId, groupId, onlyDue]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const normalized = useMemo(() => rows.map((r) => ({
-    id: r.client_id || r.id || r.uuid,
-    name: r.client_name || r.name || nameOf(r.client),
-    address: r.address || r.client?.address || '',
-    phone: r.phone || r.client?.phone || '',
-    group: r.group_name || nameOf(r.group, ''),
-    prevDue: num(r, 'previous_due', 'opening_due'),
-    sales: num(r, 'sales', 'sales_amount', 'total_sales'),
-    totalBill: num(r, 'total_bill', 'bill') || num(r, 'previous_due') + num(r, 'sales', 'sales_amount', 'total_sales'),
-    salesReturn: num(r, 'sales_return', 'return_amount'),
-    collection: num(r, 'collection', 'receive', 'payment', 'paid'),
-    moneyReturn: num(r, 'money_return', 'return'),
-    due: num(r, 'due', 'current_due', 'balance'),
-  })), [rows]);
+  const normalized = useMemo(() => rows.map((r) => {
+    const prevDue = num(r, 'previous_due', 'opening_due', 'opening_balance');
+    const sales = num(r, 'sales', 'sales_amount', 'total_sales', 'bill');
+    const totalBill = num(r, 'total_bill') || (prevDue + sales);
+    const salesReturn = num(r, 'sales_return', 'return_amount');
+    const discount = num(r, 'discount', 'discount_amount', 'total_discount');
+    const collection = num(r, 'collection', 'receive', 'payment', 'paid', 'total_receive', 'amount_received');
+    const moneyReturn = num(r, 'money_return', 'return');
+    
+    // We MUST use the exact due returned by the API. 
+    // Calculating it manually causes discrepancies because of hidden discounts or backend-specific logic.
+    // If the API due is completely missing, we fallback to a safe calculation.
+    const apiDue = num(r, 'due', 'current_due', 'balance', 'total_due', 'due_amount');
+    
+    // Check if the API explicitly provided a due field (even if it's 0)
+    let finalDue = apiDue;
+    if (r.due === undefined && r.current_due === undefined && r.balance === undefined) {
+       finalDue = totalBill - salesReturn - collection + moneyReturn;
+    }
+
+    return {
+      id: r.client_id || r.id || r.uuid,
+      name: r.client_name || r.name || nameOf(r.client),
+      address: r.address || r.client?.address || '',
+      phone: r.phone || r.client?.phone || '',
+      group: r.group_name || nameOf(r.group, ''),
+      prevDue,
+      sales,
+      totalBill,
+      salesReturn,
+      discount,
+      collection,
+      moneyReturn,
+      due: finalDue,
+    };
+  }), [rows]);
+
+  useEffect(() => { setCurrentPage(1); }, [clientId, groupId, search, onlyDue, entries]);
 
   const filtered = normalized
     .filter((r) => !search || `${r.name} ${r.phone} ${r.address}`.toLowerCase().includes(search.toLowerCase()))
@@ -83,12 +109,12 @@ const ClientDueReport = ({ mode = 'all', title = 'All Due Report' }) => {
     return Object.values(map);
   }, [mode, groupId, filtered]);
 
-  const visible = (grouped || filtered).slice(0, entries);
+  const visible = (grouped || filtered).slice((currentPage - 1) * entries, currentPage * entries);
   const totalDue = filtered.reduce((s, r) => s + r.due, 0);
 
   const excelData = visible.map((r, i) => grouped
-    ? { SL: i + 1, Group: r.group, Clients: r.clients, 'Previous Due': r.prevDue, Sales: r.sales, 'Total Bill': r.totalBill, 'Sales Return': r.salesReturn, Collection: r.collection, Return: r.moneyReturn, Due: r.due }
-    : { SL: i + 1, Name: r.name, Address: r.address, Phone: r.phone, Group: r.group, 'Previous Due': r.prevDue, Sales: r.sales, 'Total Bill': r.totalBill, 'Sales Return': r.salesReturn, Collection: r.collection, Return: r.moneyReturn, Due: r.due });
+    ? { SL: (currentPage - 1) * entries + i + 1, Group: r.group, Clients: r.clients, 'Previous Due': r.prevDue, Sales: r.sales, 'Sales Return': r.salesReturn, 'Total Bill': r.totalBill, Discount: r.discount, Collection: r.collection, Due: r.due }
+    : { SL: (currentPage - 1) * entries + i + 1, Name: r.name, Address: r.address, Phone: r.phone, Group: r.group, 'Previous Due': r.prevDue, Sales: r.sales, 'Sales Return': r.salesReturn, 'Total Bill': r.totalBill, Discount: r.discount, Collection: r.collection, Due: r.due });
 
   const selectStyle = { width: '100%', padding: '10px 12px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' };
   const th = { padding: '12px' };
@@ -135,10 +161,13 @@ const ClientDueReport = ({ mode = 'all', title = 'All Due Report' }) => {
             </button>
           </div>
 
-          <div style={{ textAlign: 'center', marginBottom: '24px', border: '1px solid #94a3b8' }}>
-            <div style={{ background: '#94a3b8', color: 'white', padding: '8px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold' }}>{t("TOTAL DUE")}</div>
-            <div style={{ padding: '12px', fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', color: '#dc2626' }}>৳ {money(totalDue)}</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+            <div style={{ background: '#fee2e2', border: '1px solid #f87171', borderRadius: '8px', padding: '12px 32px', textAlign: 'center' }}>
+              <div style={{ fontSize: 'var(--fs-13, 13px)', color: '#991b1b', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px' }}>{t("Total Due Amount")}</div>
+              <div style={{ fontSize: 'var(--fs-22, 22px)', fontWeight: 'bold', color: '#dc2626' }}>৳ {money(totalDue)}</div>
+            </div>
           </div>
+            
 
           <TableToolbar entries={entries} setEntries={setEntries} total={filtered.length} excelData={excelData} excelName={title.replace(/\s+/g, '_')} onReload={() => load()} onReset={() => { setClientId(''); setGroupId(''); setSearch(''); }} />
 
@@ -151,10 +180,10 @@ const ClientDueReport = ({ mode = 'all', title = 'All Due Report' }) => {
                   {grouped ? <><th style={{ ...th, textAlign: 'left' }}>{t("GROUP")}</th><th style={th}>{t("CLIENTS")}</th></> : <><th style={{ ...th, textAlign: 'left' }}>{t("CLIENT INFO")}</th><th style={th}>{t("GROUP")}</th></>}
                   <th style={th}>{t("PREVIOUS DUE")}</th>
                   <th style={th}>{t("SALES")}</th>
-                  <th style={th}>{t("TOTAL BILL")}</th>
                   <th style={th}>{t("SALES RETURN")}</th>
+                  <th style={th}>{t("TOTAL BILL")}</th>
+                  <th style={th}>{t("DISCOUNT")}</th>
                   <th style={th}>{t("COLLECTION")}</th>
-                  <th style={th}>{t("RETURN")}</th>
                   <th style={th}>{t("DUE")}</th>
                 </tr>
               </thead>
@@ -166,7 +195,7 @@ const ClientDueReport = ({ mode = 'all', title = 'All Due Report' }) => {
                 ) : (
                   visible.map((r, i) => (
                     <tr key={r.id || r.group || i}>
-                      <td style={td}>{i + 1}</td>
+                      <td style={td}>{(currentPage - 1) * entries + i + 1}</td>
                       {grouped ? (
                         <><td style={{ ...td, textAlign: 'left', fontWeight: 600 }}>{r.group}</td><td style={td}>{r.clients}</td></>
                       ) : (
@@ -181,10 +210,10 @@ const ClientDueReport = ({ mode = 'all', title = 'All Due Report' }) => {
                       )}
                       <td style={td}>{money(r.prevDue)}</td>
                       <td style={td}>{money(r.sales)}</td>
-                      <td style={td}>{money(r.totalBill)}</td>
                       <td style={td}>{money(r.salesReturn)}</td>
+                      <td style={td}>{money(r.totalBill)}</td>
+                      <td style={td}>{money(r.discount)}</td>
                       <td style={{ ...td, color: '#059669' }}>{money(r.collection)}</td>
-                      <td style={td}>{money(r.moneyReturn)}</td>
                       <td style={{ ...td, fontWeight: 'bold', color: r.due > 0 ? '#dc2626' : '#059669' }}>{money(r.due)}</td>
                     </tr>
                   ))
@@ -194,7 +223,7 @@ const ClientDueReport = ({ mode = 'all', title = 'All Due Report' }) => {
                 <tfoot>
                   <tr style={{ background: '#f1f5f9', fontWeight: 'bold' }}>
                     <td colSpan="3" style={{ ...td, textAlign: 'right' }}>{t("TOTAL")}</td>
-                    {['prevDue', 'sales', 'totalBill', 'salesReturn', 'collection', 'moneyReturn', 'due'].map((k) => (
+                    {['prevDue', 'sales', 'salesReturn', 'totalBill', 'discount', 'collection', 'due'].map((k) => (
                       <td key={k} style={{ ...td, color: k === 'due' ? '#dc2626' : undefined }}>{money(filtered.reduce((s, r) => s + r[k], 0))}</td>
                     ))}
                   </tr>
@@ -202,6 +231,15 @@ const ClientDueReport = ({ mode = 'all', title = 'All Due Report' }) => {
               )}
             </table>
           </div>
+          <div style={{ marginTop: '16px' }}>
+            <Pagination 
+              currentPage={currentPage}
+              totalItems={(grouped || filtered).length}
+              pageSize={entries}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+
         </div>
       </div>
     </div>

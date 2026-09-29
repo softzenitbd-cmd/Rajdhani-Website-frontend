@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { saleService } from '../../services/saleService';
 import { productService } from '../../services/productService';
 import CustomDatePicker from '../../components/CustomDatePicker';
-
+import { crmService } from '../../services/crmService';
 
 const SalesProductWise = () => {
   const { t } = useTranslation();
@@ -15,6 +15,7 @@ const SalesProductWise = () => {
   const [reports, setReports] = useState([]);
   const [products, setProducts] = useState([]);
   const [productGroups, setProductGroups] = useState([]);
+  const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [filters, setFilters] = useState({
@@ -25,15 +26,16 @@ const SalesProductWise = () => {
     to_date: ''
   });
 
-
   const fetchPrerequisites = async () => {
     try {
-      const [prodRes, groupRes] = await Promise.all([
+      const [prodRes, groupRes, clientsRes] = await Promise.all([
         productService.getProducts({ page_size: 500 }).catch(() => []),
-        productService.groups.getAll().catch(() => [])
+        productService.groups.getAll().catch(() => []),
+        crmService.getClients().catch(() => [])
       ]);
       setProducts(Array.isArray(prodRes) ? prodRes : (prodRes?.results || []));
       setProductGroups(Array.isArray(groupRes) ? groupRes : (groupRes?.results || []));
+      setClients(Array.isArray(clientsRes) ? clientsRes : (clientsRes?.results || []));
     } catch (err) {
       console.error(err);
     }
@@ -76,15 +78,54 @@ const SalesProductWise = () => {
     });
   };
 
+  const getVoucherNo = (row) => {
+    let v = row.invoice?.invoice_no || row.invoice_no || row.voucher_no || row.invoice?.voucher_no || row.invoice?.invoice_id || row.voucher || row.invoice_id || row.invoice?.id || row.id;
+    if (typeof v === 'string' && v.length > 20 && v.includes('-')) {
+       v = row.invoice?.voucher_no || row.voucher_no || v.split('-')[0];
+    }
+    return v || '-';
+  };
+
+  const groupedReports = [];
+  const invoiceGroups = {};
+  reports.forEach((row) => {
+    const v = getVoucherNo(row);
+    if (!invoiceGroups[v] || v === '-') {
+      const newGroup = {
+        voucher_no: v,
+        raw: row,
+        products: [row],
+        total: Number(row.total || row.total_amount || 0),
+        dis: Number(row.dis || row.discount || 0),
+        grandTotal: Number(row.grandTotal || row.grand_total || row.total || 0),
+        receive: Number(row.receive || row.receive_amount || 0),
+        due: Number(row.due || row.due_amount || 0)
+      };
+      if (v !== '-') invoiceGroups[v] = newGroup;
+      groupedReports.push(newGroup);
+    } else {
+      invoiceGroups[v].products.push(row);
+      invoiceGroups[v].total += Number(row.total || row.total_amount || 0);
+      invoiceGroups[v].dis += Number(row.dis || row.discount || 0);
+      invoiceGroups[v].grandTotal += Number(row.grandTotal || row.grand_total || row.total || 0);
+    }
+  });
+
   const calculateTotals = () => {
-    return reports.reduce((acc, row) => ({
-      qty: acc.qty + Number(row.qty || row.quantity || 0),
-      total: acc.total + Number(row.total || row.total_amount || 0),
-      dis: acc.dis + Number(row.dis || row.discount || 0),
-      grandTotal: acc.grandTotal + Number(row.grandTotal || row.grand_total || row.total || 0),
-      receive: acc.receive + Number(row.receive || row.receive_amount || 0),
-      due: acc.due + Number(row.due || row.due_amount || 0)
-    }), { qty: 0, total: 0, dis: 0, grandTotal: 0, receive: 0, due: 0 });
+    return groupedReports.reduce((acc, group) => {
+      let groupQty = 0;
+      group.products.forEach(p => {
+        groupQty += Number(p.qty || p.quantity || 0);
+      });
+      return {
+        qty: acc.qty + groupQty,
+        total: acc.total + group.total,
+        dis: acc.dis + group.dis,
+        grandTotal: acc.grandTotal + group.grandTotal,
+        receive: acc.receive + group.receive,
+        due: acc.due + group.due
+      };
+    }, { qty: 0, total: 0, dis: 0, grandTotal: 0, receive: 0, due: 0 });
   };
 
   const totals = calculateTotals();
@@ -101,7 +142,6 @@ const SalesProductWise = () => {
         <div className="premium-body" style={{ background: 'white', padding: '24px' }}>
           <PrintHeader />
           
-          {/* Header row with Title and Go Back */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
             <h3 style={{ fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', margin: '0', textTransform: 'uppercase' }}>{t("PRODUCT WISE SALES REPORTS")}</h3>
             <button 
@@ -112,7 +152,6 @@ const SalesProductWise = () => {
             </button>
           </div>
 
-          {/* Filters Area */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
             <div>
               <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Group")}</label>
@@ -174,7 +213,6 @@ const SalesProductWise = () => {
             </div>
           </div>
 
-          {/* Clear Filter Button */}
           <button 
             onClick={handleClearFilters}
             style={{ width: '100%', background: '#7e8a9f', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', marginBottom: '24px' }}
@@ -182,10 +220,9 @@ const SalesProductWise = () => {
             {t("Clear Filter")}
           </button>
 
-          {/* Controls */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div style={{ fontSize: 'var(--fs-13, 13px)', color: 'var(--text-muted)' }}>
-              {t("Showing")} {reports.length} {t("entries")}
+              {t("Showing")} {groupedReports.length} {t("entries")}
             </div>
             
             <div style={{ display: 'flex', gap: '4px' }}>
@@ -198,7 +235,6 @@ const SalesProductWise = () => {
             </div>
           </div>
 
-          {/* Table */}
           <div className="table-responsive">
             <table className="custom-table" style={{ width: '100%', fontSize: 'var(--fs-11, 11px)', textAlign: 'center' }}>
               <thead>
@@ -223,43 +259,79 @@ const SalesProductWise = () => {
                   <tr>
                     <td colSpan="13" style={{ padding: '24px', textAlign: 'center' }}>{t("Loading product sales report...")}</td>
                   </tr>
-                ) : reports.length === 0 ? (
+                ) : groupedReports.length === 0 ? (
                   <tr>
                     <td colSpan="13" style={{ padding: '24px', textAlign: 'center' }}>{t("No product sales records found.")}</td>
                   </tr>
                 ) : (
-                  reports.map((row, idx) => (
+                  groupedReports.map((group, idx) => {
+                    const row = group.raw;
+                    return (
                     <tr key={row.id || idx}>
-                      <td style={{ padding: '12px' }}>{idx + 1}</td>
-                      <td style={{ padding: '12px' }}>{(() => {
-        let d = row.date || row.issued_date || row.created_at;
-        if (!d) return '-';
-        try {
-          const dt = new Date(d);
-          if (isNaN(dt.getTime())) return d;
-          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-          return dt.getDate() + ' ' + months[dt.getMonth()] + ' ' + dt.getFullYear();
-        } catch(e) { return d; }
-      })()}</td>
-                      <td style={{ padding: '12px' }}>{(() => {
-        let v = row.invoice?.invoice_id || row.invoice?.id || row.invoice_no || row.voucher || row.invoice_id;
-        if (typeof v === 'string' && v.length > 20 && v.includes('-')) {
-           v = row.invoice?.voucher_no || row.voucher_no || '-';
-        }
-        return v || '-';
-      })()}</td>
-                      <td style={{ padding: '12px' }}>{row.client_name || row.client || '-'}</td>
-                      <td style={{ padding: '12px' }}>{row.product_name || row.product || '-'}</td>
-                      <td style={{ padding: '12px' }}>{row.unit_name || row.unit || t("PEACE")}</td>
-                      <td style={{ padding: '12px' }}>{row.qty || row.quantity || 0}</td>
-                      <td style={{ padding: '12px' }}>{Number(row.price || row.unit_price || 0).toFixed(2)}</td>
-                      <td style={{ padding: '12px' }}>{Number(row.total || row.total_amount || 0).toFixed(2)}</td>
-                      <td style={{ padding: '12px' }}>{Number(row.dis || row.discount || 0).toFixed(2)}</td>
-                      <td style={{ padding: '12px' }}>{Number(row.grandTotal || row.grand_total || row.total || 0).toFixed(2)}</td>
-                      <td style={{ padding: '12px' }}>{Number(row.receive || row.receive_amount || 0).toFixed(2)}</td>
-                      <td style={{ padding: '12px' }}>{Number(row.due || row.due_amount || 0).toFixed(2)}</td>
+                      <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>{idx + 1}</td>
+                      <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>{(() => {
+                        let d = row.date || row.issued_date || row.created_at;
+                        if (!d) return '-';
+                        try {
+                          const dt = new Date(d);
+                          if (isNaN(dt.getTime())) return d;
+                          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                          return dt.getDate() + ' ' + months[dt.getMonth()] + ' ' + dt.getFullYear();
+                        } catch(e) { return d; }
+                      })()}</td>
+                      <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>{group.voucher_no}</td>
+                      <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>
+                        <div>{(() => {
+                          const cName = row.client_name || row.client?.client_name || row.client || '-';
+                          const cPhone = row.client_phone || row.phone || row.client?.phone || row.client?.mobile || row.invoice?.client?.phone || (clients.find(c => String(c.id || c.uuid) === String(row.client_id))?.phone) || (clients.find(c => (c.name || c.company_name) === (row.client_name || row.client))?.phone) || '';
+                          const cAddress = row.client_address || row.address || row.client?.address || row.invoice?.client?.address || (clients.find(c => String(c.id || c.uuid) === String(row.client_id))?.address) || (clients.find(c => (c.name || c.company_name) === (row.client_name || row.client))?.address) || '';
+                          
+                          let parts = [];
+                          if (cName && cName !== '-') parts.push(cName);
+                          if (cPhone) parts.push(cPhone);
+                          if (cAddress) parts.push(cAddress);
+                          
+                          return parts.length > 0 ? parts.join(' | ') : '-';
+                        })()}</div>
+                      </td>
+
+                      <td style={{ padding: '0', verticalAlign: 'middle' }}>
+                        {group.products.map((p, i) => (
+                          <div key={i} style={{ padding: '8px 4px', borderBottom: i < group.products.length - 1 ? '1px solid #e2e8f0' : 'none' }}>
+                            {p.product_name || p.product || '-'}
+                          </div>
+                        ))}
+                      </td>
+                      <td style={{ padding: '0', verticalAlign: 'middle' }}>
+                        {group.products.map((p, i) => (
+                          <div key={i} style={{ padding: '8px 4px', borderBottom: i < group.products.length - 1 ? '1px solid #e2e8f0' : 'none' }}>
+                            {p.unit_name || p.unit || t("PEACE")}
+                          </div>
+                        ))}
+                      </td>
+                      <td style={{ padding: '0', verticalAlign: 'middle' }}>
+                        {group.products.map((p, i) => (
+                          <div key={i} style={{ padding: '8px 4px', borderBottom: i < group.products.length - 1 ? '1px solid #e2e8f0' : 'none' }}>
+                            {p.qty || p.quantity || 0}
+                          </div>
+                        ))}
+                      </td>
+                      <td style={{ padding: '0', verticalAlign: 'middle' }}>
+                        {group.products.map((p, i) => (
+                          <div key={i} style={{ padding: '8px 4px', borderBottom: i < group.products.length - 1 ? '1px solid #e2e8f0' : 'none' }}>
+                            {Number(p.price || p.unit_price || 0).toFixed(2)}
+                          </div>
+                        ))}
+                      </td>
+
+                      <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>{group.total.toFixed(2)}</td>
+                      <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>{group.dis.toFixed(2)}</td>
+                      <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>{group.grandTotal.toFixed(2)}</td>
+                      <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>{group.receive.toFixed(2)}</td>
+                      <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>{group.due.toFixed(2)}</td>
                     </tr>
-                  ))
+                    );
+                  })
                 )}
                 {/* Total Row */}
                 <tr style={{ fontWeight: 'bold', background: '#f8fafc' }}>

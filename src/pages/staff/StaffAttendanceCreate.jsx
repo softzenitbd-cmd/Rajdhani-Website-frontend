@@ -32,7 +32,7 @@ const StaffAttendanceCreate = () => {
   useEffect(() => {
     (async () => {
       try {
-        const list = toList(await staffApi.getStaffList());
+        const list = toList(await staffApi.getStaffList()).filter(st => st.status !== 'inactive' && st.status !== 0 && st.status !== false);
         setStaff(list);
         const init = {};
         list.forEach((s) => {

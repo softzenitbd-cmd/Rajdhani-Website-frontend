@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
-import { RotateCcw, Edit, Trash2, Eye, Plus, RefreshCw, Download, X } from 'lucide-react';
+import { RotateCcw, Edit, Trash2, Eye, Plus, RefreshCw, Download, X , Share2} from 'lucide-react';
+import { shareAsPDF } from '../../utils/pdfShare';
 import { useNavigate } from 'react-router-dom';
 import { purchaseService } from '../../services/purchaseService';
 import { crmService } from '../../services/crmService';
@@ -377,7 +378,7 @@ const PurchaseReturnList = () => {
               <div><strong>{t("Supplier Name:")}</strong> {selectedReturn.supplier}</div>
               <div><strong>{t("Return Date:")}</strong> {fmtDate(selectedReturn.date)}</div>
               <div><strong>{t("Invoice Number:")}</strong> {selectedReturn.invoice}</div>
-              <div><strong>{t("Grand Total:")}</strong> <span style={{ color: '#ef4444', fontWeight: 'bold' }}>৳ {selectedReturn.total}</span></div>
+              
             </div>
 
             {selectedReturn.items && selectedReturn.items.length > 0 ? (
@@ -430,7 +431,22 @@ const PurchaseReturnList = () => {
             </div>
 
             <div className="no-print" style={{ textAlign: 'right', marginTop: '16px' }}>
-              <button onClick={() => window.print()} className="btn" style={{ background: 'var(--success)', color: 'white', padding: '10px 24px', borderRadius: '6px', marginRight: '8px', fontWeight: '600' }}>
+              <button 
+                  onClick={async () => {
+                  const btn = document.activeElement;
+                  if(btn) btn.disabled = true;
+                  try {
+                    await shareAsPDF('.modal-content', 'Purchase_Return_Voucher.pdf', 'Purchase Return Voucher');
+                  } finally {
+                    if(btn) btn.disabled = false;
+                  }
+                }} 
+                  className="btn" 
+                  style={{ background: '#3b82f6', color: 'white', padding: '10px 24px', borderRadius: '6px', marginRight: '8px', fontWeight: '600', display: 'inline-flex', alignItems: 'center' }}
+                >
+                  <Share2 size={16} style={{ marginRight: '6px' }} /> {t("Share")}
+                </button>
+                <button onClick={() => window.print()} className="btn" style={{ background: 'var(--success)', color: 'white', padding: '10px 24px', borderRadius: '6px', marginRight: '8px', fontWeight: '600' }}>
                 {t("🖨️ Print Memo")}
               </button>
               <button onClick={() => setShowViewModal(false)} className="btn" style={{ background: '#64748b', color: 'white', padding: '10px 20px', borderRadius: '6px' }}>

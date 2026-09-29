@@ -98,7 +98,7 @@ const buildSalesReport = async (filters = {}) => {
   // Items: prefer nested, otherwise load the item table once and group by invoice
   let itemsByInvoice = null;
   if (!invoices.some((inv) => Array.isArray(inv.items) && inv.items.length)) {
-    const allItems = toList(await apiClient.get(ENDPOINTS.SALE_ITEMS).catch(() => []));
+    const allItems = toList(await apiClient.get(ENDPOINTS.SALE_ITEMS, { params: { limit: 10000, from_date: filters.from_date, to_date: filters.to_date } }).catch(() => []));
     itemsByInvoice = new Map();
     allItems.forEach((it) => {
       const key = String(idOf(it.sale ?? it.invoice ?? it.sale_invoice ?? it.sale_id ?? it.invoice_id));

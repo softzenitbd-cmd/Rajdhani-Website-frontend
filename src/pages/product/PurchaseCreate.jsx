@@ -225,7 +225,7 @@ const PurchaseCreate = () => {
         {
           id: prod.id,
           name: prod.name || prod.title || "Product",
-          quantity: Number(prod.stock || prod.opening_stock || 1),
+          quantity: 0,
           buyingPrice: Number(
             prod.purchase_price || prod.buying_price || prod.price || 0,
           ),
@@ -463,8 +463,8 @@ const PurchaseCreate = () => {
   );
 
   return (
-    <div className="dashboard-content" style={{ paddingBottom: "100px" }}>
-      <div className="premium-card">
+    <div className="dashboard-content" style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 110px)", overflow: "hidden" }}>
+      <div className="premium-card" style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <div
           className="premium-header"
           style={{
@@ -514,12 +514,9 @@ const PurchaseCreate = () => {
           </div>
         </div>
 
-        <div
-          className="premium-body"
-          style={{ background: "white", padding: "24px" }}
-        >
+        <div className="premium-body" style={{ background: "white", padding: "16px", flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
           <PrintHeader />
-          <form onSubmit={(e) => e.preventDefault()}>
+          <form onSubmit={(e) => e.preventDefault()} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {/* Top Row: Supplier, Date, Invoice ID */}
             <div
               style={{
@@ -550,7 +547,7 @@ const PurchaseCreate = () => {
                 </div>
               )}
 
-              {visibleFields.date !== false && (
+              
                 <div
                   className="form-group"
                   style={{
@@ -584,7 +581,7 @@ const PurchaseCreate = () => {
                     style={{ cursor: "pointer", width: "100%" }}
                   />
                 </div>
-              )}
+              
 
               {visibleFields.invoice_id !== false && (
                 <div
@@ -688,34 +685,7 @@ const PurchaseCreate = () => {
                   />
                 </div>
               )}
-              {visibleFields.accounts !== false && (
-                <div
-                  className="form-group"
-                  style={{
-                    flex: "1 1 200px",
-                    marginBottom: "0",
-                    position: "relative",
-                    border: "1px solid #cbd5e1",
-                    borderRadius: "8px",
-                  }}
-                >
-                  <BadgeLabel text={t("Account")} />
-                  <input
-                    type="text"
-                    name="account"
-                    value={formData.account}
-                    onChange={handleChange}
-                    placeholder={t("Account Name")}
-                    style={{
-                      width: "100%",
-                      padding: "16px",
-                      border: "none",
-                      background: "transparent",
-                      outline: "none",
-                    }}
-                  />
-                </div>
-              )}
+              
             </div>
 
             <div
@@ -855,8 +825,13 @@ const PurchaseCreate = () => {
             <div
               style={{
                 overflowX: "auto",
+                overflowY: "auto",
+                flex: 1,
+                minHeight: "150px",
                 border: "1px solid #e2e8f0",
                 marginBottom: "24px",
+                borderRadius: "8px",
+                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
               }}
             >
               <table
@@ -867,7 +842,7 @@ const PurchaseCreate = () => {
                   borderCollapse: "collapse",
                 }}
               >
-                <thead>
+                <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
                   <tr
                     style={{ background: "var(--secondary)", color: "white" }}
                   >
@@ -1092,9 +1067,10 @@ const PurchaseCreate = () => {
                           >
                             <div
                               style={{
-                                fontSize: "var(--fs-11, 11px)",
-                                color: "#64748b",
-                                maxWidth: "80px",
+                                fontSize: "20px",
+                                  fontWeight: "700",
+                                  color: "#0f172a",
+                                  maxWidth: "150px",
                                 whiteSpace: "nowrap",
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
@@ -1232,10 +1208,10 @@ const PurchaseCreate = () => {
               {/* Left Column Form fields */}
               <div
                 style={{
-                  flex: "1 1 500px",
+                  flex: "0 1 500px",
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr",
-                  gap: "24px",
+                  gap: "16px",
                   alignContent: "start",
                 }}
               >
@@ -1416,33 +1392,41 @@ const PurchaseCreate = () => {
               {/* Right Column totals */}
               <div
                 style={{
-                  flex: "1 1 300px",
+                  flex: "0 1 300px",
                   display: "flex",
                   flexDirection: "column",
-                  gap: "12px",
+                  gap: "8px",
+                  marginLeft: "auto",
                 }}
               >
                 <div
                   style={{
-                    background: "#f8fafc",
+                    background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
                     border: "1px solid #e2e8f0",
                     borderRadius: "6px",
-                    padding: "10px 12px",
+                    padding: "8px 12px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
                   }}
                 >
                   <div
                     style={{
-                      fontSize: "var(--fs-11, 11px)",
-                      color: "#64748b",
+                      fontSize: "var(--fs-12, 12px)",
+                      color: "#475569",
+                      fontWeight: "600",
                       textTransform: "uppercase",
+                      letterSpacing: "0.5px"
                     }}
                   >
                     {t("Purchase Bill")}
                   </div>
                   <div
                     style={{
-                      fontWeight: "bold",
-                      fontSize: "var(--fs-15, 15px)",
+                      fontWeight: "800",
+                      fontSize: "var(--fs-14, 14px)",
+                      color: "#1e293b"
                     }}
                   >
                     ৳ {totalBuying.toFixed(2)}
@@ -1450,25 +1434,32 @@ const PurchaseCreate = () => {
                 </div>
                 <div
                   style={{
-                    background: "#ecfdf5",
-                    border: "1px solid #a7f3d0",
+                    background: "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)",
+                    border: "1px solid #10b981",
                     borderRadius: "6px",
-                    padding: "10px 12px",
+                    padding: "8px 12px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    boxShadow: "0 2px 4px rgba(16, 185, 129, 0.1)",
                   }}
                 >
                   <div
                     style={{
-                      fontSize: "var(--fs-11, 11px)",
+                      fontSize: "var(--fs-12, 12px)",
                       color: "#047857",
+                      fontWeight: "600",
                       textTransform: "uppercase",
+                      letterSpacing: "0.5px"
                     }}
                   >
                     {t("Grand Total")}
                   </div>
                   <div
                     style={{
-                      fontWeight: "bold",
+                      fontWeight: "800",
                       fontSize: "var(--fs-15, 15px)",
+                      color: "#065f46"
                     }}
                   >
                     ৳ {grandTotal.toFixed(2)}
@@ -1476,25 +1467,32 @@ const PurchaseCreate = () => {
                 </div>
                 <div
                   style={{
-                    background: "#fef2f2",
-                    border: "1px solid #fecaca",
+                    background: "linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)",
+                    border: "1px solid #ef4444",
                     borderRadius: "6px",
-                    padding: "10px 12px",
+                    padding: "8px 12px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    boxShadow: "0 2px 4px rgba(239, 68, 68, 0.1)",
                   }}
                 >
                   <div
                     style={{
-                      fontSize: "var(--fs-11, 11px)",
+                      fontSize: "var(--fs-12, 12px)",
                       color: "#b91c1c",
+                      fontWeight: "600",
                       textTransform: "uppercase",
+                      letterSpacing: "0.5px"
                     }}
                   >
                     {t("Due")}
                   </div>
                   <div
                     style={{
-                      fontWeight: "bold",
+                      fontWeight: "800",
                       fontSize: "var(--fs-15, 15px)",
+                      color: "#991b1b"
                     }}
                   >
                     ৳ {totalDue.toFixed(2)}
@@ -1503,22 +1501,28 @@ const PurchaseCreate = () => {
               </div>
             </div>
 
-            <div className="invoice-fixed-footer">
+            <div className="invoice-fixed-footer" style={{ display: "flex", justifyContent: "center", padding: "16px 0", marginTop: "8px", position: "relative", zIndex: 20 }}>
               <button
                 type="button"
                 className="btn-primary"
                 onClick={() => handleSubmitPurchase(1)}
                 disabled={submitting}
                 style={{
-                  background: "var(--success)",
-                  padding: "10px 24px",
-                  fontSize: "var(--fs-14, 14px)",
-                  borderRadius: "4px",
+                  background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                  padding: "14px 48px",
+                  fontSize: "var(--fs-16, 16px)",
+                  borderRadius: "8px",
                   fontWeight: "bold",
                   border: "none",
                   cursor: "pointer",
                   color: "white",
+                  boxShadow: "0 4px 12px rgba(34, 197, 94, 0.3)",
+                  transition: "transform 0.1s ease, box-shadow 0.1s ease",
+                  textTransform: "uppercase",
+                  letterSpacing: "1px",
                 }}
+                onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 16px rgba(34, 197, 94, 0.4)"; }}
+                onMouseOut={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(34, 197, 94, 0.3)"; }}
               >
                 {isEditMode ? t("Update") : t("Buy")}
               </button>

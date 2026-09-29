@@ -247,9 +247,9 @@ const SalesBarcodeSearch = () => {
         } catch(e) { return d; }
       })()}</td>
                       <td style={{ padding: '12px' }}>{(() => {
-        let v = row.invoice?.invoice_id || row.invoice?.id || row.invoice_no || row.voucher || row.invoice_id;
+        let v = row.invoice?.invoice_no || row.invoice_no || row.voucher_no || row.invoice?.voucher_no || row.invoice?.invoice_id || row.voucher || row.invoice_id || row.invoice?.id || row.id;
         if (typeof v === 'string' && v.length > 20 && v.includes('-')) {
-           v = row.invoice?.voucher_no || row.voucher_no || '-';
+           v = row.invoice?.voucher_no || row.voucher_no || v.split('-')[0];
         }
         return v || '-';
       })()}</td>
