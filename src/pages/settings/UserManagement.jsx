@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Plus, Pencil, Trash2, KeyRound, Shield, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, KeyRound, Shield, X, ArrowLeft, CheckSquare, Square } from 'lucide-react';
 import PrintHeader from '../../components/PrintHeader';
 import TableToolbar from '../../components/TableToolbar';
 import authApi from '../../api/authApi';
@@ -16,7 +16,113 @@ import { useTranslation } from 'react-i18next';
 const ROLES = ['superadmin', 'admin', 'manager', 'staff'];
 
 // Permission matrix offered in the UI (module → actions)
-const MODULES = ['dashboard', 'crm', 'account', 'loan', 'invoice', 'product', 'purchase', 'sms', 'staff', 'reports', 'settings'];
+const MODULES = [
+  { id: 'dashboard', name: 'Dashboard', depth: 0 },
+  
+  { id: 'crm', name: 'Crm', depth: 0 },
+  { id: 'crm_client_add', name: 'CLIENT CREATE', depth: 1 },
+  { id: 'crm_client_list', name: 'CUSTOMER LIST', depth: 1 },
+  { id: 'crm_client_group', name: 'Client Group', depth: 1 },
+  { id: 'crm_client_statement', name: 'Client Statement', depth: 1 },
+  { id: 'crm_due_collection', name: 'বাকি সংগ্রহের তারিখ', depth: 1 },
+  { id: 'crm_supplier_add', name: 'SUPPLIER CREATE', depth: 1 },
+  { id: 'crm_supplier_list', name: 'SUPPLIER LIST', depth: 1 },
+  { id: 'crm_supplier_group', name: 'Supplier Group', depth: 1 },
+  { id: 'crm_supplier_statement', name: 'Supplier Statement', depth: 1 },
+  { id: 'crm_supplier_cheque', name: 'SUPPLIER CHEQUE SCHEDULE', depth: 1 },
+  
+  { id: 'account', name: 'Account', depth: 0 },
+  { id: 'acc_receive_add', name: 'Receive Add New', depth: 1 },
+  { id: 'acc_receive_list', name: 'Receive List', depth: 1 },
+  { id: 'acc_expense_add', name: 'Expense Add New', depth: 1 },
+  { id: 'acc_expense_list', name: 'Expense List', depth: 1 },
+  { id: 'acc_supplier_pay', name: 'Supplier Payment', depth: 1 },
+  { id: 'acc_money_return', name: 'Money Return', depth: 1 },
+  { id: 'acc_money_return_list', name: 'Money Return List', depth: 1 },
+  { id: 'acc_account_create', name: 'Account Create', depth: 1 },
+  { id: 'acc_account_list', name: 'Account List', depth: 1 },
+  { id: 'acc_account_balance', name: 'Account Balance', depth: 1 },
+  { id: 'acc_statement', name: 'Statement', depth: 1 },
+  { id: 'acc_transfer_create', name: 'Transfer Create', depth: 1 },
+  { id: 'acc_transfer_list', name: 'Transfer List', depth: 1 },
+  { id: 'acc_profit', name: 'Profit', depth: 1 },
+  
+  { id: 'loan', name: 'Loan', depth: 0 },
+  { id: 'loan_client_add', name: 'Add New Client', depth: 1 },
+  { id: 'loan_client_list', name: 'Client List', depth: 1 },
+  { id: 'loan_receive', name: 'Loan Receive', depth: 1 },
+  { id: 'loan_payment', name: 'Loan Payment', depth: 1 },
+  { id: 'loan_statement', name: 'Loan Statement', depth: 1 },
+  
+  { id: 'invoice', name: 'Invoice', depth: 0 },
+  { id: 'inv_add', name: 'Add New', depth: 1 },
+  { id: 'inv_list', name: 'Invoice List', depth: 1 },
+  { id: 'inv_draft', name: 'Draft Invoice', depth: 1 },
+  { id: 'inv_return_add', name: 'Add Return', depth: 1 },
+  { id: 'inv_return_list', name: 'Return List', depth: 1 },
+  
+  { id: 'product', name: 'Product', depth: 0 },
+  { id: 'prod_create', name: 'Product Create', depth: 1 },
+  { id: 'prod_list', name: 'Product List', depth: 1 },
+  { id: 'prod_group', name: 'Product Group', depth: 1 },
+  { id: 'prod_unit', name: 'Product Unit', depth: 1 },
+  { id: 'prod_barcode', name: 'Product Barcode', depth: 1 },
+  { id: 'prod_stock', name: 'Product Stock', depth: 1 },
+  
+  { id: 'purchase', name: 'Purchase', depth: 0 },
+  { id: 'pur_add', name: 'Purchase Create', depth: 1 },
+  { id: 'pur_list', name: 'Purchase List', depth: 1 },
+  { id: 'pur_report', name: 'Purchase Report', depth: 1 },
+  { id: 'pur_ret_add', name: 'Purchase Return Create', depth: 1 },
+  { id: 'pur_ret_list', name: 'Purchase Return List', depth: 1 },
+  { id: 'pur_ret_report', name: 'Purchase Return Report', depth: 1 },
+  
+  { id: 'sms', name: 'Sms', depth: 0 },
+  { id: 'sms_customer', name: 'Customer', depth: 1 },
+  { id: 'sms_customer_group', name: 'Customer Group', depth: 1 },
+  { id: 'sms_schedule', name: 'SMS Schedule', depth: 1 },
+  { id: 'sms_report', name: 'Schedule Report', depth: 1 },
+  
+  { id: 'staff', name: 'Staff', depth: 0 },
+  { id: 'staff_create', name: 'Staff Create', depth: 1 },
+  { id: 'staff_list', name: 'Staff List', depth: 1 },
+  { id: 'staff_pay_create', name: 'Payment Create', depth: 1 },
+  { id: 'staff_pay_report', name: 'Payment Report', depth: 1 },
+  { id: 'staff_sal_create', name: 'Add Salary', depth: 1 },
+  { id: 'staff_sal_report', name: 'Salary Report', depth: 1 },
+  { id: 'staff_att_create', name: 'Attendance Create', depth: 1 },
+  { id: 'staff_att_report', name: 'Attendance Report', depth: 1 },
+  { id: 'staff_att_monthly', name: 'Monthly Attendance Report', depth: 1 },
+  
+  { id: 'reports', name: 'Reports', depth: 0 },
+  { id: 'due_list', name: 'Due List', depth: 1 },
+  { id: 'due_client', name: 'Due Client Wise', depth: 1 },
+  { id: 'due_group', name: 'Due Group Wise', depth: 1 },
+  { id: 'due_supplier', name: 'Supplier Due', depth: 1 },
+  { id: 'sales_daily', name: 'Sales Daily', depth: 1 },
+  { id: 'sales_all', name: 'Sales All', depth: 1 },
+  { id: 'sales_group', name: 'Sales Group Wise', depth: 1 },
+  { id: 'sales_product', name: 'Sales Product Wise', depth: 1 },
+  { id: 'sales_prod_group', name: 'Sales Product Group Wise', depth: 1 },
+  { id: 'dep_all', name: 'All Deposit', depth: 1 },
+  { id: 'dep_cat', name: 'Deposit Category Wise', depth: 1 },
+  { id: 'dep_client', name: 'Deposit Customer Wise', depth: 1 },
+  { id: 'exp_all', name: 'All Expense', depth: 1 },
+  { id: 'exp_cat', name: 'Expense Category Wise', depth: 1 },
+  { id: 'exp_supplier', name: 'Expense Supplier Purchase Payment', depth: 1 },
+  
+  { id: 'settings', name: 'Settings', depth: 0 },
+  { id: 'set_general', name: 'General Settings', depth: 1 },
+  { id: 'set_income_cat', name: 'Income Category', depth: 1 },
+  { id: 'set_income_subcat', name: 'Income Subcategory', depth: 1 },
+  { id: 'set_expense_cat', name: 'Expense Category', depth: 1 },
+  { id: 'set_expense_subcat', name: 'Expense Subcategory', depth: 1 },
+  { id: 'set_shortcut', name: 'Shortcut Menu', depth: 1 },
+  { id: 'set_payment_method', name: 'Payment Method', depth: 1 },
+  { id: 'set_company_info', name: 'Company Information', depth: 1 },
+  { id: 'set_bank_list', name: 'Bank List', depth: 1 },
+  { id: 'set_users', name: 'Users & Permissions', depth: 1 },
+];
 const ACTIONS = ['view', 'create', 'edit', 'delete'];
 
 const input = { width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '4px', outline: 'none' };
@@ -125,9 +231,9 @@ const UserManagement = () => {
   const openPerms = (u) => {
     const raw = u.custom_permissions || u.permissions || {};
     const perms = {};
-    MODULES.forEach((m) => {
-      perms[m] = {};
-      ACTIONS.forEach((a) => { perms[m][a] = !!(raw?.[m]?.[a] ?? raw?.[`${m}_${a}`] ?? false); });
+    MODULES.forEach((mod) => {
+      perms[mod.id] = {};
+      ACTIONS.forEach((a) => { perms[mod.id][a] = !!(raw?.[mod.id]?.[a] ?? raw?.[`${mod.id}_${a}`] ?? false); });
     });
     setPermModal({ id: u.id || u.uuid, username: u.username, perms });
   };
@@ -146,12 +252,131 @@ const UserManagement = () => {
     }
   };
 
-  const togglePerm = (m, a) => setPermModal((p) => ({ ...p, perms: { ...p.perms, [m]: { ...p.perms[m], [a]: !p.perms[m][a] } } }));
-  const toggleModule = (m, v) => setPermModal((p) => ({ ...p, perms: { ...p.perms, [m]: Object.fromEntries(ACTIONS.map((a) => [a, v])) } }));
+  const togglePerm = (mId, a) => {
+    setPermModal((p) => {
+      const nextState = !p.perms[mId][a];
+      const nextPerms = { ...p.perms, [mId]: { ...p.perms[mId], [a]: nextState } };
+      
+      const isParent = MODULES.find(mod => mod.id === mId)?.depth === 0;
+      if (isParent) {
+        const parentIndex = MODULES.findIndex(mod => mod.id === mId);
+        for (let i = parentIndex + 1; i < MODULES.length; i++) {
+          if (MODULES[i].depth === 0) break;
+          nextPerms[MODULES[i].id] = { ...nextPerms[MODULES[i].id], [a]: nextState };
+        }
+      }
+      return { ...p, perms: nextPerms };
+    });
+  };
+
+  const toggleModule = (mId, v) => {
+    setPermModal((p) => {
+      const nextPerms = { ...p.perms };
+      nextPerms[mId] = Object.fromEntries(ACTIONS.map((a) => [a, v]));
+      
+      const isParent = MODULES.find(mod => mod.id === mId)?.depth === 0;
+      if (isParent) {
+        const parentIndex = MODULES.findIndex(mod => mod.id === mId);
+        for (let i = parentIndex + 1; i < MODULES.length; i++) {
+          if (MODULES[i].depth === 0) break;
+          nextPerms[MODULES[i].id] = Object.fromEntries(ACTIONS.map((a) => [a, v]));
+        }
+      }
+      return { ...p, perms: nextPerms };
+    });
+  };
 
   const visible = users.slice(0, entries);
   const excelData = visible.map((u, i) => ({ SL: i + 1, Username: u.username, Name: u.full_name || '', Email: u.email || '', Phone: u.phone || '', Role: u.role || '', Active: u.is_active === false ? 'No' : 'Yes', Created: fmtDate(u.created_at || u.date_joined) }));
   const btn = (bg) => ({ background: bg, color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex' });
+
+  if (permModal) {
+    const cell = { padding: '10px 16px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' };
+    const th = { ...cell, background: '#f8fafc', fontWeight: 600, color: '#334155', textAlign: 'center' };
+
+    return (
+      <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
+        <div className="premium-card">
+          <div className="premium-header no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'white' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ background: '#e0e7ff', color: '#4f46e5', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Shield size={20} />
+              </div>
+              <div>
+                <h2 className="premium-title" style={{ fontSize: 'var(--fs-16, 16px)', fontWeight: 'bold', margin: 0 }}>{t("Access Permissions")}</h2>
+                <p style={{ fontSize: 'var(--fs-12, 12px)', color: '#64748b', margin: '2px 0 0 0' }}>{t("Managing access for")}: <span style={{ fontWeight: 600, color: '#0f172a' }}>{permModal.username}</span></p>
+              </div>
+            </div>
+            <button type="button" onClick={() => setPermModal(null)} style={{ background: '#f1f5f9', color: '#475569', padding: '8px 16px', fontSize: 'var(--fs-13, 13px)', borderRadius: '4px', border: '1px solid #cbd5e1', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 500 }}>
+              <ArrowLeft size={16} /> {t("Back")}
+            </button>
+          </div>
+
+          <div className="premium-body" style={{ background: 'white', padding: '24px' }}>
+            <div className="table-responsive" style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-13, 13px)' }}>
+                <thead>
+                  <tr>
+                    <th style={{ ...th, textAlign: 'left', width: '30%' }}>{t("Module & Screens")}</th>
+                    {ACTIONS.map(action => (
+                      <th key={action} style={th}>
+                        <span style={{textTransform: 'capitalize'}}>{t(action)}</span>
+                      </th>
+                    ))}
+                    <th style={th}>{t("All")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {MODULES.map((mod, index) => {
+                    const allSelected = ACTIONS.every(a => permModal.perms[mod.id]?.[a]);
+                    
+                    return (
+                      <tr key={mod.id} style={{ background: mod.depth === 0 ? '#f1f5f9' : 'white' }} className="hover-row">
+                        <td style={{ ...cell, fontWeight: mod.depth === 0 ? 700 : 500, color: mod.depth === 0 ? '#0f172a' : '#475569', paddingLeft: mod.depth === 0 ? '16px' : '36px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            {mod.depth === 1 && <span style={{ color: '#cbd5e1' }}>↳</span>}
+                            {mod.name}
+                          </div>
+                        </td>
+                        
+                        {ACTIONS.map(action => (
+                          <td key={action} style={{ ...cell, textAlign: 'center' }}>
+                            <button 
+                              onClick={() => togglePerm(mod.id, action)}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+                            >
+                              {permModal.perms[mod.id]?.[action] ? 
+                                <div style={{ color: '#007bff' }}><CheckSquare size={18} fill="#007bff" color="white" /></div> : 
+                                <div style={{ color: '#cbd5e1' }}><Square size={18} /></div>
+                              }
+                            </button>
+                          </td>
+                        ))}
+                        
+                        <td style={{ ...cell, textAlign: 'center' }}>
+                          <button 
+                              onClick={(e) => toggleModule(mod.id, !allSelected)}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                              {allSelected ? <CheckSquare size={18} fill="#007bff" color="white" /> : <Square size={18} color="#cbd5e1" />}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button onClick={() => setPermModal(null)} style={{ background: 'white', color: '#475569', padding: '10px 24px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: 'var(--fs-14, 14px)', fontWeight: 600, cursor: 'pointer' }}>{t("Cancel")}</button>
+              <button onClick={savePerms} disabled={saving} style={{ background: '#007bff', color: 'white', padding: '10px 32px', border: 'none', borderRadius: '6px', fontSize: 'var(--fs-14, 14px)', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: saving ? 0.7 : 1 }}>{saving ? t("Saving...") : t("Save Permissions")}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
@@ -255,39 +480,6 @@ const UserManagement = () => {
         </Modal>
       )}
 
-      {permModal && (
-        <Modal title={t("Permissions — {{v0}}", { v0: permModal.username })} onClose={() => setPermModal(null)} width={640}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-13, 13px)' }}>
-            <thead>
-              <tr style={{ background: '#f1f5f9' }}>
-                <th style={{ textAlign: 'left', padding: '8px' }}>{t("Module")}</th>
-                {ACTIONS.map((a) => <th key={a} style={{ padding: '8px', textTransform: 'capitalize' }}>{a}</th>)}
-                <th style={{ padding: '8px' }}>{t("All")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {MODULES.map((m) => {
-                const all = ACTIONS.every((a) => permModal.perms[m][a]);
-                return (
-                  <tr key={m} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '8px', textTransform: 'capitalize', fontWeight: 600 }}>{m}</td>
-                    {ACTIONS.map((a) => (
-                      <td key={a} style={{ padding: '8px', textAlign: 'center' }}>
-                        <input type="checkbox" checked={!!permModal.perms[m][a]} onChange={() => togglePerm(m, a)} />
-                      </td>
-                    ))}
-                    <td style={{ padding: '8px', textAlign: 'center' }}><input type="checkbox" checked={all} onChange={(e) => toggleModule(m, e.target.checked)} /></td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
-            <button onClick={() => setPermModal(null)} style={{ padding: '8px 16px', background: '#f1f5f9', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t("Cancel")}</button>
-            <button onClick={savePerms} disabled={saving} style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{saving ? t("Saving...") : t("Save Permissions")}</button>
-          </div>
-        </Modal>
-      )}
     </div>
   );
 };

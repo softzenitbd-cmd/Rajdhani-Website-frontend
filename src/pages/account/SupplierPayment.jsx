@@ -87,9 +87,11 @@ const SupplierPayment = () => {
   const fetchPayments = async (filters = {}) => {
     try {
       setLoading(true);
-      const res = await accountingService.getExpenses(filters);
+      const res = await accountingService.getExpenses({ ...filters, transaction_type: 'Supplier Payment' });
       const data = Array.isArray(res) ? res : (res?.results || []);
-      setPayments(data);
+      // Filter out any non-supplier payments locally just in case the backend doesn't support the filter
+      const supplierPayments = data.filter(p => p.transaction_type === 'Supplier Payment');
+      setPayments(supplierPayments);
     } catch (err) {
       console.error("Error fetching supplier payments:", err);
       setPayments([]);

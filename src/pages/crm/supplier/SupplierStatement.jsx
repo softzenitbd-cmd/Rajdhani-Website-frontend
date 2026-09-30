@@ -9,6 +9,7 @@ import { crmService } from '../../../services/crmService';
 import { purchaseService } from '../../../services/purchaseService';
 import { useToast } from '../../../context/ToastContext';
 import CustomDatePicker from '../../../components/CustomDatePicker';
+import Select from 'react-select';
 
 
 const SupplierStatement = () => {
@@ -215,15 +216,33 @@ const SupplierStatement = () => {
 
         {/* Filters */}
         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr auto', marginBottom: '24px', alignItems: 'flex-end', gap: '16px' }}>
-          <div className="form-group">
+          <div className="form-group" style={{ zIndex: 10 }}>
             <label style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: '600', marginBottom: '8px' }}>{t("Search By Supplier")}</label>
-            <div className="form-input floating-label">
-              <select name="supplier" value={filters.supplier} onChange={handleInputChange}>
-                <option value="">{t("Select Suppliers")}</option>
-                {suppliers.map(s => (
-                  <option key={s.id || s.uuid} value={s.id || s.uuid}>{s.name}</option>
-                ))}
-              </select>
+            <div>
+              <Select
+                options={suppliers.map(s => ({ value: String(s.id || s.uuid), label: s.name }))}
+                value={filters.supplier ? { value: String(filters.supplier), label: suppliers.find(s => String(s.id || s.uuid) === String(filters.supplier))?.name } : null}
+                onChange={(selectedOption) => handleInputChange({ target: { name: 'supplier', value: selectedOption ? selectedOption.value : '' } })}
+                placeholder={t("Select Suppliers")}
+                isClearable
+                isSearchable
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    minHeight: '42px',
+                    borderColor: '#38bdf8',
+                    boxShadow: 'none',
+                    borderRadius: '6px',
+                    '&:hover': {
+                      borderColor: '#38bdf8'
+                    }
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    zIndex: 9999
+                  })
+                }}
+              />
             </div>
           </div>
 

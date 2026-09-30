@@ -922,6 +922,8 @@ const Login = () => {
           }
         }
 
+        /* Phone: a compact desktop sign-in panel, not a full-bleed mobile
+           screen — small type, tight padding, square-ish corners. */
         @media (max-width: 900px) {
           .rg-login-container {
             flex-direction: column;
@@ -931,14 +933,57 @@ const Login = () => {
           }
           .rg-auth-panel {
             flex: 1;
-            padding: 24px 16px;
+            padding: 20px 12px;
             background: linear-gradient(135deg, #0c1322 0%, #1e293b 100%);
           }
           .rg-auth-card {
-            padding: 32px 24px;
+            padding: 20px 18px;
+            border-radius: 10px;
+            max-width: 380px;
           }
           .rg-mobile-brand {
             display: flex;
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+          }
+          .rg-mobile-title {
+            font-size: 16px;
+          }
+          .rg-form-header {
+            margin-bottom: 16px;
+          }
+          .rg-badge-pill {
+            padding: 3px 9px;
+            font-size: 10px;
+            border-radius: 4px;
+          }
+          .rg-welcome-heading {
+            font-size: 20px;
+            margin: 8px 0 4px;
+          }
+          .rg-welcome-sub {
+            font-size: 12px;
+          }
+          .rg-field-group {
+            margin-bottom: 12px;
+          }
+          .rg-field-label {
+            font-size: 11px;
+            margin-bottom: 4px;
+          }
+          .rg-input-box {
+            height: 38px;
+            border-radius: 6px;
+          }
+          .rg-submit-btn {
+            height: 38px;
+            font-size: 13px;
+            border-radius: 6px;
+            margin-top: 4px;
+          }
+          .rg-auth-footer,
+          .rg-security-note {
+            font-size: 10px;
           }
         }
       `}</style>
