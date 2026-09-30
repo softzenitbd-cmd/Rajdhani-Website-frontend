@@ -7,7 +7,8 @@ const regex = /<div style=\{\{ display: "flex", gap: "12px" \}\}>[\s\S]*?\{t\("S
 const newButtons = `
             <div style={{ display: "flex", gap: "12px" }}>
               <button
-                type="button"
+                type="butto
+                n"
                 className="btn-primary"
                 onClick={() => handleSubmitPurchase(1)}
                 disabled={submitting}
