@@ -322,7 +322,7 @@ const ClientStatement = () => {
     }
   };
 
-  useEffect(() => { load(); }, [filters.client]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { load(); }, [filters.client, filters.from_date, filters.to_date]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const set = (k, v) => setFilters((p) => ({ ...p, [k]: v }));
   const clear = () => {

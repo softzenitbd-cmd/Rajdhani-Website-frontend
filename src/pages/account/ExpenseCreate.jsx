@@ -46,6 +46,12 @@ const ExpenseCreate = () => {
 
       setAccounts(accData);
       setCategories(catData);
+
+      // Auto-select "TOTAL BALANCE" account if it exists (handling typo "BLANCE")
+      const totalBalanceAcc = accData.find(a => a.name && (a.name.toUpperCase().includes('TOTAL BALANCE') || a.name.toUpperCase().includes('TOTAL BLANCE')));
+      if (totalBalanceAcc) {
+        setFormData(prev => ({ ...prev, accountId: totalBalanceAcc.id || totalBalanceAcc.uuid || '' }));
+      }
     } catch (err) {
       toast.error(err?.message || t("Failed to load form data"));
     }

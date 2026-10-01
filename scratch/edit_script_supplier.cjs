@@ -1,4 +1,8 @@
-import React, { useEffect, useState } from 'react';
+const fs = require('fs');
+
+const filePath = 'c:\\Users\\SoftZen It\\rajdhane_garments\\src\\pages\\crm\\supplier\\SupplierStatement.jsx';
+
+const newContent = `import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import PrintHeader from '../../../components/PrintHeader';
@@ -127,14 +131,14 @@ const SupplierStatement = () => {
           rawList.push({
             date: inv.invoice_date || inv.date || inv.created_at,
             type: 'Purchase Invoice',
-            reference: `Invoice: ${inv.invoice_number || inv.id}`,
+            reference: \`Invoice: \${inv.invoice_number || inv.id}\`,
             debit: Number(inv.grand_total || inv.total_amount || inv.net_total || inv.total || 0),
             credit: 0,
             discount: Number(inv.discount_amount || inv.discount || 0),
             shipping_cost: Number(inv.shipping_cost || inv.transport_fare || 0),
             invoice: inv.id,
-            id: `inv-${inv.id}`,
-            description: `Purchase Invoice ${inv.invoice_number || inv.id}`
+            id: \`inv-\${inv.id}\`,
+            description: \`Purchase Invoice \${inv.invoice_number || inv.id}\`
           });
         });
         
@@ -142,27 +146,27 @@ const SupplierStatement = () => {
           rawList.push({
             date: ret.return_date || ret.date || ret.created_at,
             type: 'Purchase Return',
-            reference: `Return: ${ret.return_number || ret.id}`,
+            reference: \`Return: \${ret.return_number || ret.id}\`,
             debit: 0,
             credit: Number(ret.total_amount || ret.amount || ret.total || 0),
             invoice: ret.invoice,
-            id: `ret-${ret.id}`,
-            description: `Purchase Return ${ret.return_number || ret.id}`
+            id: \`ret-\${ret.id}\`,
+            description: \`Purchase Return \${ret.return_number || ret.id}\`
           });
         });
       }
 
       // Merge Payments
       expenses.forEach(exp => {
-        if (!rawList.some(r => String(r.id) === String(exp.id) || String(r.id) === `exp-${exp.id}` || String(r.reference).includes(String(exp.id)))) {
+        if (!rawList.some(r => String(r.id) === String(exp.id) || String(r.id) === \`exp-\${exp.id}\` || String(r.reference).includes(String(exp.id)))) {
           rawList.push({
             date: exp.date || exp.created_at,
             type: exp.transaction_type || 'Payment',
-            reference: exp.reference || `Payment: ${exp.id}`,
+            reference: exp.reference || \`Payment: \${exp.id}\`,
             debit: 0,
             credit: Number(exp.amount || exp.total || 0),
             is_payment: true,
-            id: `exp-${exp.id}`,
+            id: \`exp-\${exp.id}\`,
             description: exp.description || exp.reference || exp.transaction_type || 'Payment'
           });
         }
@@ -172,8 +176,8 @@ const SupplierStatement = () => {
 
       const list = rawList.map((r) => {
         const refStr = String(r.reference || r.description || '');
-        const invMatch = refStr.match(/(Invoice|Purchase|PI)[\s-:]*([a-zA-Z0-9-]+)/i) || refStr.match(/([a-zA-Z0-9-]+)/i);
-        const retMatch = refStr.match(/Return[\s-:]*([a-zA-Z0-9-]+)/i);
+        const invMatch = refStr.match(/(Invoice|Purchase|PI)[\\s-:]*([a-zA-Z0-9-]+)/i) || refStr.match(/([a-zA-Z0-9-]+)/i);
+        const retMatch = refStr.match(/Return[\\s-:]*([a-zA-Z0-9-]+)/i);
 
         let matchedInvoice = null;
         let matchedReturn = null;
@@ -192,7 +196,7 @@ const SupplierStatement = () => {
         let transport = r.shipping_cost || r.transport_fare || 0;
 
         if (matchedInvoice) {
-          if (matchedInvoice.invoice_number) cleanDescription = `Invoice: ${matchedInvoice.invoice_number}`;
+          if (matchedInvoice.invoice_number) cleanDescription = \`Invoice: \${matchedInvoice.invoice_number}\`;
           discount = Number(matchedInvoice.discount_amount || matchedInvoice.discount || 0);
           transport = Number(matchedInvoice.shipping_cost || matchedInvoice.transport_fare || 0);
 
@@ -204,13 +208,12 @@ const SupplierStatement = () => {
               const qty = Number(it.quantity || it.qty || it.product_qty || 1);
               const price = Number(it.purchase_price || it.price || it.rate || prod?.purchase_price || 0);
               const name = it.product_name || it.name || prod?.name || prod?.title || 'Product';
-              const barcode = it.barcode || prod?.barcode || '';
               const unit = it.unit || it.unit_name || prod?.unit_name || prod?.unit || 'PEACE';
-              return { product_name: name, barcode: barcode, quantity: qty, unit: unit, price: price, total: qty * price };
+              return { product_name: name, quantity: qty, unit: unit, price: price, total: qty * price };
             });
           }
         } else if (matchedReturn) {
-          if (matchedReturn.return_number) cleanDescription = `Return: ${matchedReturn.return_number}`;
+          if (matchedReturn.return_number) cleanDescription = \`Return: \${matchedReturn.return_number}\`;
           
           const rawItems = Array.isArray(matchedReturn.items) ? matchedReturn.items : [];
           if (rawItems.length > 0) {
@@ -220,9 +223,8 @@ const SupplierStatement = () => {
               const qty = Number(it.quantity || it.qty || 1);
               const price = Number(it.purchase_price || it.price || prod?.purchase_price || 0);
               const name = it.product_name || it.name || prod?.name || 'Returned Item';
-              const barcode = it.barcode || prod?.barcode || '';
               const unit = it.unit || it.unit_name || prod?.unit_name || 'PEACE';
-              return { product_name: name, barcode: barcode, quantity: qty, unit: unit, price: price, total: qty * price };
+              return { product_name: name, quantity: qty, unit: unit, price: price, total: qty * price };
             });
           }
         }
@@ -303,72 +305,6 @@ const SupplierStatement = () => {
   const td = { textAlign: 'center', border: '1px solid #e2e8f0', padding: '0', fontSize: 'var(--fs-12, 12px)', color: 'black' };
   const cellPad = { padding: '8px' };
 
-  const handleShare = async () => {
-    const element = document.getElementById('statement-content');
-    if (!element) {
-      toast.error(t("Could not generate image."));
-      return;
-    }
-    
-    const noPrintElements = element.querySelectorAll('.no-print');
-    noPrintElements.forEach(el => el.style.display = 'none');
-
-    const printOnlyElements = element.querySelectorAll('.print-only');
-    printOnlyElements.forEach(el => {
-      el.dataset.printOnlyRemoved = 'true';
-      el.classList.remove('print-only');
-    });
-    
-    try {
-      toast.info(t("Generating image for sharing..."));
-      await new Promise(r => setTimeout(r, 500));
-      
-      const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-      
-      noPrintElements.forEach(el => el.style.display = '');
-
-      printOnlyElements.forEach(el => {
-        if (el.dataset.printOnlyRemoved) {
-          el.classList.add('print-only');
-          delete el.dataset.printOnlyRemoved;
-        }
-      });
-
-      canvas.toBlob(async (blob) => {
-        if (!blob) throw new Error('Failed to generate image');
-        const file = new File([blob], `Supplier_Statement_${selectedSupplier?.name || 'Unknown'}.png`, { type: 'image/png' });
-
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            title: 'Supplier Statement',
-            text: `Supplier Statement for ${selectedSupplier ? selectedSupplier.name : 'Supplier'}`,
-            files: [file]
-          });
-        } else {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = file.name;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          toast.success(t("Image downloaded. You can now share it manually."));
-        }
-      }, 'image/png');
-    } catch (error) {
-      console.log('Error sharing', error);
-      noPrintElements.forEach(el => el.style.display = '');
-      printOnlyElements.forEach(el => {
-        if (el.dataset.printOnlyRemoved) {
-          el.classList.add('print-only');
-          delete el.dataset.printOnlyRemoved;
-        }
-      });
-      toast.error(t("Failed to share image."));
-    }
-  };
-
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px', background: 'white' }}>
       <div id="statement-content" style={{ background: 'white', paddingTop: '60px' }}>
@@ -379,7 +315,7 @@ const SupplierStatement = () => {
             <div>
               {selectedSupplier ? (
                 <>
-                  Supplier Name: {selectedSupplier.name} {selectedSupplier.phone ? `// ${selectedSupplier.phone}` : ''}<br/>
+                  Supplier Name: {selectedSupplier.name} {selectedSupplier.phone ? \`// \${selectedSupplier.phone}\` : ''}<br/>
                   {selectedSupplier.phone && <>Supplier Phone: {selectedSupplier.phone}<br/></>}
                   {selectedSupplier.address && <>Supplier Address: {selectedSupplier.address}<br/></>}
                   <div style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', marginTop: '4px', color: 'black' }}>Due: {money(currentDue)}</div>
@@ -395,7 +331,7 @@ const SupplierStatement = () => {
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: 'var(--fs-11, 11px)', marginBottom: '4px', color: 'black' }}>Search By Supplier</label>
               <SearchableSelect
-                options={suppliers.map((s) => ({ value: s.id || s.uuid, label: `${s.name}${s.phone ? ` (${s.phone})` : ''}`, searchValue: `${s.name} ${s.phone || ''}` }))}
+                options={suppliers.map((s) => ({ value: s.id || s.uuid, label: \`\${s.name}\${s.phone ? \` (\${s.phone})\` : ''}\`, searchValue: \`\${s.name} \${s.phone || ''}\` }))}
                 value={filters.supplier}
                 onChange={(val) => set('supplier', val)}
                 placeholder={t("Select Supplier")}
@@ -421,7 +357,6 @@ const SupplierStatement = () => {
               </select> entries
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button type="button" onClick={handleShare} style={{ padding: '6px 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: 'var(--fs-12, 12px)' }}>Share</button>
               <button type="button" onClick={() => window.print()} style={{ padding: '6px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: 'var(--fs-12, 12px)' }}>Print</button>
               <button type="button" onClick={() => load()} style={{ padding: '6px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: 'var(--fs-12, 12px)' }}>Reset</button>
             </div>
@@ -464,7 +399,7 @@ const SupplierStatement = () => {
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                               {r.items.map((item, idx) => (
                                 <div key={idx} style={{ padding: '6px 8px', borderBottom: idx < r.items.length - 1 ? '1px solid #e2e8f0' : 'none', fontWeight: '500' }}>
-                                  {item.product_name || '-'} {item.barcode ? `(${item.barcode})` : ''}
+                                  {item.product_name || '-'}
                                 </div>
                               ))}
                             </div>
@@ -533,3 +468,7 @@ const SupplierStatement = () => {
 };
 
 export default SupplierStatement;
+\`;
+
+fs.writeFileSync(filePath, newContent);
+console.log('Successfully replaced SupplierStatement.jsx');

@@ -299,6 +299,7 @@ const StaffList = () => {
                   <th style={{ padding: "8px 6px", textAlign: "center" }}>
                     {t("PERMISSION")}
                   </th>
+                  <th style={{ padding: "8px 6px" }}>{t("WEEKLY SALARY")}</th>
                   <th style={{ padding: "8px 6px" }}>{t("CREATED AT")}</th>
                   <th
                     className="action-column"
@@ -312,7 +313,7 @@ const StaffList = () => {
                 {loading ? (
                   <tr>
                     <td
-                      colSpan="9"
+                      colSpan="10"
                       style={{
                         padding: "24px",
                         textAlign: "center",
@@ -325,7 +326,7 @@ const StaffList = () => {
                 ) : visible.length === 0 ? (
                   <tr>
                     <td
-                      colSpan="9"
+                      colSpan="10"
                       style={{
                         padding: "24px",
                         textAlign: "center",
@@ -383,6 +384,9 @@ const StaffList = () => {
                           >
                             {t("Permissions")}
                           </button>
+                        </td>
+                        <td style={{ padding: "8px 6px", fontWeight: "bold", color: "#1e293b" }}>
+                          {s.weekly_salary || s.salary || s.basic_salary ? `৳ ${Number(s.weekly_salary || s.salary || s.basic_salary).toFixed(2)}` : "-"}
                         </td>
                         <td style={{ padding: "8px 6px" }}>
                           {fmtDate(s.created_at)}

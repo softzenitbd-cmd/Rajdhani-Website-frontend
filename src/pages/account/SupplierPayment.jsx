@@ -88,10 +88,33 @@ const SupplierPayment = () => {
     try {
       setLoading(true);
       const res = await accountingService.getExpenses({ ...filters, transaction_type: 'Supplier Payment' });
-      const data = Array.isArray(res) ? res : (res?.results || []);
-      // Filter out any non-supplier payments locally just in case the backend doesn't support the filter
-      const supplierPayments = data.filter(p => p.transaction_type === 'Supplier Payment');
-      setPayments(supplierPayments);
+      let data = Array.isArray(res) ? res : (res?.results || []);
+      
+      // Filter out any non-supplier payments locally
+      data = data.filter(p => p.transaction_type === 'Supplier Payment');
+
+      // Client-side date filtering
+      if (fromDate) {
+        const fromDateObj = new Date(fromDate);
+        fromDateObj.setHours(0, 0, 0, 0);
+        data = data.filter(row => {
+          if (!row.date) return false;
+          const rowDate = new Date(row.date);
+          rowDate.setHours(0, 0, 0, 0);
+          return rowDate >= fromDateObj;
+        });
+      }
+      if (toDate) {
+        const toDateObj = new Date(toDate);
+        toDateObj.setHours(23, 59, 59, 999);
+        data = data.filter(row => {
+          if (!row.date) return false;
+          const rowDate = new Date(row.date);
+          return rowDate <= toDateObj;
+        });
+      }
+
+      setPayments(data);
     } catch (err) {
       console.error("Error fetching supplier payments:", err);
       setPayments([]);
@@ -107,11 +130,17 @@ const SupplierPayment = () => {
   useEffect(() => {
     const filters = {};
     if (selectedSupplier) filters.supplier = selectedSupplier;
-    // Removed idSearch from backend filters since backend does not support partial UUID search
+    // Backend may not support from_date/to_date reliably, but we send them just in case
     if (fromDate) filters.from_date = fromDate;
     if (toDate) filters.to_date = toDate;
+    
+    // If any filter is active, fetch a larger batch to filter client-side
+    if (selectedSupplier || fromDate || toDate || idSearch) {
+      filters.page_size = 5000;
+    }
+
     fetchPayments(filters);
-  }, [selectedSupplier, fromDate, toDate]);
+  }, [selectedSupplier, fromDate, toDate, idSearch]);
 
   const handleFilter = () => {
     // Left for manual triggering if ever needed
@@ -170,8 +199,23 @@ const SupplierPayment = () => {
 
   const displayedPayments = payments.filter(item => {
     if (idSearch) {
-      const idStr = item.id?.toString() || '';
-      return idStr.toLowerCase().includes(idSearch.toLowerCase());
+      const q = idSearch.toLowerCase();
+      const sName = (item.supplier_name || item.supplier?.name || '').toLowerCase();
+      const cat = (item.category_name || item.category?.name || '').toLowerCase();
+      const acc = (item.account_name || item.account?.name || '').toLowerCase();
+      const tType = (item.transaction_type || '').toLowerCase();
+      const cNo = (item.cheque_no || '').toLowerCase();
+      const bnk = (item.bank || '').toLowerCase();
+      const displayedId = item.reference || item.id_no || (item.id ? String(item.id).replace(/\D/g, '').padEnd(6, '0').slice(0, 6) : '');
+      const rawId = (item.id || '').toString().toLowerCase();
+      const desc = (item.reference || item.description || '').toLowerCase();
+      
+      return (
+        sName.includes(q) || cat.includes(q) || acc.includes(q) || 
+        tType.includes(q) || cNo.includes(q) || bnk.includes(q) ||
+        String(displayedId).toLowerCase().includes(q) || rawId.includes(q) ||
+        desc.includes(q) || String(item.amount || '').includes(q)
+      );
     }
     return true;
   });
@@ -332,16 +376,16 @@ const SupplierPayment = () => {
                   <span style={{
                     background: (() => {
                       const typeStr = String(item.transaction_type || '').toLowerCase();
-                      if (typeStr.includes('supplier') || typeStr.includes('সাপ্লায়ার') || typeStr.includes('সাপ্লাইয়ার')) return '#17a2b8';
-                      if (typeStr.includes('staff') || typeStr.includes('স্টাফ')) return '#10b981'; // Green matching the 2nd screenshot
-                      if (typeStr.includes('return') || typeStr.includes('ফেরত')) return '#f59e0b';
-                      if (typeStr.includes('expense') || typeStr.includes('খরচ')) return '#f43f5e';
-                      return '#10b981';
+                      if (typeStr.includes('supplier') || typeStr.includes('সাপ্লায়ার') || typeStr.includes('সাপ্লাইয়ার')) return '#0891b2';
+                      if (typeStr.includes('staff') || typeStr.includes('স্টাফ')) return '#10b981';
+                      if (typeStr.includes('return') || typeStr.includes('ফেরত')) return '#eab308';
+                      if (typeStr.includes('expense') || typeStr.includes('খরচ')) return '#ef4444';
+                      return '#64748b';
                     })(),
-                    color: '#000000',
-                    padding: '4px 8px',
+                    color: '#ffffff',
+                    padding: '3px 8px',
                     borderRadius: '4px',
-                    fontSize: 'var(--fs-12, 12px)',
+                    fontSize: 'var(--fs-11, 11px)',
                     fontWeight: 'bold',
                     display: 'inline-block',
                     whiteSpace: 'nowrap'

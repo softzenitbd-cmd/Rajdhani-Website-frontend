@@ -93,6 +93,10 @@ const DueCollectionDate = () => {
           if (filters.endDate && cDate > filters.endDate) return false;
           
           return true;
+        }).sort((a, b) => {
+          const dateA = new Date(a.due_date || 0);
+          const dateB = new Date(b.due_date || 0);
+          return dateA - dateB;
         });
         setClients(mergedData);
       } catch (err) {

@@ -33,6 +33,7 @@ const Profit = () => {
 
       delete data['Total Client Due'];
       delete data['Total Supplier Due'];
+      delete data['Total Buy Price']; // Remove confusing name just in case backend sends it
 
       try {
         const salesRep = await saleService.getSalesReport(filters);
@@ -42,7 +43,19 @@ const Profit = () => {
           calcBuy += Number(item.buy_price || 0) * Number(item.qty || item.quantity || 0);
         });
         
-        data['Total Buy Price'] = '৳ ' + calcBuy.toFixed(2);
+        data['Cost of Sold Goods'] = '৳ ' + calcBuy.toFixed(2);
+
+        try {
+          const purchaseRes = await purchaseService.getPurchaseInvoices(filters);
+          const purchases = Array.isArray(purchaseRes) ? purchaseRes : (purchaseRes?.results || []);
+          let totalPurchases = 0;
+          purchases.forEach(inv => {
+            totalPurchases += Number(inv.grand_total || inv.total_amount || 0);
+          });
+          data['Total Purchases'] = '৳ ' + totalPurchases.toFixed(2);
+        } catch (err) {
+          console.error("Error fetching purchases for profit ledger", err);
+        }
         
         const ts = parseFloat(String(data['Total Sales'] || '0').replace(/[^\d.-]/g, '')) || 0;
         const pp = ts - calcBuy;
@@ -137,10 +150,11 @@ const Profit = () => {
                   if (!profitData || Object.keys(profitData).length === 0) return null;
                   const order = [
                     "Total Sales",
+                    "Total Purchases",
+                    "Cost of Sold Goods",
                     "Total Receive",
                     "Discount",
                     "Total Expense",
-                    "Total Buy Price",
                     "Total Balance",
                     "Product Profit",
                     "Gross Profit",
@@ -159,7 +173,7 @@ const Profit = () => {
                     return (
                       <tr key={key} style={{ background: idx % 2 === 0 ? '#ffffff' : '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                         <td style={{ textAlign: 'left', padding: '12px 18px', borderRight: '1px solid #e2e8f0', fontWeight: isHighlight ? 'bold' : '500', color: isHighlight ? 'var(--text-main)' : '#334155' }}>
-                          {key}
+                          {t(key)}
                         </td>
                         <td style={{ 
                           textAlign: 'right', 

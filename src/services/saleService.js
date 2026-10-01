@@ -58,21 +58,14 @@ const normalizeReportRow = (r) => {
     due: num(inv.due_amount ?? r.current_due),
     due_amount: num(inv.due_amount ?? r.current_due),
     profit: num(r.profit),
-    buy_price: num(r.product_purchase_price ?? r.purchase_price ?? r.buying_price ?? r.cost),
+    buy_price: num(r.buy_price ?? r.product_purchase_price ?? r.purchase_price ?? r.buying_price ?? r.cost),
     date: r.date || r.issued_date,
   };
 };
 
 const getSalesReport = async (filters = {}) => {
-  if (!reportEndpointMissing) {
-    try {
-      const res = await apiClient.get(ENDPOINTS.SALE_REPORT, { params: reportParams(filters) });
-      return toList(res).map(normalizeReportRow);
-    } catch (err) {
-      if (err?.status !== 404) throw err;
-      reportEndpointMissing = true; // fall back for the rest of the session
-    }
-  }
+  // Always use buildSalesReport to guarantee we fetch the latest buying_price from the products catalog
+  // since the backend /api/sale/reports/sales/ may omit it or use an unknown key.
   return buildSalesReport(filters);
 };
 
@@ -87,7 +80,7 @@ const buildSalesReport = async (filters = {}) => {
 
   const [invRes, prodRes, clientRes] = await Promise.all([
     apiClient.get(ENDPOINTS.SALE_INVOICES, { params: invParams }),
-    needProducts ? productService.getProducts().catch(() => []) : [],
+    needProducts ? productService.getProducts({ limit: 1000000, page_size: 1000000, no_page: true }).catch(() => []) : [],
     needClients ? crmService.getClients().catch(() => []) : [],
   ]);
 
@@ -124,7 +117,7 @@ const buildSalesReport = async (filters = {}) => {
       const qty = num(it.quantity ?? it.qty ?? it.product_qty);
       const price = num(it.selling_price ?? it.sales_price ?? it.price ?? it.product_sale_price ?? product?.sales_price);
       const amount = num(it.total_selling_price ?? it.total ?? it.amount) || qty * price;
-      const cost = num(it.purchase_price ?? product?.purchase_price ?? product?.buying_price);
+      const cost = num(it.purchase_price ?? it.buy_price ?? product?.purchase_price ?? product?.buying_price ?? product?.buy_price);
       const barcode = it.barcode || product?.barcode || product?.code || '';
       const productName = it.product_name || it.name || nameOf(it.product, '') || product?.name || '';
       const productGroupId = idOf(product?.group ?? product?.product_group ?? it.product_group);
@@ -165,6 +158,7 @@ const buildSalesReport = async (filters = {}) => {
         due_amount: num(inv.total_due ?? inv.due),
         profit: cost ? (price - cost) * qty : 0,
         buy_price: cost,
+        user_id: idOf(inv.user ?? inv.created_by ?? inv.staff),
       });
     });
   });
@@ -176,6 +170,7 @@ const buildSalesReport = async (filters = {}) => {
     if (filters.product_group_id && !eq(r.product_group_id, filters.product_group_id)) return false;
     if (filters.client_group_id && !eq(r.client_group_id, filters.client_group_id)) return false;
     if (filters.client_id && !eq(r.client_id, filters.client_id)) return false;
+    if (filters.user_id && !eq(r.user_id, filters.user_id)) return false;
     return true;
   });
 };

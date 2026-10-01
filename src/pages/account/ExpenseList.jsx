@@ -62,21 +62,84 @@ const ExpenseList = () => {
     try {
       setLoading(true);
       const filters = {};
-      if (searchId) filters.search = searchId;
+      
+      // If we are searching, we fetch a large batch to filter client-side since backend search may be limited
+      if (searchId || clientId || fromDate || toDate) {
+        filters.page_size = 5000;
+      } else {
+        filters.page = currentPage;
+        filters.page_size = limit;
+      }
+
+      // Do NOT send 'search' to backend if backend search is broken for text
+      // if (searchId) filters.search = searchId;
       if (fromDate) filters.from_date = fromDate;
       if (toDate) filters.to_date = toDate;
-      
-      filters.page = currentPage;
-      filters.page_size = limit;
 
       const res = await accountingService.getExpenses(filters);
       let data = Array.isArray(res) ? res : (res?.results || []);
-      setTotalCount(res?.count || data.length);
-      // Backend has no client filter on expenses → filter on the client side
+      
+      // Client-side filtering for Client ID
       if (clientId) {
         data = data.filter((row) => String(row.client || row.client_id || row.client?.id) === String(clientId));
-        setTotalCount(data.length); // Update total count if filtered client-side
       }
+
+      // Client-side filtering for Dates
+      if (fromDate) {
+        const fromDateObj = new Date(fromDate);
+        fromDateObj.setHours(0, 0, 0, 0);
+        data = data.filter(row => {
+          if (!row.date) return false;
+          const rowDate = new Date(row.date);
+          rowDate.setHours(0, 0, 0, 0);
+          return rowDate >= fromDateObj;
+        });
+      }
+      if (toDate) {
+        const toDateObj = new Date(toDate);
+        toDateObj.setHours(23, 59, 59, 999);
+        data = data.filter(row => {
+          if (!row.date) return false;
+          const rowDate = new Date(row.date);
+          return rowDate <= toDateObj;
+        });
+      }
+
+      // Client-side global search
+      if (searchId) {
+        const q = searchId.toLowerCase();
+        data = data.filter(row => {
+          const recFor = (receiptFor(row) || '').toLowerCase();
+          const desc = (row.description || row.desc || '').toLowerCase();
+          const cat = (row.category_name || row.category || '').toLowerCase();
+          const acc = (row.account_name || row.account || '').toLowerCase();
+          const tType = (row.transaction_type || row.type || '').toLowerCase();
+          const cNo = (row.cheque_no || '').toLowerCase();
+          const bnk = (row.bank_name || row.bank || '').toLowerCase();
+          
+          // Generate the same ID format displayed in the table
+          const displayedId = row.reference || row.idNo || (row.id ? String(row.id).replace(/\D/g, '').padEnd(6, '0').slice(0, 6) : '');
+          const idStr = String(row.id || '').toLowerCase(); // Also check raw UUID just in case
+          const refStr = (row.reference || row.idNo || '').toLowerCase();
+          
+          return (
+            recFor.includes(q) || desc.includes(q) || cat.includes(q) ||
+            acc.includes(q) || tType.includes(q) || cNo.includes(q) ||
+            bnk.includes(q) || idStr.includes(q) || refStr.includes(q) ||
+            String(displayedId).toLowerCase().includes(q) ||
+            String(row.amount || '').includes(q)
+          );
+        });
+      }
+
+      setTotalCount(data.length > limit ? data.length : (res?.count || data.length));
+      
+      // Client-side pagination if we fetched a large batch
+      if (searchId || clientId || fromDate || toDate) {
+        const startIndex = (currentPage - 1) * limit;
+        data = data.slice(startIndex, startIndex + limit);
+      }
+      
       setExpenses(data);
     } catch (error) {
       console.error('Error fetching expenses:', error);

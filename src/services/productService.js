@@ -125,7 +125,7 @@ export const productService = {
   // 2. Main Product API
   // ==========================================
   getProducts: async (filters = {}) => {
-    const params = {};
+    const params = { page_size: 5000, limit: 5000, no_page: true };
     if (filters.search) params.search = filters.search;
     if (filters.barcode) params.barcode = filters.barcode;
     if (filters.group) params.group = filters.group;
@@ -227,7 +227,7 @@ export const productService = {
   //          selling_price, current_stock, total_buying_value, total_selling_value
   // ==========================================
   getStockReport: async (filters = {}) => {
-    const params = {};
+    const params = { page_size: 5000, limit: 5000, no_page: true };
     if (filters.group_id) params.group_id = filters.group_id;
       if (filters.product_id) params.product_id = filters.product_id;
     if (filters.brand_id) params.brand_id = filters.brand_id;

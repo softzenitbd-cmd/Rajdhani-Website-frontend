@@ -152,14 +152,14 @@ const SalesProductWise = () => {
             </button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
+          <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.5fr auto', gap: '16px', alignItems: 'end' }}>
             <div>
-              <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Group")}</label>
+              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '8px' }}>{t("Group")}</label>
               <select 
                 name="product_group_id"
                 value={filters.product_group_id}
                 onChange={handleFilterChange}
-                style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }}
+                style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }}
               >
                 <option value="">{t("Select Product Group")}</option>
                 {productGroups.map(g => (
@@ -168,12 +168,12 @@ const SalesProductWise = () => {
               </select>
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Search By Product")}</label>
+              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '8px' }}>{t("Search By Product")}</label>
               <select 
                 name="product_id"
                 value={filters.product_id}
                 onChange={handleFilterChange}
-                style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }}
+                style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }}
               >
                 <option value="">{t("Select Product")}</option>
                 {products.map(p => (
@@ -182,43 +182,39 @@ const SalesProductWise = () => {
               </select>
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Barcode")}</label>
+              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '8px' }}>{t("Barcode")}</label>
               <input 
                 type="text" 
                 name="barcode"
                 value={filters.barcode}
                 onChange={handleFilterChange}
                 placeholder={t("Barcode")} 
-                style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} 
+                style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }} 
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t('common.search_by_date')}</label>
+              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '8px' }}>{t('common.search_by_date')}</label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <CustomDatePicker 
-                   
                   name="from_date"
                   value={filters.from_date}
                   onChange={handleFilterChange}
-                  style={{ width: '50%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} 
+                  style={{ width: '50%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }} 
                 />
                 <CustomDatePicker 
-                   
                   name="to_date"
                   value={filters.to_date}
                   onChange={handleFilterChange}
-                  style={{ width: '50%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} 
+                  style={{ width: '50%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }} 
                 />
               </div>
             </div>
+            <div>
+              <button onClick={handleClearFilters} style={{ background: '#ef4444', color: 'white', padding: '10px 16px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', height: '40px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
+                <RefreshCcw size={14} /> {t("Clear")}
+              </button>
+            </div>
           </div>
-
-          <button 
-            onClick={handleClearFilters}
-            style={{ width: '100%', background: '#7e8a9f', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', marginBottom: '24px' }}
-          >
-            {t("Clear Filter")}
-          </button>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div style={{ fontSize: 'var(--fs-13, 13px)', color: 'var(--text-muted)' }}>
@@ -282,7 +278,7 @@ const SalesProductWise = () => {
                       <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>{group.voucher_no}</td>
                       <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>
                         <div>{(() => {
-                          const cName = row.client_name || row.client?.client_name || row.client || '-';
+                          let cName = clients.find(c => String(c.id || c.uuid) === String(row.client_id || row.client))?.name || clients.find(c => String(c.id || c.uuid) === String(row.client_id || row.client))?.company_name || row.client_name || row.client?.client_name || row.client || '-'; cName = (typeof cName === 'string' && cName.length === 36 && cName.includes('-')) ? 'Unknown Client' : cName;
                           const cPhone = row.client_phone || row.phone || row.client?.phone || row.client?.mobile || row.invoice?.client?.phone || (clients.find(c => String(c.id || c.uuid) === String(row.client_id))?.phone) || (clients.find(c => (c.name || c.company_name) === (row.client_name || row.client))?.phone) || '';
                           const cAddress = row.client_address || row.address || row.client?.address || row.invoice?.client?.address || (clients.find(c => String(c.id || c.uuid) === String(row.client_id))?.address) || (clients.find(c => (c.name || c.company_name) === (row.client_name || row.client))?.address) || '';
                           
@@ -356,3 +352,5 @@ const SalesProductWise = () => {
 };
 
 export default SalesProductWise;
+
+

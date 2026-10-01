@@ -52,10 +52,16 @@ const ReceiveCreate = () => {
       setCategories(catData);
       setClients(clientData);
 
-      // Auto-select "TOTAL BALANCE" account if it exists
-      const totalBalanceAcc = accData.find(a => a.name && a.name.toUpperCase().includes('TOTAL BALANCE'));
+      // Auto-select "TOTAL BALANCE" account if it exists (handling typo "BLANCE")
+      const totalBalanceAcc = accData.find(a => a.name && (a.name.toUpperCase().includes('TOTAL BALANCE') || a.name.toUpperCase().includes('TOTAL BLANCE')));
       if (totalBalanceAcc) {
         setFormData(prev => ({ ...prev, accountId: totalBalanceAcc.id || totalBalanceAcc.uuid || '' }));
+      }
+
+      // Auto-select "BAKI ADAY" category if it exists
+      const bakiAdayCat = catData.find(c => c.name && c.name.toUpperCase().includes('BAKI ADAY'));
+      if (bakiAdayCat) {
+        setFormData(prev => ({ ...prev, category: bakiAdayCat.id || bakiAdayCat.uuid || '' }));
       }
     } catch (err) {
       toast.error(err?.message || t("Failed to load form data"));

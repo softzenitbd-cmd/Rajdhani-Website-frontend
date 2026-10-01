@@ -174,12 +174,9 @@ const SalesBarcodeSearch = () => {
           </div>
 
           {/* Clear Filter Button */}
-          <button 
-            onClick={handleClearFilters}
-            style={{ width: '100%', background: '#7e8a9f', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', marginBottom: '24px' }}
-          >
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px' }}><button onClick={handleClearFilters} style={{ background: '#ef4444', color: 'white', padding: '10px 24px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
             {t("Clear Filter")}
-          </button>
+          </button></div>
 
           {/* Total Sales Bar */}
           <div style={{ background: '#94a3b8', color: 'white', padding: '12px', display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', marginBottom: '24px' }}>
@@ -253,7 +250,11 @@ const SalesBarcodeSearch = () => {
         }
         return v || '-';
       })()}</td>
-                      <td style={{ padding: '12px' }}>{row.client_name || row.client || '-'}</td>
+                      <td style={{ padding: '12px' }}>{(() => {
+                        const c = clients.find(c => String(c.id || c.uuid) === String(row.client_id || row.client));
+                        let n = c?.name || c?.company_name || row.client_name || row.client?.client_name || row.client || '-';
+                        return (typeof n === 'string' && n.length === 36 && n.includes('-')) ? 'Unknown Client' : n;
+                      })()}</td>
                       <td style={{ padding: '12px' }}>{row.product_name || row.product || '-'}</td>
                       <td style={{ padding: '12px' }}>{row.barcode || '-'}</td>
                       <td style={{ padding: '12px' }}>{row.unit_name || row.unit || t("PEACE")}</td>
@@ -288,3 +289,4 @@ const SalesBarcodeSearch = () => {
 };
 
 export default SalesBarcodeSearch;
+

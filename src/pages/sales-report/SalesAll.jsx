@@ -92,10 +92,10 @@ const SalesAll = () => {
           </div>
 
           {/* Filters Area */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
+          <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: '16px', alignItems: 'end' }}>
             <div>
-              <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Search By Client")}</label>
-              <select name="client_id" value={filters.client_id} onChange={handleFilterChange} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }}>
+              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '8px' }}>{t("Search By Client")}</label>
+              <select name="client_id" value={filters.client_id} onChange={handleFilterChange} style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }}>
                 <option value="">{t("Select Client")}</option>
                 {clients.map(c => (
                   <option key={c.id} value={c.id}>{c.name || c.company_name}</option>
@@ -103,23 +103,23 @@ const SalesAll = () => {
               </select>
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Search By Barcode")}</label>
-              <input type="text" name="barcode" value={filters.barcode} onChange={handleFilterChange} placeholder={t("Enter Barcode")} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
+              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '8px' }}>{t("Search By Barcode")}</label>
+              <input type="text" name="barcode" value={filters.barcode} onChange={handleFilterChange} placeholder={t("Enter Barcode")} style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("From Date")}</label>
-              <CustomDatePicker  name="from_date" value={filters.from_date} onChange={handleFilterChange} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
+              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '8px' }}>{t("From Date")}</label>
+              <CustomDatePicker name="from_date" value={filters.from_date} onChange={handleFilterChange} style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("To Date")}</label>
-              <CustomDatePicker  name="to_date" value={filters.to_date} onChange={handleFilterChange} style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }} />
+              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '8px' }}>{t("To Date")}</label>
+              <CustomDatePicker name="to_date" value={filters.to_date} onChange={handleFilterChange} style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }} />
+            </div>
+            <div>
+              <button onClick={handleClearFilters} style={{ background: '#ef4444', color: 'white', padding: '10px 16px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', height: '40px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
+                {t("Clear")}
+              </button>
             </div>
           </div>
-
-          {/* Clear Filter Button */}
-          <button onClick={handleClearFilters} style={{ width: '100%', background: '#7e8a9f', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', marginBottom: '24px' }}>
-            {t("Clear Filter")}
-          </button>
 
           {/* Total Sales Bar */}
           <div style={{ background: '#059669', color: 'white', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', marginBottom: '24px', borderRadius: '4px' }}>
@@ -166,7 +166,11 @@ const SalesAll = () => {
                     <td style={{ padding: '6px 4px', textAlign: 'center' }}>{idx + 1}</td>
                     <td style={{ padding: '6px 4px', textAlign: 'center' }}>{fmtDate(row.date || row.issued_date)}</td>
                     <td style={{ padding: '6px 4px', textAlign: 'center' }}>
-                        <div>{row.client_name || row.client?.client_name || '-'}</div>
+                        <div>{(() => {
+                          const c = clients.find(c => String(c.id || c.uuid) === String(row.client_id || row.client));
+                          let n = c?.name || c?.company_name || row.client_name || row.client?.client_name || '-';
+                          return (typeof n === 'string' && n.length === 36 && n.includes('-')) ? 'Unknown Client' : n;
+                        })()}</div>
                         <div style={{ fontSize: 'var(--fs-9, 9px)', color: '#64748b' }}>{row.client_phone || row.phone || row.client?.phone || row.client?.mobile || row.invoice?.client?.phone || (clients.find(c => String(c.id || c.uuid) === String(row.client_id))?.phone) || (clients.find(c => (c.name || c.company_name) === (row.client_name || row.client))?.phone) || '-'}</div>
                       </td>
                     <td style={{ padding: '6px 4px', textAlign: 'center', fontWeight: '500' }}>{row.products || row.product || '-'}</td>
@@ -203,3 +207,4 @@ const SalesAll = () => {
 };
 
 export default SalesAll;
+

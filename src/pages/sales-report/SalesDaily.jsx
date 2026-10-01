@@ -5,6 +5,8 @@ import { RefreshCcw, Printer, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { saleService } from '../../services/saleService';
 import { crmService } from '../../services/crmService';
+import { getUserList } from '../../api/authApi';
+import { toList } from '../../utils/apiHelpers';
 import CustomDatePicker from '../../components/CustomDatePicker';
 
 const SalesDaily = () => {
@@ -13,10 +15,12 @@ const SalesDaily = () => {
 
   const [reports, setReports] = useState([]);
   const [clients, setClients] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [filters, setFilters] = useState({
     client_id: '',
+    user_id: '',
     from_date: new Date().toISOString().split('T')[0],
     to_date: new Date().toISOString().split('T')[0],
     barcode: '',
@@ -25,8 +29,12 @@ const SalesDaily = () => {
 
   const fetchPrerequisites = async () => {
     try {
-      const res = await crmService.getClients().catch(() => []);
-      setClients(Array.isArray(res) ? res : (res?.results || []));
+      const [resClients, resUsers] = await Promise.all([
+        crmService.getClients().catch(() => []),
+        getUserList().catch(() => [])
+      ]);
+      setClients(toList(resClients));
+      setUsers(toList(resUsers));
     } catch (err) {
       console.error(err);
     }
@@ -36,7 +44,7 @@ const SalesDaily = () => {
     try {
       setLoading(true);
       const res = await saleService.getSalesReport(filters);
-      const data = Array.isArray(res) ? res : (res?.results || []);
+      const data = toList(res);
       setReports(data);
     } catch (err) {
       console.error("Error fetching sales report:", err);
@@ -62,6 +70,7 @@ const SalesDaily = () => {
   const handleClearFilters = () => {
     setFilters({
       client_id: '',
+      user_id: '',
       from_date: new Date().toISOString().split('T')[0],
       to_date: new Date().toISOString().split('T')[0],
       barcode: '',
@@ -124,31 +133,27 @@ const SalesDaily = () => {
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       
       <div className="premium-card">
-        <div style={{ padding: '0', background: 'white', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>
-          <h2 style={{ fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', padding: '16px 0', margin: '0' }}>{t("Daily Sales Report")}</h2>
+        <div className="premium-header no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'white', borderBottom: '1px solid #e2e8f0' }}>
+          <h2 className="premium-title" style={{ fontSize: 'var(--fs-16, 16px)', fontWeight: 'bold', margin: '0' }}>{t("Daily Sales Report")}</h2>
+          <button 
+            onClick={() => navigate('/invoice/list')}
+            style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--text-muted)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }}
+          >
+            <ArrowLeft size={14} /> {t("Go Back")}
+          </button>
         </div>
 
         <div className="premium-body" style={{ background: 'white', padding: '24px' }}>
           <PrintHeader />
-          
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h3 style={{ fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', margin: '0' }}>{t("DAILY SALES REPORT")}</h3>
-            <button 
-              onClick={() => navigate('/invoice/list')}
-              style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--text-muted)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }}
-            >
-              <ArrowLeft size={14} /> {t("Go Back")}
-            </button>
-          </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '16px' }}>
+          <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: '16px', alignItems: 'end' }}>
             <div>
-              <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t('common.search_by_client')}</label>
+              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '8px' }}>{t('common.search_by_client')}</label>
               <select 
                 name="client_id"
                 value={filters.client_id}
                 onChange={handleFilterChange}
-                style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }}
+                style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }}
               >
                 <option value="">{t('common.select_client')}</option>
                 {clients.map(client => (
@@ -157,34 +162,48 @@ const SalesDaily = () => {
               </select>
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Search By Barcode / Invoice")}</label>
+              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '8px' }}>{t('Search By User / Staff')}</label>
+              <select 
+                name="user_id"
+                value={filters.user_id}
+                onChange={handleFilterChange}
+                style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }}
+              >
+                <option value="">{t('All Users')}</option>
+                {users.map(u => (
+                  <option key={u.id || u.uuid} value={u.id || u.uuid}>{u.full_name || u.username || u.email || 'User'}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '8px' }}>{t("Search By Barcode / Invoice")}</label>
               <input 
                 type="text"
                 name="barcode"
                 value={filters.barcode}
                 onChange={handleFilterChange}
                 placeholder={t("Barcode or Invoice ID")}
-                style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }}
+                style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }}
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 'var(--fs-13, 13px)', color: 'var(--label-color)', marginBottom: '8px', textAlign: 'center' }}>{t("Date")}</label>
+              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '8px' }}>{t("Date")}</label>
               <CustomDatePicker 
-                
                 name="from_date"
                 value={filters.from_date}
                 onChange={(e) => setFilters(prev => ({ ...prev, from_date: e.target.value, to_date: e.target.value }))}
-                style={{ width: '100%', padding: '10px', border: '1px solid #38bdf8', borderRadius: '8px', outline: 'none' }}
+                style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }}
               />
             </div>
+            <div>
+              <button 
+                onClick={handleClearFilters}
+                style={{ background: '#ef4444', color: 'white', padding: '10px 16px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', height: '40px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
+              >
+                <RefreshCcw size={14} /> {t("Clear")}
+              </button>
+            </div>
           </div>
-
-          <button 
-            onClick={handleClearFilters}
-            style={{ width: '100%', background: '#7e8a9f', color: 'white', padding: '12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-14, 14px)', marginBottom: '24px' }}
-          >
-            {t("Clear Filter")}
-          </button>
 
           <div style={{ background: '#94a3b8', color: 'white', padding: '12px', display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', marginBottom: '24px' }}>
             <span>{t("TOTAL SALES")}</span>
@@ -265,7 +284,7 @@ const SalesDaily = () => {
                       <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>{group.voucher_no}</td>
                       <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>
                         <div>{(() => {
-                          const cName = row.client_name || row.client?.client_name || row.client || '-';
+                          let cName = clients.find(c => String(c.id || c.uuid) === String(row.client_id || row.client))?.name || clients.find(c => String(c.id || c.uuid) === String(row.client_id || row.client))?.company_name || row.client_name || row.client?.client_name || row.client || '-'; cName = (typeof cName === 'string' && cName.length === 36 && cName.includes('-')) ? 'Unknown Client' : cName;
                           const cPhone = row.client_phone || row.phone || row.client?.phone || row.client?.mobile || row.invoice?.client?.phone || (clients.find(c => String(c.id || c.uuid) === String(row.client_id))?.phone) || (clients.find(c => (c.name || c.company_name) === (row.client_name || row.client))?.phone) || '';
                           const cAddress = row.client_address || row.address || row.client?.address || row.invoice?.client?.address || (clients.find(c => String(c.id || c.uuid) === String(row.client_id))?.address) || (clients.find(c => (c.name || c.company_name) === (row.client_name || row.client))?.address) || '';
                           
@@ -349,3 +368,4 @@ const SalesDaily = () => {
 };
 
 export default SalesDaily;
+

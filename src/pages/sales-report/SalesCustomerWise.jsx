@@ -61,7 +61,12 @@ const SalesCustomerWise = () => {
           key,
           date: row.date || row.issued_date || inv.date,
           voucher: inv.invoice_id || inv.invoice_no || row.invoice_no || row.voucher || String(key).replace(/\D/g, '').padEnd(6, '0').slice(0, 6),
-          client: nameOf(row.client_name || row.client?.client_name || row.client, ''),
+          client: (() => {
+            const c = clients.find(c => String(c.id || c.uuid) === String(row.client_id || row.client));
+            let n = c?.name || c?.company_name || row.client_name || row.client?.client_name || row.client || '-';
+            n = nameOf(n, '');
+            return (typeof n === 'string' && n.length === 36 && n.includes('-')) ? 'Unknown Client' : n;
+          })(),
           items: [],
           total: 0,
           discount: Number(inv.discount ?? row.discount ?? 0),

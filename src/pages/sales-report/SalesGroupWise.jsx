@@ -249,7 +249,7 @@ const SalesGroupWise = () => {
                           
                           <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>
                             <div>{(() => {
-                              const cName = row.client_name || row.client?.client_name || row.client || '-';
+                              let cName = clients.find(c => String(c.id || c.uuid) === String(row.client_id || row.client))?.name || clients.find(c => String(c.id || c.uuid) === String(row.client_id || row.client))?.company_name || row.client_name || row.client?.client_name || row.client || '-'; cName = (typeof cName === 'string' && cName.length === 36 && cName.includes('-')) ? 'Unknown Client' : cName;
                               const cPhone = row.client_phone || row.phone || row.client?.phone || row.client?.mobile || row.invoice?.client?.phone || (clients.find(c => String(c.id || c.uuid) === String(row.client_id))?.phone) || (clients.find(c => (c.name || c.company_name) === (row.client_name || row.client))?.phone) || '';
                               const cAddress = row.client_address || row.address || row.client?.address || row.invoice?.client?.address || (clients.find(c => String(c.id || c.uuid) === String(row.client_id))?.address) || (clients.find(c => (c.name || c.company_name) === (row.client_name || row.client))?.address) || '';
                               
@@ -326,3 +326,4 @@ const SalesGroupWise = () => {
 };
 
 export default SalesGroupWise;
+

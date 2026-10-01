@@ -203,12 +203,23 @@ const Statement = () => {
                     <td style={cell}>{row.source || row.client_name || row.supplier_name || ''}</td>
                     <td style={cell}>
                       <span style={{ 
-                        background: String(row.transaction_type || row.type).toLowerCase().match(/payment|deposit|receive|স্টাফ|পেমেন্ট/) ? '#10b981' : String(row.transaction_type || row.type).toLowerCase().match(/expense|খরচ/) ? '#f43f5e' : '#3b82f6', 
-                        color: 'black', 
-                        padding: '4px 10px', 
+                        background: (() => {
+                          const typeStr = String(row.transaction_type || row.type || '').toLowerCase();
+                          if (typeStr.includes('supplier') || typeStr.includes('সাপ্লায়ার') || typeStr.includes('সাপ্লাইয়ার')) return '#0891b2';
+                          if (typeStr.includes('staff') || typeStr.includes('স্টাফ')) return '#10b981';
+                          if (typeStr.includes('return') || typeStr.includes('ফেরত')) return '#eab308';
+                          if (typeStr.includes('expense') || typeStr.includes('খরচ')) return '#ef4444';
+                          if (typeStr.includes('deposit') || typeStr.includes('receive') || typeStr.includes('পেমেন্ট')) return '#16a34a';
+                          if (typeStr.includes('invoice') || typeStr.includes('bill')) return '#3b82f6';
+                          return '#64748b';
+                        })(),
+                        color: '#ffffff', 
+                        padding: '3px 8px', 
                         borderRadius: '4px', 
-                        fontSize: 'var(--fs-12, 12px)', 
-                        fontWeight: 'bold' 
+                        fontSize: 'var(--fs-11, 11px)', 
+                        fontWeight: 'bold',
+                        display: 'inline-block',
+                        whiteSpace: 'nowrap'
                       }}>
                         {t(row.transaction_type || row.type)}
                       </span>
