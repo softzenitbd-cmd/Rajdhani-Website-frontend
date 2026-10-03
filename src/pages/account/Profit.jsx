@@ -27,35 +27,69 @@ const Profit = () => {
       if (fromDate) filters.from_date = fromDate;
       if (toDate) filters.to_date = toDate;
 
-      // GET /api/accounting/profit/ → { "Total Sales": "৳ 123.00", ... }
-      const res = await accountingService.getProfit(filters);
+      // Fire all major API calls concurrently to speed up the page load
+      const [res, purchaseRes, invoicesRes, saleItemsRes] = await Promise.all([
+        accountingService.getProfit(filters).catch(() => ({})),
+        purchaseService.getPurchaseInvoices(filters).catch(() => []),
+        saleService.getSalesInvoices(filters).catch(() => []),
+        saleService.getSaleItems({ limit: 20000, from_date: filters.from_date, to_date: filters.to_date }).catch(() => [])
+      ]);
+      
       let data = (res && typeof res === 'object') ? { ...res } : {};
 
       delete data['Total Client Due'];
       delete data['Total Supplier Due'];
-      delete data['Total Buy Price']; // Remove confusing name just in case backend sends it
+      delete data['Total Buy Price'];
 
       try {
-        const salesRep = await saleService.getSalesReport(filters);
-        const soldItems = Array.isArray(salesRep) ? salesRep : (salesRep?.results || salesRep?.data || []);
+        const invoices = Array.isArray(invoicesRes) ? invoicesRes : (invoicesRes?.results || invoicesRes?.data || []);
+        const rawSaleItems = Array.isArray(saleItemsRes) ? saleItemsRes : (saleItemsRes?.results || saleItemsRes?.data || []);
+        
         let calcBuy = 0;
-        soldItems.forEach((item) => {
-          calcBuy += Number(item.buy_price || 0) * Number(item.qty || item.quantity || 0);
+        let totalSales = 0;
+        let totalDiscount = 0;
+
+        // Create map of items by invoice ID
+        const itemsByInvoice = new Map();
+        rawSaleItems.forEach(it => {
+           const key = String(it.sale ?? it.invoice ?? it.sale_invoice ?? it.sale_id ?? it.invoice_id);
+           if (!itemsByInvoice.has(key)) itemsByInvoice.set(key, []);
+           itemsByInvoice.get(key).push(it);
+        });
+
+        invoices.forEach(inv => {
+          if (inv.status === undefined || Number(inv.status) === 1) {
+            totalSales += Number(inv.grand_total || inv.total_amount || 0);
+            totalDiscount += Number(inv.discount || inv.total_discount || 0);
+
+            const invId = String(inv.id || inv.uuid);
+            const items = Array.isArray(inv.items) && inv.items.length ? inv.items : (itemsByInvoice.get(invId) || []);
+            
+            items.forEach(it => {
+              const cost = Number(it.purchase_price || it.buy_price || (it.product && (it.product.purchase_price || it.product.buying_price || it.product.buy_price)) || 0);
+              const qty = Number(it.quantity || it.qty || it.product_qty || 0);
+              calcBuy += cost * qty;
+            });
+          }
         });
         
         data['Cost of Sold Goods'] = '৳ ' + calcBuy.toFixed(2);
 
-        try {
-          const purchaseRes = await purchaseService.getPurchaseInvoices(filters);
-          const purchases = Array.isArray(purchaseRes) ? purchaseRes : (purchaseRes?.results || []);
-          let totalPurchases = 0;
-          purchases.forEach(inv => {
-            totalPurchases += Number(inv.grand_total || inv.total_amount || 0);
-          });
-          data['Total Purchases'] = '৳ ' + totalPurchases.toFixed(2);
-        } catch (err) {
-          console.error("Error fetching purchases for profit ledger", err);
+        const currentBackendSales = parseFloat(String(data['Total Sales'] || '0').replace(/[^\d.-]/g, '')) || 0;
+        if (currentBackendSales === 0) {
+          data['Total Sales'] = '৳ ' + totalSales.toFixed(2);
         }
+        const currentBackendDiscount = parseFloat(String(data['Discount'] || '0').replace(/[^\d.-]/g, '')) || 0;
+        if (currentBackendDiscount === 0) {
+          data['Discount'] = '৳ ' + totalDiscount.toFixed(2);
+        }
+
+        const purchases = Array.isArray(purchaseRes) ? purchaseRes : (purchaseRes?.results || []);
+        let totalPurchases = 0;
+        purchases.forEach(inv => {
+          totalPurchases += Number(inv.grand_total || inv.total_amount || 0);
+        });
+        data['Total Purchases'] = '৳ ' + totalPurchases.toFixed(2);
         
         const ts = parseFloat(String(data['Total Sales'] || '0').replace(/[^\d.-]/g, '')) || 0;
         const pp = ts - calcBuy;

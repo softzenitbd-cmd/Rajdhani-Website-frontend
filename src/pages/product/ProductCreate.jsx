@@ -6,9 +6,14 @@ import PrintHeader from '../../components/PrintHeader';
 import AddOptionModal from '../../components/AddOptionModal';
 import { productService } from '../../services/productService';
 import { useToast } from '../../context/ToastContext';
+import { useAppSettings } from '../../hooks/useAppSettings';
 
 const ProductCreate = () => {
   const toast = useToast();
+  const { settings } = useAppSettings();
+  const autoCalculateSalePrice = !!settings['sale_price_auto_generate'];
+  const salePricePercentage = Number(settings['sale_price_percentage']) || 0;
+  
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -97,7 +102,17 @@ const ProductCreate = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    let newFormData = { ...formData, [name]: value };
+
+    if (name === 'buying_price' && autoCalculateSalePrice && salePricePercentage > 0 && value !== '') {
+       const bp = Number(value);
+       if (!isNaN(bp)) {
+         const sp = bp + (bp * salePricePercentage / 100);
+         newFormData.selling_price = sp.toFixed(2);
+       }
+    }
+
+    setFormData(newFormData);
     if (name === 'unit') {
       localStorage.setItem('lastSelectedUnit', value);
     }

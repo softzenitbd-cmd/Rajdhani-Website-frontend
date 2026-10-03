@@ -25,7 +25,14 @@ const SmsComposer = ({ title, recipientType, contacts = [], groups = null, loadi
   const navigate = useNavigate();
   const toast = useToast();
 
-  const [message, setMessage] = useState('');
+  const storageKey = `last_sms_body_${recipientType}`;
+  const [message, setMessage] = useState(() => {
+    return localStorage.getItem(storageKey) || '';
+  });
+
+  useEffect(() => {
+    localStorage.setItem(storageKey, message);
+  }, [message, storageKey]);
   const [groupId, setGroupId] = useState('');
   const [search, setSearch] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -121,7 +128,7 @@ const SmsComposer = ({ title, recipientType, contacts = [], groups = null, loadi
         if (ok) toast.success(t("SMS scheduled for {{v0}} recipient(s)", { v0: ok }));
         if (ok) navigate('/sms/schedule-report');
       }
-      setMessage('');
+      // setMessage('');
       setSelected(new Set());
     } catch (e) {
       toast.error(e.message || t("Failed to send SMS"));
