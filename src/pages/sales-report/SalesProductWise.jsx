@@ -31,7 +31,7 @@ const SalesProductWise = () => {
       const [prodRes, groupRes, clientsRes] = await Promise.all([
         productService.getProducts({ page_size: 500 }).catch(() => []),
         productService.groups.getAll().catch(() => []),
-        crmService.getClients().catch(() => [])
+        crmService.getClients({ page_size: 5000 }).catch(() => [])
       ]);
       setProducts(Array.isArray(prodRes) ? prodRes : (prodRes?.results || []));
       setProductGroups(Array.isArray(groupRes) ? groupRes : (groupRes?.results || []));
@@ -248,6 +248,7 @@ const SalesProductWise = () => {
                   <th style={{ padding: '12px' }}>{t("GRAND TOTAL ⇅")}</th>
                   <th style={{ padding: '12px' }}>{t("RECEIVE ⇅")}</th>
                   <th style={{ padding: '12px' }}>{t("DUE ⇅")}</th>
+                  <th style={{ padding: '12px' }}>{t("PROFIT ⇅")}</th>
                 </tr>
               </thead>
               <tbody>

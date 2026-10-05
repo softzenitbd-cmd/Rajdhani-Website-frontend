@@ -5,6 +5,7 @@ import { Plus, Printer, RefreshCcw, Search, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { accountingService } from '../../services/accountingService';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 import CustomDatePicker from '../../components/CustomDatePicker';
 
 
@@ -12,9 +13,11 @@ const StaffPaymentReport = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
+  const confirm = useConfirm();
 
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [openActionId, setOpenActionId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('');
   const [fromDate, setFromDate] = useState('');
@@ -171,20 +174,21 @@ const StaffPaymentReport = () => {
                   <th>{t("DESCRIPTION")}</th>
                   <th style={{ textAlign: 'right' }}>{t("AMOUNT (৳)")}</th>
                   <th style={{ textAlign: 'center' }}>{t("STATUS")}</th>
+                  <th style={{ textAlign: 'center' }}>{t("ACTION")}</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="7" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("Loading staff payments...")}</td>
+                    <td colSpan="8" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("Loading staff payments...")}</td>
                   </tr>
                 ) : payments.length === 0 ? (
                   <tr>
-                    <td colSpan="7" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("No payments found for the specified period.")}</td>
+                    <td colSpan="8" style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>{t("No payments found for the specified period.")}</td>
                   </tr>
                 ) : (
                   payments.map((row, index) => (
-                    <tr key={row.id || index} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <tr key={(row.id || row.uuid) || index} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ textAlign: 'center', fontWeight: '600', color: '#64748b' }}>{index + 1}</td>
                       <td>{row.date ? String(row.date).split('T')[0] : t("N/A")}</td>
                       <td style={{ fontWeight: '600' }}>{row.staff_id || row.staff_name || row.receiptFor}</td>
@@ -197,6 +201,84 @@ const StaffPaymentReport = () => {
                         <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                           <CheckCircle2 size={12} /> {t("Paid")}
                         </span>
+                      </td>
+                      <td className="action-column" style={{ textAlign: 'center', position: 'relative', padding: '6px' }}>
+                        <button
+                          onClick={() => setOpenActionId(openActionId === (row.id || row.uuid) ? null : (row.id || row.uuid))}
+                          style={{
+                            background: "#10b981",
+                            color: "white",
+                            border: "none",
+                            padding: "4px 10px",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            fontSize: "var(--fs-12, 12px)",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                            margin: "0 auto"
+                          }}
+                        >
+                          {t("Action")} <span style={{ fontSize: "8px" }}>▼</span>
+                        </button>
+                        {openActionId === (row.id || row.uuid) && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: "100%",
+                              right: "50%",
+                              transform: "translateX(50%)",
+                              background: "white",
+                              border: "1px solid #e2e8f0",
+                              borderRadius: "4px",
+                              boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                              zIndex: 10,
+                              minWidth: "100px",
+                              textAlign: "left",
+                              padding: "4px 0",
+                            }}
+                          >
+                            <div
+                              onClick={() => {
+                                setOpenActionId(null);
+                                navigate(`/staff/payment/edit/${(row.id || row.uuid)}`, { state: { payment: row } });
+                              }}
+                              style={{
+                                padding: "6px 12px",
+                                cursor: "pointer",
+                                fontSize: "var(--fs-12, 12px)",
+                              }}
+                              onMouseOver={(e) => (e.target.style.background = "#f1f5f9")}
+                              onMouseOut={(e) => (e.target.style.background = "white")}
+                            >
+                              {t("Edit")}
+                            </div>
+                            <div
+                              onClick={async () => {
+                                setOpenActionId(null);
+                                const isConfirmed = await confirm(t("Are you sure you want to delete this payment?"));
+                                if (isConfirmed) {
+                                  try {
+                                    await accountingService.deleteExpense((row.id || row.uuid));
+                                    toast.success(t("Payment deleted successfully"));
+                                    fetchStaffPayments();
+                                  } catch(e) {
+                                    toast.error(t("Failed to delete payment"));
+                                  }
+                                }
+                              }}
+                              style={{
+                                padding: "6px 12px",
+                                cursor: "pointer",
+                                fontSize: "var(--fs-12, 12px)",
+                              }}
+                              onMouseOver={(e) => (e.target.style.background = "#f1f5f9")}
+                              onMouseOut={(e) => (e.target.style.background = "white")}
+                            >
+                              {t("Delete")}
+                            </div>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))

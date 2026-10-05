@@ -22,6 +22,7 @@ const StaffRoutes = () => {
 
         {/* Payment */}
         <Route path="payment/create" element={<StaffPaymentCreate />} />
+        <Route path="payment/edit/:id" element={<StaffPaymentCreate />} />
         <Route path="payment/report" element={<StaffPaymentReport />} />
 
         {/* Salary */}

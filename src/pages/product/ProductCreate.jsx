@@ -7,12 +7,29 @@ import AddOptionModal from '../../components/AddOptionModal';
 import { productService } from '../../services/productService';
 import { useToast } from '../../context/ToastContext';
 import { useAppSettings } from '../../hooks/useAppSettings';
+import { companyStore } from '../../services/companyStore';
 
 const ProductCreate = () => {
   const toast = useToast();
   const { settings } = useAppSettings();
-  const autoCalculateSalePrice = !!settings['sale_price_auto_generate'];
-  const salePricePercentage = Number(settings['sale_price_percentage']) || 0;
+  const [companyInfo, setCompanyInfo] = React.useState(companyStore.getCached());
+  React.useEffect(() => {
+    const h = () => setCompanyInfo(companyStore.getCached());
+    window.addEventListener(companyStore.EVENT, h);
+    companyStore.load();
+    return () => window.removeEventListener(companyStore.EVENT, h);
+  }, []);
+    let salePricePercentage = parseFloat(companyInfo?.sale_price_percentage) || parseFloat(settings['sale-price-percentage']) || 0;
+    const autoGenSetting = settings['auto-generate-sale-price'];
+    const isAutoGenerateEnabled = 
+      companyInfo?.sale_price_auto_generate === true || 
+      companyInfo?.sale_price_auto_generate === "true" ||
+      companyInfo?.sale_price_auto_generate === 1 ||
+      companyInfo?.sale_price_auto_generate === "1" ||
+      autoGenSetting === true ||
+      autoGenSetting === "true" ||
+      autoGenSetting === 1 ||
+      autoGenSetting === "1";
   
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -104,7 +121,7 @@ const ProductCreate = () => {
     const { name, value } = e.target;
     let newFormData = { ...formData, [name]: value };
 
-    if (name === 'buying_price' && autoCalculateSalePrice && salePricePercentage > 0 && value !== '') {
+    if (name === 'buying_price' && isAutoGenerateEnabled && value !== '') {
        const bp = Number(value);
        if (!isNaN(bp)) {
          const sp = bp + (bp * salePricePercentage / 100);

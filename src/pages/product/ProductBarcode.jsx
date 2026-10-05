@@ -7,10 +7,13 @@ import SearchableSelect from '../../components/SearchableSelect';
 import JsBarcode from 'jsbarcode';
 import { useLocation } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
+import { useAppSettings } from '../../hooks/useAppSettings';
 
 export const BarcodeSticker = ({ barcodeValue, name, price }) => {
   const { t } = useTranslation();
   const svgRef = useRef(null);
+  const { settings } = useAppSettings();
+  const barcodeBanner = settings?.barcode_header_custom_url;
 
   useEffect(() => {
     if (svgRef.current && barcodeValue) {
@@ -32,9 +35,15 @@ export const BarcodeSticker = ({ barcodeValue, name, price }) => {
 
   return (
     <div className="barcode-sticker-wrapper" style={{ padding: '6px', textAlign: 'center', background: '#ffffff' }}>
-      <div style={{ fontSize: 'var(--fs-9, 9px)', fontWeight: 'bold', textTransform: 'uppercase', color: '#334155', marginBottom: '2px' }}>
-        {t("RAJDHANI GARMENTS")}
-      </div>
+      {barcodeBanner ? (
+        <div style={{ marginBottom: '2px', display: 'flex', justifyContent: 'center' }}>
+          <img src={barcodeBanner} alt="Barcode Header" style={{ maxHeight: '25px', maxWidth: '100%', objectFit: 'contain' }} />
+        </div>
+      ) : (
+        <div style={{ fontSize: 'var(--fs-9, 9px)', fontWeight: 'bold', textTransform: 'uppercase', color: '#334155', marginBottom: '2px' }}>
+          {t("RAJDHANI GARMENTS")}
+        </div>
+      )}
       <div style={{ fontSize: 'var(--fs-10, 10px)', fontWeight: '600', color: '#1e293b', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {name}
       </div>

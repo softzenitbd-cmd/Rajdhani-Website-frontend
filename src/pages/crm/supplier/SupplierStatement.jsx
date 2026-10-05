@@ -270,16 +270,41 @@ const SupplierStatement = () => {
 
   let running = trueOpeningBalance;
   
-  let computed = rows.slice(0, entries).map((r) => {
+  let groupedRows = [];
+  rows.slice(0, entries).forEach((r) => {
+    const dStr = r.date ? new Date(r.date).toISOString().split('T')[0] : 'unknown';
     const isReturn = String(r.type || '').toLowerCase().includes('return');
     const debit = Number(r.debit ?? 0);
     const credit = Number(r.credit ?? 0);
     const bill = debit;
     const ret = isReturn ? credit : 0;
     const rec = (!isReturn && credit > 0) ? credit : 0; // Receive/Payment
-    
-    running = running + bill - ret - rec;
-    return { ...r, _bill: bill, _return: ret, _receive: rec, _balance: running };
+
+    let existing = groupedRows.find(x => x.dStr === dStr);
+    if (existing) {
+       existing._bill += bill;
+       existing._return += ret;
+       existing._receive += rec;
+       existing._discount += (r._discount || 0);
+       existing._transport += (r._transport || 0);
+       if (r.items && r.items.length > 0) {
+          existing.items = [...(existing.items || []), ...r.items];
+       }
+    } else {
+       groupedRows.push({
+         ...r,
+         dStr,
+         _bill: bill,
+         _return: ret,
+         _receive: rec,
+         items: r.items ? [...r.items] : []
+       });
+    }
+  });
+
+  let computed = groupedRows.map(r => {
+    running = running + r._bill - r._return - r._receive;
+    return { ...r, _balance: running };
   });
 
   if (selectedSupplier && computed.length >= 0) {
@@ -368,6 +393,28 @@ const SupplierStatement = () => {
       toast.error(t("Failed to share image."));
     }
   };
+
+
+  const totalQty = computed.reduce((sum, r) => {
+    let q = 0;
+    if (r.items) {
+      r.items.forEach(it => q += Number(it.quantity || 0));
+    }
+    return sum + q;
+  }, 0);
+  const totalBuyPrice = computed.reduce((sum, r) => {
+    let b = 0;
+    if (r.items) {
+      r.items.forEach(it => b += Number(it.total || (Number(it.quantity || 0) * Number(it.price || 0)) || 0));
+    }
+    return sum + b;
+  }, 0);
+  const totalDiscount = computed.reduce((sum, r) => sum + Number(r._discount || 0), 0);
+  const totalTransport = computed.reduce((sum, r) => sum + Number(r._transport || 0), 0);
+  const totalGrandTotal = computed.reduce((sum, r) => sum + Number(r._bill || 0), 0);
+  const totalReturn = computed.reduce((sum, r) => sum + Number(r._return || 0), 0);
+  const totalReceive = computed.reduce((sum, r) => sum + Number(r._receive || 0), 0);
+  const finalDue = computed.length > 0 ? computed[computed.length - 1]._balance : 0;
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px', background: 'white' }}>
@@ -524,6 +571,20 @@ const SupplierStatement = () => {
                   })
                 )}
               </tbody>
+              <tfoot>
+                <tr style={{ background: '#e2e8f0', fontWeight: 'bold' }}>
+                  <td colSpan="4" style={{ ...td, textAlign: 'right', padding: '10px' }}>Total:</td>
+                  <td style={td}>{totalQty > 0 ? totalQty : '-'}</td>
+                  <td style={td}>-</td>
+                  <td style={td}>{totalBuyPrice > 0 ? money(totalBuyPrice) : '-'}</td>
+                  <td style={td}>{totalDiscount > 0 ? money(totalDiscount) : '-'}</td>
+                  <td style={td}>{totalTransport > 0 ? money(totalTransport) : '-'}</td>
+                  <td style={td}>{totalGrandTotal > 0 ? money(totalGrandTotal) : '-'}</td>
+                  <td style={td}>{totalReturn > 0 ? money(totalReturn) : '-'}</td>
+                  <td style={td}>{totalReceive > 0 ? money(totalReceive) : '-'}</td>
+                  <td style={td}>{money(finalDue)}</td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         </div>

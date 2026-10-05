@@ -6,6 +6,7 @@ import { useToast } from '../../context/ToastContext';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { settingService } from '../../services/settingService';
 import PrintHeader from '../../components/PrintHeader';
+import { companyStore } from '../../services/companyStore';
 
 const TypographySelect = ({ label, value, onChange, options }) => (
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -73,6 +74,93 @@ const ColorInput = ({ label, value, onChange }) => (
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '_');
 
 // Toggle persisted on the server (general-settings API) under settings[slug(label)]
+
+const CompanyToggleItem = ({ label, field, defaultChecked = false }) => {
+  const [companyInfo, setCompanyInfo] = useState(() => companyStore.getCached());
+
+  useEffect(() => {
+    const handleUpdate = () => setCompanyInfo(companyStore.getCached());
+    window.addEventListener(companyStore.EVENT, handleUpdate);
+    companyStore.load();
+    return () => window.removeEventListener(companyStore.EVENT, handleUpdate);
+  }, []);
+
+  const checked = companyInfo[field] === undefined ? defaultChecked : (companyInfo[field] === true || companyInfo[field] === 'true');
+
+  const setChecked = (v) => {
+    companyStore.save({ [field]: v });
+  };
+
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '8px', background: 'white' }}>
+      <label style={{ fontSize: 'var(--fs-14, 14px)', color: '#1f2937', cursor: 'pointer', flex: 1 }} onClick={() => setChecked(!checked)}>
+        {label}
+      </label>
+      <div 
+        onClick={() => setChecked(!checked)}
+        style={{
+          width: '44px',
+          height: '24px',
+          background: checked ? '#3b82f6' : '#e2e8f0',
+          borderRadius: '12px',
+          position: 'relative',
+          cursor: 'pointer',
+          transition: 'background 0.2s'
+        }}
+      >
+        <div style={{
+          width: '20px',
+          height: '20px',
+          background: 'white',
+          borderRadius: '50%',
+          position: 'absolute',
+          top: '2px',
+          left: checked ? '22px' : '2px',
+          transition: 'left 0.2s',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+        }} />
+      </div>
+    </div>
+  );
+};
+
+const CompanyInputItem = ({ label, field, inputValue = "" }) => {
+  const [companyInfo, setCompanyInfo] = useState(() => companyStore.getCached());
+  const [localValue, setLocalValue] = useState(companyInfo[field] === undefined ? inputValue : companyInfo[field]);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+        const ci = companyStore.getCached();
+        setCompanyInfo(ci);
+        setLocalValue(ci[field] === undefined ? inputValue : ci[field]);
+    };
+    window.addEventListener(companyStore.EVENT, handleUpdate);
+    companyStore.load();
+    return () => window.removeEventListener(companyStore.EVENT, handleUpdate);
+  }, [field, inputValue]);
+
+  const handleBlur = () => {
+    companyStore.save({ [field]: localValue });
+  };
+
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', border: '1px solid #93c5fd', borderRadius: '8px', background: 'white' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
+        <label style={{ fontSize: 'var(--fs-11, 11px)', color: 'white', background: '#3b82f6', padding: '2px 8px', borderRadius: '4px', width: 'fit-content' }}>
+          {label}
+        </label>
+        <input 
+          type="text" 
+          value={localValue} 
+          onChange={(e) => setLocalValue(e.target.value)}
+          onBlur={handleBlur}
+          style={{ border: 'none', borderBottom: '1px solid #e2e8f0', outline: 'none', padding: '4px 0', fontSize: 'var(--fs-14, 14px)' }} 
+        />
+      </div>
+    </div>
+  );
+};
+
 const ToggleItem = ({ label, defaultChecked = false, hasInput = false, inputValue = "" }) => {
   const { settings, setSetting } = useAppSettings();
   const key = slug(label);
@@ -306,6 +394,14 @@ const GeneralSettings = () => {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                     <ToggleItem label={t("New Price Sale Only")} defaultChecked={true} />
                     <ToggleItem label={t("Sale Price Percentage")} hasInput={true} inputValue="35.00" />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                    <ToggleItem label={t("Auto Generate Sale Price")} defaultChecked={false} />
+                    <ToggleItem label={t("Stock Warning (qty)")} hasInput={true} inputValue="10" />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                    <ToggleItem label={t("Auto Generate Sale Price")} defaultChecked={false} />
+                    <ToggleItem label={t("Stock Warning (qty)")} hasInput={true} inputValue="10" />
                   </div>
                 </div>
               </div>

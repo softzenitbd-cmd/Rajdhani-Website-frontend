@@ -43,7 +43,18 @@ const PurchaseReport = () => {
         if (list.length > 0) {
           setReports(list.map((item, idx) => ({
             id: item.id || idx + 1,
-            date: item.created_at || item.date ? new Date(item.created_at || item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '24 Aug 2026',
+            date: (() => {
+              try {
+                const rawDate = item.created_at || item.date;
+                if (rawDate) {
+                  const d = new Date(rawDate);
+                  if (!isNaN(d.getTime())) {
+                    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                  }
+                }
+              } catch (e) {}
+              return '24 Aug 2026';
+            })(),
             supplier: item.supplier_name || item.supplier || 'ROKSANA TOPS BONGO',
             product: item.product_name || item.product || 'Product',
             group: item.group_name || item.group || 'GENERAL',

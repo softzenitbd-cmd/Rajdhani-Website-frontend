@@ -34,7 +34,7 @@ const SalesProductGroupWise = () => {
       try {
         const res = await productService.groups.getAll().catch(() => []);
         setProductGroups(Array.isArray(res) ? res : (res?.results || []));
-        const clientsRes = await crmService.getClients().catch(() => []);
+        const clientsRes = await crmService.getClients({ page_size: 5000 }).catch(() => []);
         setClients(Array.isArray(clientsRes) ? clientsRes : (clientsRes?.results || []));
       } catch (err) {
         console.error("Error fetching product groups:", err);

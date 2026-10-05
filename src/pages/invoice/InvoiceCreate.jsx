@@ -410,55 +410,67 @@ const InvoiceCreate = () => {
     setFormData((prev) => ({ ...prev, productId: "" }));
   };
 
+  const processBarcode = async (rawCode) => {
+    if (!rawCode || !rawCode.trim()) return;
+    const code = rawCode.trim().toLowerCase();
+    let prod = products.find(
+      (p) =>
+        String(p.code || "")
+          .trim()
+          .toLowerCase() === code ||
+        String(p.barcode || "")
+          .trim()
+          .toLowerCase() === code ||
+        String(p.custom_barcode_no || "")
+          .trim()
+          .toLowerCase() === code ||
+        String(p.id).trim().toLowerCase() === code ||
+        (code.length >= 8 &&
+          String(p.id).trim().toLowerCase().startsWith(code)) ||
+        String(p.product_code || "")
+          .trim()
+          .toLowerCase() === code,
+    );
+
+    if (!prod) {
+      prod = await productService.findByBarcode(rawCode);
+      if (prod) {
+        setProducts((prev) =>
+          prev.find((p) => String(p.id) === String(prod.id))
+            ? prev
+            : [...prev, prod],
+        );
+      }
+    }
+
+    if (prod) {
+      handleSelectProduct(prod.id, {
+        ...prod,
+        _scannedBarcode: rawCode.trim(),
+      });
+    } else {
+      toast.error(
+        t('Product with barcode "{{v0}}" not found.', { v0: rawCode.trim() }),
+      );
+    }
+    setFormData((prev) => ({ ...prev, barcode: "" }));
+  };
+
+  useEffect(() => {
+    if (!formData.barcode) return;
+    const timer = setTimeout(() => {
+      processBarcode(formData.barcode);
+    }, 400); // 400ms debounce
+    return () => clearTimeout(timer);
+  }, [formData.barcode]);
+
   const handleBarcodeKeyDown = async (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      const rawCode = e.target.value;
-      if (!rawCode || !rawCode.trim()) return;
-      const code = rawCode.trim().toLowerCase();
-      let prod = products.find(
-        (p) =>
-          String(p.code || "")
-            .trim()
-            .toLowerCase() === code ||
-          String(p.barcode || "")
-            .trim()
-            .toLowerCase() === code ||
-          String(p.custom_barcode_no || "")
-            .trim()
-            .toLowerCase() === code ||
-          String(p.id).trim().toLowerCase() === code ||
-          (code.length >= 8 &&
-            String(p.id).trim().toLowerCase().startsWith(code)) ||
-          String(p.product_code || "")
-            .trim()
-            .toLowerCase() === code,
-      );
-
-      if (!prod) {
-        // Not in the loaded page of products — ask the server. findByBarcode
-        // also covers older products that only the stock report can resolve.
-        prod = await productService.findByBarcode(rawCode);
-        if (prod) {
-          setProducts((prev) =>
-            prev.find((p) => String(p.id) === String(prod.id))
-              ? prev
-              : [...prev, prod],
-          );
-        }
-      }
-
-      if (prod) {
-        handleSelectProduct(prod.id, {
-          ...prod,
-          _scannedBarcode: rawCode.trim(),
-        });
-      } else {
-        toast.error(
-          t('Product with barcode "{{v0}}" not found.', { v0: rawCode.trim() }),
-        );
-      }
+      // We clear the form data immediately to prevent the debounce from firing again
+      const val = e.target.value;
       setFormData((prev) => ({ ...prev, barcode: "" }));
+      await processBarcode(val);
     }
   };
   const updateItemField = (index, field, value) => {

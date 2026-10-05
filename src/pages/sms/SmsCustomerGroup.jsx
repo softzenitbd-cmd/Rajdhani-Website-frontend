@@ -11,7 +11,7 @@ const SmsCustomerGroup = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([crmService.getClients(), crmService.getClientGroups()])
+    Promise.all([crmService.getClients({ page_size: 5000 }), crmService.getClientGroups()])
       .then(([c, g]) => {
         setContacts(toList(c).map((x) => ({ id: x.id || x.uuid, name: x.name, phone: x.phone || x.mobile, group: x.group })));
         setGroups(toList(g));

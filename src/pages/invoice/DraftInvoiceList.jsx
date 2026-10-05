@@ -37,7 +37,7 @@ const DraftInvoiceList = () => {
   const fetchPrerequisites = async () => {
     try {
       const [clientRes, accRes] = await Promise.all([
-        crmService.getClients().catch(() => []),
+        crmService.getClients({ page_size: 5000 }).catch(() => []),
         accountingService.getAccounts().catch(() => [])
       ]);
 

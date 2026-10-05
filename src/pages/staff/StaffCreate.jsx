@@ -36,6 +36,7 @@ const DEFAULT_DESIGNATIONS = [
 const emptyForm = {
   full_name: '',
   phone_number: '',
+  address: '',
   weekly_salary: '',
   monthly_salary: '',
   joining_date: today(),
@@ -113,6 +114,7 @@ const StaffCreate = () => {
       setForm({
         full_name: s.full_name || user.full_name || s.name || '',
         phone_number: s.phone_number || user.phone_number || s.phone || '',
+        address: s.address || user.address || '',
         weekly_salary: s.weekly_salary ?? '',
         monthly_salary: s.monthly_salary ?? s.basic_salary ?? s.salary ?? '',
         joining_date: s.joining_date ? String(s.joining_date).split('T')[0] : '',
@@ -205,6 +207,7 @@ const StaffCreate = () => {
       const payloadData = {
         full_name: form.full_name.trim(),
         phone_number: form.phone_number.trim(),
+        address: form.address?.trim() || '',
         weekly_salary: form.weekly_salary === '' ? '0.00' : Number(form.weekly_salary).toFixed(2),
         monthly_salary: form.monthly_salary === '' ? '0.00' : Number(form.monthly_salary).toFixed(2),
         joining_date: form.joining_date || today(),
@@ -263,6 +266,10 @@ const StaffCreate = () => {
             <div>
               <label style={labelStyle}><Phone size={12} /> {t("Phone *")}</label>
               <input value={form.phone_number} onChange={(e) => set('phone_number', e.target.value)} placeholder={t("01XXXXXXXXX")} style={inputStyle} />
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={labelStyle}><MapPin size={12} /> {t("Address")}</label>
+              <textarea value={form.address || ''} onChange={(e) => set('address', e.target.value)} placeholder={t("Staff address")} style={{...inputStyle, height: '80px', resize: 'vertical'}} />
             </div>
             
             <div>

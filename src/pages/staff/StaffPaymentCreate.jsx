@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { List, Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
 import AddOptionModal from '../../components/AddOptionModal';
 import SearchableSelect from '../../components/SearchableSelect';
@@ -17,6 +17,10 @@ const labelStyle = { display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeigh
 
 const StaffPaymentCreate = () => {
   const { t } = useTranslation();
+  const { id } = useParams();
+  const location = useLocation();
+  const isEdit = !!id;
+  const paymentToEdit = location.state?.payment;
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -27,13 +31,13 @@ const StaffPaymentCreate = () => {
   const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState({
-    date: today(),
-    staff: '',
-    account: '',
-    category: '',
-    amount: '',
-    payment_type: 'Monthly Salary',
-    description: '',
+    date: paymentToEdit?.date ? String(paymentToEdit.date).split('T')[0] : today(),
+    staff: paymentToEdit?.staff?.id || paymentToEdit?.staff?.uuid || paymentToEdit?.staff_id || paymentToEdit?.staff || paymentToEdit?.receiptForId || paymentToEdit?.receiptFor || '',
+    account: paymentToEdit?.account?.id || paymentToEdit?.account?.uuid || paymentToEdit?.account_id || paymentToEdit?.account || '',
+    category: paymentToEdit?.category?.id || paymentToEdit?.category?.uuid || paymentToEdit?.category_id || paymentToEdit?.category || '',
+    amount: paymentToEdit?.amount || '',
+    description: paymentToEdit?.description || paymentToEdit?.desc || '',
+    payment_type: 'Salary'
   });
 
   const loadLists = async () => {
@@ -68,7 +72,26 @@ const StaffPaymentCreate = () => {
     }
   };
 
-  useEffect(() => { loadLists(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { loadLists(); }, []);
+    
+    // Auto-match staff if UUID not found
+    useEffect(() => {
+      if (isEdit && staff.length > 0 && form.staff) {
+        const found = staff.find(s => String(s.id || s.uuid) === String(form.staff));
+        if (!found) {
+          // Try to match by name or phone
+          const staffString = String(paymentToEdit?.receiptFor || paymentToEdit?.staff_name || form.staff).toLowerCase();
+          const matched = staff.find(s => {
+            const name = String(s.full_name || s.user?.full_name || s.name || s.username || s.user_details?.username).toLowerCase();
+            const phone = String(s.phone_number || s.user?.phone_number || s.phone).toLowerCase();
+            return staffString.includes(name) || (phone && staffString.includes(phone));
+          });
+          if (matched) {
+            setForm(prev => ({ ...prev, staff: matched.id || matched.uuid }));
+          }
+        }
+      }
+    }, [staff, isEdit, paymentToEdit, form.staff]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
   const selectedAccount = accounts.find((a) => String(a.id || a.uuid) === String(form.account));
@@ -107,8 +130,12 @@ const StaffPaymentCreate = () => {
 
     try {
       setSaving(true);
-      await accountingService.createExpense(payload);
-      toast.success(t("Staff payment saved"));
+      if (isEdit) {
+        await accountingService.updateExpense(id, payload);
+      } else {
+        await accountingService.createExpense(payload);
+      }
+      toast.success(isEdit ? t("Staff payment updated") : t("Staff payment saved"));
       navigate('/staff/payment/report');
     } catch (err) {
       toast.error(err.message || t("Failed to save payment"));

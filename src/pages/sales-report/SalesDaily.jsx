@@ -30,7 +30,7 @@ const SalesDaily = () => {
   const fetchPrerequisites = async () => {
     try {
       const [resClients, resUsers] = await Promise.all([
-        crmService.getClients().catch(() => []),
+        crmService.getClients({ page_size: 5000 }).catch(() => []),
         getUserList().catch(() => [])
       ]);
       setClients(toList(resClients));
@@ -237,7 +237,7 @@ const SalesDaily = () => {
                   <th style={{ padding: '10px' }}>{t("BARCODE ⇅")}</th>
                   <th style={{ padding: '10px' }}>{t("UNIT ⇅")}</th>
                   <th style={{ padding: '10px' }}>{t("QTY ⇅")}</th>
-                  <th style={{ padding: '10px' }}>{t("BUY PRICE ⇅")}</th>
+                  
                   <th style={{ padding: '10px' }}>{t("SELL PRICE ⇅")}</th>
                   <th style={{ padding: '10px' }}>{t("TOTAL ⇅")}</th>
                   <th style={{ padding: '10px' }}>{t("RECEIVE ⇅")}</th>
@@ -325,13 +325,7 @@ const SalesDaily = () => {
                           </div>
                         ))}
                       </td>
-                      <td style={{ padding: '0', verticalAlign: 'middle' }}>
-                        {group.products.map((p, i) => (
-                          <div key={i} style={{ padding: '8px 4px', borderBottom: i < group.products.length - 1 ? '1px solid #e2e8f0' : 'none' }}>
-                            {Number(p.buy_price || 0).toFixed(2)}
-                          </div>
-                        ))}
-                      </td>
+                      
                       <td style={{ padding: '0', verticalAlign: 'middle' }}>
                         {group.products.map((p, i) => (
                           <div key={i} style={{ padding: '8px 4px', borderBottom: i < group.products.length - 1 ? '1px solid #e2e8f0' : 'none' }}>
@@ -349,7 +343,7 @@ const SalesDaily = () => {
                   })
                 )}
                 <tr style={{ fontWeight: 'bold', background: '#f8fafc' }}>
-                  <td colSpan="7" style={{ padding: '10px', textAlign: 'center' }}>{t('common.total')}</td>
+                  <td colSpan="6" style={{ padding: '10px', textAlign: 'center' }}>{t('common.total')}</td>
                   <td style={{ padding: '10px' }}>{totals.qty}</td>
                   <td style={{ padding: '10px' }}>৳{totals.buy.toFixed(2)}</td>
                   <td style={{ padding: '10px' }}>-</td>

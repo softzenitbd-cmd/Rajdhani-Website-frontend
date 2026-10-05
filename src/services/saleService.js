@@ -81,7 +81,7 @@ const buildSalesReport = async (filters = {}) => {
   const [invRes, prodRes, clientRes] = await Promise.all([
     apiClient.get(ENDPOINTS.SALE_INVOICES, { params: invParams }),
     needProducts ? productService.getProducts({ limit: 50000, no_page: true }).catch(() => []) : [],
-    needClients ? crmService.getClients().catch(() => []) : [],
+    needClients ? crmService.getClients({ page_size: 5000 }).catch(() => []) : [],
   ]);
 
   const invoices = toList(invRes).filter((inv) => inv.status === undefined || Number(inv.status) === 1);

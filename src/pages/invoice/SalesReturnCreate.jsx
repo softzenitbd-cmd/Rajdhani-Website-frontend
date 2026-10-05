@@ -54,7 +54,7 @@ const SalesReturnCreate = () => {
     try {
       setLoadingPrereqs(true);
       const [clientRes, prodRes, accRes] = await Promise.all([
-        crmService.getClients().catch(() => []),
+        crmService.getClients({ page_size: 5000 }).catch(() => []),
         productService.getProducts({ page_size: 500 }).catch(() => []),
         accountingService.getAccounts().catch(() => []),
       ]);
@@ -292,6 +292,14 @@ const SalesReturnCreate = () => {
           {
             id: prod.id,
             name: prod.name || prod.title || "Product",
+            barcode:
+              prod._scannedBarcode ||
+              prod.barcode ||
+              prod.custom_barcode_no ||
+              prod.code ||
+              (String(prod.id).length === 36
+                ? String(prod.id).substring(0, 8).toUpperCase()
+                : prod.id),
             stock: Number(prod.stock ?? 0),
             price: Number(prod.sales_price || prod.price || 0),
             quantity: 1,
@@ -304,38 +312,55 @@ const SalesReturnCreate = () => {
     setFormData((prev) => ({ ...prev, productId: "" }));
   };
 
+  const processBarcode = async (rawCode) => {
+    if (!rawCode || !rawCode.trim()) return;
+    const code = rawCode.trim().toLowerCase();
+    let prod = products.find(
+      (p) =>
+        String(p.code || "").trim().toLowerCase() === code ||
+        String(p.barcode || "").trim().toLowerCase() === code ||
+        String(p.custom_barcode_no || "").trim().toLowerCase() === code ||
+        String(p.id).trim().toLowerCase() === code ||
+        (code.length >= 8 && String(p.id).trim().toLowerCase().startsWith(code)) ||
+        String(p.product_code || "").trim().toLowerCase() === code,
+    );
+
+    if (!prod) {
+      prod = await productService.findByBarcode(rawCode);
+      if (prod) {
+        setProducts((prev) =>
+          prev.find((p) => String(p.id) === String(prod.id)) ? prev : [...prev, prod],
+        );
+      }
+    }
+
+    if (prod) {
+      handleSelectProduct(prod.id, {
+        ...prod,
+        _scannedBarcode: rawCode.trim(),
+      });
+    } else {
+      toast.error(
+        t('Product with barcode "{{v0}}" not found.', { v0: rawCode.trim() }),
+      );
+    }
+    setFormData((prev) => ({ ...prev, barcode: "" }));
+  };
+
+  useEffect(() => {
+    if (!formData.barcode) return;
+    const timer = setTimeout(() => {
+      processBarcode(formData.barcode);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [formData.barcode]);
+
   const handleBarcodeKeyDown = async (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      const code = e.target.value.trim();
-      if (!code) return;
-      let prod = products.find(
-        (p) =>
-          String(p.code) === code ||
-          String(p.barcode) === code ||
-          String(p.custom_barcode_no) === code ||
-          String(p.id) === code ||
-          String(p.product_code) === code,
-      );
-      if (!prod) {
-        // Ask the server — older products are only resolvable there.
-        prod = await productService.findByBarcode(code);
-        if (prod) {
-          setProducts((prev) =>
-            prev.find((p) => String(p.id) === String(prod.id))
-              ? prev
-              : [...prev, prod],
-          );
-        }
-      }
-      if (prod) {
-        handleSelectProduct(prod.id, prod);
-      } else {
-        toast.error(
-          t('Product with barcode "{{v0}}" not found.', { v0: code }),
-        );
-      }
+      const val = e.target.value;
       setFormData((prev) => ({ ...prev, barcode: "" }));
+      await processBarcode(val);
     }
   };
 
@@ -516,8 +541,7 @@ const SalesReturnCreate = () => {
                     marginLeft: "6px",
                   }}
                 >
-                  | CTRL + S = SAVE | ALT + S = SAVE & PRINT | CTRL + D ={" "}
-                  {t("ড্রাফ্ট হিসেবে সংরক্ষণ")}
+                  | CTRL + S = SAVE | ALT + S = SAVE & PRINT
                 </span>
               </>
             )}
@@ -808,21 +832,55 @@ const SalesReturnCreate = () => {
                       </td>
                     </tr>
                   ) : (
-                    items.map((item, idx) => (
+                    items.map((item, idx) => {
+                      const ashBox = {
+                        border: "1px solid #cbd5e1",
+                        borderRadius: "2px",
+                        padding: "4px 8px",
+                        textAlign: "center",
+                        width: "100%",
+                        boxSizing: "border-box",
+                        background: "white",
+                        color: "#0f172a",
+                        minHeight: "30px",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        fontWeight: "500",
+                        fontSize: "12px",
+                      };
+                      const ashInput = {
+                        border: "1px solid #cbd5e1",
+                        borderRadius: "2px",
+                        padding: "4px 8px",
+                        textAlign: "center",
+                        width: "100%",
+                        boxSizing: "border-box",
+                        background: "white",
+                        color: "#0f172a",
+                        minHeight: "30px",
+                        outline: "none",
+                        fontWeight: "500",
+                        fontSize: "12px",
+                      };
+
+                      return (
                       <tr
                         key={idx}
-                        style={{ borderBottom: "1px solid #e2e8f0" }}
+                        style={{ borderBottom: "1px solid #e2e8f0", background: "#e2e8f0" }}
                       >
-                        <td style={{ padding: "8px", textAlign: "center" }}>
-                          {idx + 1}
+                        <td style={{ padding: "4px" }}>
+                          <div style={ashBox}>{idx + 1}</div>
                         </td>
-                        <td style={{ padding: "8px", fontWeight: "500" }}>
-                          {item.name}
+                        <td style={{ padding: "4px" }}>
+                          <div style={{ ...ashBox }}>
+                            {item.name} {item.barcode && `| ${item.barcode}`}
+                          </div>
                         </td>
-                        <td style={{ padding: "8px", textAlign: "center" }}>
-                          {item.stock}
+                        <td style={{ padding: "4px" }}>
+                          <div style={ashBox}>{item.stock}</div>
                         </td>
-                        <td style={{ padding: "8px", textAlign: "center" }}>
+                        <td style={{ padding: "4px" }}>
                           <input
                             type="number"
                             value={item.price}
@@ -830,16 +888,10 @@ const SalesReturnCreate = () => {
                             onChange={(e) =>
                               updateItemField(idx, "price", e.target.value)
                             }
-                            style={{
-                              width: "80px",
-                              padding: "4px",
-                              textAlign: "right",
-                              border: "1px solid #cbd5e1",
-                              borderRadius: "4px",
-                            }}
+                            style={ashInput}
                           />
                         </td>
-                        <td style={{ padding: "8px", textAlign: "center" }}>
+                        <td style={{ padding: "4px" }}>
                           <input
                             data-qty-idx={idx}
                             type="number"
@@ -869,28 +921,18 @@ const SalesReturnCreate = () => {
                             onChange={(e) =>
                               updateItemField(idx, "quantity", e.target.value)
                             }
-                            style={{
-                              width: "60px",
-                              padding: "4px",
-                              textAlign: "center",
-                              border: "1px solid #cbd5e1",
-                              borderRadius: "4px",
-                            }}
+                            style={ashInput}
                           />
                         </td>
-                        <td style={{ padding: "8px", textAlign: "center" }}>
-                          {item.unit}
+                        <td style={{ padding: "4px" }}>
+                          <div style={ashBox}>{item.unit}</div>
                         </td>
-                        <td
-                          style={{
-                            padding: "8px",
-                            textAlign: "right",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          ৳ {(item.price * item.quantity).toFixed(2)}
+                        <td style={{ padding: "4px" }}>
+                          <div style={ashBox}>
+                            ৳ {(item.price * item.quantity).toFixed(2)}
+                          </div>
                         </td>
-                        <td style={{ padding: "8px", textAlign: "center" }}>
+                        <td style={{ padding: "4px", textAlign: "center" }}>
                           <button
                             type="button"
                             onClick={() => removeItem(idx)}
@@ -906,7 +948,7 @@ const SalesReturnCreate = () => {
                           </button>
                         </td>
                       </tr>
-                    ))
+                    )})
                   )}
                 </tbody>
               </table>
@@ -1123,24 +1165,7 @@ const SalesReturnCreate = () => {
               >
                 {t("Cancel")}
               </button>
-              <div
-                className="form-action-group"
-                style={{ display: "flex", gap: "8px" }}
-              >
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={() => handleSaveReturn(0)}
-                  style={{
-                    background: "#64748b",
-                    padding: "10px 24px",
-                    fontSize: "var(--fs-14, 14px)",
-                    borderRadius: "4px",
-                  }}
-                >
-                  {t("Save As Draft")}
-                </button>
-                <button
+              <button
                   type="button"
                   className="btn-primary"
                   onClick={() => handleSaveReturn(1, true)}
@@ -1168,7 +1193,6 @@ const SalesReturnCreate = () => {
                 >
                   {isEdit ? t("Update Return") : t("Return Invoice")}
                 </button>
-              </div>
             </div>
           </form>
         </div>

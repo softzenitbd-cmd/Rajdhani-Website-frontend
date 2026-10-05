@@ -46,7 +46,7 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
   useEffect(() => {
     (isDeposit ? accountingService.getIncomeCategories() : accountingService.getExpenseCategories())
       .then((r) => setCategories(toList(r))).catch(() => {});
-    if (groupBy === 'client') crmService.getClients().then((r) => setParties(toList(r))).catch(() => {});
+    if (groupBy === 'client') crmService.getClients({ page_size: 5000 }).then((r) => setParties(toList(r))).catch(() => {});
     if (groupBy === 'supplier') crmService.getSuppliers().then((r) => setParties(toList(r))).catch(() => {});
 
     crmService.getClients({ page_size: 1000 }).then(r => setAllClients(toList(r))).catch(() => {});

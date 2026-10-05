@@ -38,7 +38,7 @@ const PurchaseReturnList = () => {
       setLoading(true);
       const [returnsRes, supRes] = await Promise.all([
         purchaseService.getPurchaseReturns(filters).catch(() => null),
-        crmService.getSuppliers().catch(() => null)
+        crmService.getSuppliers({ limit: 1000 }).catch(() => null)
       ]);
 
       let sList = [];
@@ -57,14 +57,17 @@ const PurchaseReturnList = () => {
         setReturns(combined.map(item => {
           let supName = item.supplier_name || item.supplier?.name;
           if (!supName) {
-            const foundSup = sList.find(s => String(s.id) === String(item.supplier));
-            supName = foundSup ? (foundSup.name || foundSup.company_name) : String(item.supplier || 'Supplier');
+            const foundSup = sList.find(s => String(s.id) === String(item.supplier) || String(s.uuid) === String(item.supplier));
+            supName = foundSup ? (foundSup.name || foundSup.company_name || `${foundSup.first_name || ''} ${foundSup.last_name || ''}`.trim()) : String(item.supplier || 'Supplier');
+            if (supName && typeof supName === 'string' && supName.length > 20 && supName.includes('-')) supName = 'Unknown Supplier';
           }
           
-          let invoiceNo = item.invoice || item.invoice_no;
-          if (!invoiceNo) {
-            const shortId = typeof item.id === 'string' && item.id.length > 8 ? item.id.split('-')[0] : item.id;
-            invoiceNo = `RET-${shortId}`;
+          let invoiceNo = String(item.invoice || item.invoice_no || item.id || (idx + 100));
+          if (invoiceNo.startsWith('RET-')) invoiceNo = invoiceNo.replace('RET-', '');
+          if (/[a-fA-F]/.test(invoiceNo)) {
+             const hexPart = invoiceNo.split('-')[0];
+             const num = parseInt(hexPart, 16);
+             if (!isNaN(num)) invoiceNo = String(num);
           }
 
           let formattedDate = item.date || item.created_at || '2026-08-25';
@@ -79,7 +82,7 @@ const PurchaseReturnList = () => {
             supplier: supName,
             supplierId: item.supplier,
             total: parseFloat(item.total || item.total_amount || item.total_due || 0).toFixed(2),
-            items: item.items || []
+            items: (item.items || []).map(it => ({ ...it, name: (it.name || it.product_name || it.product || 'Unknown Product') + (it.barcode ? ' (' + it.barcode + ')' : '') }))
           };
         }));
       } else {

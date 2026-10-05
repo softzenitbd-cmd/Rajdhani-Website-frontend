@@ -28,7 +28,7 @@ const SalesAll = () => {
 
   const fetchPrerequisites = async () => {
     try {
-      const res = await crmService.getClients();
+      const res = await crmService.getClients({ page_size: 5000 });
       setClients(Array.isArray(res) ? res : (res?.results || []));
     } catch (err) {
       console.error('Failed to load clients:', err?.message);

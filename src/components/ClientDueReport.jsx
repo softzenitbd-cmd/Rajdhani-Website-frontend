@@ -31,7 +31,7 @@ const ClientDueReport = ({ mode = 'all', title = 'All Due Report' }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (mode === 'client') crmService.getClients().then((r) => setClients(toList(r))).catch(() => {});
+    if (mode === 'client') crmService.getClients({ page_size: 5000 }).then((r) => setClients(toList(r))).catch(() => {});
     if (mode === 'group') crmService.getClientGroups().then((r) => setGroups(toList(r))).catch(() => {});
   }, [mode]);
 

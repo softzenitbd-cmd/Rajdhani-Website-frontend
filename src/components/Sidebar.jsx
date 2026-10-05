@@ -895,94 +895,33 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
           {staffOpen && (
             <div className="submenu">
               <RefreshNavLink to="/staff/create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
-                <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.staff_create')}
+                <span style={{ marginRight: '8px' }}>»</span> {t('Staff Create')}
               </RefreshNavLink>
               <RefreshNavLink to="/staff/list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
-                <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.staff_list')}
+                <span style={{ marginRight: '8px' }}>»</span> {t('Staff List')}
               </RefreshNavLink>
-              
-              {/* Nested Staff Payment Submenu */}
-              <div>
-                <div 
-                  className="nav-item" 
-                  style={{ paddingLeft: '32px', marginBottom: '0', background: staffPaymentOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
-                  onClick={() => setStaffPaymentOpen(!staffPaymentOpen)}
-                >
-                  <div className="nav-item-content" style={{ fontSize: 'var(--sidebar-font-size, var(--fs-14, 14px))' }}>
-                    <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.staff_payment')}
-                  </div>
-                  {staffPaymentOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                </div>
-                
-                {staffPaymentOpen && (
-                  <div>
-                    <RefreshNavLink to="/staff/payment/create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px', color: 'var(--primary)' }}>
-                      <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.payment_create')}
-                    </RefreshNavLink>
-                    <RefreshNavLink to="/staff/payment/report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
-                      <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.staff_payment_report')}
-                    </RefreshNavLink>
-                  </div>
-                )}
-              </div>
-              
-              {/* Nested Staff Salary Submenu */}
-              <div>
-                <div 
-                  className="nav-item" 
-                  style={{ paddingLeft: '32px', marginBottom: '0', background: staffSalaryOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
-                  onClick={() => setStaffSalaryOpen(!staffSalaryOpen)}
-                >
-                  <div className="nav-item-content" style={{ fontSize: 'var(--sidebar-font-size, var(--fs-14, 14px))' }}>
-                    <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.staff_salary')}
-                  </div>
-                  {staffSalaryOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                </div>
-                
-                {staffSalaryOpen && (
-                  <div>
-                    <RefreshNavLink to="/staff/salary/create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
-                      <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.add_salary')}
-                    </RefreshNavLink>
-                    <RefreshNavLink to="/staff/salary/report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
-                      <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.salary_report')}
-                    </RefreshNavLink>
-                  </div>
-                )}
-              </div>
-
-              {/* Nested Staff Attendance Submenu */}
-              <div>
-                <div 
-                  className="nav-item" 
-                  style={{ paddingLeft: '32px', marginBottom: '0', background: staffAttendanceOpen ? 'rgba(79, 70, 229, 0.05)' : 'transparent', cursor: 'pointer' }}
-                  onClick={() => setStaffAttendanceOpen(!staffAttendanceOpen)}
-                >
-                  <div className="nav-item-content" style={{ fontSize: 'var(--sidebar-font-size, var(--fs-14, 14px))' }}>
-                    <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.staff_attendance')}
-                  </div>
-                  {staffAttendanceOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                </div>
-                
-                {staffAttendanceOpen && (
-                  <div>
-                    <RefreshNavLink to="/staff/attendance/create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
-                      <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.attendance_create')}
-                    </RefreshNavLink>
-                    <RefreshNavLink to="/staff/attendance/report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
-                      <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.attendance_report')}
-                    </RefreshNavLink>
-                    <RefreshNavLink to="/staff/attendance/monthly-report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`} style={{ paddingLeft: '48px' }}>
-                      <span style={{ marginRight: '8px' }}>»</span> {t('sidebar.monthly_attendance_report')}
-                    </RefreshNavLink>
-                  </div>
-                )}
-              </div>
-              
+              <RefreshNavLink to="/staff/payment/create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+                <span style={{ marginRight: '8px' }}>»</span> {t('Staff Payment')}
+              </RefreshNavLink>
+              <RefreshNavLink to="/staff/payment/report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+                <span style={{ marginRight: '8px' }}>»</span> {t('Payment List')}
+              </RefreshNavLink>
+              <RefreshNavLink to="/staff/salary/report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+                <span style={{ marginRight: '8px' }}>»</span> {t('Staff Report')}
+              </RefreshNavLink>
+              <RefreshNavLink to="/staff/attendance/create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+                <span style={{ marginRight: '8px' }}>»</span> {t('Hajira')}
+              </RefreshNavLink>
+              <RefreshNavLink to="/staff/list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+                <span style={{ marginRight: '8px' }}>»</span> {t('Staff Edit')}
+              </RefreshNavLink>
+              <RefreshNavLink to="/staff/list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+                <span style={{ marginRight: '8px' }}>»</span> {t('Staff Delete')}
+              </RefreshNavLink>
             </div>
           )}
         </div>
-        
+
         {/* Due Report Menu Group */}
         <div>
           <div className={`nav-item ${dueReportOpen ? 'active' : ''}`} onClick={() => toggleMenu('dueReport')}>

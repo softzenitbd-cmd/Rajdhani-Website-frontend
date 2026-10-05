@@ -33,7 +33,7 @@ const SalesGroupWise = () => {
       try {
         const res = await crmService.getClientGroups().catch(() => []);
         setGroups(Array.isArray(res) ? res : (res?.results || []));
-        const clientsRes = await crmService.getClients().catch(() => []);
+        const clientsRes = await crmService.getClients({ page_size: 5000 }).catch(() => []);
         setClients(Array.isArray(clientsRes) ? clientsRes : (clientsRes?.results || []));
       } catch (err) {
         console.error("Error fetching client groups:", err);
@@ -84,7 +84,8 @@ const SalesGroupWise = () => {
         dis: Number(row.discount || row.dis || 0),
         grandTotal: Number(row.grandTotal || row.grand_total || row.total || 0),
         receive: Number(row.receiveAmount || row.receive_amount || row.receive || 0),
-        due: Number(row.dueAmount || row.due_amount || row.due || 0)
+        due: Number(row.dueAmount || row.due_amount || row.due || 0),
+        profit: Number(row.profit || 0)
       };
       if (v !== '-') invoiceGroups[v] = newGroup;
       groupedReports.push(newGroup);
@@ -97,6 +98,7 @@ const SalesGroupWise = () => {
       invoiceGroups[v].total += Number(row.total || row.total_amount || 0);
       invoiceGroups[v].dis += Number(row.discount || row.dis || 0);
       invoiceGroups[v].grandTotal += Number(row.grandTotal || row.grand_total || row.total || 0);
+      invoiceGroups[v].profit += Number(row.profit || 0);
     }
   });
 
@@ -112,9 +114,10 @@ const SalesGroupWise = () => {
         dis: acc.dis + group.dis,
         grandTotal: acc.grandTotal + group.grandTotal,
         receive: acc.receive + group.receive,
-        due: acc.due + group.due
+        due: acc.due + group.due,
+        profit: (acc.profit || 0) + (group.profit || 0)
       };
-    }, { qty: 0, total: 0, dis: 0, grandTotal: 0, receive: 0, due: 0 });
+    }, { qty: 0, total: 0, dis: 0, grandTotal: 0, receive: 0, due: 0, profit: 0 });
   };
 
   const totals = calculateTotals();
@@ -217,6 +220,7 @@ const SalesGroupWise = () => {
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("GRAND TOTAL ⇅")}</th>
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("RECEIVE ⇅")}</th>
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("DUE ⇅")}</th>
+                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("PROFIT ⇅")}</th>
                   </tr>
                 </thead>
                 <tbody style={{ background: '#f8fafc' }}>
@@ -298,6 +302,7 @@ const SalesGroupWise = () => {
                           <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{group.grandTotal.toFixed(2)}</td>
                           <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{group.receive.toFixed(2)}</td>
                           <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white' }}>{group.due.toFixed(2)}</td>
+                          <td style={{ padding: '8px', border: '1px solid #94a3b8', verticalAlign: 'middle', background: 'white', color: '#16a34a', fontWeight: '600' }}>{Number(group.profit || 0).toFixed(2)}</td>
                         </tr>
                       );
                     })
@@ -312,6 +317,7 @@ const SalesGroupWise = () => {
                     <td style={{ padding: '12px', border: '1px solid #94a3b8' }}>৳{totals.grandTotal.toFixed(2)}</td>
                     <td style={{ padding: '12px', border: '1px solid #94a3b8' }}>৳{totals.receive.toFixed(2)}</td>
                     <td style={{ padding: '12px', border: '1px solid #94a3b8' }}>৳{totals.due.toFixed(2)}</td>
+                    <td style={{ padding: '12px', border: '1px solid #94a3b8', color: '#16a34a', fontWeight: '600' }}>৳{Number(totals.profit || 0).toFixed(2)}</td>
                   </tr>
                 </tbody>
               </table>

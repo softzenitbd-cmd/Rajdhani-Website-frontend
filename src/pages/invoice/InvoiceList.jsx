@@ -75,7 +75,7 @@ const InvoiceList = () => {
   const fetchPrerequisites = async () => {
     try {
       const [clientRes, accRes] = await Promise.all([
-        crmService.getClients().catch(() => []),
+        crmService.getClients({ page_size: 5000 }).catch(() => []),
         accountingService.getAccounts().catch(() => [])
       ]);
 
@@ -342,7 +342,19 @@ const InvoiceList = () => {
                   return `${day}-${month}-${year}`;
                 };
 
+                const formatTime = (dateString) => {
+                  if (!dateString) return '';
+                  const d = new Date(dateString);
+                  let hours = d.getHours();
+                  const minutes = String(d.getMinutes()).padStart(2, '0');
+                  const ampm = hours >= 12 ? 'PM' : 'AM';
+                  hours = hours % 12;
+                  hours = hours ? hours : 12;
+                  return `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+                };
+
                 const formattedDate = inv.created_at ? formatDDMMYYYY(inv.created_at) : (inv.date ? formatDDMMYYYY(inv.date) : '14-09-2026');
+                const formattedTime = inv.created_at ? formatTime(inv.created_at) : (inv.date && inv.date.includes('T') ? formatTime(inv.date) : '');
 
                 const rawInvId = String(inv.invoice_id || inv.invoiceNo || (inv.id ? `INV-${inv.id}` : 'INV-0054'));
                 const cleanInvId = rawInvId.replace(/^Invoice ID:\s*/i, '');
@@ -350,7 +362,10 @@ const InvoiceList = () => {
                 return (
                   <tr key={inv.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-12, 12px)' }}>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0' }}>{globalIndex}</td>
-                    <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{formattedDate}</td>
+                    <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontWeight: '500' }}>{formattedDate}</div>
+                      {formattedTime && <div style={{ color: '#64748b', fontSize: 'var(--fs-11, 11px)', marginTop: '2px' }}>{formattedTime}</div>}
+                    </td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', lineHeight: '1.4' }}>
                       <div style={{ fontWeight: '500' }}>{clientName}</div>
                       <div style={{ color: '#64748b', fontSize: 'var(--fs-11, 11px)' }}>{clientPhone}</div>

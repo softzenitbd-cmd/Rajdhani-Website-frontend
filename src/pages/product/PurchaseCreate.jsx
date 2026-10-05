@@ -21,7 +21,9 @@ import { crmService } from "../../services/crmService";
 import { productService } from "../../services/productService";
 import { purchaseService } from "../../services/purchaseService";
 import settingService from "../../services/settingService";
+import { companyStore } from "../../services/companyStore";
 import { useToast } from "../../context/ToastContext";
+import { useAppSettings } from "../../hooks/useAppSettings";
 
 const ashInput = {
   width: "100%",
@@ -40,6 +42,26 @@ const PurchaseCreate = () => {
   const { id } = useParams();
   const location = useLocation();
   const isEditMode = Boolean(id);
+  const { settings } = useAppSettings();
+
+  const [companyInfo, setCompanyInfo] = React.useState(companyStore.getCached());
+  React.useEffect(() => {
+    const h = () => setCompanyInfo(companyStore.getCached());
+    window.addEventListener(companyStore.EVENT, h);
+    companyStore.load();
+    return () => window.removeEventListener(companyStore.EVENT, h);
+  }, []);
+    let salePricePercentage = parseFloat(companyInfo?.sale_price_percentage) || parseFloat(settings['sale-price-percentage']) || 0;
+    const autoGenSetting = settings['auto-generate-sale-price'];
+    const isAutoGenerateEnabled = 
+      companyInfo?.sale_price_auto_generate === true || 
+      companyInfo?.sale_price_auto_generate === "true" ||
+      companyInfo?.sale_price_auto_generate === 1 ||
+      companyInfo?.sale_price_auto_generate === "1" ||
+      autoGenSetting === true ||
+      autoGenSetting === "true" ||
+      autoGenSetting === 1 ||
+      autoGenSetting === "1";
 
   const [formData, setFormData] = useState({
     invoice_id: "",
@@ -221,17 +243,17 @@ const PurchaseCreate = () => {
 
     setItems((prevItems) => {
       return [
-        ...prevItems,
         {
           id: prod.id,
           name: prod.name || prod.title || "Product",
-          quantity: 0,
+          quantity: Number(prod.quantity) || 1,
           buyingPrice: Number(
             prod.purchase_price || prod.buying_price || prod.price || 0,
           ),
           salePrice: Number(prod.sales_price || prod.selling_price || 0),
           barcode: prod.code || prod.barcode || "-",
         },
+        ...prevItems,
       ];
     });
 
@@ -277,6 +299,13 @@ const PurchaseCreate = () => {
     setItems((prev) => {
       const updated = [...prev];
       updated[index][field] = Math.max(0, Number(value));
+      if (field === "buyingPrice" && isAutoGenerateEnabled && value !== "") {
+        const bp = Number(value);
+        if (!isNaN(bp) && bp >= 0) {
+          const sp = bp + (bp * salePricePercentage / 100);
+          updated[index].salePrice = Number(sp.toFixed(2));
+        }
+      }
       return updated;
     });
   };
@@ -618,7 +647,7 @@ const PurchaseCreate = () => {
                     placeholder={t("Invoice Id")}
                     style={{
                       width: "100%",
-                      padding: "12px",
+                      padding: "6px", fontSize: "11px",
                       border: "1px solid #e2e8f0",
                       borderRadius: "4px",
                       outline: "none",
@@ -712,7 +741,7 @@ const PurchaseCreate = () => {
                 >
                   <div
                     style={{
-                      padding: "12px",
+                      padding: "6px", fontSize: "11px",
                       borderRight: "1px solid #cbd5e1",
                       display: "flex",
                       alignItems: "center",
@@ -753,7 +782,7 @@ const PurchaseCreate = () => {
                     }}
                     style={{
                       flex: 1,
-                      padding: "12px",
+                      padding: "6px", fontSize: "11px",
                       border: "none",
                       outline: "none",
                       background: "transparent",
@@ -828,6 +857,7 @@ const PurchaseCreate = () => {
                 overflowY: "auto",
                 flex: 1,
                 minHeight: "150px",
+                maxHeight: "380px",
                 border: "1px solid #e2e8f0",
                 marginBottom: "24px",
                 borderRadius: "8px",
@@ -850,7 +880,7 @@ const PurchaseCreate = () => {
                       style={{
                         textAlign: "center",
                         borderRight: "1px solid white",
-                        padding: "12px",
+                        padding: "6px", fontSize: "11px",
                         fontSize: "var(--fs-11, 11px)",
                         width: "50px",
                       }}
@@ -861,7 +891,7 @@ const PurchaseCreate = () => {
                       style={{
                         textAlign: "left",
                         borderRight: "1px solid white",
-                        padding: "12px",
+                        padding: "6px", fontSize: "11px",
                         fontSize: "var(--fs-11, 11px)",
                       }}
                     >
@@ -871,7 +901,7 @@ const PurchaseCreate = () => {
                       style={{
                         textAlign: "center",
                         borderRight: "1px solid white",
-                        padding: "12px",
+                        padding: "6px", fontSize: "11px",
                         fontSize: "var(--fs-11, 11px)",
                         width: "90px",
                       }}
@@ -882,7 +912,7 @@ const PurchaseCreate = () => {
                       style={{
                         textAlign: "center",
                         borderRight: "1px solid white",
-                        padding: "12px",
+                        padding: "6px", fontSize: "11px",
                         fontSize: "var(--fs-11, 11px)",
                         width: "120px",
                       }}
@@ -893,7 +923,7 @@ const PurchaseCreate = () => {
                       style={{
                         textAlign: "right",
                         borderRight: "1px solid white",
-                        padding: "12px",
+                        padding: "6px", fontSize: "11px",
                         fontSize: "var(--fs-11, 11px)",
                       }}
                     >
@@ -903,7 +933,7 @@ const PurchaseCreate = () => {
                       style={{
                         textAlign: "center",
                         borderRight: "1px solid white",
-                        padding: "12px",
+                        padding: "6px", fontSize: "11px",
                         fontSize: "var(--fs-11, 11px)",
                         width: "120px",
                       }}
@@ -914,7 +944,7 @@ const PurchaseCreate = () => {
                       style={{
                         textAlign: "right",
                         borderRight: "1px solid white",
-                        padding: "12px",
+                        padding: "6px", fontSize: "11px",
                         fontSize: "var(--fs-11, 11px)",
                       }}
                     >
@@ -924,7 +954,7 @@ const PurchaseCreate = () => {
                       style={{
                         textAlign: "center",
                         borderRight: "1px solid white",
-                        padding: "12px",
+                        padding: "6px", fontSize: "11px",
                         fontSize: "var(--fs-11, 11px)",
                       }}
                     >
@@ -933,7 +963,7 @@ const PurchaseCreate = () => {
                     <th
                       style={{
                         textAlign: "center",
-                        padding: "12px",
+                        padding: "6px", fontSize: "11px",
                         fontSize: "var(--fs-11, 11px)",
                       }}
                     >
@@ -963,19 +993,19 @@ const PurchaseCreate = () => {
                         key={idx}
                         style={{ borderBottom: "1px solid #e2e8f0" }}
                       >
-                        <td style={{ textAlign: "center", padding: "10px" }}>
+                        <td style={{ textAlign: "center", padding: "4px", fontSize: "12px" }}>
                           {idx + 1}
                         </td>
                         <td
                           style={{
                             textAlign: "left",
-                            padding: "10px",
+                            padding: "4px", fontSize: "12px",
                             fontWeight: "500",
                           }}
                         >
                           {item.name}
                         </td>
-                        <td style={{ textAlign: "center", padding: "10px" }}>
+                        <td style={{ textAlign: "center", padding: "4px", fontSize: "12px" }}>
                           <input
                             data-qty-idx={idx}
                             type="number"
@@ -1012,7 +1042,7 @@ const PurchaseCreate = () => {
                             }}
                           />
                         </td>
-                        <td style={{ textAlign: "center", padding: "10px" }}>
+                        <td style={{ textAlign: "center", padding: "4px", fontSize: "12px" }}>
                           <input
                             type="number"
                             value={item.buyingPrice}
@@ -1030,13 +1060,13 @@ const PurchaseCreate = () => {
                         <td
                           style={{
                             textAlign: "right",
-                            padding: "10px",
+                            padding: "4px", fontSize: "12px",
                             fontWeight: "bold",
                           }}
                         >
                           ৳ {(item.quantity * item.buyingPrice).toFixed(2)}
                         </td>
-                        <td style={{ textAlign: "center", padding: "10px" }}>
+                        <td style={{ textAlign: "center", padding: "4px", fontSize: "12px" }}>
                           <input
                             type="number"
                             value={item.salePrice}
@@ -1050,13 +1080,13 @@ const PurchaseCreate = () => {
                         <td
                           style={{
                             textAlign: "right",
-                            padding: "10px",
+                            padding: "4px", fontSize: "12px",
                             fontWeight: "bold",
                           }}
                         >
                           ৳ {(item.quantity * item.salePrice).toFixed(2)}
                         </td>
-                        <td style={{ textAlign: "center", padding: "10px" }}>
+                        <td style={{ textAlign: "center", padding: "4px", fontSize: "12px" }}>
                           <div
                             style={{
                               display: "flex",
@@ -1099,7 +1129,7 @@ const PurchaseCreate = () => {
                             </button>
                           </div>
                         </td>
-                        <td style={{ textAlign: "center", padding: "10px" }}>
+                        <td style={{ textAlign: "center", padding: "4px", fontSize: "12px" }}>
                           <div
                             style={{
                               display: "flex",
@@ -1138,7 +1168,7 @@ const PurchaseCreate = () => {
                       colSpan="2"
                       style={{
                         textAlign: "center",
-                        padding: "12px",
+                        padding: "6px", fontSize: "11px",
                         borderRight: "1px solid #e2e8f0",
                         borderTop: "1px solid #e2e8f0",
                       }}
@@ -1148,7 +1178,7 @@ const PurchaseCreate = () => {
                     <td
                       style={{
                         textAlign: "center",
-                        padding: "12px",
+                        padding: "6px", fontSize: "11px",
                         borderRight: "1px solid #e2e8f0",
                         borderTop: "1px solid #e2e8f0",
                       }}
@@ -1164,7 +1194,7 @@ const PurchaseCreate = () => {
                     <td
                       style={{
                         textAlign: "right",
-                        padding: "12px",
+                        padding: "6px", fontSize: "11px",
                         borderRight: "1px solid #e2e8f0",
                         borderTop: "1px solid #e2e8f0",
                       }}
@@ -1180,7 +1210,7 @@ const PurchaseCreate = () => {
                     <td
                       style={{
                         textAlign: "right",
-                        padding: "12px",
+                        padding: "6px", fontSize: "11px",
                         borderRight: "1px solid #e2e8f0",
                         borderTop: "1px solid #e2e8f0",
                       }}

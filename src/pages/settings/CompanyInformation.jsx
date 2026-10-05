@@ -30,6 +30,8 @@ const EMPTY_INFO = {
   sms_secret_key: '',
   sms_sender_id: '',
   sms_base_url: '',
+  sale_price_auto_generate: false,
+  sale_price_percentage: '0.00',
   status: true,
 };
 
@@ -47,12 +49,15 @@ const CompanyInformation = () => {
 
   const headerMode = settings.print_header_mode || 'card';
   const activeCard = settings.print_header_card || 'card2';
+  const barcodeActiveCard = settings.barcode_header_card || 'card1';
 
   const [companyInfo, setCompanyInfo] = useState(() => ({ ...EMPTY_INFO, ...companyStore.getCached() }));
   const [rightLogoPreview, setRightLogoPreview] = useState(null);
   
   const bannerHistory = Array.isArray(settings.banner_history) ? settings.banner_history : [];
+  const barcodeBannerHistory = Array.isArray(settings.barcode_banner_history) ? settings.barcode_banner_history : [];
   const [pendingCard, setPendingCard] = useState(activeCard);
+  const [pendingBarcodeCard, setPendingBarcodeCard] = useState(barcodeActiveCard);
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -78,6 +83,10 @@ const CompanyInformation = () => {
     setPendingCard(activeCard);
   }, [activeCard]);
 
+  useEffect(() => {
+    setPendingBarcodeCard(barcodeActiveCard);
+  }, [barcodeActiveCard]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setCompanyInfo((prev) => ({ ...prev, [name]: value }));
@@ -88,7 +97,7 @@ const CompanyInformation = () => {
     try {
       if (pendingCard.startsWith('history_')) {
         const idx = parseInt(pendingCard.split('_')[1]);
-        const customUrl = bannerHistory[idx];
+        const customUrl = barcodeBannerHistory[idx];
         await updateSettings({ 
           print_header_card: pendingCard, 
           print_header_mode: 'image',
@@ -105,6 +114,30 @@ const CompanyInformation = () => {
       toast.success(t("Header style updated"));
     } catch (err) {
       setMessage({ type: 'error', text: err?.message || 'Failed to save header selection' });
+    }
+  };
+
+  const saveBarcodeHeaderSettings = async () => {
+    try {
+      if (pendingBarcodeCard.startsWith('history_')) {
+        const idx = parseInt(pendingBarcodeCard.split('_')[1]);
+        const customUrl = bannerHistory[idx];
+        await updateSettings({ 
+          barcode_header_card: pendingBarcodeCard, 
+          barcode_header_mode: 'image',
+          barcode_header_custom_url: customUrl
+        });
+      } else {
+        await updateSettings({ 
+          barcode_header_card: pendingBarcodeCard, 
+          barcode_header_mode: 'card',
+          barcode_header_custom_url: null
+        });
+      }
+      setMessage({ type: 'success', text: t("Barcode header updated!") });
+      toast.success(t("Barcode header style updated"));
+    } catch (err) {
+      setMessage({ type: 'error', text: err?.message || 'Failed to save barcode header selection' });
     }
   };
 
@@ -157,6 +190,39 @@ const CompanyInformation = () => {
       setMessage({ type: 'success', text: t("Custom header banner uploaded and activated!") });
     } catch (err) {
       setMessage({ type: 'error', text: err?.message || 'Failed to upload banner' });
+    }
+  };
+
+  const uploadBarcodeHeaderImage = async (file) => {
+    const currentBanner = settings.barcode_header_custom_url || null;
+    let newHistory = [...barcodeBannerHistory];
+    if (currentBanner && !newHistory.includes(currentBanner)) {
+      newHistory = [currentBanner, ...newHistory].slice(0, 3);
+    }
+    
+    const base64Url = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+
+    await updateSettings({ 
+      barcode_header_mode: 'image',
+      barcode_header_card: 'custom_upload',
+      barcode_header_custom_url: base64Url,
+      barcode_banner_history: newHistory
+    });
+  };
+
+  const handleBarcodeBannerChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      await uploadBarcodeHeaderImage(file);
+      setMessage({ type: 'success', text: t("Barcode custom banner uploaded and set!") });
+    } catch (err) {
+      setMessage({ type: 'error', text: err?.message || 'Failed to upload barcode custom banner' });
     }
   };
 
@@ -280,6 +346,21 @@ const CompanyInformation = () => {
               <InputField icon={Phone} label={t("Phone Number")} name="phone_number" value={companyInfo.phone_number} onChange={handleInputChange} />
               <InputField icon={Map} label={t("State")} name="state" value={companyInfo.state} onChange={handleInputChange} />
               <InputField icon={ShoppingCart} label={t("Stock Warning (qty)")} name="stock_warning" value={companyInfo.stock_warning} onChange={handleInputChange} type="number" />
+
+              <div style={{ position: 'relative', marginTop: '12px' }}>
+                <label style={{ position: 'absolute', top: '-12px', left: '12px', background: '#0ea5e9', color: 'white', padding: '3px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold', zIndex: 1 }}>{t("Auto Generate Sale Price")}</label>
+                <select
+                  name="sale_price_auto_generate"
+                  value={companyInfo.sale_price_auto_generate === true || companyInfo.sale_price_auto_generate === 'true' || companyInfo.sale_price_auto_generate === 1 ? 'true' : 'false'}
+                  onChange={(e) => setCompanyInfo((prev) => ({ ...prev, sale_price_auto_generate: e.target.value === 'true' }))}
+                  style={{ padding: '16px 16px 12px 16px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', width: '100%', fontSize: 'var(--fs-13, 13px)', color: 'var(--text-main)', background: 'white' }}
+                >
+                  <option value="true">{t("Enabled", "Enabled")}</option>
+                  <option value="false">{t("Disabled", "Disabled")}</option>
+                </select>
+              </div>
+
+              <InputField icon={DollarSign} label={t("Sale Price Percentage")} name="sale_price_percentage" value={companyInfo.sale_price_percentage} onChange={handleInputChange} type="number" />
               <InputField icon={FileText} label={t("Invoice Greetings")} name="invoice_greetings" value={companyInfo.invoice_greetings} onChange={handleInputChange} />
               <InputField icon={MessageSquare} label={t("SMS API Key")} name="sms_api_key" value={companyInfo.sms_api_key} onChange={handleInputChange} />
               <InputField icon={MessageSquare} label={t("SMS Secret Key")} name="sms_secret_key" value={companyInfo.sms_secret_key} onChange={handleInputChange} type="password" />
@@ -435,6 +516,148 @@ const CompanyInformation = () => {
               </button>
             </div>
           </div>
+          {/* Barcode Header Banner Selection */}
+          <div style={{ marginTop: '40px', paddingBottom: '20px', borderTop: '1px solid #e2e8f0', paddingTop: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h4 style={{ margin: 0, fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {t("💡 Barcode header change (Click any card below to select, then click Update)")}
+              </h4>
+              <label style={{ background: '#16a34a', color: 'white', padding: '8px 16px', borderRadius: '6px', fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <Upload size={14} /> {t("Upload Custom Banner")}
+                <input type="file" style={{ display: 'none' }} accept="image/*" onChange={handleBarcodeBannerChange} />
+              </label>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+              {/* Logo 1 Card */}
+              <div 
+                onClick={() => setPendingBarcodeCard(barcodeBannerHistory[0] ? 'history_0' : 'card1')}
+                style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '8px', 
+                  cursor: 'pointer', 
+                  border: (pendingBarcodeCard === 'history_0' || pendingBarcodeCard === 'card1') ? '2.5px solid #16a34a' : '1px solid #e2e8f0', 
+                  borderRadius: '8px', 
+                  padding: '12px',
+                  background: (pendingBarcodeCard === 'history_0' || pendingBarcodeCard === 'card1') ? '#f0fdf4' : 'white',
+                  boxShadow: (pendingBarcodeCard === 'history_0' || pendingBarcodeCard === 'card1') ? '0 4px 12px rgba(22, 163, 74, 0.2)' : 'none',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '24px' }}>
+                  <span style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', color: '#64748b' }}>{barcodeBannerHistory[0] ? t("Previous Banner 1") : t("Template 1")}</span>
+                  {(pendingBarcodeCard === 'history_0' || pendingBarcodeCard === 'card1') && (
+                    <span style={{ background: '#16a34a', color: 'white', fontSize: 'var(--fs-10, 10px)', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                      <Check size={12} /> {t("SELECTED")}
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ height: '140px', border: '1px solid #cbd5e1', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', overflow: 'hidden' }}>
+                  {barcodeBannerHistory[0] ? (
+                    <img src={barcodeBannerHistory[0]} alt={t("History 1")} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', padding: '8px' }} />
+                  ) : (
+                    <div style={{ textAlign: 'center' }}>
+                      <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-32, 32px)', color: 'black' }}>{t("Rajdhani")}</h2>
+                      <h3 style={{ fontFamily: 'cursive', margin: '-8px 0 0 40px', fontSize: 'var(--fs-20, 20px)', color: 'black' }}>{t("Garments")}</h3>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Logo 2 Card */}
+              <div 
+                onClick={() => setPendingBarcodeCard(barcodeBannerHistory[1] ? 'history_1' : 'card2')}
+                style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '8px', 
+                  cursor: 'pointer', 
+                  border: (pendingBarcodeCard === 'history_1' || pendingBarcodeCard === 'card2') ? '2.5px solid #16a34a' : '1px solid #e2e8f0', 
+                  borderRadius: '8px', 
+                  padding: '12px',
+                  background: (pendingBarcodeCard === 'history_1' || pendingBarcodeCard === 'card2') ? '#f0fdf4' : 'white',
+                  boxShadow: (pendingBarcodeCard === 'history_1' || pendingBarcodeCard === 'card2') ? '0 4px 12px rgba(22, 163, 74, 0.2)' : 'none',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '24px' }}>
+                  <span style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', color: '#64748b' }}>{barcodeBannerHistory[1] ? t("Previous Banner 2") : t("Template 2")}</span>
+                  {(pendingBarcodeCard === 'history_1' || pendingBarcodeCard === 'card2') && (
+                    <span style={{ background: '#16a34a', color: 'white', fontSize: 'var(--fs-10, 10px)', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                      <Check size={12} /> {t("SELECTED")}
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ height: '140px', border: '1px solid #cbd5e1', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', overflow: 'hidden' }}>
+                  {barcodeBannerHistory[1] ? (
+                    <img src={barcodeBannerHistory[1]} alt={t("History 2")} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', padding: '8px' }} />
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px dashed black', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <ShoppingCart size={20} />
+                      </div>
+                      <div>
+                        <h2 style={{ margin: 0, fontSize: 'var(--fs-24, 24px)', fontWeight: '900', color: 'black' }}>রাজধানী <span style={{ fontWeight: 'normal' }}>সুপার শপ</span></h2>
+                        <p style={{ margin: 0, fontSize: 'var(--fs-9, 9px)', fontWeight: 'bold', color: 'black' }}>নেহা শপিং মল (২য় তলা), আঙ্গার মোড়, কালীগঞ্জ, ঝিনাইদহ।</p>
+                        <p style={{ margin: 0, fontSize: 'var(--fs-9, 9px)', fontWeight: 'bold', color: 'black' }}>০১৯৭১-৬৯২১৫০, ০১৭২৭-৯০২৪৯৮</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Logo 3 Card */}
+              <div 
+                onClick={() => setPendingBarcodeCard(barcodeBannerHistory[2] ? 'history_2' : 'card3')}
+                style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '8px', 
+                  cursor: 'pointer', 
+                  border: (pendingBarcodeCard === 'history_2' || pendingBarcodeCard === 'card3') ? '2.5px solid #16a34a' : '1px solid #e2e8f0', 
+                  borderRadius: '8px', 
+                  padding: '12px',
+                  background: (pendingBarcodeCard === 'history_2' || pendingBarcodeCard === 'card3') ? '#f0fdf4' : 'white',
+                  boxShadow: (pendingBarcodeCard === 'history_2' || pendingBarcodeCard === 'card3') ? '0 4px 12px rgba(22, 163, 74, 0.2)' : 'none',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '24px' }}>
+                  <span style={{ fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', color: '#64748b' }}>{barcodeBannerHistory[2] ? t("Previous Banner 3") : t("Template 3")}</span>
+                  {(pendingBarcodeCard === 'history_2' || pendingBarcodeCard === 'card3') && (
+                    <span style={{ background: '#16a34a', color: 'white', fontSize: 'var(--fs-10, 10px)', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                      <Check size={12} /> {t("SELECTED")}
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ height: '140px', border: '1px solid #cbd5e1', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', overflow: 'hidden' }}>
+                  {barcodeBannerHistory[2] ? (
+                    <img src={barcodeBannerHistory[2]} alt={t("History 3")} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', padding: '8px' }} />
+                  ) : (
+                    <div style={{ textAlign: 'center' }}>
+                      <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-32, 32px)', color: 'black' }}>{t("Rajdhani")}</h2>
+                      <h3 style={{ fontFamily: 'cursive', margin: '-8px 0 0 40px', fontSize: 'var(--fs-20, 20px)', color: 'black' }}>{t("Super Shop")}</h3>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '24px' }}>
+              <button 
+                type="button"
+                onClick={saveBarcodeHeaderSettings}
+                style={{ background: '#16a34a', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '6px', fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 6px rgba(22, 163, 74, 0.2)' }}
+              >
+                <CheckCircle size={18} /> {t("Update Barcode Header Style")}
+              </button>
+            </div>
+          </div>
+
 
         </div>
       </div>

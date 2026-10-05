@@ -293,7 +293,8 @@ const StaffList = () => {
                   </th>
                   <th style={{ padding: "8px 6px" }}>{t("NAME")}</th>
                   <th style={{ padding: "8px 6px" }}>{t("PHONE NUMBER")}</th>
-                  <th style={{ padding: "8px 6px" }}>{t("EMAIL")}</th>
+                  <th style={{ padding: "8px 6px" }}>{t("ADDRESS")}</th>
+                  
                   <th style={{ padding: "8px 6px" }}>{t("PASSWORD")}</th>
                   <th style={{ padding: "8px 6px" }}>{t("ROLE")}</th>
                   <th style={{ padding: "8px 6px", textAlign: "center" }}>
@@ -354,9 +355,10 @@ const StaffList = () => {
                         <td style={{ padding: "8px 6px" }}>
                           {getStaffPhone(s)}
                         </td>
-                        <td style={{ padding: "8px 6px" }}>
-                          {getStaffEmail(s)}
+                        <td style={{ padding: "8px 6px", maxWidth: "150px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {s.address || s.user_details?.address || s.user?.address || "-"}
                         </td>
+                        
                         <td style={{ padding: "8px 6px" }}>
                           {s.user_details?.username || "-"}
                         </td>
@@ -437,36 +439,6 @@ const StaffList = () => {
                                 padding: "4px 0",
                               }}
                             >
-                              <div
-                                style={{
-                                  padding: "6px 12px",
-                                  cursor: "pointer",
-                                  fontSize: "var(--fs-12, 12px)",
-                                }}
-                                onMouseOver={(e) =>
-                                  (e.target.style.background = "#f1f5f9")
-                                }
-                                onMouseOut={(e) =>
-                                  (e.target.style.background = "white")
-                                }
-                              >
-                                {t("Assign Role")}
-                              </div>
-                              <div
-                                style={{
-                                  padding: "6px 12px",
-                                  cursor: "pointer",
-                                  fontSize: "var(--fs-12, 12px)",
-                                }}
-                                onMouseOver={(e) =>
-                                  (e.target.style.background = "#f1f5f9")
-                                }
-                                onMouseOut={(e) =>
-                                  (e.target.style.background = "white")
-                                }
-                              >
-                                {t("Assign Permission")}
-                              </div>
                               <div
                                 onClick={() => {
                                   setOpenActionId(null);

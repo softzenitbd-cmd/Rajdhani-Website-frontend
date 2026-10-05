@@ -87,6 +87,36 @@ const Dashboard = () => {
         });
         setSeries(Object.values(byDay));
       }
+      // Fallback/Override for Today's Stats because backend might be buggy
+      const todayDate = ymd(new Date());
+      const [todaySalesData, todayReceivesData] = await Promise.all([
+        saleService.getSalesInvoices({ from_date: todayDate, to_date: todayDate, status: 1 }).catch(() => []),
+        accountingService.getReceives({ from_date: todayDate, to_date: todayDate }).catch(() => []),
+      ]);
+      
+      let actualTodaySales = 0;
+      let actualTodayReceive = 0;
+      let actualTodayDue = 0;
+
+      toList(todaySalesData).forEach(inv => {
+        actualTodaySales += Number(inv.grand_total || 0);
+        actualTodayReceive += Number(inv.receive_amount || 0); // Money received at the time of sale
+        actualTodayDue += Number(inv.total_due || 0);
+      });
+
+      toList(todayReceivesData).forEach(r => {
+        actualTodayReceive += Number(r.amount || 0); // Money received separately
+      });
+
+      setStats({
+        ...data,
+        actualToday: {
+          sales: actualTodaySales,
+          receive: actualTodayReceive,
+          due: actualTodayDue
+        }
+      });
+
     } catch (e) {
       toast.error(e.message || t("Failed to load dashboard"));
     } finally {
@@ -102,18 +132,18 @@ const Dashboard = () => {
   const monthBlock = s.current_month || s.month || {};
 
   const today = {
-    sales: pick(todayBlock, 'sales_total', 'sales'),
-    receive: pick(todayBlock, 'receive_total', 'receive'),
-    expense: pick(todayBlock, 'expense_total', 'expense'),
-    due: pick(todayBlock, 'due'),
+    sales: s.actualToday?.sales || pick(todayBlock, 'sales_total', 'sales', 'total_sales'),
+    receive: s.actualToday?.receive || pick(todayBlock, 'receive_total', 'receive', 'total_receive'),
+    expense: pick(todayBlock, 'expense_total', 'expense', 'total_expense'),
+    due: s.actualToday?.due || pick(todayBlock, 'due', 'total_due'),
   };
   today.balance = todayBlock.balance !== undefined ? Number(todayBlock.balance) : today.receive - today.expense;
 
   const month = {
-    sales: pick(monthBlock, 'sales_total', 'sales'),
-    receive: pick(monthBlock, 'receive_total', 'receive'),
-    expense: pick(monthBlock, 'expense_total', 'expense'),
-    due: pick(monthBlock, 'due'),
+    sales: pick(monthBlock, 'sales_total', 'sales', 'total_sales'),
+    receive: pick(monthBlock, 'receive_total', 'receive', 'total_receive'),
+    expense: pick(monthBlock, 'expense_total', 'expense', 'total_expense'),
+    due: pick(monthBlock, 'due', 'total_due'),
   };
   month.balance = monthBlock.balance !== undefined ? Number(monthBlock.balance) : month.receive - month.expense;
 

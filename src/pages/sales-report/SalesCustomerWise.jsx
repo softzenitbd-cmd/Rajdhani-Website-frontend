@@ -25,7 +25,7 @@ const SalesCustomerWise = () => {
   const [filters, setFilters] = useState({ client_id: '', from_date: today(), to_date: today() });
 
   useEffect(() => {
-    crmService.getClients().then((r) => setClients(toList(r))).catch(() => {});
+    crmService.getClients({ page_size: 5000 }).then((r) => setClients(toList(r))).catch(() => {});
   }, []);
 
   const handleSearch = async (e) => {

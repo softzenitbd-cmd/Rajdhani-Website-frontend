@@ -35,7 +35,7 @@ const PurchaseList = () => {
       setLoading(true);
       const [purRes, supRes] = await Promise.all([
         purchaseService.getPurchaseInvoices(filters).catch(() => null),
-        crmService.getSuppliers().catch(() => null)
+        crmService.getSuppliers({ limit: 1000 }).catch(() => null)
       ]);
 
       let sList = [];
@@ -49,16 +49,17 @@ const PurchaseList = () => {
         setPurchases(list.map((item, idx) => {
           let supName = item.supplier_name || item.supplier?.name;
           if (!supName && item.supplier) {
-             const s = sList.find(x => String(x.id) === String(item.supplier));
-             supName = s ? (s.name || s.company_name) : String(item.supplier);
+             const s = sList.find(x => String(x.id) === String(item.supplier) || String(x.uuid) === String(item.supplier));
+             supName = s ? (s.name || s.company_name || `${s.first_name || ''} ${s.last_name || ''}`.trim()) : String(item.supplier);
+          if (supName && typeof supName === 'string' && supName.length > 20 && supName.includes('-')) supName = 'Unknown Supplier';
           }
 
-          let inv = item.invoice_number || item.invoice || String(item.id || idx + 100);
-          if (inv && typeof inv === 'string' && inv.length > 20 && inv.includes('-')) {
-             const shortId = inv.startsWith('INV-') ? inv.replace('INV-', '').split('-')[0] : inv.split('-')[0];
-             inv = `INV-${shortId}`;
-          } else if (!inv.startsWith('INV-')) {
-             inv = `INV-${inv}`;
+          let inv = String(item.invoice_number || item.invoice || item.id || (idx + 100));
+          if (inv.startsWith('INV-')) inv = inv.replace('INV-', '');
+          if (inv.length > 20) {
+             const hexPart = inv.split('-')[0];
+             const num = parseInt(hexPart, 16);
+             if (!isNaN(num)) inv = String(num);
           }
 
           return {

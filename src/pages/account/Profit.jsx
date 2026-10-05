@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { accountingService } from '../../services/accountingService';
 import { purchaseService } from '../../services/purchaseService';
 import { saleService } from '../../services/saleService';
+import { productService } from '../../services/productService';
 import { useToast } from '../../context/ToastContext';
 import CustomDatePicker from '../../components/CustomDatePicker';
 
@@ -28,11 +29,12 @@ const Profit = () => {
       if (toDate) filters.to_date = toDate;
 
       // Fire all major API calls concurrently to speed up the page load
-      const [res, purchaseRes, invoicesRes, saleItemsRes] = await Promise.all([
+      const [res, purchaseRes, invoicesRes, saleItemsRes, productsRes] = await Promise.all([
         accountingService.getProfit(filters).catch(() => ({})),
         purchaseService.getPurchaseInvoices(filters).catch(() => []),
         saleService.getSalesInvoices(filters).catch(() => []),
-        saleService.getSaleItems({ limit: 20000, from_date: filters.from_date, to_date: filters.to_date }).catch(() => [])
+        saleService.getSaleItems({ limit: 20000, from_date: filters.from_date, to_date: filters.to_date }).catch(() => []),
+        productService.getProducts().catch(() => [])
       ]);
       
       let data = (res && typeof res === 'object') ? { ...res } : {};
@@ -57,6 +59,14 @@ const Profit = () => {
            itemsByInvoice.get(key).push(it);
         });
 
+        const products = Array.isArray(productsRes) ? productsRes : (productsRes?.results || productsRes?.data || []);
+        const productMap = new Map();
+        products.forEach(p => {
+          if (p && p.id) {
+             productMap.set(String(p.id), Number(p.buying_price || p.purchase_price || 0));
+          }
+        });
+
         invoices.forEach(inv => {
           if (inv.status === undefined || Number(inv.status) === 1) {
             totalSales += Number(inv.grand_total || inv.total_amount || 0);
@@ -66,7 +76,15 @@ const Profit = () => {
             const items = Array.isArray(inv.items) && inv.items.length ? inv.items : (itemsByInvoice.get(invId) || []);
             
             items.forEach(it => {
-              const cost = Number(it.purchase_price || it.buy_price || (it.product && (it.product.purchase_price || it.product.buying_price || it.product.buy_price)) || 0);
+              // The backend API might only return product as a string ID, so fallback to productMap
+              let productBuyPrice = 0;
+              if (it.product && typeof it.product === 'object') {
+                 productBuyPrice = Number(it.product.purchase_price || it.product.buying_price || it.product.buy_price || 0);
+              } else if (it.product) {
+                 productBuyPrice = productMap.get(String(it.product)) || 0;
+              }
+
+              const cost = Number(it.purchase_price || it.buy_price || productBuyPrice || 0);
               const qty = Number(it.quantity || it.qty || it.product_qty || 0);
               calcBuy += cost * qty;
             });
@@ -130,7 +148,7 @@ const Profit = () => {
       </div>
 
       <div className="premium-body" style={{ padding: '32px' }}>
-        <PrintHeader />
+        <PrintHeader showOnScreen={true} />
         
         {/* Centered Date Search */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '32px' }}>
@@ -172,51 +190,55 @@ const Profit = () => {
               </button>
             </div>
 
-            <table className="custom-table" style={{ border: '1px solid #cbd5e1', width: '100%', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+            <table className="custom-table" style={{ border: '1px solid #000', width: '100%', boxShadow: 'none', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
-                  <th style={{ textAlign: 'left', paddingLeft: '18px', background: '#334155', color: 'white', borderRight: '1px solid #cbd5e1', width: '55%' }}>{t("FINANCIAL METRIC")}</th>
-                  <th style={{ textAlign: 'right', paddingRight: '18px', background: '#334155', color: 'white', width: '45%' }}>{t("CALCULATED AMOUNT")}</th>
+                  <th style={{ textAlign: 'center', padding: '6px', background: '#808080', color: '#000', borderRight: '1px solid #000', width: '60%', borderBottom: '1px solid #000', fontWeight: 'bold' }}>{t("টাইটেল", "Title")}</th>
+                  <th style={{ textAlign: 'center', padding: '6px', background: '#808080', color: '#000', width: '40%', borderBottom: '1px solid #000', fontWeight: 'bold' }}>{t("টাকা", "Amount")}</th>
                 </tr>
               </thead>
               <tbody>
                 {(() => {
                   if (!profitData || Object.keys(profitData).length === 0) return null;
-                  const order = [
-                    "Total Sales",
-                    "Total Purchases",
-                    "Cost of Sold Goods",
-                    "Total Receive",
-                    "Discount",
-                    "Total Expense",
-                    "Total Balance",
-                    "Product Profit",
-                    "Gross Profit",
-                    "Net Profit"
+                  
+                  const layout = [
+                    { key: "Total Sales", label: t("মোট বিক্রয়") },
+                    { key: "Cost of Sold Goods", label: t("মোট ক্রয় মূল্য") },
+                    { key: "Previous Due", label: t("পূর্বের বাকি") },
+                    { key: "Total Due", label: t("মোট বাকি") },
+                    { key: "Total Receive", label: t("মোট জমা") },
+                    { key: "Total Expense", label: t("মোট ব্যয়") },
+                    { key: "Opening Balance", label: t("প্রারম্ভিক ব্যালেন্স") },
+                    { key: "Total Balance", label: t("মোট ব্যালেন্স") },
+                    { key: "Gross Profit", label: t("গ্রস প্রফিট") },
+                    { key: "Discount", label: t("ডিসকাউন্ট") },
+                    { key: "Product Profit", label: t("পণ্য প্রফিট") },
+                    { key: "Net Profit", label: t("নিট প্রফিট") }
                   ];
-                  const keys = order.filter(k => profitData[k] !== undefined);
-                  Object.keys(profitData).forEach(k => {
-                    if (!keys.includes(k) && k !== "Total Client Due" && k !== "Total Supplier Due") {
-                      keys.push(k);
+
+                  return layout.map((item, idx) => {
+                    let val = profitData[item.key];
+                    if (val === undefined) val = "৳ 0.00";
+                    if (typeof val === 'number') val = `৳ ${val.toFixed(2)}`;
+                    
+                    if (item.key === "Gross Profit" && (val === "৳ 0.00" || val === undefined)) {
+                       val = profitData["Total Sales"] || "৳ 0.00";
                     }
-                  });
-                  return keys.map((key, idx) => {
-                    const val = profitData[key];
-                    const isHighlight = key.includes('Profit') || key === 'Total Balance';
-                    const isNegative = String(val).includes('-');
+
                     return (
-                      <tr key={key} style={{ background: idx % 2 === 0 ? '#ffffff' : '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                        <td style={{ textAlign: 'left', padding: '12px 18px', borderRight: '1px solid #e2e8f0', fontWeight: isHighlight ? 'bold' : '500', color: isHighlight ? 'var(--text-main)' : '#334155' }}>
-                          {t(key)}
+                      <tr key={item.key} style={{ background: '#ffffff' }}>
+                        <td style={{ textAlign: 'left', padding: '4px 10px', borderRight: '1px solid #000', borderBottom: '1px solid #000', fontWeight: '500', color: '#000', fontSize: '13px' }}>
+                          {item.label}
                         </td>
                         <td style={{ 
                           textAlign: 'right', 
-                          padding: '12px 18px', 
-                          fontWeight: 'bold', 
-                          fontSize: isHighlight ? '15px' : '14px',
-                          color: isNegative ? '#dc2626' : (isHighlight ? '#059669' : '#0f172a') 
+                          padding: '4px 10px', 
+                          borderBottom: '1px solid #000',
+                          fontWeight: '500', 
+                          fontSize: '13px',
+                          color: '#000' 
                         }}>
-                          {typeof val === 'number' ? `৳ ${val.toLocaleString()}` : val}
+                          {val}
                         </td>
                       </tr>
                     );

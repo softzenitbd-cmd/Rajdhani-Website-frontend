@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { X, Plus, Package, DollarSign, Scale } from 'lucide-react';
 import { productService } from '../services/productService';
 import { useToast } from '../context/ToastContext';
+import { companyStore } from '../services/companyStore';
+import { useAppSettings } from '../hooks/useAppSettings';
 
 /**
  * Centered Nested Popup Modal (Modal on top of Modal) matching Image 2 for Unit & Group creation.
@@ -166,6 +168,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
     buying_price: '',
     selling_price: '',
     opening_stock: '',
+    quantity: '',
     unit: '',
     group: ''
   });
@@ -174,9 +177,35 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const { settings } = useAppSettings();
 
   const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+
+  const [companyInfo, setCompanyInfo] = useState(companyStore.getCached());
+  useEffect(() => {
+    const h = () => setCompanyInfo(companyStore.getCached());
+    window.addEventListener(companyStore.EVENT, h);
+    companyStore.load();
+    return () => window.removeEventListener(companyStore.EVENT, h);
+  }, []);
+
+    let salePricePercentage = parseFloat(companyInfo?.sale_price_percentage) || parseFloat(settings['sale-price-percentage']) || 0;
+    const autoGenSetting = settings['auto-generate-sale-price'];
+    const isAutoGenerateEnabled = 
+      companyInfo?.sale_price_auto_generate === true || 
+      companyInfo?.sale_price_auto_generate === "true" ||
+      companyInfo?.sale_price_auto_generate === 1 ||
+      companyInfo?.sale_price_auto_generate === "1" ||
+      autoGenSetting === true ||
+      autoGenSetting === "true" ||
+      autoGenSetting === 1 ||
+      autoGenSetting === "1";
+    console.log('DEBUG_SALE_PRICE:', {
+      isAutoGenerateEnabled,
+      salePricePercentage,
+      companyInfoVal: companyInfo?.sale_price_percentage
+    });
 
   const loadPrerequisites = async () => {
     try {
@@ -203,6 +232,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
         buying_price: '',
         selling_price: '',
         opening_stock: '',
+        quantity: '',
         unit: localStorage.getItem('last_unit') || '',
         group: localStorage.getItem('last_group') || ''
       });
@@ -213,7 +243,17 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    let newFormData = { ...formData, [name]: value };
+
+    if (name === 'buying_price' && isAutoGenerateEnabled && value !== '') {
+       const bp = Number(value);
+       if (!isNaN(bp) && bp >= 0) {
+         const sp = bp + (bp * salePricePercentage / 100);
+         newFormData.selling_price = sp.toFixed(2);
+       }
+    }
+
+    setFormData(newFormData);
     if (name === 'unit' || name === 'group') {
       localStorage.setItem('last_' + name, value);
     }
@@ -269,7 +309,8 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
         stock: money(formData.opening_stock),
         unit: formData.unit || null,
         group: formData.group || null,
-        status: 1
+        status: 1,
+        custom_barcode_no: Math.floor(10000000 + Math.random() * 90000000).toString()
       };
 
       const created = await productService.createProduct(payload);
@@ -283,7 +324,10 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
         sales_price: Number(created.selling_price || formData.selling_price || 0),
         price: Number(created.selling_price || formData.selling_price || 0),
         stock: Number(created.opening_stock || formData.opening_stock || 0),
-        unit_name: unitObj?.name || 'Pcs'
+        unit_name: unitObj?.name || 'Pcs',
+        quantity: Number(formData.quantity || formData.opening_stock || 0),
+        code: created.code || created.custom_barcode_no || payload.custom_barcode_no,
+        barcode: created.barcode || created.custom_barcode_no || payload.custom_barcode_no
       };
 
       if (onSuccess) onSuccess(newProd);
@@ -578,6 +622,44 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                   >
                     <Plus size={18} />
                   </button>
+                </div>
+
+                {/* Quantity */}
+                <div style={{ position: 'relative' }}>
+                  <label style={{
+                    position: 'absolute',
+                    top: '-11px',
+                    left: '12px',
+                    background: '#0ea5e9',
+                    color: 'white',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    fontSize: 'var(--fs-11, 11px)',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    zIndex: 1
+                  }}>
+                    📦 {t('product_modal.quantity', 'Quantity')}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    tabIndex="7" name="quantity"
+                    value={formData.quantity}
+                    onChange={handleChange}
+                    placeholder={t('product_modal.quantity_placeholder', 'Quantity')}
+                    style={{
+                      width: '100%',
+                      padding: '14px 16px 10px 16px',
+                      border: '1px solid #38bdf8',
+                      borderRadius: '8px',
+                      outline: 'none',
+                      fontSize: 'var(--fs-13, 13px)',
+                      background: 'white'
+                    }}
+                  />
                 </div>
               </div>
             </div>

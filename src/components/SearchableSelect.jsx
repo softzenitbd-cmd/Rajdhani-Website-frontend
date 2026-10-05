@@ -57,11 +57,8 @@ const SearchableSelect = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // A "type to search" select waits for 2 characters before listing anything,
-  // the same as the CRM this screen mirrors.
-  const MIN_SEARCH_CHARS = 2;
-  const needsMoreChars =
-    hideOptionsUntilSearch && searchTerm.trim().length < MIN_SEARCH_CHARS;
+  const MIN_SEARCH_CHARS = 1;
+  const needsMoreChars = hideOptionsUntilSearch && searchTerm.trim().length < MIN_SEARCH_CHARS;
 
   // Filter options based on search term
   const filteredOptions = options.filter((opt) => {
@@ -324,11 +321,7 @@ const SearchableSelect = ({
               fontSize: 'var(--fs-13, 13px)'
             }}
           >
-            {needsMoreChars ? (
-              <div style={{ padding: '10px 12px', color: '#475569' }}>
-                {t("Please enter {{count}} or more characters", { count: MIN_SEARCH_CHARS })}
-              </div>
-            ) : filteredOptions.length === 0 ? (
+            {needsMoreChars ? null : filteredOptions.length === 0 ? (
               <div style={{ padding: '12px', textAlign: 'center', color: '#94a3b8' }}>
                 {t("No matches found")}
               </div>
