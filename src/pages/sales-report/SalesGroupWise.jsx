@@ -21,6 +21,7 @@ const SalesGroupWise = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const today = new Date().toISOString().split('T')[0];
   const [filters, setFilters] = useState({
     client_group_id: '',
     from_date: firstOfMonth(),

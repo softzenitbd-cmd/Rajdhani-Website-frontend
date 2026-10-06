@@ -18,6 +18,7 @@ const SalesDaily = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const today = new Date().toISOString().split('T')[0];
   const [filters, setFilters] = useState({
     client_id: '',
     user_id: '',

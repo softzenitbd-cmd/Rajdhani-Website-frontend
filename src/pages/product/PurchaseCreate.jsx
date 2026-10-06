@@ -27,12 +27,13 @@ import { useAppSettings } from "../../hooks/useAppSettings";
 
 const ashInput = {
   width: "100%",
-  padding: "8px",
-  border: "1px solid #e2e8f0",
+  padding: "4px",
+  border: "1px solid #cbd5e1",
   borderRadius: "4px",
   textAlign: "center",
   outline: "none",
   background: "#f8fafc",
+  fontSize: "12px"
 };
 
 const PurchaseCreate = () => {
@@ -124,6 +125,7 @@ const PurchaseCreate = () => {
     accounts: true,
     category: true,
     receive_amount: true,
+    percentage: true,
   });
 
   const loadFormSettings = async () => {
@@ -250,7 +252,15 @@ const PurchaseCreate = () => {
           buyingPrice: Number(
             prod.purchase_price || prod.buying_price || prod.price || 0,
           ),
-          salePrice: Number(prod.sales_price || prod.selling_price || 0),
+          salePrice: (() => {
+            const bp = Number(prod.purchase_price || prod.buying_price || prod.price || 0);
+            const perc = visibleFields.percentage_value !== undefined && visibleFields.percentage_value !== '' ? Number(visibleFields.percentage_value) : salePricePercentage;
+            if (isAutoGenerateEnabled || perc > 0) {
+              return Number((bp + (bp * perc / 100)).toFixed(2));
+            }
+            return Number(prod.sales_price || prod.selling_price || 0);
+          })(),
+          percentage: (visibleFields.percentage_value !== undefined && visibleFields.percentage_value !== '' ? Number(visibleFields.percentage_value) : salePricePercentage),
           barcode: prod.code || prod.barcode || "-",
         },
         ...prevItems,
@@ -295,20 +305,36 @@ const PurchaseCreate = () => {
     }
   };
 
+  
   const updateItemField = (index, field, value) => {
     setItems((prev) => {
       const updated = [...prev];
-      updated[index][field] = Math.max(0, Number(value));
-      if (field === "buyingPrice" && isAutoGenerateEnabled && value !== "") {
+      updated[index][field] = field === 'percentage' ? value : Math.max(0, Number(value));
+      
+      if (field === "buyingPrice" && value !== "") {
         const bp = Number(value);
         if (!isNaN(bp) && bp >= 0) {
-          const sp = bp + (bp * salePricePercentage / 100);
-          updated[index].salePrice = Number(sp.toFixed(2));
+          const perc = updated[index].percentage !== undefined && updated[index].percentage !== '' ? Number(updated[index].percentage) : (visibleFields.percentage_value !== undefined ? Number(visibleFields.percentage_value) : salePricePercentage);
+          if (isAutoGenerateEnabled || perc > 0) {
+            const sp = bp + (bp * perc / 100);
+            updated[index].salePrice = Number(sp.toFixed(2));
+          }
         }
       }
+      
+      if (field === "percentage") {
+        const perc = Number(value);
+        const bp = Number(updated[index].buyingPrice);
+        if (!isNaN(bp) && !isNaN(perc) && bp >= 0) {
+           const sp = bp + (bp * perc / 100);
+           updated[index].salePrice = Number(sp.toFixed(2));
+        }
+      }
+      
       return updated;
     });
   };
+
 
   const removeItem = (index) => {
     setItems((prev) => prev.filter((_, i) => i !== index));
@@ -543,7 +569,7 @@ const PurchaseCreate = () => {
           </div>
         </div>
 
-        <div className="premium-body" style={{ background: "white", padding: "16px", flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <div className="premium-body" style={{ background: "white", padding: "16px", flex: 1, display: "flex", flexDirection: "column", overflowY: "auto", overflowX: "hidden" }}>
           <PrintHeader />
           <form onSubmit={(e) => e.preventDefault()} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {/* Top Row: Supplier, Date, Invoice ID */}
@@ -843,7 +869,6 @@ const PurchaseCreate = () => {
                     }
                   }}
                   clearOnSelect={true}
-                  hideOptionsUntilSearch={true}
                   placeholder={t("Select Product")}
                   onAddClick={() => setIsProductModalOpen(true)}
                 />
@@ -856,8 +881,8 @@ const PurchaseCreate = () => {
                 overflowX: "auto",
                 overflowY: "auto",
                 flex: 1,
-                minHeight: "150px",
-                maxHeight: "380px",
+                minHeight: "200px",
+                maxHeight: "650px",
                 border: "1px solid #e2e8f0",
                 marginBottom: "24px",
                 borderRadius: "8px",
@@ -929,6 +954,19 @@ const PurchaseCreate = () => {
                     >
                       {t("TOTAL BUYING PRICE")}
                     </th>
+                    {visibleFields.percentage !== false && (
+                      <th
+                        style={{
+                          textAlign: "center",
+                          borderRight: "1px solid white",
+                          padding: "6px", fontSize: "11px",
+                          fontSize: "var(--fs-11, 11px)",
+                          width: "90px",
+                        }}
+                      >
+                        {t("PERCENTAGE (%)")}
+                      </th>
+                    )}
                     <th
                       style={{
                         textAlign: "center",
@@ -1097,7 +1135,7 @@ const PurchaseCreate = () => {
                           >
                             <div
                               style={{
-                                fontSize: "20px",
+                                fontSize: "13px",
                                   fontWeight: "700",
                                   color: "#0f172a",
                                   maxWidth: "150px",
@@ -1185,15 +1223,10 @@ const PurchaseCreate = () => {
                     >
                       {totalQty}
                     </td>
+                    {visibleFields.percentage !== false && <td style={{ borderRight: "1px solid #e2e8f0", borderTop: "1px solid #e2e8f0" }}></td>}
+                    <td style={{ borderRight: "1px solid #e2e8f0", borderTop: "1px solid #e2e8f0" }}></td>
                     <td
-                      style={{
-                        borderRight: "1px solid #e2e8f0",
-                        borderTop: "1px solid #e2e8f0",
-                      }}
-                    ></td>
-                    <td
-                      style={{
-                        textAlign: "right",
+                      style={{ textAlign: "right",
                         padding: "6px", fontSize: "11px",
                         borderRight: "1px solid #e2e8f0",
                         borderTop: "1px solid #e2e8f0",
@@ -1582,6 +1615,7 @@ const PurchaseCreate = () => {
 
       <AddProductModal
         isOpen={isProductModalOpen}
+        showOpeningStock={visibleFields.opening_stock !== false}
         onClose={() => setIsProductModalOpen(false)}
         onSuccess={(newProd) => {
           if (newProd) {
@@ -1615,12 +1649,43 @@ const PurchaseCreate = () => {
           { key: "accounts", label: t("Accounts") },
           { key: "category", label: t("Category") },
           { key: "receive_amount", label: t("Receive Amount") },
+          { key: "percentage", label: t("Percentage"), hasInput: true, defaultValue: salePricePercentage },
+          { key: "sale_price_auto_generate", label: t("Auto Generate Sale Price") },
+          { key: "opening_stock", label: t("Opening Stock") },
         ]}
-        initialSettings={visibleFields}
+        initialSettings={{
+          ...visibleFields, 
+          percentage_value: visibleFields.percentage_value !== undefined ? visibleFields.percentage_value : salePricePercentage,
+          sale_price_auto_generate: companyInfo?.sale_price_auto_generate === true || companyInfo?.sale_price_auto_generate === "true" || companyInfo?.sale_price_auto_generate === 1
+        }}
         onSave={async (newSettings) => {
           setVisibleFields(newSettings);
           setIsSettingsOpen(false);
           toast.success(t("Settings saved successfully!"));
+          
+          if (newSettings.percentage_value !== undefined) {
+            const newPerc = Number(newSettings.percentage_value);
+            setItems(prev => prev.map(item => {
+               const bp = Number(item.buyingPrice);
+               const sp = bp + (bp * newPerc / 100);
+               return { ...item, percentage: newPerc, salePrice: Number(sp.toFixed(2)) };
+            }));
+          }
+          
+          try {
+             // Save company info updates properly stripping read-only fields
+             const { memo_header_image, logo, id, created_at, updated_at, ...payload } = companyInfo || {};
+             if (payload.stock_warning === '' || payload.stock_warning === null) delete payload.stock_warning;
+             
+             payload.sale_price_auto_generate = newSettings.sale_price_auto_generate ? true : false;
+             payload.sale_price_percentage = newSettings.percentage_value !== undefined ? newSettings.percentage_value : salePricePercentage;
+             
+             const saved = await companyStore.save(payload);
+             if (typeof setCompanyInfo === 'function') setCompanyInfo({ ...companyInfo, ...saved });
+          } catch(err) {
+             console.error("Failed to update company info", err);
+          }
+
           try {
             await settingService.updateFormSettings(
               "purchase_create",

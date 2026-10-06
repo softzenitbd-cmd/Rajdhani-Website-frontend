@@ -160,7 +160,7 @@ const CenteredNestedPopup = ({ isOpen, onClose, onSave, title, label }) => {
 /**
  * Dedicated Add New Product modal component with bilingual support (EN/BN).
  */
-const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
+const AddProductModal = ({ isOpen, onClose, onSuccess, showOpeningStock = true }) => {
   const { t } = useTranslation();
   const toast = useToast();
   const [formData, setFormData] = useState({
@@ -466,42 +466,44 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                 </div>
 
                 {/* Opening Stock */}
-                <div style={{ position: 'relative' }}>
-                  <label style={{
-                    position: 'absolute',
-                    top: '-11px',
-                    left: '12px',
-                    background: '#0ea5e9',
-                    color: 'white',
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    fontSize: 'var(--fs-11, 11px)',
-                    fontWeight: 'bold',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    zIndex: 1
-                  }}>
-                    <Scale size={11} /> {t('product_modal.opening_stock', 'শুরুর স্টক')}
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    tabIndex="4" name="opening_stock"
-                    value={formData.opening_stock}
-                    onChange={handleChange}
-                    placeholder={t('product_modal.opening_stock_placeholder', 'শুরুর স্টক')}
-                    style={{
-                      width: '100%',
-                      padding: '14px 16px 10px 16px',
-                      border: '1px solid #38bdf8',
-                      borderRadius: '8px',
-                      outline: 'none',
-                      fontSize: 'var(--fs-13, 13px)',
-                      background: 'white'
-                    }}
-                  />
-                </div>
+                {showOpeningStock && (
+                  <div style={{ position: 'relative' }}>
+                    <label style={{
+                      position: 'absolute',
+                      top: '-11px',
+                      left: '12px',
+                      background: '#0ea5e9',
+                      color: 'white',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      fontSize: 'var(--fs-11, 11px)',
+                      fontWeight: 'bold',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      zIndex: 1
+                    }}>
+                      <Scale size={11} /> {t('product_modal.opening_stock', 'শুরুর স্টক')}
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      tabIndex="4" name="opening_stock"
+                      value={formData.opening_stock}
+                      onChange={handleChange}
+                      placeholder={t('product_modal.opening_stock_placeholder', 'শুরুর স্টক')}
+                      style={{
+                        width: '100%',
+                        padding: '14px 16px 10px 16px',
+                        border: '1px solid #38bdf8',
+                        borderRadius: '8px',
+                        outline: 'none',
+                        fontSize: 'var(--fs-13, 13px)',
+                        background: 'white'
+                      }}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Right Column */}

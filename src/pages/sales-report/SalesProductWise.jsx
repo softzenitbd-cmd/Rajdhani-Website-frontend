@@ -18,12 +18,13 @@ const SalesProductWise = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const today = new Date().toISOString().split('T')[0];
   const [filters, setFilters] = useState({
     product_group_id: '',
     product_id: '',
     barcode: '',
-    from_date: '',
-    to_date: ''
+    from_date: today,
+    to_date: today
   });
 
   const fetchPrerequisites = async () => {
@@ -73,8 +74,8 @@ const SalesProductWise = () => {
       product_group_id: '',
       product_id: '',
       barcode: '',
-      from_date: '',
-      to_date: ''
+      from_date: today,
+      to_date: today
     });
   };
 

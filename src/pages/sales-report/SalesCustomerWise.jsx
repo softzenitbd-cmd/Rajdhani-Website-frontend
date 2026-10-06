@@ -22,6 +22,7 @@ const SalesCustomerWise = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
   const [entries, setEntries] = useState(100);
+  const today = new Date().toISOString().split('T')[0];
   const [filters, setFilters] = useState({ client_id: '', from_date: today(), to_date: today() });
 
   useEffect(() => {

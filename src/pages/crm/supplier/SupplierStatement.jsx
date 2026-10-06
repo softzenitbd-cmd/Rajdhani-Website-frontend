@@ -24,6 +24,7 @@ const SupplierStatement = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [rows, setRows] = useState([]);
   const [summary, setSummary] = useState(null);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [entries, setEntries] = useState(100);
   const [filters, setFilters] = useState({
@@ -34,6 +35,7 @@ const SupplierStatement = () => {
 
   useEffect(() => {
     crmService.getSuppliers({ page_size: 1000 }).then((r) => setSuppliers(toList(r))).catch(() => {});
+    productService.getProducts({ page_size: 500 }).then((r) => setProducts(toList(r))).catch(() => {});
   }, []);
 
   const load = async (f = filters) => {
@@ -48,17 +50,15 @@ const SupplierStatement = () => {
       if (f.from_date) params.from_date = f.from_date;
       if (f.to_date) params.to_date = f.to_date;
 
-      const [invoicesRes, returnsRes, productsRes, expensesRes, ledgerRes] = await Promise.allSettled([
+      const [invoicesRes, returnsRes, expensesRes, ledgerRes] = await Promise.allSettled([
         purchaseService.getPurchaseInvoices({ supplier: f.supplier, from_date: f.from_date, to_date: f.to_date }).catch(() => []),
         purchaseService.getPurchaseReturns({ supplier: f.supplier, from_date: f.from_date, to_date: f.to_date }).catch(() => []),
-        productService.getProducts({ page_size: 500 }).catch(() => []),
         apiClient.get(ENDPOINTS.ACCOUNTING_EXPENSES, { params: { supplier: f.supplier, from_date: f.from_date, to_date: f.to_date } }).catch(() => []),
         apiClient.get(ENDPOINTS.ACCOUNTING_REPORT_SUPPLIER_LEDGER, { params: { supplier_id: f.supplier, ...params } }).catch(() => [])
       ]);
 
       const invoices = toList(invoicesRes.status === 'fulfilled' ? invoicesRes.value : []);
       const returns = toList(returnsRes.status === 'fulfilled' ? returnsRes.value : []);
-      const products = toList(productsRes.status === 'fulfilled' ? productsRes.value : []);
       const expenses = toList(expensesRes.status === 'fulfilled' ? expensesRes.value : []);
       const ledgerData = ledgerRes.status === 'fulfilled' ? (ledgerRes.value?.data ?? ledgerRes.value) : null;
       

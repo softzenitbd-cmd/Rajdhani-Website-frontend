@@ -286,7 +286,8 @@ const UserManagement = () => {
     });
   };
 
-  const visible = users.slice(0, entries);
+  const filteredUsers = users.filter((u) => (u.role || '').toLowerCase() !== 'staff');
+  const visible = filteredUsers.slice(0, entries);
   const excelData = visible.map((u, i) => ({ SL: i + 1, Username: u.username, Name: u.full_name || '', Email: u.email || '', Phone: u.phone || '', Role: u.role || '', Active: u.is_active === false ? 'No' : 'Yes', Created: fmtDate(u.created_at || u.date_joined) }));
   const btn = (bg) => ({ background: bg, color: 'white', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex' });
 
@@ -392,7 +393,7 @@ const UserManagement = () => {
           </button>
         </div>
 
-        <TableToolbar entries={entries} setEntries={setEntries} total={users.length} excelData={excelData} excelName="Users" onReload={load} />
+        <TableToolbar entries={entries} setEntries={setEntries} total={filteredUsers.length} excelData={excelData} excelName="Users" onReload={load} />
 
         <div className="table-responsive">
           <table className="custom-table" style={{ width: '100%', fontSize: 'var(--fs-12, 12px)' }}>

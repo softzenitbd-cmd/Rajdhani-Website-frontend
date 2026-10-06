@@ -63,6 +63,7 @@ const ProductCreate = () => {
   const [sizes, setSizes] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [showOpeningStock, setShowOpeningStock] = useState(false);
 
   const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
@@ -304,10 +305,27 @@ const ProductCreate = () => {
 
               {/* Opening Stock */}
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--fs-13, 13px)', fontWeight: '600', color: '#334155' }}>
-                  {t("Opening Stock")}
-                </label>
-                <input type="number" step="0.01" name="opening_stock" value={formData.opening_stock} onChange={handleChange} placeholder="0" disabled={isEditMode} style={{ width: '100%', padding: '12px 14px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-14, 14px)', background: isEditMode ? '#e2e8f0' : '#f8fafc', cursor: isEditMode ? 'not-allowed' : 'text' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <label style={{ fontSize: 'var(--fs-13, 13px)', fontWeight: '600', color: '#334155', margin: 0 }}>
+                    {t("Opening Stock")}
+                  </label>
+                  {!isEditMode && (
+                    <label className="switch" style={{ margin: 0, transform: 'scale(0.8)' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={showOpeningStock} 
+                        onChange={(e) => {
+                          setShowOpeningStock(e.target.checked);
+                          if (!e.target.checked) setFormData(prev => ({...prev, opening_stock: ''}));
+                        }} 
+                      />
+                      <span className="slider round"></span>
+                    </label>
+                  )}
+                </div>
+                {(showOpeningStock || isEditMode) && (
+                  <input type="number" step="0.01" name="opening_stock" value={formData.opening_stock} onChange={handleChange} placeholder="0" disabled={isEditMode} style={{ width: '100%', padding: '12px 14px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-14, 14px)', background: isEditMode ? '#e2e8f0' : '#f8fafc', cursor: isEditMode ? 'not-allowed' : 'text' }} />
+                )}
               </div>
 
               {/* Select Product Group */}

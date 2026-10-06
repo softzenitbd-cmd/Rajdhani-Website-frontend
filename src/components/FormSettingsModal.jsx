@@ -56,7 +56,17 @@ const FormSettingsModal = ({ isOpen, onClose, title, fields, initialSettings, on
         <div style={{ padding: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
           {fields.map((field) => (
             <div key={field.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
-              <span style={{ fontSize: 'var(--fs-14, 14px)', color: '#334155' }}>{field.label}</span>
+              <span style={{ fontSize: 'var(--fs-14, 14px)', color: '#334155', flex: 1 }}>{field.label}</span>
+              
+              {field.hasInput && (
+                <input 
+                  type="number"
+                  value={settings[`${field.key}_value`] !== undefined ? settings[`${field.key}_value`] : (field.defaultValue || '')}
+                  onChange={(e) => setSettings(prev => ({ ...prev, [`${field.key}_value`]: e.target.value }))}
+                  style={{ width: '80px', marginRight: '16px', padding: '6px', border: '1px solid #cbd5e1', borderRadius: '4px', textAlign: 'center' }}
+                  placeholder="%"
+                />
+              )}
               <label className="switch" style={{ margin: 0 }}>
                 <input 
                   type="checkbox" 

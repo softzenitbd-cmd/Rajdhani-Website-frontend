@@ -38,6 +38,9 @@ const DueSupplierWise = () => {
 
   const rows = data.filter((r) => !onlyDue || Number(r.due || 0) !== 0).slice(0, entries);
   const totalDue = data.reduce((sum, item) => sum + (parseFloat(item.due) || 0), 0);
+  const totalPurchase = data.reduce((sum, item) => sum + (parseFloat(item.purchase_amount) || 0), 0);
+  const totalReturn = data.reduce((sum, item) => sum + (parseFloat(item.return_amount) || 0), 0);
+  const totalPayment = data.reduce((sum, item) => sum + (parseFloat(item.payment) || 0), 0);
   const excelData = rows.map((r, i) => ({
     SL: i + 1, Supplier: r.supplier_name, Address: r.address || '', Phone: r.phone || '', Group: r.group_name || '',
     Purchase: Number(r.purchase_amount || 0), Return: Number(r.return_amount || 0), Payment: Number(r.payment || 0), Due: Number(r.due || 0),
@@ -111,6 +114,17 @@ const DueSupplierWise = () => {
                   </tr>
                 ))}
               </tbody>
+              {!loading && rows.length > 0 && (
+                <tfoot>
+                  <tr style={{ background: '#f8fafc', fontWeight: 'bold' }}>
+                    <td colSpan="3" style={{ padding: '10px', textAlign: 'right' }}>{t("Total:")}</td>
+                    <td style={{ padding: '10px', textAlign: 'center' }}>{money(totalPurchase)}</td>
+                    <td style={{ padding: '10px', textAlign: 'center' }}>{money(totalReturn)}</td>
+                    <td style={{ padding: '10px', textAlign: 'center', color: '#059669' }}>{money(totalPayment)}</td>
+                    <td style={{ padding: '10px', textAlign: 'center', color: '#dc2626' }}>{money(totalDue)}</td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
         </div>
