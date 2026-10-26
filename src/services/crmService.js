@@ -1,6 +1,17 @@
 import apiClient from '../api/apiClient';
 import { ENDPOINTS } from '../api/endpoints';
 
+/**
+ * Tell the shared lookup cache (services/lookupCache.js) that a list changed,
+ * so reports pick up a new row immediately instead of after its TTL. A plain
+ * window event keeps the services free of a circular import.
+ */
+const invalidateLookup = (key) => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('rg:lookup-invalidate', { detail: key }));
+  }
+};
+
 export const crmService = {
   // ==========================================
   // 1. Client Groups API
@@ -39,7 +50,9 @@ export const crmService = {
   },
 
   createClient: async (data) => {
-    return await apiClient.post(ENDPOINTS.CRM_CLIENTS, data);
+    const res = await apiClient.post(ENDPOINTS.CRM_CLIENTS, data);
+    invalidateLookup('clients');
+    return res;
   },
 
   updateClient: async (id, data) => {
@@ -86,7 +99,9 @@ export const crmService = {
   },
 
   createSupplier: async (data) => {
-    return await apiClient.post(ENDPOINTS.CRM_SUPPLIERS, data);
+    const res = await apiClient.post(ENDPOINTS.CRM_SUPPLIERS, data);
+    invalidateLookup('suppliers');
+    return res;
   },
 
   updateSupplier: async (id, data) => {

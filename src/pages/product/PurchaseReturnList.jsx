@@ -54,7 +54,7 @@ const PurchaseReturnList = () => {
 
       const combined = apiList;
       if (combined.length > 0) {
-        setReturns(combined.map(item => {
+        setReturns(combined.map((item, idx) => {
           let supName = item.supplier_name || item.supplier_detail?.company_name || item.supplier_detail?.name || item.supplier?.company_name || item.supplier?.name;
           if (!supName) {
             const foundSup = sList.find(s => String(s.id) === String(item.supplier) || String(s.uuid) === String(item.supplier));

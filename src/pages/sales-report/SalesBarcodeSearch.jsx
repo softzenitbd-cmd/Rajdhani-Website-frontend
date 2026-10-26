@@ -5,6 +5,7 @@ import { RefreshCcw, Printer, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { saleService } from '../../services/saleService';
 import { productService } from '../../services/productService';
+import { crmService } from '../../services/crmService';
 import CustomDatePicker from '../../components/CustomDatePicker';
 
 
@@ -15,6 +16,8 @@ const SalesBarcodeSearch = () => {
   const [reports, setReports] = useState([]);
   const [products, setProducts] = useState([]);
   const [productGroups, setProductGroups] = useState([]);
+  // Used to resolve the client name of a report row.
+  const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [filters, setFilters] = useState({

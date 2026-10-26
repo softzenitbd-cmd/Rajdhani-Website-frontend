@@ -88,22 +88,8 @@ const ProductBarcode = () => {
         }
         setProducts(unique);
 
-        // Silent background load of all products
-        productService.getProducts({ page_size: 5000 }).then(bgRes => {
-          const allProds = Array.isArray(bgRes) ? bgRes : (bgRes?.results || []);
-          if (allProds.length > unique.length) {
-            const finalUnique = [];
-            const finalMap = new Map();
-            for (const item of allProds) {
-              const key = String(item.id || item.code || item.barcode || item.name).toLowerCase();
-              if (!finalMap.has(key)) {
-                finalMap.set(key, true);
-                finalUnique.push(item);
-              }
-            }
-            setProducts(finalUnique);
-          }
-        }).catch(err => console.error("Background load failed", err));
+        // (No second "load every product" pass here any more: it repeated the
+        // request above. The select searches the server as you type.)
 
       } catch (err) {
         console.error("Error fetching products for barcode:", err);

@@ -153,4 +153,27 @@ apiClient.interceptors.response.use(
   }
 );
 
+/* --------------------------------------------------------------------------
+ * 4. Collapse duplicate GETs
+ *
+ * Several screens mount two components that ask for the same list, and React's
+ * StrictMode runs every effect twice in development — so the same request was
+ * going out two or three times, each costing ~0.6-2 s against this backend.
+ * While an identical GET (same url + params) is still in flight, every caller
+ * now shares that one promise. A request that has already finished is not
+ * cached, so data is never stale.
+ * ------------------------------------------------------------------------ */
+const inflightGets = new Map();
+const rawGet = apiClient.get.bind(apiClient);
+
+apiClient.get = (url, config = {}) => {
+  const key = `${url}|${JSON.stringify(config.params || {})}`;
+  const pending = inflightGets.get(key);
+  if (pending) return pending;
+
+  const request = rawGet(url, config).finally(() => inflightGets.delete(key));
+  inflightGets.set(key, request);
+  return request;
+};
+
 export default apiClient;

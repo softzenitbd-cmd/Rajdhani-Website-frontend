@@ -124,8 +124,21 @@ export const productService = {
   // ==========================================
   // 2. Main Product API
   // ==========================================
+  /**
+   * Product list.
+   *
+   * Pagination is ON by default. It used to be forced OFF (`no_page: true`),
+   * which made every screen that touches products download the whole
+   * catalogue — ~9k rows, 8.5 MB, ~6.5 s — even when it asked for 500 rows.
+   * Screens that genuinely need every row can still opt in with `all: true`;
+   * barcode lookups should use findByBarcode() instead.
+   */
   getProducts: async (filters = {}) => {
-    const params = { page_size: 5000, limit: 5000, no_page: true };
+    const params = { page_size: filters.page_size || 200 };
+    if (filters.all) {
+      params.no_page = true;
+      params.limit = 5000;
+    }
     if (filters.search) params.search = filters.search;
     if (filters.barcode) params.barcode = filters.barcode;
     if (filters.group) params.group = filters.group;
@@ -210,7 +223,12 @@ export const productService = {
   },
 
   createProduct: async (data) => {
-    return normalizeProduct(await apiClient.post(ENDPOINTS.PRODUCT_LIST, toProductPayload(data)));
+    const created = normalizeProduct(await apiClient.post(ENDPOINTS.PRODUCT_LIST, toProductPayload(data)));
+    // Keep the shared lookup cache (services/lookupCache.js) in step.
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('rg:lookup-invalidate', { detail: 'products' }));
+    }
+    return created;
   },
 
   updateProduct: async (id, data) => {

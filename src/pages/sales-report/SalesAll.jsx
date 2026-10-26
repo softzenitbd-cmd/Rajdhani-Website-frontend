@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { RefreshCcw, Printer, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { saleService } from '../../services/saleService';
-import { crmService } from '../../services/crmService';
+import { lookupCache, indexById } from '../../services/lookupCache';
 import { getUserList } from '../../api/authApi';
 import { toList, fmtDate } from '../../utils/apiHelpers';
 import CustomDatePicker from '../../components/CustomDatePicker';
@@ -20,6 +20,17 @@ const SalesAll = () => {
 
   const [reports, setReports] = useState([]);
   const [clients, setClients] = useState([]);
+
+  // Indexing once turns a .find() per row (O(rows x clients)) into a Map hit.
+  const clientsById = useMemo(() => indexById(clients), [clients]);
+  const clientsByName = useMemo(() => {
+    const m = new Map();
+    clients.forEach((c) => {
+      const n = c?.name || c?.company_name;
+      if (n) m.set(String(n), c);
+    });
+    return m;
+  }, [clients]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -36,7 +47,7 @@ const SalesAll = () => {
   const fetchPrerequisites = async () => {
     try {
       const [resClients, resUsers] = await Promise.all([
-        crmService.getClients({ page_size: 5000 }).catch(() => []),
+        lookupCache.getClients(),
         getUserList().catch(() => [])
       ]);
       setClients(toList(resClients));
@@ -299,10 +310,12 @@ const SalesAll = () => {
                         <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>{group.voucher_no}</td>
                         <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>
                           <div>{(() => {
-                            let cName = clients.find(c => String(c.id || c.uuid) === String(row.client_id || row.client))?.name || clients.find(c => String(c.id || c.uuid) === String(row.client_id || row.client))?.company_name || row.client_name || row.client?.client_name || row.client || '-';
+                            const matched = clientsById.get(String(row.client_id || row.client));
+                            const byName = clientsByName.get(String(row.client_name || row.client));
+                            let cName = matched?.name || matched?.company_name || row.client_name || row.client?.client_name || row.client || '-';
                             cName = (typeof cName === 'string' && cName.length === 36 && cName.includes('-')) ? 'Unknown Client' : cName;
-                            const cPhone = row.client_phone || row.phone || row.client?.phone || row.client?.mobile || row.invoice?.client?.phone || (clients.find(c => String(c.id || c.uuid) === String(row.client_id))?.phone) || (clients.find(c => (c.name || c.company_name) === (row.client_name || row.client))?.phone) || '';
-                            const cAddress = row.client_address || row.address || row.client?.address || row.invoice?.client?.address || (clients.find(c => String(c.id || c.uuid) === String(row.client_id))?.address) || (clients.find(c => (c.name || c.company_name) === (row.client_name || row.client))?.address) || '';
+                            const cPhone = row.client_phone || row.phone || row.client?.phone || row.client?.mobile || row.invoice?.client?.phone || clientsById.get(String(row.client_id))?.phone || byName?.phone || '';
+                            const cAddress = row.client_address || row.address || row.client?.address || row.invoice?.client?.address || clientsById.get(String(row.client_id))?.address || byName?.address || '';
                             
                             let parts = [];
                             if (cName && cName !== '-') parts.push(cName);

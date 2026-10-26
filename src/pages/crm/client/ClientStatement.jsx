@@ -6,7 +6,7 @@ import TableToolbar from '../../../components/TableToolbar';
 import { crmService } from '../../../services/crmService';
 import { accountingService } from '../../../services/accountingService';
 import { saleService } from '../../../services/saleService';
-import { productService } from '../../../services/productService';
+import { lookupCache } from '../../../services/lookupCache';
 import { useToast } from '../../../context/ToastContext';
 import { toList, fmtDate, money } from '../../../utils/apiHelpers';
 import { useTranslation } from 'react-i18next';
@@ -37,7 +37,7 @@ const ClientStatement = () => {
   });
 
   useEffect(() => {
-    crmService.getClients({ page_size: 1000 }).then((r) => setClients(toList(r))).catch(() => {});
+    lookupCache.getClients().then(setClients).catch(() => {});
   }, []);
 
   const load = async (f = filters) => {
@@ -57,9 +57,11 @@ const ClientStatement = () => {
         f.client
           ? saleService.getSalesReturns({ client: f.client, from_date: f.from_date, to_date: f.to_date }).catch(() => [])
           : Promise.resolve([]),
-        productService.getProducts({ page_size: 500 }).catch(() => []),
+        lookupCache.getProducts(),
         f.client
-          ? saleService.getSaleItems().catch(() => [])
+          // Scoped to this client/date range — fetching every sale item in the
+          // database was the single slowest call on this page.
+          ? saleService.getSaleItems({ client: f.client, from_date: f.from_date, to_date: f.to_date }).catch(() => [])
           : Promise.resolve([]),
         f.client
           ? accountingService.getReceives({ client: f.client, from_date: f.from_date, to_date: f.to_date }).catch(() => [])

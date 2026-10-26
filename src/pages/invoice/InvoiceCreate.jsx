@@ -215,16 +215,9 @@ const InvoiceCreate = () => {
       setAccounts(accData);
       setIncomeCategories(incCatData);
 
-      // Silent background load of all products to ensure local barcode search works
-      productService
-        .getProducts({ page_size: 5000 })
-        .then((res) => {
-          const allProds = Array.isArray(res) ? res : res?.results || [];
-          if (allProds.length > prodData.length) {
-            setProducts(allProds);
-          }
-        })
-        .catch((err) => console.error("Background product load failed", err));
+      // (No second "load every product" pass here any more: it repeated the
+      // request above, and anything missing from this page is resolved from
+      // the server by findByBarcode() / the select's own search.)
 
       if (isEditMode) {
         if (
