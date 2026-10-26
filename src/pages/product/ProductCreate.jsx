@@ -169,9 +169,10 @@ const ProductCreate = () => {
         payload.custom_barcode_no = Math.floor(10000000 + Math.random() * 90000000).toString();
       }
       
+      payload.opening_stock = money(formData.opening_stock);
       if (!isEditMode) {
         // opening stock is only meaningful on create – purchases / sales move stock afterwards
-        payload.opening_stock = money(formData.opening_stock);
+
         payload.stock = money(formData.opening_stock);
       }
 
@@ -324,7 +325,7 @@ const ProductCreate = () => {
                   )}
                 </div>
                 {(showOpeningStock || isEditMode) && (
-                  <input type="number" step="0.01" name="opening_stock" value={formData.opening_stock} onChange={handleChange} placeholder="0" disabled={isEditMode} style={{ width: '100%', padding: '12px 14px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-14, 14px)', background: isEditMode ? '#e2e8f0' : '#f8fafc', cursor: isEditMode ? 'not-allowed' : 'text' }} />
+                  <input type="number" step="0.01" name="opening_stock" value={formData.opening_stock} onChange={handleChange} placeholder="0" style={{ width: '100%', padding: '12px 14px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-14, 14px)', background: '#f8fafc' }} />
                 )}
               </div>
 

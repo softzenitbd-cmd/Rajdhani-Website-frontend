@@ -61,7 +61,7 @@ const BarcodePrintModal = ({ isOpen, onClose, product }) => {
               <BarcodeSticker 
                 barcodeValue={product.custom_barcode_no || product.code || product.barcode || String(product.id).substring(0, 8).toUpperCase()} 
                 name={product.name} 
-                price={product.sales_price || product.price || 0} 
+                price={product.selling_price || product.sales_price || product.sale_price || product.mrp || product.price || 0} 
               />
             </div>
           </div>
@@ -82,7 +82,7 @@ const BarcodePrintModal = ({ isOpen, onClose, product }) => {
             <BarcodeSticker 
               barcodeValue={stk.custom_barcode_no || stk.code || stk.barcode || String(stk.id).substring(0, 8).toUpperCase()} 
               name={stk.name} 
-              price={stk.sales_price || stk.price || 0} 
+              price={stk.selling_price || stk.sales_price || stk.sale_price || stk.mrp || stk.price || 0} 
             />
           </div>
         ))}

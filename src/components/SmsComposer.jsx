@@ -3,6 +3,7 @@ import { Send, Clock, Users, CheckSquare, Square, ArrowLeft } from 'lucide-react
 import { useNavigate } from 'react-router-dom';
 import { communicationService, buildSmsPayload } from '../services/communicationService';
 import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 import { useTranslation } from 'react-i18next';
 
 /**
@@ -24,6 +25,7 @@ const SmsComposer = ({ title, recipientType, contacts = [], groups = null, loadi
   const { t } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
+  const confirm = useConfirm();
 
   const storageKey = `last_sms_body_${recipientType}`;
   const [message, setMessage] = useState(() => {
@@ -67,7 +69,7 @@ const SmsComposer = ({ title, recipientType, contacts = [], groups = null, loadi
       }
       if (search) {
         const q = search.toLowerCase();
-        list = list.filter((c) => `${c.name || ''} ${c.phone || ''}`.toLowerCase().includes(q));
+        list = list.filter((c) => `${c.name || ''} ${c.company_name || ''} ${c.phone || ''} ${c.client_id || ''} ${c.address || ''}`.toLowerCase().includes(q));
       }
       return list;
     }, [contacts, groups, groupId, search, dueFilter, startDate, endDate]);
@@ -108,7 +110,12 @@ const SmsComposer = ({ title, recipientType, contacts = [], groups = null, loadi
     if (!message.trim()) return toast.error(t("Type a message first"));
     if (withPhone.length === 0) return toast.error(t("Select at least one recipient with a phone number"));
     if (mode === 'schedule' && !scheduleAt) return toast.error(t("Choose the schedule date & time"));
-    if (!window.confirm(t("{{v0}} SMS to {{v1}} recipient(s)?", { v0: mode === 'now' ? t("Send") : t("Schedule"), v1: withPhone.length }))) return;
+    const confirmed = await confirm({
+      title: mode === 'now' ? t("Send SMS") : t("Schedule SMS"),
+      message: t("{{v0}} SMS to {{v1}} recipient(s)?", { v0: mode === 'now' ? t("Send") : t("Schedule"), v1: withPhone.length }),
+      confirmText: mode === 'now' ? t("Send") : t("Schedule"),
+    });
+    if (!confirmed) return;
 
     try {
       setSending(true);

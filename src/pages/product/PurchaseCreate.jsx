@@ -589,8 +589,8 @@ const PurchaseCreate = () => {
                   <SearchableSelect
                     options={suppliers.map((sup) => ({
                       value: sup.id,
-                      label: sup.name,
-                      searchValue: sup.name,
+                      label: sup.company_name ? `${sup.company_name}${sup.name ? ` - ${sup.name}` : ''}` : (sup.name || 'Supplier'),
+                      searchValue: `${sup.name || ''} ${sup.company_name || ''} ${sup.phone || ''}`,
                     }))}
                     value={formData.supplier}
                     onChange={(val) =>

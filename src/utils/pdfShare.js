@@ -43,11 +43,9 @@ export const shareAsPDF = async (elementSelector, fileName = 'document.pdf', tit
     } else {
       // Fallback to downloading if sharing is not supported
       pdf.save(fileName);
-      alert("Sharing PDF is not supported on this device. The file has been downloaded instead.");
     }
   } catch (err) {
     console.error("Error generating or sharing PDF", err);
-    alert("An error occurred while generating the PDF.");
   } finally {
     // Restore .no-print elements
     noPrintElements.forEach((el, index) => {

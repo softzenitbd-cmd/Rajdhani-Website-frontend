@@ -12,6 +12,7 @@ import { useConfirm } from '../../context/ConfirmContext';
 import { exportVisibleTable } from '../../utils/tableExport';
 import CustomDatePicker from '../../components/CustomDatePicker';
 import SearchableSelect from '../../components/SearchableSelect';
+import { fmtDate } from '../../utils/apiHelpers';
 
 const sampleReturns = [
   { id: 1, created_at: '2026-09-15 11:28:09', client_name: 'C.CASTOMER', client_phone: '01', invoice_no: 'Invoice ID: 163873', category: 'MALL FEROT', return_qty: 0, bill_amount: 2600.00, discount: 0.00, receive_amount: 0.00, total_due: 2600.00, status: 'Return' },
@@ -78,11 +79,11 @@ const SalesReturnList = () => {
       if (data.length > 0) {
         setReturns(data);
       } else {
-        setReturns(sampleReturns);
+        setReturns([]);
       }
     } catch (err) {
       console.error("Error fetching sales returns:", err);
-      setReturns(sampleReturns);
+      setReturns([]);
     } finally {
       setLoading(false);
     }
@@ -154,10 +155,10 @@ const SalesReturnList = () => {
       await saleService.deleteSalesReturn(targetId);
       toast.success(t("Sales Return deleted successfully!"));
       setReturns(prev => prev.filter(item => item.id !== targetId));
+      fetchReturns();
     } catch (err) {
       console.error("Error deleting sales return:", err);
-      toast.success(t("Sales Return deleted!"));
-      setReturns(prev => prev.filter(item => item.id !== targetId));
+      toast.error(err.message || t("Delete failed"));
     }
   };
 
@@ -170,7 +171,7 @@ const SalesReturnList = () => {
       {/* Date Top Right Header */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
         <div style={{ fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold', color: '#000' }}>
-          Date : 15 Sep 2026
+          Date : {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
         </div>
       </div>
 
@@ -355,7 +356,7 @@ const SalesReturnList = () => {
                   return `${day}-${month}-${year}`;
                 };
 
-                const dateStr = ret.created_at ? formatDDMMYYYY(ret.created_at) : (ret.date ? formatDDMMYYYY(ret.date) : '15-09-2026');
+                const dateStr = fmtDate(ret.created_at || ret.date) || '-';
 
                 const rawInvId = String(ret.invoice_no || ret.return_invoice_id || ret.invoiceNo || (ret.id ? `INV-${ret.id}` : 'INV-163873'));
                 const cleanInvId = rawInvId.replace(/^Invoice ID:\s*/i, '').replace(/^SR-?/i, '');
@@ -367,11 +368,7 @@ const SalesReturnList = () => {
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', lineHeight: '1.4' }}>
                       <div style={{ fontWeight: '500' }}>{clientName}</div>
                       <div style={{ color: '#000', fontSize: 'var(--fs-11, 11px)' }}>{clientPhone}</div>
-                      {(() => {
-                        const clientObj = (clients || []).find(c => String(c.id) === String(ret.client || ret.client_id));
-                        const clientAddress = ret.client_address || clientObj?.address || '';
-                        return clientAddress ? <div style={{ color: '#64748b', fontSize: 'var(--fs-10, 10px)', marginTop: '2px' }}>{clientAddress}</div> : null;
-                      })()}
+
                     </td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', fontWeight: '500' }}>
                       {cleanInvId}

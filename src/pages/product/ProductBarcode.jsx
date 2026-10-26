@@ -155,7 +155,7 @@ const ProductBarcode = () => {
                     const barcode = p.custom_barcode_no || p.code || p.barcode || shortId || '';
                     return {
                       value: p.id,
-                      label: `${p.name} (${barcode}) - ৳${p.sales_price || p.price || 0}`,
+                      label: `${p.name} (${barcode}) - ৳${p.selling_price || p.sales_price || p.sale_price || p.price || 0}`,
                       searchValue: `${p.name} ${barcode}`
                     };
                   })}
@@ -213,7 +213,7 @@ const ProductBarcode = () => {
                     <BarcodeSticker 
                       barcodeValue={stk.custom_barcode_no || stk.code || stk.barcode || String(stk.id).substring(0, 8).toUpperCase()} 
                       name={stk.name} 
-                      price={stk.sales_price || stk.price || 0} 
+                      price={stk.selling_price || stk.sales_price || stk.sale_price || stk.mrp || stk.price || 0} 
                     />
                   </div>
                 ))}

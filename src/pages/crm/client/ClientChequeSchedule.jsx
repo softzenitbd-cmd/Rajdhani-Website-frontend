@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useApi } from '../../../hooks/useApi';
 import { useConfirm } from '../../../context/ConfirmContext';
+import { useToast } from '../../../context/ToastContext';
 import { ENDPOINTS } from '../../../api/endpoints';
 import CustomDatePicker from '../../../components/CustomDatePicker';
 
@@ -10,6 +11,7 @@ import CustomDatePicker from '../../../components/CustomDatePicker';
 const ClientChequeSchedule = () => {
   const { t } = useTranslation();
   const confirm = useConfirm();
+  const toast = useToast();
   const [cheques, setCheques] = useState([]);
   const [clients, setClients] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -81,9 +83,19 @@ const ClientChequeSchedule = () => {
   };
 
   const handleSave = async () => {
+    if (!formData.client) {
+      toast.error(t("Please select a client"));
+      return;
+    }
+    if (!formData.amount) {
+      toast.error(t("Please enter amount"));
+      return;
+    }
     try {
       const payload = {
         ...formData,
+        bank_name: formData.bank_name || '-',
+        cheque_number: formData.cheque_number || '-',
         // Ensure numbers are formatted
         amount: parseFloat(formData.amount) || 0
       };

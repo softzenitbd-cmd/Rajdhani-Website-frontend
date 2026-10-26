@@ -31,12 +31,13 @@ const PurchaseReturnReport = () => {
     try {
       setLoading(true);
       const [supRes, returnsRes] = await Promise.all([
-        crmService.getSuppliers().catch(() => null),
+        crmService.getSuppliers({ page_size: 5000 }).catch(() => null),
         purchaseService.getPurchaseReturns(filters).catch(() => null)
       ]);
 
+      let sList = [];
       if (supRes) {
-        const sList = Array.isArray(supRes) ? supRes : (supRes?.results || []);
+        sList = Array.isArray(supRes) ? supRes : (supRes?.results || []);
         setSuppliers(sList);
       }
 
@@ -62,7 +63,7 @@ const PurchaseReturnReport = () => {
           if (supName && sList.length > 0) {
               const matchedSup = sList.find(s => String(s.id) === String(supName) || String(s.uuid) === String(supName));
               if (matchedSup) {
-                  supName = matchedSup.name || matchedSup.supplier_name || supName;
+                  supName = matchedSup.company_name ? `${matchedSup.company_name} - ${matchedSup.name || ''}` : (matchedSup.name || matchedSup.supplier_name || supName);
               }
           }
 

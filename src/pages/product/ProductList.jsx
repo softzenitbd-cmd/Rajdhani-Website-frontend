@@ -9,6 +9,7 @@ import { useToast } from '../../context/ToastContext';
 import { useConfirm } from '../../context/ConfirmContext';
 import CustomDatePicker from '../../components/CustomDatePicker';
 import Pagination from '../../components/Pagination';
+import { fmtDate } from '../../utils/apiHelpers';
 
 
 const ProductList = () => {
@@ -290,7 +291,7 @@ const ProductList = () => {
                       <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.code || prod.barcode || '-'}</td>
                       <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.stockWarning || '1'}</td>
                       <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.stock || prod.openingStock || '0.00'}</td>
-                      <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.created_at ? new Date(prod.created_at).toLocaleDateString() : (prod.createdAt || '-')}</td>
+                      <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{fmtDate(prod.created_at || prod.date || prod.createdAt) || '-'}</td>
                       <td style={{ textAlign: 'center', padding: '8px' }}>
                         <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
                           <button onClick={() => navigate('/product/create', { state: { product: prod } })} className="action-btn-sm edit" style={{ background: 'var(--info)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title={t("Edit Product")}>

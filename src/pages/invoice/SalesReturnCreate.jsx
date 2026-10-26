@@ -53,15 +53,25 @@ const SalesReturnCreate = () => {
   const fetchPrerequisites = async () => {
     try {
       setLoadingPrereqs(true);
-      const [clientRes, prodRes, accRes] = await Promise.all([
+      const [clientRes, prodRes, accRes, dueRepRes] = await Promise.all([
         crmService.getClients({ page_size: 5000 }).catch(() => []),
         productService.getProducts({ page_size: 500 }).catch(() => []),
         accountingService.getAccounts().catch(() => []),
+        crmService.getClientDueReport().catch(() => []),
       ]);
 
-      const clientData = Array.isArray(clientRes)
-        ? clientRes
-        : clientRes?.results || [];
+      const rawClients = Array.isArray(clientRes) ? clientRes : clientRes?.results || [];
+      const dueMap = new Map();
+      (Array.isArray(dueRepRes) ? dueRepRes : dueRepRes?.results || []).forEach(d => {
+        const k = String(d.client_id || d.id || d.client || '');
+        if (k) dueMap.set(k, Number(d.due ?? d.balance ?? d.total_due ?? 0));
+      });
+      const clientData = rawClients.map(c => ({
+        ...c,
+        due: dueMap.get(String(c.id || c.uuid)) !== undefined ? dueMap.get(String(c.id || c.uuid)) : (c.due ?? c.previous_due ?? 0)
+      }));
+
+
       const prodData = Array.isArray(prodRes)
         ? prodRes
         : prodRes?.results || [];
@@ -400,10 +410,10 @@ const SalesReturnCreate = () => {
       );
     })();
 
-  const dueAmount =
-    selectedClientObj && !isDefaultClient
-      ? Number(selectedClientObj.due || selectedClientObj.previous_due || 0)
-      : 0;
+  const dueAmount = selectedClientObj ? Number(selectedClientObj.due ?? selectedClientObj.previous_due ?? 0) : 0;
+
+
+
 
   const totalQuantity = items.reduce(
     (sum, item) => sum + Number(item.quantity || 0),
@@ -587,10 +597,11 @@ const SalesReturnCreate = () => {
                     fontSize: "var(--fs-12, 12px)",
                     fontWeight: "bold",
                     marginTop: "4px",
-                    color: "#0ea5e9",
+                    color: dueAmount > 0 ? "#b91c1c" : "#0284c7",
+                    fontSize: "var(--fs-13, 13px)",
                   }}
                 >
-                  {t("Due: ৳")} {dueAmount.toFixed(2)}
+                  {t("Previous Due: ৳")} {Number(dueAmount || 0).toFixed(2)}
                 </div>
               </div>
 
@@ -747,7 +758,7 @@ const SalesReturnCreate = () => {
                     if (val) handleSelectProduct(val);
                   }}
                   clearOnSelect={true}
-                  hideOptionsUntilSearch={true}
+
                   pushContentBelow={true}
                   placeholder={t("Select Product")}
                   onAddClick={() => setIsProductModalOpen(true)}

@@ -14,6 +14,7 @@ import { printElement } from '../../utils/printUtils';
 import CustomDatePicker from '../../components/CustomDatePicker';
 import Pagination from '../../components/Pagination';
 import { companyStore, companyHeaderImage } from '../../services/companyStore';
+import { fmtDate } from '../../utils/apiHelpers';
 
 
 const InvoiceList = () => {
@@ -327,7 +328,7 @@ const InvoiceList = () => {
                 const globalIndex = (currentPage - 1) * limit + index + 1;
                 const clientObj = (clients || []).find(c => String(c.id) === String(inv.client || inv.client_id));
                 const clientName = inv.client_name || inv.clientName || (clientObj ? (clientObj.name || clientObj.company_name) : (inv.client === 'C.CASTOMER' ? 'C.CASTOMER' : (inv.client || 'C.CASTOMER')));
-                const clientPhone = clientObj?.phone || clientObj?.contact_person || '01';
+                const clientPhone = clientObj?.phone || clientObj?.contact_person || '';
 
                 const catObj = (accounts || []).find(a => String(a.id) === String(inv.category_id || inv.category || inv.account_id));
                 const categoryName = inv.category_name || (catObj ? catObj.name : (inv.category_id || inv.category || 'CASH SELL'));
@@ -353,11 +354,11 @@ const InvoiceList = () => {
                   return `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
                 };
 
-                const formattedDate = inv.created_at ? formatDDMMYYYY(inv.created_at) : (inv.date ? formatDDMMYYYY(inv.date) : '14-09-2026');
+                const formattedDate = fmtDate(inv.created_at || inv.date || inv.invoice_date) || '-';
                 const formattedTime = inv.created_at ? formatTime(inv.created_at) : (inv.date && inv.date.includes('T') ? formatTime(inv.date) : '');
 
                 const rawInvId = String(inv.invoice_id || inv.invoiceNo || (inv.id ? `INV-${inv.id}` : 'INV-0054'));
-                const cleanInvId = rawInvId.replace(/^Invoice ID:\s*/i, '');
+                const cleanInvId = rawInvId.replace(/^Invoice ID:\s*/i, '').replace(/^INV-?/i, '');
 
                 return (
                   <tr key={inv.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-12, 12px)' }}>

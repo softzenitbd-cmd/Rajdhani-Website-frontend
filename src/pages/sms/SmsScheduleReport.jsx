@@ -5,6 +5,7 @@ import PrintHeader from '../../components/PrintHeader';
 import TableToolbar from '../../components/TableToolbar';
 import { communicationService } from '../../services/communicationService';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 import { toList } from '../../utils/apiHelpers';
 import { useTranslation } from 'react-i18next';
 import CustomDatePicker from '../../components/CustomDatePicker';
@@ -38,6 +39,7 @@ const SmsScheduleReport = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
+  const confirm = useConfirm();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState('');
@@ -65,7 +67,13 @@ const SmsScheduleReport = () => {
   useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cancel = async (r) => {
-    if (!window.confirm(t("Cancel this scheduled SMS?"))) return;
+    const ok = await confirm({
+      title: t("Cancel Schedule"),
+      message: t("Cancel this scheduled SMS?"),
+      confirmText: t("Cancel Schedule"),
+      confirmColor: "var(--danger, #dc2626)"
+    });
+    if (!ok) return;
     try {
       await communicationService.cancelSmsSchedule(r.id || r.uuid);
       toast.success(t("SMS schedule cancelled"));

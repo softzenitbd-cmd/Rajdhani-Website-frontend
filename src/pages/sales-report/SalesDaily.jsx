@@ -301,7 +301,10 @@ const SalesDaily = () => {
                       <td style={{ padding: '0', verticalAlign: 'middle' }}>
                         {group.products.map((p, i) => (
                           <div key={i} style={{ padding: '8px 4px', borderBottom: i < group.products.length - 1 ? '1px solid #e2e8f0' : 'none' }}>
-                            {p.product_name || p.product || '-'}
+                            <span style={{ fontWeight: 600 }}>{p.product_name || p.product || '-'}</span>
+                            {(p.barcode || p.code) && (
+                              <span style={{ marginLeft: '6px', color: '#64748b', fontSize: 'var(--fs-10, 10px)' }}>[{p.barcode || p.code}]</span>
+                            )}
                           </div>
                         ))}
                       </td>

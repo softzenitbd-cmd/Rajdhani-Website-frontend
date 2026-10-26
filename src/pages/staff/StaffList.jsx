@@ -295,12 +295,7 @@ const StaffList = () => {
                   <th style={{ padding: "8px 6px" }}>{t("PHONE NUMBER")}</th>
                   <th style={{ padding: "8px 6px" }}>{t("ADDRESS")}</th>
                   
-                  <th style={{ padding: "8px 6px" }}>{t("PASSWORD")}</th>
-                  <th style={{ padding: "8px 6px" }}>{t("ROLE")}</th>
-                  <th style={{ padding: "8px 6px", textAlign: "center" }}>
-                    {t("PERMISSION")}
-                  </th>
-                  <th style={{ padding: "8px 6px" }}>{t("WEEKLY SALARY")}</th>
+                  <th style={{ padding: "8px 6px" }}>{t("MONTHLY SALARY")}</th>
                   <th style={{ padding: "8px 6px" }}>{t("CREATED AT")}</th>
                   <th
                     className="action-column"
@@ -314,7 +309,7 @@ const StaffList = () => {
                 {loading ? (
                   <tr>
                     <td
-                      colSpan="10"
+                      colSpan="7"
                       style={{
                         padding: "24px",
                         textAlign: "center",
@@ -327,7 +322,7 @@ const StaffList = () => {
                 ) : visible.length === 0 ? (
                   <tr>
                     <td
-                      colSpan="10"
+                      colSpan="7"
                       style={{
                         padding: "24px",
                         textAlign: "center",
@@ -355,40 +350,11 @@ const StaffList = () => {
                         <td style={{ padding: "8px 6px" }}>
                           {getStaffPhone(s)}
                         </td>
-                        <td style={{ padding: "8px 6px", maxWidth: "150px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {s.address || s.user_details?.address || s.user?.address || "-"}
-                        </td>
-                        
-                        <td style={{ padding: "8px 6px" }}>
-                          {s.user_details?.username || "-"}
-                        </td>
-                        <td style={{ padding: "8px 6px" }}>
-                          {nameOf(
-                            s.designation_name ||
-                              s.designation_details ||
-                              s.designation,
-                          ) ||
-                            s.user_details?.role ||
-                            "-"}
-                        </td>
-                        <td style={{ padding: "8px 6px", textAlign: "center" }}>
-                          <button
-                            style={{
-                              background: "#10b981",
-                              color: "white",
-                              border: "none",
-                              padding: "4px 12px",
-                              borderRadius: "4px",
-                              cursor: "pointer",
-                              fontSize: "var(--fs-11, 11px)",
-                              fontWeight: "bold",
-                            }}
-                          >
-                            {t("Permissions")}
-                          </button>
+                        <td style={{ padding: "8px 6px", maxWidth: "200px" }}>
+                          {s.address || s.present_address || s.permanent_address || s.user_details?.address || s.user_details?.present_address || s.user?.address || s.user?.present_address || "-"}
                         </td>
                         <td style={{ padding: "8px 6px", fontWeight: "bold", color: "#1e293b" }}>
-                          {s.weekly_salary || s.salary || s.basic_salary ? `৳ ${Number(s.weekly_salary || s.salary || s.basic_salary).toFixed(2)}` : "-"}
+                          {(s.monthly_salary ?? s.basic_salary ?? s.salary ?? s.weekly_salary) !== null && (s.monthly_salary ?? s.basic_salary ?? s.salary ?? s.weekly_salary) !== undefined && (s.monthly_salary ?? s.basic_salary ?? s.salary ?? s.weekly_salary) !== "" ? `৳ ${Number(s.monthly_salary ?? s.basic_salary ?? s.salary ?? s.weekly_salary).toFixed(2)}` : "-"}
                         </td>
                         <td style={{ padding: "8px 6px" }}>
                           {fmtDate(s.created_at)}

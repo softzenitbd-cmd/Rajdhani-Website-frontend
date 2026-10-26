@@ -162,47 +162,7 @@ const Header = ({ toggleSidebar }) => {
         <span style={{ fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{companyName || t('app_name')}</span>
       </div>
       
-      <div className="header-nav-scroll" style={{ 
-        display: 'flex', 
-        justifyContent: 'center',
-        gap: '6px', 
-        alignItems: 'center',
-        flex: 1, 
-        overflowX: 'auto',
-        padding: '8px 0',
-        msOverflowStyle: 'none',
-        scrollbarWidth: 'none'
-      }}>
-        {navButtons.map((btn, idx) => (
-          <button 
-            key={idx}
-            onClick={() => {
-              if (window.location.pathname === btn.path) {
-                window.location.reload();
-              } else {
-                navigate(btn.path);
-              }
-            }}
-            style={{ 
-              background: '#000000', // black matching screenshot
-              color: 'white', 
-              border: 'none', 
-              padding: '6px 12px', 
-              borderRadius: '4px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '6px',
-              fontSize: 'var(--fs-12, 12px)',
-              fontWeight: '500',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              flexShrink: 0
-            }}
-          >
-            {btn.icon} {btn.label}
-          </button>
-        ))}
-      </div>
+
 
       <div className="top-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
         <button 

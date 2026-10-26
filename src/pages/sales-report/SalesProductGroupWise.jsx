@@ -22,11 +22,11 @@ const SalesProductGroupWise = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const today = new Date().toISOString().split('T')[0];
+  const todayStr = new Date().toISOString().split('T')[0];
   const [filters, setFilters] = useState({
     product_group_id: '',
     from_date: firstOfMonth(),
-    to_date: today()
+    to_date: todayStr
   });
 
 
@@ -209,6 +209,7 @@ const SalesProductGroupWise = () => {
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("VOUCHER NO ⇅")}</th>
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("CLIENT ⇅")}</th>
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', minWidth: '150px', fontWeight: '600' }}>{t("PRODUCT ⇅")}</th>
+                    <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("BARCODE ⇅")}</th>
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("UNIT ⇅")}</th>
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("QUANTITY ⇅")}</th>
                     <th style={{ padding: '10px', border: '1px solid #94a3b8', fontWeight: '600' }}>{t("PRICE ⇅")}</th>
@@ -222,11 +223,11 @@ const SalesProductGroupWise = () => {
                 <tbody style={{ background: '#f8fafc' }}>
                   {loading ? (
                     <tr>
-                      <td colSpan="13" style={{ padding: '24px', textAlign: 'center' }}>{t("Loading product group report...")}</td>
+                      <td colSpan="14" style={{ padding: '24px', textAlign: 'center' }}>{t("Loading product group report...")}</td>
                     </tr>
                   ) : groupedReports.length === 0 ? (
                     <tr>
-                      <td colSpan="13" style={{ padding: '24px', textAlign: 'center' }}>{t("No records found.")}</td>
+                      <td colSpan="14" style={{ padding: '24px', textAlign: 'center' }}>{t("No records found.")}</td>
                     </tr>
                   ) : (
                     groupedReports.map((group, index) => {
@@ -267,6 +268,13 @@ const SalesProductGroupWise = () => {
                             <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                               {items.map((item, idx) => (
                                 <div key={idx} style={{ padding: '6px', borderBottom: idx < items.length - 1 ? '1px solid #94a3b8' : 'none', flex: 1, minHeight: '26px' }}>{item.product_name || item.product || '-'}</div>
+                              ))}
+                            </div>
+                          </td>
+                          <td style={{ padding: 0, border: '1px solid #94a3b8', verticalAlign: 'top', background: 'white' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                              {items.map((item, idx) => (
+                                <div key={idx} style={{ padding: '6px', borderBottom: idx < items.length - 1 ? '1px solid #94a3b8' : 'none', flex: 1, minHeight: '26px' }}>{item.barcode || item.barcode_number || item.code || '-'}</div>
                               ))}
                             </div>
                           </td>

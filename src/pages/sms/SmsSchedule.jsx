@@ -28,8 +28,8 @@ const SmsSchedule = () => {
 
   useEffect(() => {
     const fetcher = source === 'client' ? crmService.getClients : crmService.getSuppliers;
-    fetcher()
-      .then((r) => setContacts(toList(r).map((c) => ({ id: c.id || c.uuid, name: c.name, phone: c.phone || c.mobile }))))
+    fetcher({ page_size: 5000 })
+      .then((r) => setContacts(toList(r).map((c) => ({ id: c.id || c.uuid, name: c.name || c.company_name || 'Contact', phone: c.phone || c.mobile }))))
       .catch((e) => { toast.error(e?.message || t("Failed to load {{v0}}s", { v0: source })); setContacts([]); });
     setContactId('');
   }, [source]); // eslint-disable-line react-hooks/exhaustive-deps

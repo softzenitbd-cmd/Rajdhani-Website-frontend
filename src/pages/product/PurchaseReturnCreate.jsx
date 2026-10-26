@@ -164,13 +164,14 @@ const PurchaseReturnCreate = () => {
     setFormData((prev) => ({ ...prev, product: "" }));
   };
 
-  const handleBarcodeKeyDown = (e) => {
+  const handleBarcodeKeyDown = async (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
       const code = e.target.value.trim();
       if (!code) return;
       const prod = products.find(
         (p) =>
+          String(p.custom_barcode_no) === code ||
           String(p.code) === code ||
           String(p.barcode) === code ||
           String(p.id) === code ||
@@ -408,8 +409,8 @@ const PurchaseReturnCreate = () => {
                 <SearchableSelect
                   options={suppliers.map((sup) => ({
                     value: sup.id,
-                    label: sup.name,
-                    searchValue: sup.name,
+                    label: sup.company_name ? `${sup.company_name}${sup.name ? ` - ${sup.name}` : ''}` : (sup.name || 'Supplier'),
+                    searchValue: `${sup.name || ''} ${sup.company_name || ''} ${sup.phone || ''}`,
                   }))}
                   value={formData.supplier}
                   onChange={(val) =>
@@ -503,7 +504,7 @@ const PurchaseReturnCreate = () => {
                     }
                   }}
                   clearOnSelect={true}
-                  hideOptionsUntilSearch={true}
+
                   pushContentBelow={false}
                   placeholder={t("Select Product to Return")}
                 />

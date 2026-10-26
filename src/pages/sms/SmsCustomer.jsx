@@ -15,7 +15,8 @@ const SmsCustomer = () => {
     crmService.getClients({ page_size: 5000 })
       .then((r) => setContacts(toList(r).map((c) => ({
         id: c.id || c.uuid,
-        name: c.name,
+        name: c.company_name ? `${c.company_name}${c.name ? ` (${c.name})` : ''}` : (c.name || c.owner_name || 'Client'),
+        company_name: c.company_name || '',
         phone: c.phone || c.mobile,
         group: c.group,
         address: c.address || c.client_address || (c.details && c.details.address) || '',

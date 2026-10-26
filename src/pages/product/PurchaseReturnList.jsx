@@ -55,11 +55,11 @@ const PurchaseReturnList = () => {
       const combined = apiList;
       if (combined.length > 0) {
         setReturns(combined.map(item => {
-          let supName = item.supplier_name || item.supplier?.name;
+          let supName = item.supplier_name || item.supplier_detail?.company_name || item.supplier_detail?.name || item.supplier?.company_name || item.supplier?.name;
           if (!supName) {
             const foundSup = sList.find(s => String(s.id) === String(item.supplier) || String(s.uuid) === String(item.supplier));
             supName = foundSup ? (foundSup.name || foundSup.company_name || `${foundSup.first_name || ''} ${foundSup.last_name || ''}`.trim()) : String(item.supplier || 'Supplier');
-            if (supName && typeof supName === 'string' && supName.length > 20 && supName.includes('-')) supName = 'Unknown Supplier';
+
           }
           
           let invoiceNo = String(item.invoice || item.invoice_no || item.id || (idx + 100));

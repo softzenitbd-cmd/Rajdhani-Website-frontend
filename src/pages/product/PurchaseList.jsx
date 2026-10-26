@@ -35,7 +35,7 @@ const PurchaseList = () => {
       setLoading(true);
       const [purRes, supRes] = await Promise.all([
         purchaseService.getPurchaseInvoices(filters).catch(() => null),
-        crmService.getSuppliers({ limit: 1000 }).catch(() => null)
+        crmService.getSuppliers({ page_size: 5000, limit: 5000 }).catch(() => null)
       ]);
 
       let sList = [];
@@ -47,11 +47,11 @@ const PurchaseList = () => {
       if (purRes) {
         const list = Array.isArray(purRes) ? purRes : (purRes?.results || []);
         setPurchases(list.map((item, idx) => {
-          let supName = item.supplier_name || item.supplier?.name;
+          let supName = item.supplier_name || item.supplier_detail?.company_name || item.supplier_detail?.name || item.supplier?.company_name || item.supplier?.name;
           if (!supName && item.supplier) {
              const s = sList.find(x => String(x.id) === String(item.supplier) || String(x.uuid) === String(item.supplier));
-             supName = s ? (s.name || s.company_name || `${s.first_name || ''} ${s.last_name || ''}`.trim()) : String(item.supplier);
-          if (supName && typeof supName === 'string' && supName.length > 20 && supName.includes('-')) supName = 'Unknown Supplier';
+             supName = s ? (s.company_name || s.name || `${s.first_name || ''} ${s.last_name || ''}`.trim()) : '';
+
           }
 
           let inv = String(item.invoice_number || item.invoice || item.id || (idx + 100));
@@ -65,7 +65,7 @@ const PurchaseList = () => {
           return {
             ...item,
             id: item.id || idx + 1,
-            date: item.created_at ? new Date(item.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-',
+            date: fmtDate(item.purchase_date || item.date || item.created_at) || '-',
             invoice: inv,
             supplier: supName || '-',
             total: parseFloat(item.total_amount || item.grand_total || item.total || 0).toFixed(2),

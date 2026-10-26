@@ -6,6 +6,8 @@ import { useApi } from '../../../hooks/useApi';
 import { ENDPOINTS } from '../../../api/endpoints';
 import { exportToExcel } from '../../../utils/excelExporter';
 import { useToast } from '../../../context/ToastContext';
+import { useConfirm } from '../../../context/ConfirmContext';
+import { crmService } from '../../../services/crmService';
 import { useTranslation } from 'react-i18next';
 import SupplierViewModal from './SupplierViewModal';
 import CustomDatePicker from '../../../components/CustomDatePicker';
@@ -14,6 +16,7 @@ import CustomDatePicker from '../../../components/CustomDatePicker';
 const SupplierList = () => {
   const { t } = useTranslation();
   const toast = useToast();
+  const confirm = useConfirm();
   const navigate = useNavigate();
   const [activeAction, setActiveAction] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -84,6 +87,26 @@ const SupplierList = () => {
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleDeleteSupplier = async (supplier) => {
+    setActiveAction(null);
+    const ok = await confirm({
+      title: t("Delete Supplier"),
+      message: t("Are you sure you want to delete this supplier?"),
+      confirmText: t("Delete"),
+      confirmColor: "var(--danger, #dc2626)"
+    });
+    if (!ok) return;
+
+    try {
+      await crmService.deleteSupplier(supplier.id || supplier.uuid);
+      toast.success(t("Supplier deleted successfully!"));
+      fetchSuppliers();
+    } catch (err) {
+      console.error(err);
+      toast.error(err?.message || t("Failed to delete supplier"));
     }
   };
   
@@ -321,10 +344,10 @@ const SupplierList = () => {
                         textAlign: 'left'
                       }}>
                         <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => { setSelectedSupplierView(supplier); setActiveAction(null); }}><Eye size={16} color="#0284c7" /> <span>{t("View")}</span></div>
-                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => navigate(`/crm/supplier-edit/${supplier.id || supplier.uuid}`)}><Edit size={16} color="#4f46e5" /> <span>{t("Edit")}</span></div>
-                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#dc2626' }} onClick={() => toast.info(t("Delete supplier feature coming soon!"))}><Trash2 size={16} color="#dc2626" /> <span>{t("Delete")}</span></div>
-                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => navigate('/account/supplier-payment')}><DollarSign size={16} color="#059669" /> <span>{t("Payment")}</span></div>
-                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => navigate('/expense-report/supplier-purchase')}><FileText size={16} color="#64748b" /> <span>{t("Payment Report")}</span></div>
+                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => { setActiveAction(null); navigate(`/crm/supplier-edit/${supplier.id || supplier.uuid}`); }}><Edit size={16} color="#4f46e5" /> <span>{t("Edit")}</span></div>
+                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#dc2626' }} onClick={() => handleDeleteSupplier(supplier)}><Trash2 size={16} color="#dc2626" /> <span>{t("Delete")}</span></div>
+                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => { setActiveAction(null); navigate('/account/supplier-payment', { state: { supplierId: supplier.id || supplier.uuid, openAdd: true } }); }}><DollarSign size={16} color="#059669" /> <span>{t("Payment")}</span></div>
+                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => { setActiveAction(null); navigate('/expense-report/supplier-purchase', { state: { supplierId: supplier.id || supplier.uuid } }); }}><FileText size={16} color="#64748b" /> <span>{t("Payment Report")}</span></div>
                         <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => { navigate("/product/purchase/report", { state: { supplierId: supplier.id || supplier.uuid } }); setActiveAction(null); }}><FileBarChart size={16} color="#0284c7" /> <span>{t("Purchase Report")}</span></div>
                         <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => { navigate("/crm/supplier-statement", { state: { supplierId: supplier.id || supplier.uuid } }); setActiveAction(null); }}><FileText size={16} color="#64748b" /> <span>{t("Statement")}</span></div>
                       </div>

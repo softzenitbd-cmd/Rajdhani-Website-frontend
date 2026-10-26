@@ -5,9 +5,14 @@ import { RefreshCcw, Printer, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { saleService } from '../../services/saleService';
 import { crmService } from '../../services/crmService';
-import { fmtDate } from '../../utils/apiHelpers';
+import { getUserList } from '../../api/authApi';
+import { toList, fmtDate } from '../../utils/apiHelpers';
 import CustomDatePicker from '../../components/CustomDatePicker';
 
+const firstOfMonth = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+};
 
 const SalesAll = () => {
   const { t } = useTranslation();
@@ -15,24 +20,29 @@ const SalesAll = () => {
 
   const [reports, setReports] = useState([]);
   const [clients, setClients] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const today = new Date().toISOString().split('T')[0];
+  const todayStr = new Date().toISOString().split('T')[0];
   const [filters, setFilters] = useState({
     client_id: '',
-    from_date: today,
-    to_date: today,
+    user_id: '',
+    from_date: firstOfMonth(),
+    to_date: todayStr,
     barcode: '',
-    product_id: ''
+    search: ''
   });
-
 
   const fetchPrerequisites = async () => {
     try {
-      const res = await crmService.getClients({ page_size: 5000 });
-      setClients(Array.isArray(res) ? res : (res?.results || []));
+      const [resClients, resUsers] = await Promise.all([
+        crmService.getClients({ page_size: 5000 }).catch(() => []),
+        getUserList().catch(() => [])
+      ]);
+      setClients(toList(resClients));
+      setUsers(toList(resUsers));
     } catch (err) {
-      console.error('Failed to load clients:', err?.message);
+      console.error('Failed to load prerequisites:', err);
     }
   };
 
@@ -40,10 +50,10 @@ const SalesAll = () => {
     try {
       setLoading(true);
       const res = await saleService.getSalesReport(filters);
-      const data = Array.isArray(res) ? res : (res?.results || []);
+      const data = toList(res);
       setReports(data);
     } catch (err) {
-      console.error("Error fetching sales report:", err);
+      console.error("Error fetching all sales report:", err);
       setReports([]);
     } finally {
       setLoading(false);
@@ -66,139 +76,302 @@ const SalesAll = () => {
   const handleClearFilters = () => {
     setFilters({
       client_id: '',
-      from_date: today,
-      to_date: today,
+      user_id: '',
+      from_date: firstOfMonth(),
+      to_date: todayStr,
       barcode: '',
-      product_id: ''
+      search: ''
     });
   };
 
-  const totalQty = reports.reduce((sum, item) => sum + Number(item.product_qty ?? item.qty ?? 0), 0);
-  const totalSalesAmount = reports.reduce((sum, item) => sum + Number(item.amount || item.total || 0), 0);
-  const totalReceive = reports.reduce((sum, item) => sum + Number(item.invoice?.receive_amount || item.receive || 0), 0);
-  const totalProfit = reports.reduce((sum, item) => sum + Number(item.profit || 0), 0);
+  const getVoucherNo = (row) => {
+    let v = row.invoice?.invoice_no || row.invoice_no || row.voucher_no || row.invoice?.voucher_no || row.invoice?.invoice_id || row.voucher || row.invoice_id || row.invoice?.id || row.id;
+    if (typeof v === 'string' && v.length > 20 && v.includes('-')) {
+       v = row.invoice?.voucher_no || row.voucher_no || v.split('-')[0];
+    }
+    return v || '-';
+  };
+
+  const groupedReports = [];
+  const invoiceGroups = {};
+  reports.forEach((row) => {
+    const v = getVoucherNo(row);
+    if (!invoiceGroups[v] || v === '-') {
+      const newGroup = {
+        voucher_no: v,
+        raw: row,
+        products: [row],
+        total: Number(row.total || row.total_amount || 0),
+        receive: Number(row.receive || row.receive_amount || 0),
+        due: Number(row.due || row.due_amount || 0),
+        profit: Number(row.profit || 0)
+      };
+      if (v !== '-') invoiceGroups[v] = newGroup;
+      groupedReports.push(newGroup);
+    } else {
+      invoiceGroups[v].products.push(row);
+      invoiceGroups[v].total += Number(row.total || row.total_amount || 0);
+      invoiceGroups[v].profit += Number(row.profit || 0);
+    }
+  });
+
+  const calculateTotals = () => {
+    return groupedReports.reduce((acc, group) => {
+      let groupQty = 0, groupBuy = 0;
+      group.products.forEach(p => {
+        groupQty += Number(p.qty || p.quantity || 0);
+        groupBuy += Number(p.buy_price || 0) * Number(p.qty || p.quantity || 0);
+      });
+      return {
+        qty: acc.qty + groupQty,
+        buy: acc.buy + groupBuy,
+        total: acc.total + group.total,
+        receive: acc.receive + group.receive,
+        due: acc.due + group.due,
+        profit: acc.profit + group.profit
+      };
+    }, { qty: 0, buy: 0, total: 0, receive: 0, due: 0, profit: 0 });
+  };
+
+  const totals = calculateTotals();
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px' }}>
       <div className="premium-card">
+        <div className="premium-header no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'white', borderBottom: '1px solid #e2e8f0' }}>
+          <h2 className="premium-title" style={{ fontSize: 'var(--fs-16, 16px)', fontWeight: 'bold', margin: '0' }}>{t("All Sales Report")}</h2>
+          <button 
+            onClick={() => navigate(-1)}
+            style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--text-muted)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }}
+          >
+            <ArrowLeft size={14} /> {t("Go Back")}
+          </button>
+        </div>
+
         <div className="premium-body" style={{ background: 'white', padding: '24px' }}>
           <PrintHeader />
-          
-          {/* Header row with Title and Go Back */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h3 style={{ fontSize: 'var(--fs-14, 14px)', fontWeight: 'bold', margin: '0' }}>{t("SALES REPORT")}</h3>
-            <button onClick={() => navigate(-1)} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--text-muted)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }}>
-              <ArrowLeft size={14} /> {t("Go Back")}
-            </button>
-          </div>
 
           {/* Filters Area */}
-          <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: '16px', alignItems: 'end' }}>
+          <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr auto', gap: '16px', alignItems: 'end' }}>
             <div>
-              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '8px' }}>{t("Search By Client")}</label>
-              <select name="client_id" value={filters.client_id} onChange={handleFilterChange} style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }}>
-                <option value="">{t("Select Client")}</option>
-                {clients.map(c => (
-                  <option key={c.id} value={c.id}>{c.name || c.company_name}</option>
+              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '8px' }}>{t('common.search_by_client')}</label>
+              <select 
+                name="client_id"
+                value={filters.client_id}
+                onChange={handleFilterChange}
+                style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }}
+              >
+                <option value="">{t('common.select_client')}</option>
+                {clients.map(client => (
+                  <option key={client.id || client.uuid} value={client.id || client.uuid}>{client.name || client.company_name} - {client.phone}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '8px' }}>{t("Search By Barcode")}</label>
-              <input type="text" name="barcode" value={filters.barcode} onChange={handleFilterChange} placeholder={t("Enter Barcode")} style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }} />
+              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '8px' }}>{t('Search By User / Staff')}</label>
+              <select 
+                name="user_id"
+                value={filters.user_id}
+                onChange={handleFilterChange}
+                style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }}
+              >
+                <option value="">{t('All Users')}</option>
+                {users.map(u => (
+                  <option key={u.id || u.uuid} value={u.id || u.uuid}>{u.full_name || u.username || u.email || 'User'}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '8px' }}>{t("Search By Barcode / Invoice")}</label>
+              <input 
+                type="text"
+                name="barcode"
+                value={filters.barcode}
+                onChange={handleFilterChange}
+                placeholder={t("Barcode or Invoice ID")}
+                style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }}
+              />
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '8px' }}>{t("From Date")}</label>
-              <CustomDatePicker name="from_date" value={filters.from_date} onChange={handleFilterChange} style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }} />
+              <CustomDatePicker 
+                name="from_date"
+                value={filters.from_date}
+                onChange={handleFilterChange}
+                style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }}
+              />
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 'var(--fs-12, 12px)', fontWeight: 600, color: 'var(--label-color)', marginBottom: '8px' }}>{t("To Date")}</label>
-              <CustomDatePicker name="to_date" value={filters.to_date} onChange={handleFilterChange} style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }} />
+              <CustomDatePicker 
+                name="to_date"
+                value={filters.to_date}
+                onChange={handleFilterChange}
+                style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-13, 13px)' }}
+              />
             </div>
             <div>
-              <button onClick={handleClearFilters} style={{ background: '#ef4444', color: 'white', padding: '10px 16px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', height: '40px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
-                {t("Clear")}
+              <button 
+                onClick={handleClearFilters}
+                style={{ background: '#ef4444', color: 'white', padding: '10px 16px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', height: '40px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
+              >
+                <RefreshCcw size={14} /> {t("Clear")}
               </button>
             </div>
           </div>
 
-          {/* Total Sales Bar */}
           <div style={{ background: '#059669', color: 'white', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', marginBottom: '24px', borderRadius: '4px' }}>
             <span>{t("TOTAL SALES")}</span>
-            <span>৳ {totalSalesAmount.toFixed(2)}</span>
+            <span>৳ {totals.total.toFixed(2)}</span>
           </div>
 
-          {/* Controls */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div style={{ fontSize: 'var(--fs-13, 13px)', color: 'var(--text-muted)' }}>
-              {t("Showing")} {reports.length} {t("entries")}
+              {t("Showing")} {groupedReports.length} {t("entries")}
             </div>
             
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 16px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }}>
-                <Printer size={14} /> {t("Print Report")}
+              <button onClick={() => window.print()} style={{ background: 'var(--primary)', color: 'white', padding: '6px 14px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)' }}>
+                <Printer size={14} /> {t("Print")}
               </button>
-              <button onClick={fetchReports} style={{ background: 'var(--info)', color: 'white', padding: '6px 16px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)' }}>
+              <button onClick={fetchReports} style={{ background: 'var(--info)', color: 'white', padding: '6px 14px', border: 'none', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: 'var(--fs-12, 12px)' }}>
                 <RefreshCcw size={14} /> {t("Refresh")}
               </button>
             </div>
           </div>
 
-          {/* Table View */}
+          {/* Table */}
           <div className="table-responsive" style={{ width: '100%', overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
-            <table className="custom-table" style={{ width: '100%', minWidth: '1100px', borderCollapse: 'collapse', fontSize: 'var(--fs-12, 12px)' }}>
+            <table className="custom-table" style={{ width: '100%', fontSize: 'var(--fs-11, 11px)', textAlign: 'center' }}>
               <thead>
-                <tr style={{ background: 'var(--secondary)', color: 'white' }}>
-                  <th style={{ padding: '8px 4px', textAlign: 'center' }}>{t("SL")}</th>
-                  <th style={{ padding: '8px 4px', textAlign: 'center' }}>{t("DATE")}</th>
-                  <th style={{ padding: '8px 4px', textAlign: 'center' }}>{t("CLIENT")}</th>
-                  <th style={{ padding: '8px 4px', textAlign: 'center' }}>{t("PRODUCT")}</th>
-                  <th style={{ padding: '8px 4px', textAlign: 'center' }}>{t("BARCODE")}</th>
-                  <th style={{ padding: '8px 4px', textAlign: 'center' }}>{t("QTY")}</th>
-                  <th style={{ padding: '8px 4px', textAlign: 'right' }}>{t("PRICE")}</th>
-                  <th style={{ padding: '8px 4px', textAlign: 'right' }}>{t("TOTAL")}</th>
-                  <th style={{ padding: '8px 4px', textAlign: 'right' }}>{t("RECEIVE")}</th>
-                  <th style={{ padding: '8px 4px', textAlign: 'right' }}>{t("PROFIT")}</th>
+                <tr style={{ background: '#94a3b8', color: 'white', textTransform: 'uppercase' }}>
+                  <th style={{ width: '40px', padding: '10px' }}>{t("SL ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("ISSUED DATE ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("VOUCHER NO ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("CLIENT ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("PRODUCT ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("BARCODE ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("UNIT ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("QTY ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("SELL PRICE ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("TOTAL ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("RECEIVE ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("DUE ⇅")}</th>
+                  <th style={{ padding: '10px' }}>{t("PROFIT ⇅")}</th>
                 </tr>
               </thead>
               <tbody>
-                {reports.map((row, idx) => (
-                  <tr key={row.id || idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                    <td style={{ padding: '6px 4px', textAlign: 'center' }}>{idx + 1}</td>
-                    <td style={{ padding: '6px 4px', textAlign: 'center' }}>{fmtDate(row.date || row.issued_date)}</td>
-                    <td style={{ padding: '6px 4px', textAlign: 'center' }}>
-                        <div>{(() => {
-                          const c = clients.find(c => String(c.id || c.uuid) === String(row.client_id || row.client));
-                          let n = c?.name || c?.company_name || row.client_name || row.client?.client_name || '-';
-                          return (typeof n === 'string' && n.length === 36 && n.includes('-')) ? 'Unknown Client' : n;
-                        })()}</div>
-                        <div style={{ fontSize: 'var(--fs-9, 9px)', color: '#64748b' }}>{row.client_phone || row.phone || row.client?.phone || row.client?.mobile || row.invoice?.client?.phone || (clients.find(c => String(c.id || c.uuid) === String(row.client_id))?.phone) || (clients.find(c => (c.name || c.company_name) === (row.client_name || row.client))?.phone) || '-'}</div>
-                      </td>
-                    <td style={{ padding: '6px 4px', textAlign: 'center', fontWeight: '500' }}>{row.products || row.product || '-'}</td>
-                    <td style={{ padding: '6px 4px', textAlign: 'center', color: '#64748b' }}>{row.barcode || '-'}</td>
-                    <td style={{ padding: '6px 4px', textAlign: 'center' }}>{row.product_qty ?? row.qty ?? 0}</td>
-                    <td style={{ padding: '6px 4px', textAlign: 'right' }}>৳ {Number(row.product_sale_price || row.price || 0).toFixed(2)}</td>
-                    <td style={{ padding: '6px 4px', textAlign: 'right', fontWeight: 'bold' }}>৳ {Number(row.amount || row.total || 0).toFixed(2)}</td>
-                    <td style={{ padding: '6px 4px', textAlign: 'right', color: '#059669' }}>৳ {Number(row.invoice?.receive_amount || row.receive || 0).toFixed(2)}</td>
-                    <td style={{ padding: '6px 4px', textAlign: 'right', color: '#2563eb', fontWeight: 'bold' }}>৳ {Number(row.profit || 0).toFixed(2)}</td>
-                  </tr>
-                ))}
-                {reports.length === 0 && (
+                {loading ? (
                   <tr>
-                    <td colSpan="10" style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>{t("No sales report records found.")}</td>
+                    <td colSpan="13" style={{ padding: '24px', textAlign: 'center' }}>{t("Loading sales report...")}</td>
                   </tr>
+                ) : groupedReports.length === 0 ? (
+                  <tr>
+                    <td colSpan="13" style={{ padding: '24px', textAlign: 'center' }}>{t("No sales report records found.")}</td>
+                  </tr>
+                ) : (
+                  groupedReports.map((group, idx) => {
+                    const row = group.raw;
+                    return (
+                      <tr key={row.id || idx}>
+                        <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>{idx + 1}</td>
+                        <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>{(() => {
+                          let d = row.date || row.issued_date || row.created_at;
+                          if (!d) return '-';
+                          try {
+                            const dt = new Date(d);
+                            if (isNaN(dt.getTime())) return d;
+                            const pad = n => n < 10 ? '0' + n : n;
+                            const datePart = pad(dt.getDate()) + '-' + pad(dt.getMonth() + 1) + '-' + dt.getFullYear();
+                            let h = dt.getHours();
+                            const m = pad(dt.getMinutes());
+                            const ampm = h >= 12 ? 'PM' : 'AM';
+                            h = h % 12;
+                            h = h ? h : 12;
+                            return (
+                              <div>
+                                <div>{datePart}</div>
+                                <div style={{ fontSize: 'var(--fs-9, 9px)', color: '#64748b' }}>{pad(h)}:{m} {ampm}</div>
+                              </div>
+                            );
+                          } catch(e) { return d; }
+                        })()}</td>
+                        <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>{group.voucher_no}</td>
+                        <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>
+                          <div>{(() => {
+                            let cName = clients.find(c => String(c.id || c.uuid) === String(row.client_id || row.client))?.name || clients.find(c => String(c.id || c.uuid) === String(row.client_id || row.client))?.company_name || row.client_name || row.client?.client_name || row.client || '-';
+                            cName = (typeof cName === 'string' && cName.length === 36 && cName.includes('-')) ? 'Unknown Client' : cName;
+                            const cPhone = row.client_phone || row.phone || row.client?.phone || row.client?.mobile || row.invoice?.client?.phone || (clients.find(c => String(c.id || c.uuid) === String(row.client_id))?.phone) || (clients.find(c => (c.name || c.company_name) === (row.client_name || row.client))?.phone) || '';
+                            const cAddress = row.client_address || row.address || row.client?.address || row.invoice?.client?.address || (clients.find(c => String(c.id || c.uuid) === String(row.client_id))?.address) || (clients.find(c => (c.name || c.company_name) === (row.client_name || row.client))?.address) || '';
+                            
+                            let parts = [];
+                            if (cName && cName !== '-') parts.push(cName);
+                            if (cPhone) parts.push(cPhone);
+                            if (cAddress) parts.push(cAddress);
+                            
+                            return parts.length > 0 ? parts.join(' | ') : '-';
+                          })()}</div>
+                        </td>
+                        
+                        {/* Product Column with Barcode beside name */}
+                        <td style={{ padding: '0', verticalAlign: 'middle' }}>
+                          {group.products.map((p, i) => (
+                            <div key={i} style={{ padding: '8px 4px', borderBottom: i < group.products.length - 1 ? '1px solid #e2e8f0' : 'none' }}>
+                              <span style={{ fontWeight: 600 }}>{p.product_name || p.product || '-'}</span>
+                              {(p.barcode || p.code) && (
+                                <span style={{ marginLeft: '6px', color: '#64748b', fontSize: 'var(--fs-10, 10px)' }}>[{p.barcode || p.code}]</span>
+                              )}
+                            </div>
+                          ))}
+                        </td>
+                        <td style={{ padding: '0', verticalAlign: 'middle' }}>
+                          {group.products.map((p, i) => (
+                            <div key={i} style={{ padding: '8px 4px', borderBottom: i < group.products.length - 1 ? '1px solid #e2e8f0' : 'none' }}>
+                              {p.barcode || p.code || '-'}
+                            </div>
+                          ))}
+                        </td>
+                        <td style={{ padding: '0', verticalAlign: 'middle' }}>
+                          {group.products.map((p, i) => (
+                            <div key={i} style={{ padding: '8px 4px', borderBottom: i < group.products.length - 1 ? '1px solid #e2e8f0' : 'none' }}>
+                              {p.unit_name || p.unit || t("PEACE")}
+                            </div>
+                          ))}
+                        </td>
+                        <td style={{ padding: '0', verticalAlign: 'middle' }}>
+                          {group.products.map((p, i) => (
+                            <div key={i} style={{ padding: '8px 4px', borderBottom: i < group.products.length - 1 ? '1px solid #e2e8f0' : 'none' }}>
+                              {p.qty || p.quantity || 0}
+                            </div>
+                          ))}
+                        </td>
+                        
+                        <td style={{ padding: '0', verticalAlign: 'middle' }}>
+                          {group.products.map((p, i) => (
+                            <div key={i} style={{ padding: '8px 4px', borderBottom: i < group.products.length - 1 ? '1px solid #e2e8f0' : 'none' }}>
+                              {Number(p.price || p.unit_price || 0).toFixed(2)}
+                            </div>
+                          ))}
+                        </td>
+                        
+                        <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>{group.total.toFixed(2)}</td>
+                        <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>{group.receive.toFixed(2)}</td>
+                        <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>{group.due.toFixed(2)}</td>
+                        <td style={{ padding: '8px 4px', verticalAlign: 'middle' }}>{group.profit.toFixed(2)}</td>
+                      </tr>
+                    );
+                  })
                 )}
-                            </tbody>
-              <tfoot>
-                <tr style={{ background: '#f8fafc', fontWeight: 'bold' }}>
-                  <td colSpan="5" style={{ padding: '10px 4px', textAlign: 'right' }}>{t("Total:")}</td>
-                  <td style={{ padding: '10px 4px', textAlign: 'center' }}>{totalQty}</td>
-                  <td style={{ padding: '10px 4px', textAlign: 'right' }}>-</td>
-                  <td style={{ padding: '10px 4px', textAlign: 'right', color: '#059669' }}>৳ {totalSalesAmount.toFixed(2)}</td>
-                  <td style={{ padding: '10px 4px', textAlign: 'right', color: '#059669' }}>৳ {totalReceive.toFixed(2)}</td>
-                  <td style={{ padding: '10px 4px', textAlign: 'right', color: '#2563eb' }}>৳ {totalProfit.toFixed(2)}</td>
+                <tr style={{ fontWeight: 'bold', background: '#f8fafc' }}>
+                  <td colSpan="7" style={{ padding: '10px', textAlign: 'center' }}>{t('common.total')}</td>
+                  <td style={{ padding: '10px' }}>{totals.qty}</td>
+                  <td style={{ padding: '10px' }}>-</td>
+                  <td style={{ padding: '10px' }}>৳{totals.total.toFixed(2)}</td>
+                  <td style={{ padding: '10px' }}>৳{totals.receive.toFixed(2)}</td>
+                  <td style={{ padding: '10px' }}>৳{totals.due.toFixed(2)}</td>
+                  <td style={{ padding: '10px' }}>৳{totals.profit.toFixed(2)}</td>
                 </tr>
-              </tfoot>
+              </tbody>
             </table>
           </div>
         </div>
@@ -208,4 +381,3 @@ const SalesAll = () => {
 };
 
 export default SalesAll;
-

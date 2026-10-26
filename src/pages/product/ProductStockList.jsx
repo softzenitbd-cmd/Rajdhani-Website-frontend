@@ -115,8 +115,8 @@ const ProductStockList = () => {
         const displayDate = rawDate ? formatDisplayDate(rawDate) : formatDisplayDate(new Date());
 
         const stock = parseFloat(item.current_stock ?? item.stock ?? matchedProd?.stock ?? 0);
-        const buy = parseFloat(item.buying_price ?? item.purchase_price ?? matchedProd?.buying_price ?? 0);
-        const sell = parseFloat(item.selling_price ?? item.sales_price ?? matchedProd?.selling_price ?? 0);
+        const buy = parseFloat(item.buying_price ?? item.purchase_price ?? matchedProd?.purchase_price ?? matchedProd?.buying_price ?? matchedProd?.price ?? 0);
+        const sell = parseFloat(item.selling_price ?? item.sales_price ?? matchedProd?.selling_price ?? matchedProd?.sales_price ?? matchedProd?.sale_price ?? matchedProd?.price ?? 0);
 
         return {
           id: item.product_id || item.id || idx + 1,

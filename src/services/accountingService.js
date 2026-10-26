@@ -260,27 +260,51 @@ export const accountingService = {
   // 8. Deposit Report API
   // ==========================================
   getDepositReport: async (filters = {}) => {
-    const params = {};
+    const params = { ...filters };
     if (filters.from_date) params.from_date = filters.from_date;
     if (filters.to_date) params.to_date = filters.to_date;
     if (filters.client_id) params.client_id = filters.client_id;
-    if (filters.category_id) params.category_id = filters.category_id;
+    if (filters.category_id) {
+      params.category_id = filters.category_id;
+      params.category = filters.category_id;
+    }
     if (filters.search) params.search = filters.search;
-    return await apiClient.get(ENDPOINTS.ACCOUNTING_REPORT_DEPOSITS, { params });
+    if (!params.page_size) params.page_size = 5000;
+    try {
+      const res = await apiClient.get(ENDPOINTS.ACCOUNTING_REPORT_DEPOSITS, { params });
+      const list = toList(res);
+      if (list && list.length > 0) return res;
+      // If endpoint returned empty, try receives
+      return await apiClient.get(ENDPOINTS.ACCOUNTING_RECEIVES, { params });
+    } catch (e) {
+      return await apiClient.get(ENDPOINTS.ACCOUNTING_RECEIVES, { params });
+    }
   },
 
   // ==========================================
   // 9. Expense Report API
   // ==========================================
   getExpenseReport: async (filters = {}) => {
-    const params = {};
+    const params = { ...filters };
     if (filters.from_date) params.from_date = filters.from_date;
     if (filters.to_date) params.to_date = filters.to_date;
     if (filters.supplier_id) params.supplier_id = filters.supplier_id;
     if (filters.staff_id) params.staff_id = filters.staff_id;
-    if (filters.category_id) params.category_id = filters.category_id;
+    if (filters.category_id) {
+      params.category_id = filters.category_id;
+      params.category = filters.category_id;
+    }
     if (filters.search) params.search = filters.search;
-    return await apiClient.get(ENDPOINTS.ACCOUNTING_REPORT_EXPENSES, { params });
+    if (!params.page_size) params.page_size = 5000;
+    try {
+      const res = await apiClient.get(ENDPOINTS.ACCOUNTING_REPORT_EXPENSES, { params });
+      const list = toList(res);
+      if (list && list.length > 0) return res;
+      // If endpoint returned empty, try expenses
+      return await apiClient.get(ENDPOINTS.ACCOUNTING_EXPENSES, { params });
+    } catch (e) {
+      return await apiClient.get(ENDPOINTS.ACCOUNTING_EXPENSES, { params });
+    }
   },
 
   // ==========================================

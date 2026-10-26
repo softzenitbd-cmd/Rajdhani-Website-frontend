@@ -903,6 +903,9 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
               <RefreshNavLink to="/staff/payment/create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('Staff Payment')}
               </RefreshNavLink>
+              <RefreshNavLink to="/staff/salary/create" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
+                <span style={{ marginRight: '8px' }}>»</span> {t('All Staff Payment')}
+              </RefreshNavLink>
               <RefreshNavLink to="/staff/payment/report" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('Payment List')}
               </RefreshNavLink>
@@ -915,9 +918,7 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
               <RefreshNavLink to="/staff/list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
                 <span style={{ marginRight: '8px' }}>»</span> {t('Staff Edit')}
               </RefreshNavLink>
-              <RefreshNavLink to="/staff/list" className={({isActive}) => `submenu-item ${isActive ? 'active' : ''}`}>
-                <span style={{ marginRight: '8px' }}>»</span> {t('Staff Delete')}
-              </RefreshNavLink>
+              
             </div>
           )}
         </div>

@@ -6,12 +6,14 @@ import { crmService } from '../../../services/crmService';
 import { useApi } from '../../../hooks/useApi';
 import { ENDPOINTS } from '../../../api/endpoints';
 import { useToast } from '../../../context/ToastContext';
+import { useConfirm } from '../../../context/ConfirmContext';
 import CustomDatePicker from '../../../components/CustomDatePicker';
 
 
 const SupplierChequeSchedule = () => {
   const { t } = useTranslation();
   const toast = useToast();
+  const confirm = useConfirm();
   const navigate = useNavigate();
   
   const [cheques, setCheques] = useState([]);
@@ -110,14 +112,16 @@ const SupplierChequeSchedule = () => {
       toast.error(t("Please select a supplier"));
       return;
     }
-    if (!formData.amount || !formData.bank_name) {
-      toast.error(t("Please fill in all required fields (Amount, Bank Name)"));
+    if (!formData.amount) {
+      toast.error(t("Please enter amount"));
       return;
     }
 
     try {
       const payload = {
         ...formData,
+        bank_name: formData.bank_name || '-',
+        cheque_number: formData.cheque_number || '-',
         amount: parseFloat(formData.amount) || 0
       };
 
@@ -135,7 +139,13 @@ const SupplierChequeSchedule = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm(t("Are you sure you want to delete this cheque?"))) {
+    const ok = await confirm({
+      title: t("Delete Cheque"),
+      message: t("Are you sure you want to delete this cheque?"),
+      confirmText: t("Delete"),
+      confirmColor: "var(--danger, #dc2626)"
+    });
+    if (ok) {
       try {
         await del(`${ENDPOINTS.CRM_SUPPLIER_CHEQUES}${id}/`, t("Cheque deleted"));
         fetchCheques();

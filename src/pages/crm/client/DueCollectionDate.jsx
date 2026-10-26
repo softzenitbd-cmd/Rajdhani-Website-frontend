@@ -266,7 +266,7 @@ const DueCollectionDate = () => {
                 clients.slice(0, entries).map((client, index) => (
                   <tr key={client.id || index} style={{ borderBottom: '1px solid #e2e8f0' }}>
                     <td style={{ textAlign: 'left', padding: '8px 12px' }}>{index + 1}</td>
-                    <td style={{ textAlign: 'left', padding: '8px 12px' }}>Name: {client.name || client.company_name || '-'} | Phone: {client.phone || '-'}</td>
+                    <td style={{ textAlign: 'left', padding: '8px 12px' }}>{client.name || client.company_name || '-'}</td>
                     <td style={{ textAlign: 'left', padding: '8px 12px' }}>{client.address || '-'}</td>
                     <td style={{ textAlign: 'left', padding: '8px 12px' }}>{Number(client.previous_due || 0).toFixed(2)}</td>
                     <td style={{ textAlign: 'left', padding: '8px 12px' }}>{Number(client.sales || 0).toFixed(2)}</td>

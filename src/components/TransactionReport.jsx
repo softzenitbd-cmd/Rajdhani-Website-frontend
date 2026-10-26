@@ -47,7 +47,7 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
     (isDeposit ? accountingService.getIncomeCategories() : accountingService.getExpenseCategories())
       .then((r) => setCategories(toList(r))).catch(() => {});
     if (groupBy === 'client') crmService.getClients({ page_size: 5000 }).then((r) => setParties(toList(r))).catch(() => {});
-    if (groupBy === 'supplier') crmService.getSuppliers().then((r) => setParties(toList(r))).catch(() => {});
+    if (groupBy === 'supplier') crmService.getSuppliers({ page_size: 5000 }).then((r) => setParties(toList(r))).catch(() => {});
 
     crmService.getClients({ page_size: 1000 }).then(r => setAllClients(toList(r))).catch(() => {});
     crmService.getSuppliers({ page_size: 1000 }).then(r => setAllSuppliers(toList(r))).catch(() => {});
@@ -352,7 +352,7 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
                 <label style={lbl}>{groupBy === 'client' ? t("Client") : t("Supplier")}</label>
                 <select value={party} onChange={(e) => setParty(e.target.value)} style={input}>
                   <option value="">{t("All")}</option>
-                  {parties.map((p) => <option key={p.id || p.uuid} value={p.id || p.uuid}>{p.name}</option>)}
+                  {parties.map((p) => <option key={p.id || p.uuid} value={p.id || p.uuid}>{p.name || p.company_name || p.supplier_name}</option>)}
                 </select>
               </div>
             )}

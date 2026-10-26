@@ -165,9 +165,20 @@ const InvoiceCreate = () => {
         const unit =
           item.unit || matchingProd?.unit_name || matchingProd?.unit || "Pcs";
 
+        const barcode =
+          item.barcode ||
+          item.code ||
+          matchingProd?.custom_barcode_no ||
+          matchingProd?.barcode ||
+          matchingProd?.code ||
+          (String(prodId).length === 36
+            ? String(prodId).substring(0, 8).toUpperCase()
+            : prodId);
+
         return {
           id: prodId || `item-${Date.now()}-${Math.random()}`,
           name: name,
+          barcode: barcode,
           stock: stock,
           price: price,
           quantity: qty,
