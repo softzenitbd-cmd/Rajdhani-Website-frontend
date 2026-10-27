@@ -9,6 +9,9 @@ import { ENDPOINTS } from '../../../api/endpoints';
 import { exportToExcel } from '../../../utils/excelExporter';
 import { useTranslation } from 'react-i18next';
 import crmService from '../../../services/crmService';
+import { accountingService } from '../../../services/accountingService';
+import { saleService } from '../../../services/saleService';
+import { toList } from '../../../utils/apiHelpers';
 import CustomDatePicker from '../../../components/CustomDatePicker';
 import Pagination from '../../../components/Pagination';
 
@@ -278,13 +281,88 @@ const ClientList = () => {
       setTotalCount(res.count || fetchedClients.length);
       
       try {
-        const statsRes = await crmService.getClientDueReport();
-        const statsData = statsRes.results || statsRes.data || statsRes || [];
-        console.log("DEBUG STATS:", JSON.stringify(statsData.slice(0, 5)));
+        const [statsRes, receivesRes, salesRes, returnsRes, expensesRes] = await Promise.allSettled([
+          crmService.getClientDueReport({ page_size: 5000 }),
+          accountingService.getReceives({ page_size: 5000 }),
+          saleService.getSalesInvoices({ page_size: 5000 }),
+          saleService.getSalesReturns({ page_size: 5000 }),
+          accountingService.getExpenses({ page_size: 5000 })
+        ]);
         
+        const statsData = statsRes.status === 'fulfilled' ? (statsRes.value?.results || statsRes.value?.data || statsRes.value || []) : [];
+        const rawReceives = receivesRes.status === 'fulfilled' ? toList(receivesRes.value) : [];
+        const rawSales = salesRes.status === 'fulfilled' ? toList(salesRes.value) : [];
+        const rawReturns = returnsRes.status === 'fulfilled' ? toList(returnsRes.value) : [];
+        const rawExpenses = expensesRes.status === 'fulfilled' ? toList(expensesRes.value) : [];
+
+        // Map receives by client ID
+        const clientReceivesMap = new Map();
+        rawReceives.forEach(rec => {
+          const cId = String(rec.client?.id || rec.client_id || rec.client || '');
+          if (cId) {
+            const amt = Number(rec.amount || rec.total || 0);
+            clientReceivesMap.set(cId, (clientReceivesMap.get(cId) || 0) + amt);
+          }
+        });
+
+        // Map sales & invoice payments by client ID
+        const clientSalesMap = new Map();
+        const clientInvPaymentsMap = new Map();
+        rawSales.forEach(inv => {
+          const cId = String(inv.client?.id || inv.client_id || inv.client || '');
+          if (cId) {
+            const billAmt = Number(inv.grand_total || inv.total_amount || inv.total || inv.bill || 0);
+            const recAmt = Number(inv.receive_amount || inv.receiveAmount || inv.paid || 0);
+            clientSalesMap.set(cId, (clientSalesMap.get(cId) || 0) + billAmt);
+            if (recAmt > 0) {
+              clientInvPaymentsMap.set(cId, (clientInvPaymentsMap.get(cId) || 0) + recAmt);
+            }
+          }
+        });
+
+        // Map sales returns by client ID
+        const clientReturnsMap = new Map();
+        rawReturns.forEach(ret => {
+          const cId = String(ret.client?.id || ret.client_id || ret.client || '');
+          if (cId) {
+            const retAmt = Number(ret.grand_total || ret.total_amount || ret.return_amount || ret.total || 0);
+            clientReturnsMap.set(cId, (clientReturnsMap.get(cId) || 0) + retAmt);
+          }
+        });
+
+        // Map money returns (expenses with type Money Return) by client ID
+        const clientMoneyReturnsMap = new Map();
+        rawExpenses.forEach(exp => {
+          const cId = String(exp.client?.id || exp.client_id || exp.client || '');
+          const isMr = /money|refund/i.test(exp.transaction_type || exp.category_name || exp.description || '');
+          if (cId && isMr) {
+            const mrAmt = Number(exp.amount || exp.total || 0);
+            clientMoneyReturnsMap.set(cId, (clientMoneyReturnsMap.get(cId) || 0) + mrAmt);
+          }
+        });
+
         const updatedClients = fetchedClients.map(client => {
-          const clientStats = statsData.find(s => String(s.client_id || s.id || s.uuid) === String(client.id || client.uuid));
-          return { ...client, stats: clientStats || client.stats || {} };
+          const clientIdStr = String(client.id || client.uuid || '');
+          const clientStats = statsData.find(s => {
+            const sId = String(s.client_id || (typeof s.client === 'object' ? s.client?.id : s.client) || s.id || s.uuid || '');
+            return sId && sId === clientIdStr;
+          });
+
+          const accReceive = clientReceivesMap.get(clientIdStr) || 0;
+          const invReceive = clientInvPaymentsMap.get(clientIdStr) || 0;
+          const salesBill = clientSalesMap.get(clientIdStr) || 0;
+          const salesReturn = clientReturnsMap.get(clientIdStr) || 0;
+          const moneyReturn = clientMoneyReturnsMap.get(clientIdStr) || 0;
+
+          return { 
+            ...client, 
+            stats: clientStats || client.stats || {},
+            _accounting_receive: accReceive,
+            _invoice_receive: invReceive,
+            _sales_bill: salesBill,
+            _sales_return: salesReturn,
+            _money_return: moneyReturn
+          };
         });
         setClients(updatedClients);
       } catch (statsErr) {
@@ -450,22 +528,43 @@ const ClientList = () => {
                   const globalIndex = (currentPage - 1) * limit + index + 1;
                   
                   // Calculate amounts for the Details table
-                  // Note: stats.previous_due often contains the CURRENT due from the report API,
-                  // so we bypass stats and read directly from the base client object for the true Opening Balance.
-                  const prevDue = Number(client.opening_balance ?? client.opening_due ?? client.previous_due ?? 0);
-                  const bill = num(client, 'sales', 'sales_amount', 'total_sales', 'bill');
-                  const totalBill = num(client, 'total_bill') || (prevDue + bill);
-                  const receive = num(client, 'collection', 'receive', 'payment', 'paid', 'total_receive', 'amount_received');
-                  const salesReturn = num(client, 'sales_return', 'return_amount');
-                  const moneyReturn = num(client, 'money_return', 'return');
-                  
-                  // The API 'due' field is unreliable (often returns 0), 
-                  // so we must calculate it manually from the visible fields.
-                  const apiDue = num(client, 'due', 'current_due', 'balance', 'total_due', 'due_amount');
-                  const calculatedDue = totalBill - receive - salesReturn + moneyReturn;
-                  
-                  // Use API due if available and non-zero, otherwise fallback to calculated
-                  const finalDue = apiDue !== 0 ? apiDue : calculatedDue;
+                  const apiBill = num(client, 'sales', 'sales_amount', 'total_sales', 'bill');
+                  const directBill = Number(client._sales_bill || 0);
+                  const bill = Math.max(apiBill, directBill);
+
+                  const apiReceive = num(client, 'collection', 'receive', 'payment', 'paid', 'total_receive', 'amount_received');
+                  const directReceive = Number(client._accounting_receive || 0) + Number(client._invoice_receive || 0);
+                  const receive = Math.max(apiReceive, directReceive);
+
+                  const apiSalesReturn = num(client, 'sales_return', 'return_amount');
+                  const directSalesReturn = Number(client._sales_return || 0);
+                  const salesReturn = Math.max(apiSalesReturn, directSalesReturn);
+
+                  const apiMoneyReturn = num(client, 'money_return', 'return');
+                  const directMoneyReturn = Number(client._money_return || 0);
+                  const moneyReturn = Math.max(apiMoneyReturn, directMoneyReturn);
+
+                  // Current due known from API or client record
+                  const currentBalance = Number(client.due ?? client.current_due ?? client.balance ?? client.total_due ?? client.previous_due ?? 0);
+
+                  // True Opening Balance:
+                  // 1) Explicit opening_balance or opening_due if present
+                  // 2) If client.stats has valid previous_due and sales > 0, use stats.previous_due
+                  // 3) Back-calculate opening balance = currentBalance + receive + salesReturn - bill - moneyReturn
+                  const explicitOpening = client.opening_balance ?? client.opening_due ?? client.stats?.opening_balance ?? client.stats?.opening_due;
+                  let prevDue = 0;
+                  if (explicitOpening !== undefined && explicitOpening !== null && explicitOpening !== '') {
+                    prevDue = Number(explicitOpening);
+                  } else if (client.stats && (client.stats.sales !== undefined || client.stats.sales_amount !== undefined) && client.stats.previous_due !== undefined) {
+                    prevDue = Number(client.stats.previous_due);
+                  } else if (receive > 0 || bill > 0 || salesReturn > 0 || moneyReturn > 0) {
+                    prevDue = Math.max(0, currentBalance + receive + salesReturn - bill - moneyReturn);
+                  } else {
+                    prevDue = Number(client.previous_due ?? 0);
+                  }
+
+                  const totalBill = prevDue + bill;
+                  const finalDue = currentBalance !== 0 ? currentBalance : Math.max(0, totalBill - receive - salesReturn + moneyReturn);
 
                   return (
                   <tr key={client.id || client.uuid || index}>

@@ -358,8 +358,8 @@ const SalesReturnList = () => {
 
                 const dateStr = fmtDate(ret.created_at || ret.date) || '-';
 
-                const rawInvId = String(ret.invoice_no || ret.return_invoice_id || ret.invoiceNo || (ret.id ? `INV-${ret.id}` : 'INV-163873'));
-                const cleanInvId = rawInvId.replace(/^Invoice ID:\s*/i, '').replace(/^SR-?/i, '');
+                const rawInvId = String(ret.invoice_no || ret.return_invoice_id || ret.invoiceNo || ret.invoice_id || ret.id || '');
+                const cleanInvId = rawInvId.replace(/^Invoice ID:\s*/i, '').replace(/^INV-?/i, '').replace(/^SR-?/i, '') || (ret.id ? String(ret.id) : '-');
 
                 return (
                   <tr key={ret.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-12, 12px)' }}>

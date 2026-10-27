@@ -135,9 +135,10 @@ const InvoiceList = () => {
 
   const handleDeleteInvoice = async (inv) => {
     const targetId = typeof inv === 'object' ? inv.id : inv;
-    const displayNo = typeof inv === 'object' 
-      ? (inv.invoice_id || inv.invoiceNo || (inv.id && !String(inv.id).includes('-') ? inv.id : `INV-${String(inv.id).slice(0, 6)}`)) 
-      : (inv && !String(inv).includes('-') ? inv : `INV-${String(inv).slice(0, 6)}`);
+    const rawNo = typeof inv === 'object' 
+      ? (inv.invoice_id || inv.invoiceNo || inv.id || '') 
+      : (inv || '');
+    const displayNo = String(rawNo).replace(/^Invoice ID:\s*/i, '').replace(/^INV-?/i, '') || targetId;
 
     const isConfirmed = await confirm({
       title: t("Delete Invoice"),
@@ -357,8 +358,8 @@ const InvoiceList = () => {
                 const formattedDate = fmtDate(inv.created_at || inv.date || inv.invoice_date) || '-';
                 const formattedTime = inv.created_at ? formatTime(inv.created_at) : (inv.date && inv.date.includes('T') ? formatTime(inv.date) : '');
 
-                const rawInvId = String(inv.invoice_id || inv.invoiceNo || (inv.id ? `INV-${inv.id}` : 'INV-0054'));
-                const cleanInvId = rawInvId.replace(/^Invoice ID:\s*/i, '').replace(/^INV-?/i, '');
+                const rawInvId = String(inv.invoice_id || inv.invoiceNo || inv.id || '');
+                const cleanInvId = rawInvId.replace(/^Invoice ID:\s*/i, '').replace(/^INV-?/i, '') || (inv.id ? String(inv.id) : '-');
 
                 return (
                   <tr key={inv.id || index} style={{ background: 'white', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--fs-12, 12px)' }}>
@@ -478,7 +479,7 @@ const InvoiceList = () => {
                         <tbody>
                           <tr>
                             <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>কাস্টমার আইডি:- {selectedInvoice.client_id || (clientObj ? clientObj.id : '')}</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>ইনভয়েস আইডি:- {selectedInvoice.invoice_id || selectedInvoice.invoiceNo || selectedInvoice.id}</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>ইনভয়েস আইডি:- {String(selectedInvoice.invoice_id || selectedInvoice.invoiceNo || selectedInvoice.id || '').replace(/^Invoice ID:\s*/i, '').replace(/^INV-?/i, '')}</td>
                           </tr>
                           <tr>
                             <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>কাস্টমার: {clientDisplay}</td>

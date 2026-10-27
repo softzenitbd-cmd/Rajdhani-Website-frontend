@@ -70,6 +70,9 @@ const ClientEdit = () => {
       phone: formData.phone,
       address: formData.address || "",
       previous_due: formData.previousDue || "0.00",
+      opening_balance: formData.previousDue || "0.00",
+      opening_due: formData.previousDue || "0.00",
+      due: formData.previousDue || "0.00",
       group: formData.group
     };
     

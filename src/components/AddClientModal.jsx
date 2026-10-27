@@ -260,6 +260,8 @@ const AddClientModal = ({ isOpen, onClose, onSuccess, isLoan = false }) => {
         phone_optional: formData.secondary_phone || '',
         email: formData.email || '',
         previous_due: formData.previous_due ? Number(formData.previous_due).toFixed(2) : '0.00',
+        opening_balance: formData.previous_due ? Number(formData.previous_due).toFixed(2) : '0.00',
+        opening_due: formData.previous_due ? Number(formData.previous_due).toFixed(2) : '0.00',
         due: formData.previous_due ? Number(formData.previous_due).toFixed(2) : '0.00',
         group: formData.group || null
       };

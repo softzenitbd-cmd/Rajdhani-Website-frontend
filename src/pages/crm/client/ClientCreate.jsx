@@ -45,7 +45,7 @@ const ClientCreate = () => {
       return;
     }
     
-    // API Body format: { name, phone, address, previous_due, group }
+    // API Body format: { name, phone, address, previous_due, opening_balance, due, group }
     const payload = {
       name: formData.clientName,
       phone: formData.phone,
@@ -53,6 +53,9 @@ const ClientCreate = () => {
       reference: formData.reference || "",
       address: formData.address || "",
       previous_due: formData.previousDue || "0.00",
+      opening_balance: formData.previousDue || "0.00",
+      opening_due: formData.previousDue || "0.00",
+      due: formData.previousDue || "0.00",
       group: formData.group // assuming formData.group is holding the group_uuid now
     };
     

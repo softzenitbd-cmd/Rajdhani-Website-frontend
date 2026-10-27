@@ -146,16 +146,40 @@ const ClientStatement = () => {
         const receives = toList(receivesRes?.status === 'fulfilled' ? receivesRes.value : []);
         
         invoices.forEach(inv => {
+          const invIdClean = String(inv.invoice_no || inv.invoice_id || inv.id || '').replace(/^Invoice ID:\s*/i, '').replace(/^INV-?/i, '');
+          const billAmt = Number(inv.grand_total || inv.total_amount || inv.total || inv.bill || 0);
+          const recAmt = Number(inv.receive_amount || inv.receiveAmount || inv.paid || 0);
+
           rawList.push({
             date: inv.date || inv.created_at,
             type: 'Sale Invoice',
-            reference: `Invoice: ${inv.invoice_no || inv.invoice_id || inv.id}`,
-            debit: Number(inv.grand_total || inv.total_amount || inv.total || inv.bill || 0),
+            reference: `Invoice: ${invIdClean}`,
+            debit: billAmt,
             credit: 0,
             invoice: inv.id,
             id: `inv-${inv.id}`,
-            description: `Sale Invoice ${inv.invoice_no || inv.id}`
+            description: `Sale Invoice ${invIdClean}`
           });
+
+          if (recAmt > 0) {
+            const alreadyHasReceive = receives.some(rec => 
+              String(rec.reference || '').includes(String(inv.id)) ||
+              (invIdClean && String(rec.reference || '').includes(invIdClean)) ||
+              String(rec.invoice || '') === String(inv.id)
+            );
+            if (!alreadyHasReceive) {
+              rawList.push({
+                date: inv.date || inv.created_at,
+                type: 'Receive',
+                reference: `Receipt: ${invIdClean}`,
+                debit: 0,
+                credit: recAmt,
+                receive: recAmt,
+                id: `rec-inv-${inv.id}`,
+                description: `Invoice Payment ${invIdClean}`
+              });
+            }
+          }
         });
         
         returns.forEach(ret => {
@@ -185,6 +209,69 @@ const ClientStatement = () => {
         });
         
         rawList.sort((a, b) => new Date(a.date) - new Date(b.date));
+      }
+
+      // Always inject invoice payments if backend ledger missed them
+      if (f.client && invoices.length > 0) {
+        invoices.forEach(inv => {
+          const invIdClean = String(inv.invoice_no || inv.invoice_id || inv.id || '').replace(/^Invoice ID:\s*/i, '').replace(/^INV-?/i, '');
+          const recAmt = Number(inv.receive_amount || inv.receiveAmount || inv.paid || 0);
+
+          if (recAmt > 0) {
+            const alreadyHasReceive = rawList.some(r => {
+              const rRef = String(r.reference || r.description || '');
+              const rType = String(r.type || r.transaction_type || '').toLowerCase();
+              return (
+                (rType.includes('receive') || rType.includes('deposit') || rType.includes('receipt') || rType.includes('payment')) &&
+                (rRef.includes(String(inv.id)) || (invIdClean && rRef.includes(invIdClean)) || String(r.invoice || '') === String(inv.id) || String(r.id || '') === `rec-inv-${inv.id}`)
+              );
+            });
+
+            if (!alreadyHasReceive) {
+              rawList.push({
+                date: inv.date || inv.created_at,
+                type: 'Receive',
+                reference: `Receipt: ${invIdClean}`,
+                debit: 0,
+                credit: recAmt,
+                receive: recAmt,
+                id: `rec-inv-${inv.id}`,
+                description: `Invoice Payment ${invIdClean}`
+              });
+            }
+          }
+        });
+      }
+
+      // Always inject sales returns if backend ledger missed them
+      if (f.client && returns.length > 0) {
+        returns.forEach(ret => {
+          const retId = String(ret.return_no || ret.id || '');
+          const retAmt = Number(ret.total_amount || ret.return_amount || ret.grand_total || ret.total || 0);
+          if (retAmt > 0) {
+            const alreadyHasReturn = rawList.some(r => {
+              const rRef = String(r.reference || r.description || '');
+              const rType = String(r.type || r.transaction_type || '').toLowerCase();
+              return (
+                rType.includes('return') && !rType.includes('money') &&
+                (rRef.includes(String(ret.id)) || (retId && rRef.includes(retId)) || String(r.id || '') === `ret-${ret.id}`)
+              );
+            });
+            if (!alreadyHasReturn) {
+              rawList.push({
+                date: ret.date || ret.created_at,
+                type: 'Sales Return',
+                reference: `Return: ${ret.return_no || ret.id}`,
+                debit: 0,
+                credit: retAmt,
+                sales_return: retAmt,
+                invoice: ret.invoice,
+                id: `ret-${ret.id}`,
+                description: `Sales Return ${ret.return_no || ret.id}`
+              });
+            }
+          }
+        });
       }
 
       // Always inject expenses (Money Returns) because backend ledger might miss them
@@ -249,7 +336,8 @@ const ClientStatement = () => {
         let cleanDescription = r.description || r.reference || '-';
 
         if (matchedInvoice) {
-          const invNo = matchedInvoice.invoice_no || matchedInvoice.invoice_id || matchedInvoice.voucher || (matchedInvoice.id ? `INV-${String(matchedInvoice.id).replace(/\D/g, '').padEnd(6, '0').slice(0, 6)}` : '');
+          const rawInvNo = matchedInvoice.invoice_no || matchedInvoice.invoice_id || matchedInvoice.voucher || (matchedInvoice.id ? String(matchedInvoice.id).replace(/\D/g, '').padEnd(6, '0').slice(0, 6) : '');
+          const invNo = String(rawInvNo).replace(/^Invoice ID:\s*/i, '').replace(/^INV-?/i, '');
           if (invNo) cleanDescription = `Invoice: ${invNo}`;
 
           const rawItems = Array.isArray(matchedInvoice.items) && matchedInvoice.items.length > 0

@@ -37,6 +37,7 @@ const InvoiceCreate = () => {
   const [incomeCategories, setIncomeCategories] = useState([]);
   const [items, setItems] = useState([]);
   const [loadingPrereqs, setLoadingPrereqs] = useState(true);
+  const [clientLiveDue, setClientLiveDue] = useState(null);
 
   const [formData, setFormData] = useState({
     clientId: "",
@@ -501,9 +502,76 @@ const InvoiceCreate = () => {
         String(selectedClientObj.name || selectedClientObj.company_name || ""),
       )
     : false;
+  useEffect(() => {
+    let isCancelled = false;
+    if (!formData.clientId) {
+      setClientLiveDue(null);
+      return;
+    }
+    const client = (clients || []).find(
+      (c) => String(c.id) === String(formData.clientId)
+    );
+    const isDef = client
+      ? /c\.?\s*customer|c\.?\s*castomer|c\.?\s*coustomer|^c\.|default/i.test(
+          String(client.name || client.company_name || "")
+        )
+      : false;
+
+    if (isDef) {
+      setClientLiveDue(0);
+      return;
+    }
+
+    setClientLiveDue(
+      Number(
+        client?.due ?? client?.previous_due ?? client?.opening_balance ?? 0
+      )
+    );
+
+    crmService
+      .getClientDueReport({ client_id: formData.clientId })
+      .then((res) => {
+        if (isCancelled) return;
+        const list = Array.isArray(res) ? res : res?.results || [];
+        const found = list.find(
+          (s) =>
+            String(s.client_id || s.id || s.uuid) === String(formData.clientId)
+        );
+        if (found && found.due !== undefined) {
+          setClientLiveDue(Number(found.due));
+        } else if (
+          found &&
+          (found.sales_amount !== undefined || found.previous_due !== undefined)
+        ) {
+          const prev = Number(
+            found.previous_due ||
+              client?.previous_due ||
+              client?.opening_balance ||
+              0
+          );
+          const sales = Number(found.sales_amount || found.sales || 0);
+          const col = Number(found.collection || found.receive || 0);
+          const ret = Number(found.return_amount || found.sales_return || 0);
+          setClientLiveDue(Math.max(0, prev + sales - col - ret));
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [formData.clientId, clients]);
+
   const dueAmount =
     selectedClientObj && !isDefaultClient
-      ? Number(selectedClientObj.due || selectedClientObj.previous_due || 0)
+      ? clientLiveDue !== null
+        ? clientLiveDue
+        : Number(
+            selectedClientObj.due ||
+              selectedClientObj.previous_due ||
+              selectedClientObj.opening_balance ||
+              0
+          )
       : 0;
 
   // Calculations
@@ -584,13 +652,21 @@ const InvoiceCreate = () => {
         (a) => String(a.id) === String(formData.cashSellAcc),
       );
 
+      const rawSavedId =
+        result?.invoice_id ||
+        result?.data?.invoice_id ||
+        result?.id ||
+        result?.data?.id ||
+        id ||
+        String(Date.now()).slice(-6);
+      const cleanSavedId = String(rawSavedId)
+        .replace(/^Invoice ID:\s*/i, "")
+        .replace(/^INV-?/i, "");
+
       const savedInvoiceObj = {
         ...payload,
-        id: result?.id || result?.data?.id || id || `INV-${Date.now()}`,
-        invoice_id:
-          result?.invoice_id ||
-          result?.data?.invoice_id ||
-          `INV-${id || Date.now()}`,
+        id: result?.id || result?.data?.id || id || cleanSavedId,
+        invoice_id: cleanSavedId,
         client_name: clientObj
           ? clientObj.name || clientObj.company_name
           : formData.clientId === "C.CASTOMER"
@@ -601,6 +677,21 @@ const InvoiceCreate = () => {
           : formData.cashSellAcc || "CASH SELL",
         date: formData.date,
       };
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("rg:lookup-invalidate", { detail: "clients" })
+        );
+      }
+      setClients((prevClients) =>
+        prevClients.map((c) => {
+          if (String(c.id) === String(formData.clientId)) {
+            return { ...c, due: totalDue, previous_due: totalDue };
+          }
+          return c;
+        })
+      );
+      setClientLiveDue(totalDue);
 
       if (status === 0) {
         toast.success(
@@ -1775,9 +1866,14 @@ const InvoiceCreate = () => {
                             }}
                           >
                             ইনভয়েস আইডি:-{" "}
-                            {selectedInvoice.invoice_id ||
+                            {String(
+                              selectedInvoice.invoice_id ||
                               selectedInvoice.invoiceNo ||
-                              selectedInvoice.id}
+                              selectedInvoice.id ||
+                              ""
+                            )
+                              .replace(/^Invoice ID:\s*/i, "")
+                              .replace(/^INV-?/i, "")}
                           </td>
                         </tr>
                         <tr>
