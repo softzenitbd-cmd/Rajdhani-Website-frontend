@@ -161,6 +161,8 @@ export const crmService = {
     if (filters.client_id) params.client_id = filters.client_id;
     if (filters.group_id) params.group_id = filters.group_id;
     if (filters.has_due) params.has_due = filters.has_due;
+    if (filters.page) params.page = filters.page;
+    if (filters.page_size) params.page_size = filters.page_size;
     return await apiClient.get(ENDPOINTS.CRM_REPORT_CLIENT_DUE, { params });
   },
 

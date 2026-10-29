@@ -12,6 +12,8 @@ export const purchaseService = {
     if (filters.from_date) params.from_date = filters.from_date;
     if (filters.to_date) params.to_date = filters.to_date;
     if (filters.status !== undefined) params.status = filters.status;
+    if (filters.page) params.page = filters.page;
+    if (filters.page_size) params.page_size = filters.page_size;
     return await apiClient.get(ENDPOINTS.PURCHASE_INVOICES, { params });
   },
 
@@ -55,6 +57,8 @@ export const purchaseService = {
     if (filters.supplier) params.supplier = filters.supplier;
     if (filters.from_date) params.from_date = filters.from_date;
     if (filters.to_date) params.to_date = filters.to_date;
+    if (filters.page) params.page = filters.page;
+    if (filters.page_size) params.page_size = filters.page_size;
     return await apiClient.get(ENDPOINTS.PURCHASE_RETURNS, { params });
   },
 

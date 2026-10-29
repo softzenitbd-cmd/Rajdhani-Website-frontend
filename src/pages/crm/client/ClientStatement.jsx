@@ -496,11 +496,22 @@ const ClientStatement = () => {
     }
   };
 
+  const statementSummary = summary?.summary || summary || {};
+  const summaryAmount = (...fields) => {
+    for (const field of fields) {
+      const value = Number(statementSummary[field]);
+      if (statementSummary[field] !== undefined && statementSummary[field] !== null && statementSummary[field] !== '' && Number.isFinite(value)) {
+        return value;
+      }
+    }
+    return null;
+  };
+
   // Determine client opening balance (previous due)
   const clientOpeningDue = Number(
-    (filters.from_date && summary?.opening_balance !== undefined)
-      ? summary.opening_balance
-      : (selectedClient?.opening_balance ?? selectedClient?.opening_due ?? selectedClient?.previous_due ?? summary?.opening_balance ?? 0)
+    (filters.from_date && summaryAmount('opening_balance') !== null)
+      ? summaryAmount('opening_balance')
+      : (summaryAmount('previous_due', 'opening_balance') ?? selectedClient?.opening_balance ?? selectedClient?.opening_due ?? selectedClient?.previous_due ?? 0)
   );
   const trueOpeningBalance = clientOpeningDue;
 
@@ -544,8 +555,15 @@ const ClientStatement = () => {
     ];
   }
 
-  const totals = computed.reduce((a, r) => ({ bill: a.bill + r._bill, sr: a.sr + r._salesReturn, rec: a.rec + r._receive, mr: a.mr + r._moneyReturn, lc: a.lc + r._labourCost }), { bill: 0, sr: 0, rec: 0, mr: 0, lc: 0 });
-  const closing = computed.length ? computed[computed.length - 1]._balance : Number(summary?.closing_balance || summary?.due || 0);
+  const rowTotals = computed.reduce((a, r) => ({ bill: a.bill + r._bill, sr: a.sr + r._salesReturn, rec: a.rec + r._receive, mr: a.mr + r._moneyReturn, lc: a.lc + r._labourCost }), { bill: 0, sr: 0, rec: 0, mr: 0, lc: 0 });
+  const totals = {
+    bill: summaryAmount('sales_amount') ?? rowTotals.bill,
+    sr: summaryAmount('return_amount') ?? rowTotals.sr,
+    rec: summaryAmount('collection') ?? rowTotals.rec,
+    mr: summaryAmount('money_return') ?? rowTotals.mr,
+    lc: rowTotals.lc,
+  };
+  const closing = summaryAmount('due') ?? (computed.length ? computed[computed.length - 1]._balance : Number(summary?.closing_balance || 0));
 
   const th = { padding: '10px 8px', fontSize: 'var(--fs-11, 11px)', textAlign: 'center', border: '1px solid #cbd5e1', background: '#e2e8f0', color: 'black', fontWeight: 'bold' };
   const td = { textAlign: 'center', border: '1px solid #e2e8f0', padding: '0', fontSize: 'var(--fs-12, 12px)', color: 'black' };
@@ -566,7 +584,7 @@ const ClientStatement = () => {
                 Name : {selectedClient.name} {selectedClient.phone ? `// ${selectedClient.phone}` : ''}<br/>
                 {selectedClient.address ? <>Address : {selectedClient.address}<br/></> : ''}
                 {selectedClient.phone ? <>Contact No : {selectedClient.phone}<br/></> : ''}
-                <div style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', marginTop: '4px', color: 'black' }}>Due : {money(selectedClient.due ?? selectedClient.current_balance ?? closing)}</div>
+                <div style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', marginTop: '4px', color: 'black' }}>Due : {money(summaryAmount('due') ?? selectedClient.due ?? selectedClient.current_balance ?? closing)}</div>
               </>
             ) : (
               <>Name : -</>

@@ -158,24 +158,27 @@ const CollectionDateModal = ({ isOpen, onClose, client, onUpdate }) => {
   );
 };
 
-const num = (obj, ...keys) => {
+const numOrNull = (obj, ...keys) => {
   for (const k of keys) {
-    if (obj.stats && obj.stats[k] !== undefined && obj.stats[k] !== null && obj.stats[k] !== '') {
-      const n = Number(obj.stats[k]);
-      if (!isNaN(n)) return n;
+    const statsValue = obj.stats?.[k];
+    if (statsValue !== undefined && statsValue !== null && statsValue !== '') {
+      const value = Number(statsValue);
+      if (Number.isFinite(value)) return value;
     }
-    if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') {
-      const n = Number(obj[k]);
-      if (!isNaN(n)) return n;
+    const value = obj[k];
+    if (value !== undefined && value !== null && value !== '') {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed)) return parsed;
     }
   }
-  return 0;
+  return null;
 };
 
 const ClientList = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const confirm = useConfirm();
+  const toast = useToast();
   
   const [activeAction, setActiveAction] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -281,85 +284,255 @@ const ClientList = () => {
       setTotalCount(res.count || fetchedClients.length);
       
       try {
-        const [statsRes, receivesRes, salesRes, returnsRes, expensesRes] = await Promise.allSettled([
+        const [statsRes, receivesRes, returnsRes, expensesRes] = await Promise.allSettled([
           crmService.getClientDueReport({ page_size: 5000 }),
           accountingService.getReceives({ page_size: 5000 }),
-          saleService.getSalesInvoices({ page_size: 5000 }),
           saleService.getSalesReturns({ page_size: 5000 }),
           accountingService.getExpenses({ page_size: 5000 })
         ]);
         
-        const statsData = statsRes.status === 'fulfilled' ? (statsRes.value?.results || statsRes.value?.data || statsRes.value || []) : [];
+        const statsData = statsRes.status === 'fulfilled' ? toList(statsRes.value) : [];
         const rawReceives = receivesRes.status === 'fulfilled' ? toList(receivesRes.value) : [];
-        const rawSales = salesRes.status === 'fulfilled' ? toList(salesRes.value) : [];
         const rawReturns = returnsRes.status === 'fulfilled' ? toList(returnsRes.value) : [];
         const rawExpenses = expensesRes.status === 'fulfilled' ? toList(expensesRes.value) : [];
+
+        const relationKeys = (ref) => {
+          const ids = new Set();
+          const names = new Set();
+          const phones = new Set();
+          const addId = (value) => {
+            if (value !== undefined && value !== null && value !== '') ids.add(`id:${String(value).trim()}`);
+          };
+          const addName = (value) => {
+            if (!value) return;
+            const text = String(value).trim();
+            if (!text) return;
+            names.add(`name:${text.toLocaleLowerCase()}`);
+            const labeledName = text.match(/(?:name|client)\s*:\s*([^|,]+)/i)?.[1];
+            if (labeledName) names.add(`name:${labeledName.trim().toLocaleLowerCase()}`);
+            if (text.includes('|')) names.add(`name:${text.split('|')[0].trim().toLocaleLowerCase()}`);
+            const phone = text.match(/(?:\+?\d[\d\s()-]{7,}\d)/)?.[0].replace(/\D/g, '');
+            if (phone) phones.add(`phone:${phone}`);
+          };
+          const addPhone = (value) => {
+            const phone = String(value || '').replace(/\D/g, '');
+            if (phone.length >= 8) phones.add(`phone:${phone}`);
+          };
+
+          if (ref && typeof ref === 'object') {
+            ['id', 'uuid', 'pk', 'client_id', 'clientId'].forEach((key) => addId(ref[key]));
+            ['name', 'full_name', 'company_name', 'client_name'].forEach((key) => addName(ref[key]));
+            ['phone', 'mobile', 'phone_number', 'mobile_number', 'number'].forEach((key) => addPhone(ref[key]));
+            if (ref.details && typeof ref.details === 'object') {
+              addId(ref.details.id);
+              addName(ref.details.name);
+              addPhone(ref.details.phone);
+            }
+          } else if (ref !== undefined && ref !== null && ref !== '') {
+            addId(ref);
+            addName(ref);
+          }
+          return { ids, names, phones };
+        };
+
+        const clientIdentity = (client) => {
+          const { ids, names, phones } = relationKeys(client);
+          return ids.size
+            ? `client:${ids.values().next().value.slice(3)}`
+            : phones.size
+              ? `client:${phones.values().next().value}`
+            : names.size
+              ? `client:${names.values().next().value}`
+              : null;
+        };
+
+        const clientAliases = new Map();
+        const ambiguousAliases = new Set();
+        fetchedClients.forEach((client) => {
+          const identity = clientIdentity(client);
+          if (!identity) return;
+          const { ids, names, phones } = relationKeys(client);
+          [...ids, ...names, ...phones].forEach((alias) => {
+            if (ambiguousAliases.has(alias)) return;
+            const existing = clientAliases.get(alias);
+            if (existing && existing !== identity) {
+              clientAliases.delete(alias);
+              ambiguousAliases.add(alias);
+            } else {
+              clientAliases.set(alias, identity);
+            }
+          });
+        });
+
+        const identityForRefs = (refs) => {
+          const relatedRefs = Array.isArray(refs) ? refs : [refs];
+          const relations = relatedRefs.map(relationKeys);
+          const idMatches = relations.flatMap(({ ids }) => [...ids])
+            .map((alias) => clientAliases.get(alias))
+            .filter(Boolean);
+          if (idMatches.length) return idMatches[0];
+
+          const phoneMatches = relations.flatMap(({ phones }) => [...phones])
+            .map((alias) => clientAliases.get(alias))
+            .filter(Boolean);
+          if (phoneMatches.length) return phoneMatches[0];
+
+          const nameMatches = new Set(relations.flatMap(({ names }) => [...names])
+            .map((alias) => clientAliases.get(alias))
+            .filter(Boolean));
+          return nameMatches.size === 1 ? nameMatches.values().next().value : null;
+        };
+
+        const recordAmt = (map, refs, value) => {
+          const amt = Number(value);
+          if (!Number.isFinite(amt) || amt === 0) return;
+          const identity = identityForRefs(refs);
+          if (identity) map.set(identity, (map.get(identity) || 0) + amt);
+        };
+
+        const amountOf = (record, ...fields) => {
+          for (const field of fields) {
+            const value = Number(record[field]);
+            if (Number.isFinite(value) && value !== 0) return value;
+          }
+          return 0;
+        };
+
+        const amountForClient = (map, client) => {
+          const identity = identityForRefs(client);
+          return identity ? map.get(identity) || 0 : 0;
+        };
+
+        const statsForClient = (client) => {
+          const clientId = String(client.id || client.uuid || '');
+          const clientUuid = client.uuid ? String(client.uuid) : '';
+          const exactMatch = statsData.find((stats) => {
+            const statsId = String(
+              stats.client_id ||
+              (typeof stats.client === 'object' ? (stats.client?.id || stats.client?.uuid) : stats.client) ||
+              stats.id ||
+              stats.uuid ||
+              ''
+            );
+            return statsId && (statsId === clientId || (clientUuid && statsId === clientUuid));
+          });
+          if (exactMatch) return exactMatch;
+
+          const clientIdentityKey = clientIdentity(client);
+          if (!clientIdentityKey) return null;
+          return statsData.find((stats) => identityForRefs([
+            stats.client_id,
+            stats.client,
+            stats.client_name,
+            stats.name,
+            stats.phone,
+          ]) === clientIdentityKey);
+        };
 
         // Map receives by client ID
         const clientReceivesMap = new Map();
         rawReceives.forEach(rec => {
-          const cId = String(rec.client?.id || rec.client_id || rec.client || '');
-          if (cId) {
-            const amt = Number(rec.amount || rec.total || 0);
-            clientReceivesMap.set(cId, (clientReceivesMap.get(cId) || 0) + amt);
-          }
+          const amt = Number(rec.amount || rec.total || 0);
+          recordAmt(clientReceivesMap, rec.client || rec.client_id, amt);
         });
 
-        // Map sales & invoice payments by client ID
-        const clientSalesMap = new Map();
-        const clientInvPaymentsMap = new Map();
-        rawSales.forEach(inv => {
-          const cId = String(inv.client?.id || inv.client_id || inv.client || '');
-          if (cId) {
-            const billAmt = Number(inv.grand_total || inv.total_amount || inv.total || inv.bill || 0);
-            const recAmt = Number(inv.receive_amount || inv.receiveAmount || inv.paid || 0);
-            clientSalesMap.set(cId, (clientSalesMap.get(cId) || 0) + billAmt);
-            if (recAmt > 0) {
-              clientInvPaymentsMap.set(cId, (clientInvPaymentsMap.get(cId) || 0) + recAmt);
+        // Use the same client ledger as Client Statement; the invoice list omits these invoice totals.
+        const clientLedgerMap = new Map();
+        for (let i = 0; i < fetchedClients.length; i += 5) {
+          const batch = fetchedClients.slice(i, i + 5);
+          const summaryAmountFrom = (summary, ...fields) => {
+            for (const field of fields) {
+              const value = Number(summary[field]);
+              if (summary[field] !== undefined && summary[field] !== null && summary[field] !== '' && Number.isFinite(value)) {
+                return value;
+              }
             }
-          }
-        });
+            return null;
+          };
+
+          const ledgerResults = await Promise.allSettled(batch.map(async (client) => {
+            const clientId = client.id || client.uuid;
+            if (!clientId) return { client, rows: [], summary: {} };
+            const response = await accountingService.getClientLedger(clientId, { page_size: 5000 });
+            const rows = toList(response);
+            const ledgerRows = rows.length ? rows : toList(response?.ledger);
+            const summary = response?.summary || response?.data?.summary || {};
+            return { client, rows: ledgerRows, summary };
+          }));
+
+          ledgerResults.forEach((result, index) => {
+            if (result.status !== 'fulfilled') {
+              console.warn('Failed to load client ledger:', batch[index]?.id || batch[index]?.uuid, result.reason);
+              return;
+            }
+
+            const { client, rows, summary } = result.value;
+            const rowTotals = rows.reduce((sum, row) => {
+              const type = String(row.type || row.transaction_type || '').toLowerCase();
+              const isMoneyReturn = /money|refund/.test(type);
+              const isSalesReturn = /return/.test(type) && !isMoneyReturn;
+              if (type.includes('sale invoice')) {
+                sum.bill += amountOf(row, 'bill', 'grand_total', 'total', 'debit');
+              } else if (isMoneyReturn) {
+                sum.moneyReturn += amountOf(row, 'money_return', 'debit', 'amount', 'total');
+              } else if (isSalesReturn) {
+                sum.salesReturn += amountOf(row, 'sales_return', 'return_amount', 'credit', 'total');
+              } else {
+                sum.receive += amountOf(row, 'receive', 'payment', 'amount_received', 'credit');
+              }
+              return sum;
+            }, { bill: 0, receive: 0, salesReturn: 0, moneyReturn: 0 });
+            const totals = {
+              previousDue: summaryAmountFrom(summary, 'previous_due'),
+              bill: summaryAmountFrom(summary, 'sales_amount') ?? rowTotals.bill,
+              totalBill: summaryAmountFrom(summary, 'total_bill'),
+              receive: summaryAmountFrom(summary, 'collection') ?? rowTotals.receive,
+              salesReturn: summaryAmountFrom(summary, 'return_amount') ?? rowTotals.salesReturn,
+              moneyReturn: summaryAmountFrom(summary, 'money_return') ?? rowTotals.moneyReturn,
+              due: summaryAmountFrom(summary, 'due'),
+            };
+
+            const clientKey = String(client.id || client.uuid || '');
+            if (clientKey && (rows.length || Object.keys(summary).length)) {
+              clientLedgerMap.set(clientKey, totals);
+            }
+          });
+        }
 
         // Map sales returns by client ID
         const clientReturnsMap = new Map();
         rawReturns.forEach(ret => {
-          const cId = String(ret.client?.id || ret.client_id || ret.client || '');
-          if (cId) {
-            const retAmt = Number(ret.grand_total || ret.total_amount || ret.return_amount || ret.total || 0);
-            clientReturnsMap.set(cId, (clientReturnsMap.get(cId) || 0) + retAmt);
-          }
+          const retAmt = Number(ret.grand_total || ret.total_amount || ret.return_amount || ret.total || 0);
+          recordAmt(clientReturnsMap, ret.client || ret.client_id, retAmt);
         });
 
         // Map money returns (expenses with type Money Return) by client ID
         const clientMoneyReturnsMap = new Map();
         rawExpenses.forEach(exp => {
-          const cId = String(exp.client?.id || exp.client_id || exp.client || '');
           const isMr = /money|refund/i.test(exp.transaction_type || exp.category_name || exp.description || '');
-          if (cId && isMr) {
+          if (isMr) {
             const mrAmt = Number(exp.amount || exp.total || 0);
-            clientMoneyReturnsMap.set(cId, (clientMoneyReturnsMap.get(cId) || 0) + mrAmt);
+            recordAmt(clientMoneyReturnsMap, exp.client || exp.client_id, mrAmt);
           }
         });
 
         const updatedClients = fetchedClients.map(client => {
-          const clientIdStr = String(client.id || client.uuid || '');
-          const clientStats = statsData.find(s => {
-            const sId = String(s.client_id || (typeof s.client === 'object' ? s.client?.id : s.client) || s.id || s.uuid || '');
-            return sId && sId === clientIdStr;
-          });
+          const clientStats = statsForClient(client);
+          const clientKey = String(client.id || client.uuid || '');
+          const ledgerTotals = clientLedgerMap.get(clientKey);
 
-          const accReceive = clientReceivesMap.get(clientIdStr) || 0;
-          const invReceive = clientInvPaymentsMap.get(clientIdStr) || 0;
-          const salesBill = clientSalesMap.get(clientIdStr) || 0;
-          const salesReturn = clientReturnsMap.get(clientIdStr) || 0;
-          const moneyReturn = clientMoneyReturnsMap.get(clientIdStr) || 0;
+          const accReceive = amountForClient(clientReceivesMap, client);
+          const salesBill = ledgerTotals?.bill || 0;
+          const salesReturn = amountForClient(clientReturnsMap, client);
+          const moneyReturn = amountForClient(clientMoneyReturnsMap, client);
 
           return { 
             ...client, 
             stats: clientStats || client.stats || {},
             _accounting_receive: accReceive,
-            _invoice_receive: invReceive,
+            _ledger_financials: ledgerTotals,
             _sales_bill: salesBill,
+            _sales_bill_loaded: clientLedgerMap.has(clientKey),
             _sales_return: salesReturn,
             _money_return: moneyReturn
           };
@@ -528,43 +701,47 @@ const ClientList = () => {
                   const globalIndex = (currentPage - 1) * limit + index + 1;
                   
                   // Calculate amounts for the Details table
-                  const apiBill = num(client, 'sales', 'sales_amount', 'total_sales', 'bill');
+                  const apiBill = numOrNull(client, 'sales_amount');
+                  const legacyApiBill = numOrNull(client, 'sales', 'total_sales', 'bill');
                   const directBill = Number(client._sales_bill || 0);
-                  const bill = Math.max(apiBill, directBill);
+                  const ledgerTotals = client._ledger_financials;
+                  const bill = apiBill
+                    ?? ledgerTotals?.bill
+                    ?? (client._sales_bill_loaded ? directBill : null)
+                    ?? legacyApiBill
+                    ?? directBill;
 
-                  const apiReceive = num(client, 'collection', 'receive', 'payment', 'paid', 'total_receive', 'amount_received');
+                  const apiReceive = numOrNull(client, 'collection', 'receive', 'payment', 'paid', 'total_receive', 'amount_received');
                   const directReceive = Number(client._accounting_receive || 0) + Number(client._invoice_receive || 0);
-                  const receive = Math.max(apiReceive, directReceive);
+                  const receive = apiReceive ?? ledgerTotals?.receive ?? directReceive;
 
-                  const apiSalesReturn = num(client, 'sales_return', 'return_amount');
+                  const apiSalesReturn = numOrNull(client, 'return_amount', 'sales_return');
                   const directSalesReturn = Number(client._sales_return || 0);
-                  const salesReturn = Math.max(apiSalesReturn, directSalesReturn);
+                  const salesReturn = apiSalesReturn ?? ledgerTotals?.salesReturn ?? directSalesReturn;
 
-                  const apiMoneyReturn = num(client, 'money_return', 'return');
+                  const apiMoneyReturn = numOrNull(client, 'money_return', 'return');
                   const directMoneyReturn = Number(client._money_return || 0);
-                  const moneyReturn = Math.max(apiMoneyReturn, directMoneyReturn);
+                  const moneyReturn = apiMoneyReturn ?? ledgerTotals?.moneyReturn ?? directMoneyReturn;
 
-                  // Current due known from API or client record
-                  const currentBalance = Number(client.due ?? client.current_due ?? client.balance ?? client.total_due ?? client.previous_due ?? 0);
+                  // True Opening Balance (Previous Due):
+                  // Reads directly from the client's registered previous due / opening balance
+                  const apiPreviousDue = numOrNull(client, 'previous_due');
+                  const prevDue = apiPreviousDue ?? ledgerTotals?.previousDue ?? Number(
+                    client.opening_balance ??
+                    client.opening_due ??
+                    client.stats?.previous_due ??
+                    client.stats?.opening_due ??
+                    client.stats?.opening_balance ??
+                    0
+                  );
 
-                  // True Opening Balance:
-                  // 1) Explicit opening_balance or opening_due if present
-                  // 2) If client.stats has valid previous_due and sales > 0, use stats.previous_due
-                  // 3) Back-calculate opening balance = currentBalance + receive + salesReturn - bill - moneyReturn
-                  const explicitOpening = client.opening_balance ?? client.opening_due ?? client.stats?.opening_balance ?? client.stats?.opening_due;
-                  let prevDue = 0;
-                  if (explicitOpening !== undefined && explicitOpening !== null && explicitOpening !== '') {
-                    prevDue = Number(explicitOpening);
-                  } else if (client.stats && (client.stats.sales !== undefined || client.stats.sales_amount !== undefined) && client.stats.previous_due !== undefined) {
-                    prevDue = Number(client.stats.previous_due);
-                  } else if (receive > 0 || bill > 0 || salesReturn > 0 || moneyReturn > 0) {
-                    prevDue = Math.max(0, currentBalance + receive + salesReturn - bill - moneyReturn);
-                  } else {
-                    prevDue = Number(client.previous_due ?? 0);
-                  }
+                  const totalBill = numOrNull(client, 'total_bill') ?? ledgerTotals?.totalBill ?? prevDue + bill;
 
-                  const totalBill = prevDue + bill;
-                  const finalDue = currentBalance !== 0 ? currentBalance : Math.max(0, totalBill - receive - salesReturn + moneyReturn);
+                  const calculatedDue = totalBill - receive - salesReturn + moneyReturn;
+
+                  // Use the backend's canonical due when present, including an explicit zero.
+                  const apiStatsDue = numOrNull(client, 'due', 'current_due', 'balance', 'total_due', 'due_amount');
+                  const finalDue = apiStatsDue ?? ledgerTotals?.due ?? calculatedDue;
 
                   return (
                   <tr key={client.id || client.uuid || index}>
@@ -721,7 +898,7 @@ const ClientList = () => {
 
                           {/* View */}
                           <div 
-                            onClick={() => { setViewClient(client); setActiveAction(null); }} 
+                            onClick={() => { setViewClient({ ...client, _finalDue: finalDue, _prevDue: prevDue, _totalBill: totalBill, _receive: receive }); setActiveAction(null); }}
                             style={{ 
                               padding: '8px 12px', 
                               fontSize: 'var(--fs-13, 13px)', 
@@ -996,13 +1173,13 @@ const ClientList = () => {
                 {/* Total Due */}
                 <div style={{ display: 'grid', gridTemplateColumns: '120px 15px 1fr', alignItems: 'center', paddingTop: '4px', borderTop: '1px dashed #cbd5e1' }}>
                   <span style={{ fontWeight: '700', color: '#1e293b' }}>
-                    {Number(viewClient.due || viewClient.previous_due || 0) < 0 ? t("Total Advance") : t("Total Due")}
+                    {Number(viewClient._finalDue ?? viewClient.due ?? viewClient.previous_due ?? 0) < 0 ? t("Total Advance") : t("Total Due")}
                   </span>
                   <span style={{ color: '#94a3b8' }}>:</span>
                   <div>
                     <span 
                       style={{ 
-                        background: Number(viewClient.due || viewClient.previous_due || 0) > 0 ? '#ef4444' : Number(viewClient.due || viewClient.previous_due || 0) < 0 ? '#10b981' : '#64748b', 
+                        background: Number(viewClient._finalDue ?? viewClient.due ?? viewClient.previous_due ?? 0) > 0 ? '#ef4444' : Number(viewClient._finalDue ?? viewClient.due ?? viewClient.previous_due ?? 0) < 0 ? '#10b981' : '#64748b',
                         color: 'white',
                         fontWeight: '700', 
                         fontSize: 'var(--fs-14, 14px)',
@@ -1011,7 +1188,7 @@ const ClientList = () => {
                         display: 'inline-block'
                       }}
                     >
-                      ৳ {Math.abs(Number(viewClient.due || viewClient.previous_due || 0)).toFixed(2)}
+                      ৳ {Math.abs(Number(viewClient._finalDue ?? viewClient.due ?? viewClient.previous_due ?? 0)).toFixed(2)}
                     </span>
                   </div>
                 </div>

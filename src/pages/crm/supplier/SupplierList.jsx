@@ -12,6 +12,36 @@ import { useTranslation } from 'react-i18next';
 import SupplierViewModal from './SupplierViewModal';
 import CustomDatePicker from '../../../components/CustomDatePicker';
 
+const amountOrNull = (obj, ...keys) => {
+  for (const key of keys) {
+    const value = obj?.[key];
+    if (value === undefined || value === null || value === '') continue;
+    const amount = Number(value);
+    if (Number.isFinite(amount)) return amount;
+  }
+  return null;
+};
+
+const getSupplierFinancials = (supplier) => {
+  const previousDue = amountOrNull(supplier, 'previous_due', 'opening_balance') ?? 0;
+  const bill = amountOrNull(supplier.stats, 'purchase_amount', 'purchase_bill')
+    ?? amountOrNull(supplier, 'bill') ?? 0;
+  const totalBill = amountOrNull(supplier.stats, 'total_bill') ?? previousDue + bill;
+  const returnAmount = amountOrNull(supplier.stats, 'return_amount', 'return')
+    ?? amountOrNull(supplier, 'sales_return') ?? 0;
+  const paid = amountOrNull(supplier.stats, 'payment', 'collection')
+    ?? amountOrNull(supplier, 'paid') ?? 0;
+
+  return {
+    previousDue,
+    bill,
+    totalBill,
+    returnAmount,
+    paid,
+    due: totalBill - returnAmount - paid
+  };
+};
+
 
 const SupplierList = () => {
   const { t } = useTranslation();
@@ -64,6 +94,7 @@ const SupplierList = () => {
       if (selectedGroup) params.append('group', selectedGroup);
       if (fromDate) params.append('from_date', fromDate);
       if (toDate) params.append('to_date', toDate);
+      params.append('page_size', '5000');
       
       if (params.toString()) {
         url += `?${params.toString()}`;
@@ -73,7 +104,7 @@ const SupplierList = () => {
       const fetchedSuppliers = res.results || res.data || res || [];
       
       try {
-        const statsRes = await get(ENDPOINTS.CRM_REPORT_SUPPLIER_DUE);
+        const statsRes = await get(`${ENDPOINTS.CRM_REPORT_SUPPLIER_DUE}?page_size=5000`);
         const statsData = statsRes.results || statsRes.data || statsRes || [];
         
         const updatedSuppliers = fetchedSuppliers.map(sup => {
@@ -112,8 +143,7 @@ const SupplierList = () => {
   
   // Calculate total due from all suppliers dynamically
   const totalSupplierDue = suppliers.reduce((sum, sup) => {
-    const due = sup.stats?.due !== undefined ? Number(sup.stats.due) : Number(sup.due || sup.previous_due || 0);
-    return sum + (isNaN(due) ? 0 : due);
+    return sum + getSupplierFinancials(sup).due;
   }, 0);
 
   useEffect(() => {
@@ -251,7 +281,10 @@ const SupplierList = () => {
               ) : suppliers.length === 0 ? (
                 <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>{t("No suppliers found.")}</td></tr>
               ) : (
-                suppliers.map((supplier, index) => (
+              suppliers.map((supplier, index) => {
+                const { previousDue, bill, totalBill, returnAmount, paid, due } = getSupplierFinancials(supplier);
+
+                  return (
                   <tr key={supplier.id || supplier.uuid || index} style={{ background: 'white' }}>
                     <td style={{ verticalAlign: 'top', paddingTop: '16px', textAlign: 'center' }}>{index + 1}</td>
                     <td style={{ verticalAlign: 'top', paddingTop: '16px', fontSize: 'var(--fs-13, 13px)' }}>
@@ -272,35 +305,35 @@ const SupplierList = () => {
                         <tbody>
                           <tr>
                             <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{t("Previous Due")}</td>
-                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{Number(supplier.previous_due || 0).toFixed(2)}</td>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{previousDue.toFixed(2)}</td>
                           </tr>
                           <tr>
                             <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{t("Bill")}</td>
-                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{Number(supplier.stats?.purchase_amount || supplier.bill || 0).toFixed(2)}</td>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{bill.toFixed(2)}</td>
                           </tr>
                           <tr>
                             <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{t("Total Bill")}</td>
-                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{(Number(supplier.previous_due || 0) + Number(supplier.stats?.purchase_amount || supplier.bill || 0)).toFixed(2)}</td>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{totalBill.toFixed(2)}</td>
                           </tr>
                           <tr>
-                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{t("SalesReturn")}</td>
-                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{Number(supplier.stats?.return_amount || supplier.sales_return || 0).toFixed(2)}</td>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{t("Purchase Return")}</td>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{returnAmount.toFixed(2)}</td>
                           </tr>
                           <tr>
                             <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{t("Paid")}</td>
-                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{Number(supplier.stats?.payment || supplier.paid || 0).toFixed(2)}</td>
+                            <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>{paid.toFixed(2)}</td>
                           </tr>
                           <tr>
                             <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0' }}>
                               <span style={{ 
-                                background: Number(supplier.stats?.due || supplier.due || supplier.previous_due || 0) > 0 ? '#ef4444' : Number(supplier.stats?.due || supplier.due || supplier.previous_due || 0) < 0 ? '#10b981' : '#64748b', 
+                                background: due > 0 ? '#ef4444' : due < 0 ? '#10b981' : '#64748b',
                                 color: 'white', padding: '2px 6px', borderRadius: '4px' 
                               }}>
-                                {Number(supplier.stats?.due || supplier.due || supplier.previous_due || 0) < 0 ? t("Advance") : t("Due")}
+                                {due < 0 ? t("Advance") : t("Due")}
                               </span>
                             </td>
                             <td style={{ padding: '4px 8px', border: '1px solid #e2e8f0', fontWeight: 'bold' }}>
-                              {Math.abs(Number(supplier.stats?.due || supplier.due || supplier.previous_due || 0)).toFixed(2)}
+                              {Math.abs(due).toFixed(2)}
                             </td>
                           </tr>
                         </tbody>
@@ -354,7 +387,8 @@ const SupplierList = () => {
                     )}
                   </td>
                 </tr>
-              ))
+                );
+              })
             )}
             </tbody>
           </table>

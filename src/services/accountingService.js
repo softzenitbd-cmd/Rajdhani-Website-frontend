@@ -174,6 +174,8 @@ export const accountingService = {
     if (filters.category) params.category = filters.category;
     if (filters.from_date) params.from_date = filters.from_date;
     if (filters.to_date) params.to_date = filters.to_date;
+    if (filters.page) params.page = filters.page;
+    if (filters.page_size) params.page_size = filters.page_size;
     return await apiClient.get(ENDPOINTS.ACCOUNTING_RECEIVES, { params });
   },
 

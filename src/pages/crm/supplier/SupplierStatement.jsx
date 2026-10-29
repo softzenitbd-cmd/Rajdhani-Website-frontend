@@ -15,6 +15,55 @@ import apiClient from '../../../api/apiClient';
 import { ENDPOINTS } from '../../../api/endpoints';
 import html2canvas from 'html2canvas';
 
+const amountFrom = (record, ...fields) => {
+  let zeroValue = null;
+  for (const field of fields) {
+    const value = Number(record?.[field]);
+    if (record?.[field] === undefined || record?.[field] === null || record?.[field] === '' || !Number.isFinite(value)) continue;
+    if (value !== 0) return value;
+    zeroValue = 0;
+  }
+  if (zeroValue !== null) {
+    return zeroValue;
+  }
+  return 0;
+};
+
+const amountOrNull = (record, ...fields) => {
+  for (const field of fields) {
+    const value = record?.[field];
+    if (value === undefined || value === null || value === '') continue;
+    const amount = Number(value);
+    if (Number.isFinite(amount)) return amount;
+  }
+  return null;
+};
+
+const ledgerAmounts = (row) => {
+  const type = [row.type, row.transaction_type, row.description]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  if (type === 'previous_due' || type.includes('previous due')) {
+    return { bill: 0, returnAmount: 0, payment: 0 };
+  }
+  if (type.includes('return')) {
+    return { bill: 0, returnAmount: amountFrom(row, 'return_amount', 'purchase_return', 'return_bill', 'debit', 'credit', 'amount'), payment: 0 };
+  }
+  if (type.includes('payment') || type.includes('receive') || row.is_payment) {
+    return { bill: 0, returnAmount: 0, payment: amountFrom(row, 'payment', 'receive', 'amount', 'debit', 'credit') };
+  }
+  if (type.includes('purchase') || type.includes('invoice')) {
+    return { bill: amountFrom(row, 'bill', 'purchase_amount', 'grand_total', 'total', 'credit', 'debit'), returnAmount: 0, payment: 0 };
+  }
+  return {
+    bill: amountFrom(row, 'bill', 'purchase_amount'),
+    returnAmount: amountFrom(row, 'return_amount', 'purchase_return', 'return_bill'),
+    payment: amountFrom(row, 'payment', 'receive', 'amount', 'credit', 'debit')
+  };
+};
+
 const SupplierStatement = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -50,17 +99,20 @@ const SupplierStatement = () => {
       if (f.from_date) params.from_date = f.from_date;
       if (f.to_date) params.to_date = f.to_date;
 
-      const [invoicesRes, returnsRes, expensesRes, ledgerRes] = await Promise.allSettled([
-        purchaseService.getPurchaseInvoices({ supplier: f.supplier, from_date: f.from_date, to_date: f.to_date }).catch(() => []),
-        purchaseService.getPurchaseReturns({ supplier: f.supplier, from_date: f.from_date, to_date: f.to_date }).catch(() => []),
+      const [invoicesRes, returnsRes, expensesRes, ledgerRes, supplierDueRes] = await Promise.allSettled([
+        purchaseService.getPurchaseInvoices({ supplier: f.supplier, from_date: f.from_date, to_date: f.to_date, page_size: 5000 }).catch(() => []),
+        purchaseService.getPurchaseReturns({ supplier: f.supplier, from_date: f.from_date, to_date: f.to_date, page_size: 5000 }).catch(() => []),
         apiClient.get(ENDPOINTS.ACCOUNTING_EXPENSES, { params: { supplier: f.supplier, from_date: f.from_date, to_date: f.to_date } }).catch(() => []),
-        apiClient.get(ENDPOINTS.ACCOUNTING_REPORT_SUPPLIER_LEDGER, { params: { supplier_id: f.supplier, ...params } }).catch(() => [])
+        apiClient.get(ENDPOINTS.ACCOUNTING_REPORT_SUPPLIER_LEDGER, { params: { supplier_id: f.supplier, page_size: 5000, ...params } }).catch(() => []),
+        crmService.getSupplierDueReport({ supplier_id: f.supplier })
       ]);
 
       const invoices = toList(invoicesRes.status === 'fulfilled' ? invoicesRes.value : []);
       const returns = toList(returnsRes.status === 'fulfilled' ? returnsRes.value : []);
       const expenses = toList(expensesRes.status === 'fulfilled' ? expensesRes.value : []);
       const ledgerData = ledgerRes.status === 'fulfilled' ? (ledgerRes.value?.data ?? ledgerRes.value) : null;
+      const supplierStats = toList(supplierDueRes.status === 'fulfilled' ? supplierDueRes.value : [])
+        .find((item) => String(item.supplier_id || item.id || item.uuid) === String(f.supplier));
       
       const ledgerRows = toList(ledgerData?.ledger || ledgerData?.results || ledgerData?.data || ledgerData);
 
@@ -75,6 +127,7 @@ const SupplierStatement = () => {
         if (inv.id) invoicesMap.set(String(inv.id), inv);
         if (inv.uuid) invoicesMap.set(String(inv.uuid), inv);
         if (inv.invoice_number) invoicesMap.set(String(inv.invoice_number), inv);
+        if (inv.invoice_id) invoicesMap.set(String(inv.invoice_id), inv);
         if (inv.reference) invoicesMap.set(String(inv.reference), inv);
       });
 
@@ -83,6 +136,7 @@ const SupplierStatement = () => {
         if (ret.id) returnsMap.set(String(ret.id), ret);
         if (ret.uuid) returnsMap.set(String(ret.uuid), ret);
         if (ret.return_number) returnsMap.set(String(ret.return_number), ret);
+        if (ret.return_id) returnsMap.set(String(ret.return_id), ret);
         if (ret.reference) returnsMap.set(String(ret.reference), ret);
       });
 
@@ -97,7 +151,8 @@ const SupplierStatement = () => {
                 inv.items = detail.items;
                 if (inv.id) invoicesMap.set(String(inv.id), inv);
                 if (inv.uuid) invoicesMap.set(String(inv.uuid), inv);
-              }
+                 if (inv.invoice_id) invoicesMap.set(String(inv.invoice_id), inv);
+               }
             } catch {}
           })
         );
@@ -113,6 +168,7 @@ const SupplierStatement = () => {
                 ret.items = detail.items;
                 if (ret.id) returnsMap.set(String(ret.id), ret);
                 if (ret.uuid) returnsMap.set(String(ret.uuid), ret);
+                if (ret.return_id) returnsMap.set(String(ret.return_id), ret);
               }
             } catch {}
           })
@@ -144,7 +200,7 @@ const SupplierStatement = () => {
             type: 'Purchase Return',
             reference: `Return: ${ret.return_number || ret.id}`,
             debit: 0,
-            credit: Number(ret.total_amount || ret.amount || ret.total || 0),
+            credit: Number(ret.grand_total ?? ret.return_bill ?? ret.total_amount ?? ret.amount ?? ret.total ?? 0),
             invoice: ret.invoice,
             id: `ret-${ret.id}`,
             description: `Purchase Return ${ret.return_number || ret.id}`
@@ -153,7 +209,7 @@ const SupplierStatement = () => {
       }
 
       // Merge Payments
-      expenses.forEach(exp => {
+      if (ledgerRows.length === 0) expenses.forEach(exp => {
         if (!rawList.some(r => String(r.id) === String(exp.id) || String(r.id) === `exp-${exp.id}` || String(r.reference).includes(String(exp.id)))) {
           rawList.push({
             date: exp.date || exp.created_at,
@@ -168,6 +224,15 @@ const SupplierStatement = () => {
         }
       });
 
+      rawList = rawList.filter((row) => {
+        const type = [row.type, row.transaction_type]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+        const id = String(row.id || '').toLowerCase();
+        return type !== 'previous_due' && !type.includes('previous due') && !id.startsWith('previous-due-');
+      });
+
       rawList.sort((a, b) => new Date(a.date) - new Date(b.date));
 
       const list = rawList.map((r) => {
@@ -180,10 +245,10 @@ const SupplierStatement = () => {
 
         if (retMatch && retMatch[1]) {
           const retKey = retMatch[1].trim();
-          matchedReturn = returnsMap.get(retKey) || returns.find(ret => String(ret.id).includes(retKey) || String(ret.return_number).includes(retKey));
-        } else if (r.invoice || r.invoice_id || (r.type && String(r.type).toLowerCase().includes('invoice'))) {
+          matchedReturn = returnsMap.get(retKey) || returns.find(ret => String(ret.id).includes(retKey) || String(ret.return_number).includes(retKey) || String(ret.return_id).includes(retKey));
+        } else if (r.invoice || r.invoice_id || [r.type, r.transaction_type].some(type => String(type || '').toLowerCase().includes('invoice'))) {
            const invKey = (invMatch && invMatch[2]) ? invMatch[2].trim() : String(r.invoice || r.invoice_id || refStr);
-           matchedInvoice = invoicesMap.get(invKey) || invoices.find(inv => String(inv.id).includes(invKey) || String(inv.invoice_number).includes(invKey));
+           matchedInvoice = invoicesMap.get(invKey) || invoices.find(inv => String(inv.id).includes(invKey) || String(inv.invoice_number).includes(invKey) || String(inv.invoice_id).includes(invKey));
         }
 
         let enrichedItems = [];
@@ -202,11 +267,11 @@ const SupplierStatement = () => {
               const prodId = String(it.product || it.product_id || it.id || '');
               const prod = productsMap.get(prodId) || (typeof it.product === 'object' ? it.product : null);
               const qty = Number(it.quantity || it.qty || it.product_qty || 1);
-              const price = Number(it.purchase_price || it.price || it.rate || prod?.purchase_price || 0);
+              const price = Number(it.buying_price || it.purchase_price || it.price || it.rate || prod?.purchase_price || 0);
               const name = it.product_name || it.name || prod?.name || prod?.title || 'Product';
               const barcode = it.barcode || prod?.barcode || '';
               const unit = it.unit || it.unit_name || prod?.unit_name || prod?.unit || 'PEACE';
-              return { product_name: name, barcode: barcode, quantity: qty, unit: unit, price: price, total: qty * price };
+              return { product_name: name, barcode: barcode, quantity: qty, unit: unit, price: price, total: Number(it.total_buying_price || (qty * price)) };
             });
           }
         } else if (matchedReturn) {
@@ -218,11 +283,11 @@ const SupplierStatement = () => {
               const prodId = String(it.product || it.product_id || it.id || '');
               const prod = productsMap.get(prodId) || (typeof it.product === 'object' ? it.product : null);
               const qty = Number(it.quantity || it.qty || 1);
-              const price = Number(it.purchase_price || it.price || prod?.purchase_price || 0);
+              const price = Number(it.buying_price || it.purchase_price || it.price || prod?.purchase_price || 0);
               const name = it.product_name || it.name || prod?.name || 'Returned Item';
               const barcode = it.barcode || prod?.barcode || '';
               const unit = it.unit || it.unit_name || prod?.unit_name || 'PEACE';
-              return { product_name: name, barcode: barcode, quantity: qty, unit: unit, price: price, total: qty * price };
+              return { product_name: name, barcode: barcode, quantity: qty, unit: unit, price: price, total: Number(it.total_buying_price || (qty * price)) };
             });
           }
         }
@@ -232,7 +297,10 @@ const SupplierStatement = () => {
 
       setRows(list);
       setSummary(f.supplier ? {
-        supplier: suppliers.find(s => String(s.id || s.uuid) === String(f.supplier)),
+        supplier: {
+          ...suppliers.find(s => String(s.id || s.uuid) === String(f.supplier)),
+          stats: supplierStats || {}
+        },
         ledger: ledgerData
       } : null);
     } catch (e) {
@@ -256,29 +324,31 @@ const SupplierStatement = () => {
   const selectedSupplier = summary?.supplier || suppliers.find((s) => String(s.id || s.uuid) === String(filters.supplier));
 
   const sumOfTransactions = rows.reduce((acc, r) => {
-    const isReturn = String(r.type || '').toLowerCase().includes('return');
-    const debit = Number(r.debit ?? 0);
-    const credit = Number(r.credit ?? 0);
-    const bill = debit;
-    const ret = isReturn ? credit : 0;
-    const rec = !isReturn ? credit : 0;
-    return acc + bill - ret - rec;
+    const amounts = ledgerAmounts(r);
+    return acc + amounts.bill - amounts.returnAmount - amounts.payment;
   }, 0);
 
-  const currentDue = Number(selectedSupplier?.due ?? selectedSupplier?.current_due ?? selectedSupplier?.previous_due ?? summary?.ledger?.due ?? summary?.ledger?.balance ?? 0);
-  const trueOpeningBalance = rows.length > 0 ? (currentDue - sumOfTransactions) : currentDue;
+  const ledgerSummary = summary?.ledger?.summary || summary?.ledger || {};
+  const openingBalanceValue = filters.from_date
+    ? ledgerSummary.opening_balance ?? ledgerSummary.previous_due ?? selectedSupplier?.stats?.previous_due
+    : ledgerSummary.previous_due ?? selectedSupplier?.stats?.previous_due ?? selectedSupplier?.previous_due ?? selectedSupplier?.opening_balance ?? selectedSupplier?.opening_due;
+  const trueOpeningBalance = Number(openingBalanceValue ?? 0);
+  const currentDueValue = ledgerSummary.due
+    ?? ledgerSummary.closing_balance
+    ?? selectedSupplier?.stats?.due
+    ?? selectedSupplier?.due
+    ?? selectedSupplier?.current_due;
+  const currentDue = Number(currentDueValue ?? (trueOpeningBalance + sumOfTransactions));
+  const openingBalance = openingBalanceValue !== undefined && openingBalanceValue !== null
+    ? trueOpeningBalance
+    : currentDue - sumOfTransactions;
 
-  let running = trueOpeningBalance;
+  let running = openingBalance;
   
   let groupedRows = [];
   rows.slice(0, entries).forEach((r) => {
     const dStr = r.date ? new Date(r.date).toISOString().split('T')[0] : 'unknown';
-    const isReturn = String(r.type || '').toLowerCase().includes('return');
-    const debit = Number(r.debit ?? 0);
-    const credit = Number(r.credit ?? 0);
-    const bill = debit;
-    const ret = isReturn ? credit : 0;
-    const rec = (!isReturn && credit > 0) ? credit : 0; // Receive/Payment
+    const { bill, returnAmount: ret, payment: rec } = ledgerAmounts(r);
 
     let existing = groupedRows.find(x => x.dStr === dStr);
     if (existing) {
@@ -318,7 +388,7 @@ const SupplierStatement = () => {
         _bill: 0,
         _return: 0,
         _receive: 0,
-        _balance: trueOpeningBalance
+        _balance: openingBalance
       },
       ...computed
     ];
@@ -411,10 +481,12 @@ const SupplierStatement = () => {
   }, 0);
   const totalDiscount = computed.reduce((sum, r) => sum + Number(r._discount || 0), 0);
   const totalTransport = computed.reduce((sum, r) => sum + Number(r._transport || 0), 0);
-  const totalGrandTotal = computed.reduce((sum, r) => sum + Number(r._bill || 0), 0);
-  const totalReturn = computed.reduce((sum, r) => sum + Number(r._return || 0), 0);
-  const totalReceive = computed.reduce((sum, r) => sum + Number(r._receive || 0), 0);
-  const finalDue = computed.length > 0 ? computed[computed.length - 1]._balance : 0;
+  const totalGrandTotal = amountOrNull(ledgerSummary, 'purchase_amount') ?? computed.reduce((sum, r) => sum + Number(r._bill || 0), 0);
+  const totalReturn = amountOrNull(ledgerSummary, 'return_amount') ?? computed.reduce((sum, r) => sum + Number(r._return || 0), 0);
+  const totalReceive = amountOrNull(ledgerSummary, 'payment') ?? computed.reduce((sum, r) => sum + Number(r._receive || 0), 0);
+  const finalDue = currentDueValue !== undefined && currentDueValue !== null
+    ? currentDue
+    : computed.length > 0 ? computed[computed.length - 1]._balance : 0;
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px', background: 'white' }}>
