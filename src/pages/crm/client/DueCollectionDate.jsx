@@ -11,6 +11,9 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { crmService } from "../../../services/crmService";
+import { accountingService } from "../../../services/accountingService";
+import { saleService } from "../../../services/saleService";
+import { toList } from "../../../utils/apiHelpers";
 import { exportToExcel } from "../../../utils/excelExporter";
 import { useToast } from "../../../context/ToastContext";
 import CustomDatePicker from "../../../components/CustomDatePicker";
@@ -82,7 +85,7 @@ const DueCollectionDate = () => {
   const fetchClients = async () => {
     try {
       setLoading(true);
-      const params = {};
+      const params = { page_size: 5000 };
       if (filters.searchAll) params.search = filters.searchAll;
       if (filters.clientGroup) params.group = filters.clientGroup;
 
@@ -90,38 +93,142 @@ const DueCollectionDate = () => {
       const data = Array.isArray(res) ? res : res?.results || [];
 
       try {
-        const statsRes = await crmService.getClientDueReport();
-        const statsData = Array.isArray(statsRes)
-          ? statsRes
-          : statsRes?.results || [];
+        const [statsRes, receivesRes, salesRes, returnsRes] = await Promise.allSettled([
+          crmService.getClientDueReport({ page_size: 5000 }),
+          accountingService.getReceives({ page_size: 5000 }),
+          saleService.getSalesInvoices({ page_size: 5000 }),
+          saleService.getSalesReturns({ page_size: 5000 }),
+        ]);
+
+        const statsData = statsRes.status === "fulfilled" ? toList(statsRes.value) : [];
+        const rawReceives = receivesRes.status === "fulfilled" ? toList(receivesRes.value) : [];
+        const rawSales = salesRes.status === "fulfilled" ? toList(salesRes.value) : [];
+        const rawReturns = returnsRes.status === "fulfilled" ? toList(returnsRes.value) : [];
+
+        const recordAmt = (map, ref, amt) => {
+          if (!ref || !amt) return;
+          if (typeof ref === "object") {
+            if (ref.id) map.set(String(ref.id), (map.get(String(ref.id)) || 0) + amt);
+            if (ref.uuid) map.set(String(ref.uuid), (map.get(String(ref.uuid)) || 0) + amt);
+            if (ref.phone) {
+              const ph = String(ref.phone).replace(/\D/g, "");
+              if (ph.length >= 8) map.set(`phone:${ph}`, (map.get(`phone:${ph}`) || 0) + amt);
+            }
+          } else {
+            map.set(String(ref), (map.get(String(ref)) || 0) + amt);
+          }
+        };
+
+        const clientReceivesMap = new Map();
+        rawReceives.forEach((rec) => {
+          const amt = Number(rec.amount || rec.total || 0);
+          recordAmt(clientReceivesMap, rec.client || rec.client_id, amt);
+        });
+
+        const clientSalesMap = new Map();
+        rawSales.forEach((inv) => {
+          const billAmt = Number(inv.grand_total || inv.total_amount || inv.total || inv.bill || 0);
+          recordAmt(clientSalesMap, inv.client || inv.client_id, billAmt);
+        });
+
+        const clientReturnsMap = new Map();
+        rawReturns.forEach((ret) => {
+          const retAmt = Number(ret.grand_total || ret.total_amount || ret.return_amount || ret.total || 0);
+          recordAmt(clientReturnsMap, ret.client || ret.client_id, retAmt);
+        });
+
+        const findStats = (client) => {
+          const clientId = String(client.id || client.uuid || "");
+          const clientUuid = client.uuid ? String(client.uuid) : "";
+          const clientPhone = String(client.phone || client.mobile || "").replace(/\D/g, "");
+          const clientName = String(client.name || client.company_name || "").trim().toLowerCase();
+
+          return (
+            statsData.find((s) => {
+              const sId = String(
+                s.client_id ||
+                (typeof s.client === "object" ? (s.client?.id || s.client?.uuid) : s.client) ||
+                s.id ||
+                s.uuid ||
+                ""
+              );
+              if (sId && (sId === clientId || (clientUuid && sId === clientUuid))) return true;
+
+              const sPhone = String(s.phone || (typeof s.client === "object" ? (s.client?.phone || s.client?.mobile) : "") || "").replace(/\D/g, "");
+              if (clientPhone && sPhone && clientPhone.length >= 8 && sPhone.length >= 8 && (clientPhone === sPhone || clientPhone.endsWith(sPhone) || sPhone.endsWith(clientPhone))) {
+                return true;
+              }
+
+              const sName = String(s.name || s.client_name || (typeof s.client === "object" ? (s.client?.name || s.client?.company_name) : "") || "").trim().toLowerCase();
+              if (clientName && sName && clientName === sName) {
+                return true;
+              }
+
+              return false;
+            }) || {}
+          );
+        };
+
+        const numFrom = (obj, ...keys) => {
+          if (!obj) return null;
+          for (const k of keys) {
+            if (obj[k] !== undefined && obj[k] !== null && obj[k] !== "") {
+              const n = Number(obj[k]);
+              if (Number.isFinite(n)) return n;
+            }
+          }
+          return null;
+        };
+
+        const getDirect = (map, client) => {
+          const cId = String(client.id || "");
+          const cUuid = String(client.uuid || "");
+          const cPhone = String(client.phone || client.mobile || "").replace(/\D/g, "");
+          let val = 0;
+          if (cId && map.has(cId)) val = Math.max(val, map.get(cId));
+          if (cUuid && map.has(cUuid)) val = Math.max(val, map.get(cUuid));
+          if (cPhone && cPhone.length >= 8 && map.has(`phone:${cPhone}`)) val = Math.max(val, map.get(`phone:${cPhone}`));
+          return val;
+        };
 
         const mergedData = data
           .map((client) => {
-            const stats =
-              statsData.find(
-                (s) =>
-                  String(s.client_id || s.id || s.uuid) ===
-                  String(client.id || client.uuid),
-              ) || {};
+            const stats = findStats(client);
+
+            const directSales = getDirect(clientSalesMap, client);
+            const directReceive = getDirect(clientReceivesMap, client);
+            const directReturn = getDirect(clientReturnsMap, client);
+
+            const statsSales = numFrom(stats, "sales_amount", "sales", "total_sales", "bill");
+            const statsReceive = numFrom(stats, "collection", "receive", "payment", "paid", "total_receive", "amount_received");
+            const statsReturn = numFrom(stats, "return_amount", "sales_return");
+
+            const sales = Math.max(statsSales ?? 0, directSales);
+            const receive = Math.max(statsReceive ?? 0, directReceive);
+            const sales_return = Math.max(statsReturn ?? 0, directReturn);
+
+            const previous_due = Number(
+              numFrom(client, "previous_due", "opening_balance", "opening_due") ??
+              numFrom(stats, "previous_due", "opening_due", "opening_balance") ??
+              0
+            );
+
+            const calculatedDue = previous_due + sales - receive - sales_return;
+            const statsDue = numFrom(stats, "due", "current_due", "balance", "total_due", "due_amount");
+            const due = (statsDue !== null && statsDue !== undefined) ? statsDue : calculatedDue;
+
             return {
               ...client,
-              previous_due:
-                stats.previous_due !== undefined
-                  ? stats.previous_due
-                  : client.previous_due,
-              sales: stats.sales !== undefined ? stats.sales : client.sales,
-              receive:
-                stats.receive !== undefined ? stats.receive : client.receive,
-              sales_return:
-                stats.sales_return !== undefined
-                  ? stats.sales_return
-                  : client.sales_return,
-              due: stats.due !== undefined ? stats.due : client.due,
+              previous_due,
+              sales,
+              receive,
+              sales_return,
+              due,
               due_date: client.due_date || stats.due_date,
             };
           })
           .filter((c) => {
-            const hasDue = Number(c.due || c.previous_due || 0) > 0;
+            const hasDue = Number(c.due !== undefined && c.due !== null ? c.due : (c.previous_due || 0)) > 0;
             const hasDate = Boolean(c.due_date);
             if (!hasDue || !hasDate) return false;
 
@@ -574,8 +681,21 @@ const DueCollectionDate = () => {
                       {index + 1}
                     </td>
                     <td style={{ textAlign: "left", padding: "8px 12px" }}>
-                      {client.name || client.company_name || "-"}
-                      {(client.phone || client.mobile) ? ` | ${client.phone || client.mobile}` : ""}
+                      <div style={{ fontWeight: "600", color: "#1e293b" }}>
+                        {(client.name || client.company_name || "-").replace(/\|.*/, "").trim()}
+                      </div>
+                      {(client.phone || client.mobile || (client.name && client.name.includes("|"))) && (
+                        <div
+                          style={{
+                            fontSize: "var(--fs-12, 12px)",
+                            color: "#64748b",
+                            marginTop: "2px",
+                            fontWeight: "normal",
+                          }}
+                        >
+                          {client.phone || client.mobile || client.name.split("|")[1].trim()}
+                        </div>
+                      )}
                     </td>
                     <td style={{ textAlign: "left", padding: "8px 12px" }}>
                       {client.address || "-"}
@@ -635,10 +755,8 @@ const DueCollectionDate = () => {
                         </button>
                       </div>
                     </td>
-                    <td style={{ textAlign: "left", padding: "8px 12px" }}>
-                      {Number(client.due || client.previous_due || 0).toFixed(
-                        2,
-                      )}
+                    <td style={{ textAlign: "left", padding: "8px 12px", fontWeight: "600" }}>
+                      {Number(client.due !== undefined && client.due !== null ? client.due : (client.previous_due || 0)).toFixed(2)}
                     </td>
                   </tr>
                 ))

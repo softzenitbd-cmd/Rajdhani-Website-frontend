@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import PrintHeader from './PrintHeader';
 import TableToolbar from './TableToolbar';
@@ -39,21 +40,50 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
   const [totalCount, setTotalCount] = useState(0);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
-  const [party, setParty] = useState('');
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const incomingParty = location.state?.supplierId || location.state?.supplier?.id || location.state?.supplier?.uuid || location.state?.clientId || location.state?.client?.id || location.state?.party || queryParams.get('supplierId') || queryParams.get('supplier') || queryParams.get('clientId') || queryParams.get('party') || '';
+  const [party, setParty] = useState(incomingParty || '');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
 
   useEffect(() => {
     (isDeposit ? accountingService.getIncomeCategories() : accountingService.getExpenseCategories())
       .then((r) => setCategories(toList(r))).catch(() => {});
-    if (groupBy === 'client') crmService.getClients({ page_size: 5000 }).then((r) => setParties(toList(r))).catch(() => {});
-    if (groupBy === 'supplier') crmService.getSuppliers({ page_size: 5000 }).then((r) => setParties(toList(r))).catch(() => {});
+    if (groupBy === 'client') {
+      crmService.getClients({ page_size: 5000 }).then((r) => {
+        let list = toList(r);
+        const incCli = location.state?.client;
+        if (incCli && typeof incCli === 'object' && !list.some(p => String(p.id || p.uuid) === String(incCli.id || incCli.uuid))) {
+          list = [incCli, ...list];
+        }
+        setParties(list);
+      }).catch(() => {});
+    }
+    if (groupBy === 'supplier') {
+      crmService.getSuppliers({ page_size: 5000 }).then((r) => {
+        let list = toList(r);
+        const incSup = location.state?.supplier;
+        if (incSup && typeof incSup === 'object' && !list.some(p => String(p.id || p.uuid) === String(incSup.id || incSup.uuid))) {
+          list = [incSup, ...list];
+        }
+        setParties(list);
+      }).catch(() => {});
+    }
 
     crmService.getClients({ page_size: 1000 }).then(r => setAllClients(toList(r))).catch(() => {});
     crmService.getSuppliers({ page_size: 1000 }).then(r => setAllSuppliers(toList(r))).catch(() => {});
     staffApi.getStaffList({ page_size: 1000 }).then(r => setAllStaff(toList(r))).catch(() => {});
     accountingService.getAccounts().then(r => setAllAccounts(toList(r))).catch(() => {});
   }, [isDeposit, groupBy]);
+
+  useEffect(() => {
+    const q = new URLSearchParams(location.search);
+    const inc = location.state?.supplierId || location.state?.supplier?.id || location.state?.supplier?.uuid || location.state?.clientId || location.state?.client?.id || location.state?.party || q.get('supplierId') || q.get('supplier') || q.get('clientId') || q.get('party');
+    if (inc) {
+      setParty(inc);
+    }
+  }, [location.state, location.search]);
 
   const getCategoryName = (r, allCats) => {
     let cid = r.receive_category || r.expense_category || r.category_name || r.category || r.category_id;
@@ -87,21 +117,38 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
     return nameOf(cid, 'General');
   };
 
-  const load = async (f = { search, category, party, fromDate, toDate, page: currentPage, page_size: entries }) => {
+  const load = async (f = {}) => {
     try {
       setLoading(true);
+      const activeSearch = f.search !== undefined ? f.search : search;
+      const activeCat = f.category !== undefined ? f.category : category;
+      const activeParty = f.party !== undefined ? f.party : party;
+      const activeFrom = f.fromDate !== undefined ? f.fromDate : fromDate;
+      const activeTo = f.toDate !== undefined ? f.toDate : toDate;
+      const activePage = f.page || currentPage;
+      const activeEntries = f.page_size || entries;
+
       const filters = {};
-      if (f.search) filters.search = f.search;
-      if (f.category) filters.category_id = f.category;
-      if (f.fromDate) filters.from_date = f.fromDate;
-      if (f.toDate) filters.to_date = f.toDate;
-      if (f.party) {
-        if (groupBy === 'client') filters.client_id = f.party;
-        if (groupBy === 'supplier') filters.supplier_id = f.party;
+      if (activeSearch) filters.search = activeSearch;
+      if (activeCat) {
+        filters.category_id = activeCat;
+        filters.category = activeCat;
+      }
+      if (activeFrom) filters.from_date = activeFrom;
+      if (activeTo) filters.to_date = activeTo;
+      if (activeParty) {
+        if (groupBy === 'client') {
+          filters.client_id = activeParty;
+          filters.client = activeParty;
+        }
+        if (groupBy === 'supplier') {
+          filters.supplier_id = activeParty;
+          filters.supplier = activeParty;
+        }
       }
       
-      filters.page = f.page || currentPage;
-      filters.page_size = f.page_size || entries;
+      filters.page = activePage;
+      filters.page_size = activeParty || activeFrom || activeTo || activeCat || activeSearch ? 5000 : activeEntries;
 
       const res = isDeposit ? await accountingService.getDepositReport(filters) : await accountingService.getExpenseReport(filters);
       let list = toList(res);
@@ -150,9 +197,20 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
            return false;
         });
       }
-      if (f.party) {
-        if (groupBy === 'client') list = list.filter(r => String(r.client_id || r.client) === String(f.party));
-        if (groupBy === 'supplier') list = list.filter(r => String(r.supplier_id || r.supplier) === String(f.party));
+      if (activeParty) {
+        if (groupBy === 'client') {
+          list = list.filter(r => {
+            const cId = r.client_id || (typeof r.client === 'object' ? (r.client?.id || r.client?.uuid) : r.client);
+            return String(cId) === String(activeParty) || (r.client_name && String(r.client_name).toLowerCase() === String(activeParty).toLowerCase());
+          });
+        }
+        if (groupBy === 'supplier') {
+          list = list.filter(r => {
+            const sId = r.supplier_id || (typeof r.supplier === 'object' ? (r.supplier?.id || r.supplier?.uuid) : r.supplier);
+            const sName = r.supplier_name || (typeof r.supplier === 'object' ? (r.supplier?.name || r.supplier?.supplier_name || r.supplier?.company_name) : null);
+            return String(sId) === String(activeParty) || (sName && String(sName).toLowerCase() === String(activeParty).toLowerCase());
+          });
+        }
       }
       
       setTotalCount(res?.count || list.length);
@@ -170,7 +228,7 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
     }
   };
 
-  useEffect(() => { load(); }, [currentPage, entries, allClients, categories]);
+  useEffect(() => { load(); }, [currentPage, entries, party, category, allClients, categories]);
 
   const reset = () => {
     setSearch(''); setCategory(''); setParty(''); setFromDate(''); setToDate(''); setCurrentPage(1);
@@ -224,7 +282,7 @@ const TransactionReport = ({ kind, groupBy = null, title }) => {
       if (sId) {
         spObj = (typeof sId === 'object') ? sId : allSuppliers.find(x => String(x.id) === String(sId) || String(x.uuid) === String(sId));
       }
-      const sp = r.supplier_name || spObj?.name || spObj?.company_name;
+      const sp = r.supplier_name || spObj?.name || spObj?.supplier_name || spObj?.company_name || (typeof r.supplier === 'object' ? (r.supplier?.name || r.supplier?.supplier_name || r.supplier?.company_name) : null);
       
       let stObj = null;
       const stId = r.staff_id || r.staff;

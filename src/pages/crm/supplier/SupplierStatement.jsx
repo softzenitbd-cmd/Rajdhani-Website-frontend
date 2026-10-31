@@ -367,14 +367,47 @@ const SupplierStatement = () => {
          _bill: bill,
          _return: ret,
          _receive: rec,
+         _discount: r._discount || 0,
+         _transport: r._transport || 0,
          items: r.items ? [...r.items] : []
        });
     }
   });
 
   let computed = groupedRows.map(r => {
-    running = running + r._bill - r._return - r._receive;
-    return { ...r, _balance: running };
+    let itemsSubtotal = 0;
+    if (Array.isArray(r.items) && r.items.length > 0) {
+      itemsSubtotal = r.items.reduce((sum, it) => sum + (Number(it.total) || (Number(it.quantity || 1) * Number(it.price || 0))), 0);
+    }
+    
+    // Subtotal of purchase (কত টাকা কিনলাম)
+    const subtotal = itemsSubtotal > 0 ? itemsSubtotal : Number(r._bill || 0);
+    const discount = Number(r._discount || 0);
+    const transport = Number(r._transport || 0);
+    
+    // Grand Total including discount & transport fee (ডিসকাউন্ট ও ট্রান্সপোর্ট ফি সহ মোট চালান)
+    const grandTotal = subtotal > 0 ? Math.max(0, subtotal - discount + transport) : (transport > 0 ? transport - discount : 0);
+    
+    const ret = Number(r._return || 0);
+    const rec = Number(r._receive || 0);
+
+    // Date-wise due: ওই নির্দিষ্ট তারিখের মোট বকেয়া = গ্র্যান্ড টোটাল - ক্রয় ফেরত - পেমেন্ট (২৯ তারিখের জন্য: ২০০০ - ১০০০ - ৫০০ = ৫০০)
+    const dateDue = (grandTotal > 0 || ret > 0 || rec > 0) ? (grandTotal - ret - rec) : 0;
+
+    // Running due calculation: পূর্বের ব্যালেন্স + ওই তারিখের নেট বকেয়া
+    running = running + dateDue;
+    
+    return {
+      ...r,
+      _subtotal: subtotal,
+      _discount: discount,
+      _transport: transport,
+      _grandTotal: grandTotal,
+      _totalBill: dateDue,
+      _return: ret,
+      _receive: rec,
+      _balance: running
+    };
   });
 
   if (selectedSupplier && computed.length >= 0) {
@@ -385,7 +418,11 @@ const SupplierStatement = () => {
         type: 'Previous Due',
         clean_description: 'Opening Balance',
         items: [],
-        _bill: 0,
+        _subtotal: 0,
+        _discount: 0,
+        _transport: 0,
+        _grandTotal: 0,
+        _totalBill: openingBalance,
         _return: 0,
         _receive: 0,
         _balance: openingBalance
@@ -479,14 +516,14 @@ const SupplierStatement = () => {
     }
     return sum + b;
   }, 0);
+  const totalSubTotal = computed.reduce((sum, r) => sum + Number(r._subtotal || 0), 0);
   const totalDiscount = computed.reduce((sum, r) => sum + Number(r._discount || 0), 0);
   const totalTransport = computed.reduce((sum, r) => sum + Number(r._transport || 0), 0);
-  const totalGrandTotal = amountOrNull(ledgerSummary, 'purchase_amount') ?? computed.reduce((sum, r) => sum + Number(r._bill || 0), 0);
-  const totalReturn = amountOrNull(ledgerSummary, 'return_amount') ?? computed.reduce((sum, r) => sum + Number(r._return || 0), 0);
-  const totalReceive = amountOrNull(ledgerSummary, 'payment') ?? computed.reduce((sum, r) => sum + Number(r._receive || 0), 0);
-  const finalDue = currentDueValue !== undefined && currentDueValue !== null
-    ? currentDue
-    : computed.length > 0 ? computed[computed.length - 1]._balance : 0;
+  const totalGrandTotal = computed.reduce((sum, r) => sum + Number(r._grandTotal || 0), 0);
+  const totalBillOverall = computed.reduce((sum, r) => sum + (r.isOpening ? 0 : Number(r._totalBill || 0)), 0);
+  const totalReturn = computed.reduce((sum, r) => sum + Number(r._return || 0), 0);
+  const totalReceive = computed.reduce((sum, r) => sum + Number(r._receive || 0), 0);
+  const finalDue = computed.length > 0 ? computed[computed.length - 1]._balance : openingBalance;
 
   return (
     <div className="dashboard-content" style={{ paddingBottom: '100px', background: 'white' }}>
@@ -501,7 +538,7 @@ const SupplierStatement = () => {
                   Supplier Name: {selectedSupplier.name} {selectedSupplier.phone ? `// ${selectedSupplier.phone}` : ''}<br/>
                   {selectedSupplier.phone && <>Supplier Phone: {selectedSupplier.phone}<br/></>}
                   {selectedSupplier.address && <>Supplier Address: {selectedSupplier.address}<br/></>}
-                  <div style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', marginTop: '4px', color: 'black' }}>Due: {money(currentDue)}</div>
+                  <div style={{ fontSize: 'var(--fs-12, 12px)', fontWeight: 'bold', marginTop: '4px', color: 'black' }}>Due: {money(finalDue)}</div>
                 </>
               ) : (
                 <>Supplier Name: -</>
@@ -550,26 +587,28 @@ const SupplierStatement = () => {
             <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: '1000px', border: '1px solid #cbd5e1' }}>
               <thead>
                 <tr>
-                  <th style={th}>SL ↕</th>
-                  <th style={th}>DATE</th>
-                  <th style={th}>PRODUCT</th>
-                  <th style={th}>UNIT</th>
-                  <th style={th}>QUANTITY</th>
-                  <th style={th}>PRICE</th>
-                  <th style={th}>BUY PRICE</th>
-                  <th style={th}>DISCOUNT</th>
-                  <th style={th}>TRANSPORT FARE</th>
-                  <th style={th}>GRAND TOTAL</th>
-                  <th style={th}>PURCHASE RETURN</th>
-                  <th style={th}>RECEIVE</th>
-                  <th style={th}>DUE</th>
+                  <th style={th}>{t("SL ↕")}</th>
+                  <th style={th}>{t("DATE")}</th>
+                  <th style={th}>{t("PRODUCT")}</th>
+                  <th style={th}>{t("UNIT")}</th>
+                  <th style={th}>{t("QUANTITY")}</th>
+                  <th style={th}>{t("PRICE")}</th>
+                  <th style={th}>{t("BUY PRICE")}</th>
+                  <th style={th}>{t("SUB TOTAL")}</th>
+                  <th style={th}>{t("DISCOUNT")}</th>
+                  <th style={th}>{t("TRANSPORT FARE")}</th>
+                  <th style={th}>{t("GRAND TOTAL")}</th>
+                  <th style={th}>{t("PURCHASE RETURN")}</th>
+                  <th style={th}>{t("PAYMENT")}</th>
+                  <th style={th}>{t("TOTAL DUE")}</th>
+                  <th style={th}>{t("FINAL DUE")}</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="13" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>Loading...</td></tr>
+                  <tr><td colSpan="15" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>Loading...</td></tr>
                 ) : computed.length === 0 ? (
-                  <tr><td colSpan="13" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No data available</td></tr>
+                  <tr><td colSpan="15" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>No data available</td></tr>
                 ) : (
                   computed.map((r, i) => {
                     const hasItems = Array.isArray(r.items) && r.items.length > 0;
@@ -632,11 +671,13 @@ const SupplierStatement = () => {
                           ) : <div style={cellPad}>-</div>}
                         </td>
 
+                        <td style={td}><div style={cellPad}>{r.isOpening ? '' : (r._subtotal ? money(r._subtotal) : '0.00')}</div></td>
                         <td style={td}><div style={cellPad}>{r._discount ? money(r._discount) : (r.isOpening ? '' : '0.00')}</div></td>
                         <td style={td}><div style={cellPad}>{r._transport ? money(r._transport) : (r.isOpening ? '' : '0.00')}</div></td>
-                        <td style={td}><div style={cellPad}>{r._bill ? money(r._bill) : (r.isOpening ? '' : '')}</div></td>
+                        <td style={td}><div style={cellPad}>{r.isOpening ? '' : (r._grandTotal ? money(r._grandTotal) : '0.00')}</div></td>
                         <td style={td}><div style={cellPad}>{r._return ? money(r._return) : (r.isOpening ? '' : '0')}</div></td>
                         <td style={td}><div style={cellPad}>{r._receive ? money(r._receive) : (r.isOpening ? '' : '0')}</div></td>
+                        <td style={td}><div style={cellPad}>{r.isOpening ? '' : (r._totalBill !== undefined ? money(r._totalBill) : '0.00')}</div></td>
                         <td style={td}><div style={cellPad}>{money(r._balance)}</div></td>
                       </tr>
                     );
@@ -649,11 +690,13 @@ const SupplierStatement = () => {
                   <td style={td}>{totalQty > 0 ? totalQty : '-'}</td>
                   <td style={td}>-</td>
                   <td style={td}>{totalBuyPrice > 0 ? money(totalBuyPrice) : '-'}</td>
+                  <td style={td}>{totalSubTotal > 0 ? money(totalSubTotal) : '-'}</td>
                   <td style={td}>{totalDiscount > 0 ? money(totalDiscount) : '-'}</td>
                   <td style={td}>{totalTransport > 0 ? money(totalTransport) : '-'}</td>
                   <td style={td}>{totalGrandTotal > 0 ? money(totalGrandTotal) : '-'}</td>
                   <td style={td}>{totalReturn > 0 ? money(totalReturn) : '-'}</td>
                   <td style={td}>{totalReceive > 0 ? money(totalReceive) : '-'}</td>
+                  <td style={td}>{totalBillOverall !== 0 ? money(totalBillOverall) : '-'}</td>
                   <td style={td}>{money(finalDue)}</td>
                 </tr>
               </tfoot>

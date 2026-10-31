@@ -116,6 +116,7 @@
   "All Months": "সকল মাস",
   "All Present": "সবাই উপস্থিত",
   "All Staff": "সকল কর্মী",
+  "All Staff Payment": "সকল স্টাফ পেমেন্ট",
   "All Suppliers": "সকল সাপ্লায়ার",
   "All departments": "সকল ডিপার্টমেন্ট",
   "All status": "সকল স্ট্যাটাস",
@@ -452,6 +453,7 @@
   "Expense category deleted successfully!": "খরচ ক্যাটাগরি সফলভাবে মুছে ফেলা হয়েছে!",
   "Expense created and account balance updated successfully!": "খরচ তৈরি হয়েছে এবং একাউন্ট ব্যালেন্স সফলভাবে আপডেট হয়েছে!",
   "Expense updated successfully! Balances and ledgers have been auto-adjusted.": "খরচ সফলভাবে আপডেট হয়েছে! ব্যালেন্স ও লেজার স্বয়ংক্রিয়ভাবে সমন্বয় হয়েছে।",
+  "FINAL DUE": "সর্বশেষ বকেয়া",
   "FINANCIAL METRIC": "আর্থিক সূচক",
   "FROM ACCOUNT": "যে একাউন্ট থেকে",
   "FULL NAME": "পূর্ণ নাম",
@@ -816,6 +818,7 @@
   "PURCHASE": "ক্রয়",
   "PURCHASE (DEBIT)": "ক্রয় (ডেবিট)",
   "PURCHASE INVOICE": "ক্রয় ইনভয়েস",
+  "PURCHASE RETURN": "ক্রয় ফেরত",
   "PURCHASED GARMENTS / APPAREL ITEMS": "ক্রয়কৃত গার্মেন্টস / পোশাক আইটেম",
   "Paid": "পরিশোধিত",
   "Paid Amount": "পরিশোধিত পরিমাণ",
@@ -1056,6 +1059,7 @@
   "STATUS": "স্ট্যাটাস",
   "STOCK": "স্টক",
   "STOCK WARNING": "স্টক সতর্কতা",
+  "SUB TOTAL": "সাব টোটাল",
   "SUPPLIER": "সাপ্লায়ার",
   "SUPPLIER CREATE": "সাপ্লায়ার তৈরি",
   "SUPPLIER DETAILS": "সাপ্লায়ারের বিবরণ",
@@ -1451,6 +1455,5 @@
   "📅 Date": "📅 তারিখ",
   "📊 Excel": "📊 এক্সেল",
   "🖨️ Print Memo": "🖨️ মেমো প্রিন্ট",
-  "🚫 Deactivate": "🚫 নিষ্ক্রিয় করুন",
-  "All Staff Payment": "সকল স্টাফ পেমেন্ট"
+  "🚫 Deactivate": "🚫 নিষ্ক্রিয় করুন"
 }

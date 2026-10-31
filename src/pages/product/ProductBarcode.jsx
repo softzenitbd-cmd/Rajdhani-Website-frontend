@@ -199,7 +199,7 @@ const ProductBarcode = () => {
                     <BarcodeSticker 
                       barcodeValue={stk.custom_barcode_no || stk.code || stk.barcode || String(stk.id).substring(0, 8).toUpperCase()} 
                       name={stk.name} 
-                      price={stk.selling_price || stk.sales_price || stk.sale_price || stk.mrp || stk.price || 0} 
+                      price={stk.salePrice || stk.selling_price || stk.sales_price || stk.sale_price || stk.sellingPrice || stk.mrp || stk.price || stk.buyingPrice || 0} 
                     />
                   </div>
                 ))}

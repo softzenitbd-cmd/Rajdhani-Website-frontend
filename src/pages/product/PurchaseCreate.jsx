@@ -1149,7 +1149,17 @@ const PurchaseCreate = () => {
                             </div>
                             <button
                               type="button"
-                              onClick={() => setBarcodeProductToPrint(item)}
+                              onClick={() => setBarcodeProductToPrint({
+                                ...item,
+                                price: Number(item.salePrice || item.selling_price || item.sales_price || item.buyingPrice || 0),
+                                salePrice: Number(item.salePrice || item.selling_price || item.sales_price || 0),
+                                selling_price: Number(item.salePrice || item.selling_price || item.sales_price || 0),
+                                sales_price: Number(item.salePrice || item.selling_price || item.sales_price || 0),
+                                sale_price: Number(item.salePrice || item.selling_price || item.sales_price || 0),
+                                barcode: item.barcode || item.code || item.custom_barcode_no || '-',
+                                code: item.barcode || item.code || item.custom_barcode_no || '-',
+                                custom_barcode_no: item.barcode || item.code || item.custom_barcode_no || '-',
+                              })}
                               style={{
                                 border: "none",
                                 background: "#1e293b",

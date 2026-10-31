@@ -8,9 +8,40 @@ const BarcodePrintModal = ({ isOpen, onClose, product }) => {
   const { t } = useTranslation();
   const [quantity, setQuantity] = useState(1);
 
+  const getProductPrice = (p) => {
+    if (!p) return 0;
+    const candidates = [
+      p.salePrice,
+      p.selling_price,
+      p.sales_price,
+      p.sale_price,
+      p.sellingPrice,
+      p.mrp,
+      p.price,
+      p.buyingPrice,
+      p.purchase_price,
+    ];
+    for (const val of candidates) {
+      if (val !== undefined && val !== null && val !== "" && Number(val) > 0) {
+        return Number(val);
+      }
+    }
+    return 0;
+  };
+
+  const getBarcodeValue = (p) => {
+    if (!p) return "";
+    return String(
+      p.custom_barcode_no ||
+      p.barcode ||
+      p.code ||
+      (p.id ? String(p.id).substring(0, 8).toUpperCase() : "")
+    );
+  };
+
   useEffect(() => {
     if (product) {
-      setQuantity(Number(product.stock || product.opening_stock || 1));
+      setQuantity(Number(product.quantity || product.qty || product.stock || product.opening_stock || 1));
     }
   }, [product]);
 
@@ -59,9 +90,9 @@ const BarcodePrintModal = ({ isOpen, onClose, product }) => {
             <h4 style={{ marginBottom: '12px', fontSize: '14px', color: '#64748b' }}>{t("Preview (Shows 1 sticker)")}</h4>
             <div style={{ width: '160px', margin: '0 auto' }}>
               <BarcodeSticker 
-                barcodeValue={product.custom_barcode_no || product.code || product.barcode || String(product.id).substring(0, 8).toUpperCase()} 
+                barcodeValue={getBarcodeValue(product)} 
                 name={product.name} 
-                price={product.selling_price || product.sales_price || product.sale_price || product.mrp || product.price || 0} 
+                price={getProductPrice(product)} 
               />
             </div>
           </div>
@@ -80,9 +111,9 @@ const BarcodePrintModal = ({ isOpen, onClose, product }) => {
         {stickers.map((stk, idx) => (
           <div key={idx} className="single-barcode-print-wrapper">
             <BarcodeSticker 
-              barcodeValue={stk.custom_barcode_no || stk.code || stk.barcode || String(stk.id).substring(0, 8).toUpperCase()} 
+              barcodeValue={getBarcodeValue(stk)} 
               name={stk.name} 
-              price={stk.selling_price || stk.sales_price || stk.sale_price || stk.mrp || stk.price || 0} 
+              price={getProductPrice(stk)} 
             />
           </div>
         ))}

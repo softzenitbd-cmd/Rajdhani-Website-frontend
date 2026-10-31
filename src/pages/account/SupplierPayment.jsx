@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { Printer, Eye, RotateCcw, Plus, Trash2, Edit } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import SearchableSelect from '../../components/SearchableSelect';
 import ExpenseEditModal from './ExpenseEditModal';
 import { accountingService } from '../../services/accountingService';
@@ -23,7 +23,12 @@ const SupplierPayment = () => {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [selectedSupplier, setSelectedSupplier] = useState('');
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const incomingSupplierId = location.state?.supplierId || location.state?.supplier?.id || location.state?.supplier?.uuid || (typeof location.state?.supplier === 'string' ? location.state?.supplier : '') || queryParams.get('supplier') || queryParams.get('supplierId') || '';
+  const incomingOpenAdd = location.state?.openAdd !== undefined ? location.state.openAdd : (queryParams.get('openAdd') === 'true');
+
+  const [selectedSupplier, setSelectedSupplier] = useState(incomingSupplierId || '');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
 
@@ -33,22 +38,26 @@ const SupplierPayment = () => {
   
   const [paymentForm, setPaymentForm] = useState({
     date: new Date().toISOString().split('T')[0],
-    supplier: '',
+    supplier: incomingSupplierId || '',
     account: '',
     category: '', // NEW
     amount: '',
     reference: ''
   });
   const [adding, setAdding] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(Boolean(incomingOpenAdd));
   const [idSearch, setIdSearch] = useState('');
   const [showAddAccount, setShowAddAccount] = useState(false);
   const [showAddCategory, setShowAddCategory] = useState(false);
 
   const fetchPrerequisites = async () => {
     try {
-      const res = await crmService.getSuppliers().catch(() => []);
-      const data = Array.isArray(res) ? res : (res?.results || []);
+      const res = await crmService.getSuppliers({ page_size: 5000 }).catch(() => []);
+      let data = Array.isArray(res) ? res : (res?.results || []);
+      const incSupObj = location.state?.supplier;
+      if (incSupObj && typeof incSupObj === 'object' && !data.some(s => String(s.id || s.uuid) === String(incSupObj.id || incSupObj.uuid))) {
+        data = [incSupObj, ...data];
+      }
       setSuppliers(data);
       
       const accRes = await accountingService.getAccounts().catch(() => []);
@@ -76,6 +85,7 @@ const SupplierPayment = () => {
 
       setPaymentForm(prev => ({
         ...prev,
+        supplier: prev.supplier || incomingSupplierId || '',
         account: prev.account || defaultAccount,
         category: prev.category || defaultCategory
       }));
@@ -91,7 +101,20 @@ const SupplierPayment = () => {
       let data = Array.isArray(res) ? res : (res?.results || []);
       
       // Filter out any non-supplier payments locally
-      data = data.filter(p => p.transaction_type === 'Supplier Payment');
+      data = data.filter(p => {
+        const typeStr = String(p.transaction_type || '').toLowerCase();
+        return typeStr === 'supplier payment' || typeStr.includes('supplier') || typeStr.includes('সাপ্লায়ার') || typeStr.includes('সাপ্লাইয়ার') || p.supplier || p.supplier_id;
+      });
+
+      // Filter by selected supplier (client-side guarantee)
+      const activeSupplier = filters.supplier !== undefined ? filters.supplier : selectedSupplier;
+      if (activeSupplier) {
+        data = data.filter(row => {
+          const sId = row.supplier_id || (typeof row.supplier === 'object' ? (row.supplier?.id || row.supplier?.uuid) : row.supplier);
+          const sName = row.supplier_name || (typeof row.supplier === 'object' ? (row.supplier?.name || row.supplier?.supplier_name || row.supplier?.company_name) : null);
+          return String(sId) === String(activeSupplier) || (sName && String(sName).toLowerCase() === String(activeSupplier).toLowerCase());
+        });
+      }
 
       // Client-side date filtering
       if (fromDate) {
@@ -126,6 +149,19 @@ const SupplierPayment = () => {
   useEffect(() => {
     fetchPrerequisites();
   }, []);
+
+  useEffect(() => {
+    const qParams = new URLSearchParams(location.search);
+    const supId = location.state?.supplierId || location.state?.supplier?.id || location.state?.supplier?.uuid || (typeof location.state?.supplier === 'string' ? location.state?.supplier : '') || qParams.get('supplier') || qParams.get('supplierId');
+    const openAdd = location.state?.openAdd !== undefined ? location.state.openAdd : (qParams.get('openAdd') === 'true');
+    if (supId) {
+      setSelectedSupplier(supId);
+      setPaymentForm(prev => ({ ...prev, supplier: supId }));
+    }
+    if (openAdd) {
+      setShowAddModal(true);
+    }
+  }, [location.state, location.search]);
 
   useEffect(() => {
     const filters = {};
@@ -200,7 +236,7 @@ const SupplierPayment = () => {
   const displayedPayments = payments.filter(item => {
     if (idSearch) {
       const q = idSearch.toLowerCase();
-      const sName = (item.supplier_name || item.supplier?.name || '').toLowerCase();
+      const sName = (item.supplier_name || (typeof item.supplier === 'object' ? (item.supplier?.name || item.supplier?.supplier_name || item.supplier?.company_name) : '') || '').toLowerCase();
       const cat = (item.category_name || item.category?.name || '').toLowerCase();
       const acc = (item.account_name || item.account?.name || '').toLowerCase();
       const tType = (item.transaction_type || '').toLowerCase();
@@ -282,9 +318,9 @@ const SupplierPayment = () => {
               <label style={{ display: 'block', fontSize: '12px', color: '#374151', marginBottom: '4px' }}>Search By Supplier</label>
               <SearchableSelect
                 options={suppliers.map(s => ({
-                  value: s.id,
-                  label: s.name || s.company_name,
-                  searchValue: s.name || s.company_name
+                  value: s.id || s.uuid,
+                  label: s.name || s.supplier_name || s.company_name,
+                  searchValue: s.name || s.supplier_name || s.company_name
                 }))}
                 value={selectedSupplier}
                 onChange={(val) => setSelectedSupplier(val)}
@@ -366,7 +402,7 @@ const SupplierPayment = () => {
                 <tr key={item.id || index}>
                   <td>{index + 1}</td>
                 <td>{fmtDate(item.date)}</td>
-                <td>{item.supplier_name || item.supplier?.name || t("Supplier")}</td>
+                <td>{item.supplier_name || (typeof item.supplier === 'object' ? (item.supplier?.name || item.supplier?.supplier_name || item.supplier?.company_name) : null) || t("Supplier")}</td>
                 <td>{item.id?.toString().slice(-6) || '-'}</td>
                 <td>{item.category_name || item.category?.name || '-'}</td>
                 <td>{item.account_name || item.account?.name || '-'}</td>
@@ -493,7 +529,7 @@ const SupplierPayment = () => {
                     </tr>
                     <tr>
                       <td style={{ border: '1px solid #000', padding: '8px 12px' }}>নাম</td>
-                      <td style={{ border: '1px solid #000', padding: '8px 12px', textTransform: 'uppercase' }}>{selectedPayment.supplier_name || selectedPayment.supplier?.name || 'SUPPLIER'}</td>
+                      <td style={{ border: '1px solid #000', padding: '8px 12px', textTransform: 'uppercase' }}>{selectedPayment.supplier_name || (typeof selectedPayment.supplier === 'object' ? (selectedPayment.supplier?.name || selectedPayment.supplier?.supplier_name || selectedPayment.supplier?.company_name) : null) || 'SUPPLIER'}</td>
                     </tr>
                     <tr>
                       <td style={{ border: '1px solid #000', padding: '8px 12px' }}>বিবরণ</td>
@@ -562,7 +598,7 @@ const SupplierPayment = () => {
                   <div>
                     <label className="form-label" style={{ display: 'block', marginBottom: '8px', background: '#3b82f6', color: 'white', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', fontSize: 'var(--fs-12, 12px)' }}>{t("Supplier Name")}</label>
                     <SearchableSelect
-                      options={suppliers.map(s => ({ value: s.id, label: s.name || s.company_name, searchValue: s.name || s.company_name }))}
+                      options={suppliers.map(s => ({ value: s.id || s.uuid, label: s.name || s.supplier_name || s.company_name, searchValue: s.name || s.supplier_name || s.company_name }))}
                       value={paymentForm.supplier}
                       onChange={(val) => setPaymentForm({...paymentForm, supplier: val})}
                       placeholder={t("Choose One")}

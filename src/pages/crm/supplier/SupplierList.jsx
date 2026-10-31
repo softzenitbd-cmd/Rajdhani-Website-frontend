@@ -379,10 +379,30 @@ const SupplierList = () => {
                         <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => { setSelectedSupplierView(supplier); setActiveAction(null); }}><Eye size={16} color="#0284c7" /> <span>{t("View")}</span></div>
                         <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => { setActiveAction(null); navigate(`/crm/supplier-edit/${supplier.id || supplier.uuid}`); }}><Edit size={16} color="#4f46e5" /> <span>{t("Edit")}</span></div>
                         <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#dc2626' }} onClick={() => handleDeleteSupplier(supplier)}><Trash2 size={16} color="#dc2626" /> <span>{t("Delete")}</span></div>
-                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => { setActiveAction(null); navigate('/account/supplier-payment', { state: { supplierId: supplier.id || supplier.uuid, openAdd: true } }); }}><DollarSign size={16} color="#059669" /> <span>{t("Payment")}</span></div>
-                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => { setActiveAction(null); navigate('/expense-report/supplier-purchase', { state: { supplierId: supplier.id || supplier.uuid } }); }}><FileText size={16} color="#64748b" /> <span>{t("Payment Report")}</span></div>
-                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => { navigate("/product/purchase/report", { state: { supplierId: supplier.id || supplier.uuid } }); setActiveAction(null); }}><FileBarChart size={16} color="#0284c7" /> <span>{t("Purchase Report")}</span></div>
-                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => { navigate("/crm/supplier-statement", { state: { supplierId: supplier.id || supplier.uuid } }); setActiveAction(null); }}><FileText size={16} color="#64748b" /> <span>{t("Statement")}</span></div>
+                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => {
+                          const sId = supplier.id || supplier.uuid;
+                          const sName = supplier.name || supplier.supplier_name || supplier.company_name;
+                          setActiveAction(null);
+                          navigate(`/account/supplier-payment?supplier=${sId}&openAdd=true`, { state: { supplierId: sId, supplierName: sName, supplier, openAdd: true } });
+                        }}><DollarSign size={16} color="#059669" /> <span>{t("Payment")}</span></div>
+                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => {
+                          const sId = supplier.id || supplier.uuid;
+                          const sName = supplier.name || supplier.supplier_name || supplier.company_name;
+                          setActiveAction(null);
+                          navigate(`/expense-report/supplier-purchase?supplier=${sId}`, { state: { supplierId: sId, supplierName: sName, supplier } });
+                        }}><FileText size={16} color="#64748b" /> <span>{t("Payment Report")}</span></div>
+                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => {
+                          const sId = supplier.id || supplier.uuid;
+                          const sName = supplier.name || supplier.supplier_name || supplier.company_name;
+                          setActiveAction(null);
+                          navigate(`/product/purchase/report?supplier=${sId}`, { state: { supplierId: sId, supplierName: sName, supplier } });
+                        }}><FileBarChart size={16} color="#0284c7" /> <span>{t("Purchase Report")}</span></div>
+                        <div className="action-item" style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-13, 13px)', borderRadius: '6px', color: '#334155' }} onClick={() => {
+                          const sId = supplier.id || supplier.uuid;
+                          const sName = supplier.name || supplier.supplier_name || supplier.company_name;
+                          setActiveAction(null);
+                          navigate(`/crm/supplier-statement?supplier=${sId}`, { state: { supplierId: sId, supplierName: sName, supplier } });
+                        }}><FileText size={16} color="#64748b" /> <span>{t("Statement")}</span></div>
                       </div>
                     )}
                   </td>

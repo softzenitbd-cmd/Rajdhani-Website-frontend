@@ -194,6 +194,9 @@ export const accountingService = {
     const params = {};
     if (filters.search) params.search = filters.search;
     if (filters.supplier) params.supplier = filters.supplier;
+    if (filters.supplier_id) { params.supplier_id = filters.supplier_id; params.supplier = filters.supplier_id; }
+    if (filters.supplier) { params.supplier = filters.supplier; params.supplier_id = filters.supplier; }
+    if (filters.transaction_type) params.transaction_type = filters.transaction_type;
     if (filters.staff) params.staff = filters.staff;
     if (filters.account) params.account = filters.account;
     if (filters.category) params.category = filters.category;

@@ -40,7 +40,7 @@ export const fmtDate = (v) => {
 export const nameOf = (v, fallback = '-') => {
   if (!v) return fallback;
   if (typeof v === 'string' || typeof v === 'number') return String(v);
-  return v.name || v.full_name || v.username || v.title || fallback;
+  return v.name || v.supplier_name || v.client_name || v.company_name || v.full_name || v.username || v.title || fallback;
 };
 
 export const MONTHS = [
