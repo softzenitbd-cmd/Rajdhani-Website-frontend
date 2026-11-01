@@ -27,13 +27,14 @@ import { useAppSettings } from "../../hooks/useAppSettings";
 
 const ashInput = {
   width: "100%",
-  padding: "4px",
+  padding: "2px 6px",
   border: "1px solid #cbd5e1",
   borderRadius: "4px",
   textAlign: "center",
   outline: "none",
   background: "#f8fafc",
-  fontSize: "12px"
+  fontSize: "12px",
+  height: "26px",
 };
 
 const PurchaseCreate = () => {
@@ -245,6 +246,7 @@ const PurchaseCreate = () => {
 
     setItems((prevItems) => {
       return [
+        ...prevItems,
         {
           id: prod.id,
           name: prod.name || prod.title || "Product",
@@ -263,7 +265,6 @@ const PurchaseCreate = () => {
           percentage: (visibleFields.percentage_value !== undefined && visibleFields.percentage_value !== '' ? Number(visibleFields.percentage_value) : salePricePercentage),
           barcode: prod.code || prod.barcode || "-",
         },
-        ...prevItems,
       ];
     });
 
@@ -499,18 +500,21 @@ const PurchaseCreate = () => {
     <div
       style={{
         position: "absolute",
-        top: "-10px",
-        left: "16px",
+        top: "-8px",
+        left: "12px",
         background: "var(--info, #38bdf8)",
         color: "white",
-        fontSize: "var(--fs-11, 11px)",
-        padding: "2px 12px",
+        fontSize: "10px",
+        fontWeight: "600",
+        lineHeight: "14px",
+        padding: "1px 8px",
         borderRadius: "4px",
         display: "flex",
         alignItems: "center",
         gap: "4px",
-        zIndex: 1,
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        zIndex: 2,
+        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+        pointerEvents: "none",
       }}
     >
       {icon} {text}
@@ -518,25 +522,27 @@ const PurchaseCreate = () => {
   );
 
   return (
-    <div className="dashboard-content" style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 110px)", overflow: "hidden" }}>
-      <div className="premium-card" style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+    <div className="dashboard-content" style={{ padding: "8px 12px 90px 12px" }}>
+      <div className="premium-card" style={{ overflow: "visible" }}>
         <div
           className="premium-header"
           style={{
-            padding: "16px 24px",
+            padding: "8px 16px",
             background: "#22c55e",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            borderRadius: "6px 6px 0 0",
           }}
         >
           <h2
             className="premium-title"
             style={{
-              fontSize: "var(--fs-14, 14px)",
+              fontSize: "var(--fs-13, 13px)",
               fontWeight: "bold",
               textTransform: "uppercase",
-              color: "black",
+              color: "white",
+              margin: 0,
             }}
           >
             <span>{isEditMode ? t("Edit Purchase") : t("Purchase Create")}</span>
@@ -544,8 +550,8 @@ const PurchaseCreate = () => {
               className="desktop-shortcut-guide"
               style={{
                 fontWeight: "normal",
-                fontSize: "12px",
-                color: "#64748b",
+                fontSize: "11px",
+                color: "rgba(255,255,255,0.85)",
                 marginLeft: "6px",
                 textTransform: "none",
               }}
@@ -560,24 +566,27 @@ const PurchaseCreate = () => {
                 background: "none",
                 border: "none",
                 cursor: "pointer",
-                color: "#64748b",
+                color: "white",
+                padding: "2px",
+                display: "flex",
+                alignItems: "center",
               }}
               title={t("Form Settings")}
             >
-              <Settings size={20} />
+              <Settings size={18} />
             </button>
           </div>
         </div>
 
-        <div className="premium-body" style={{ background: "white", padding: "16px", flex: 1, display: "flex", flexDirection: "column", overflowY: "auto", overflowX: "hidden" }}>
+        <div className="premium-body" style={{ background: "white", padding: "10px 14px 4px 14px" }}>
           <PrintHeader />
-          <form onSubmit={(e) => e.preventDefault()} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          <form onSubmit={(e) => e.preventDefault()}>
             {/* Top Row: Supplier, Date, Invoice ID */}
             <div
               style={{
                 display: "flex",
-                gap: "16px",
-                marginBottom: "16px",
+                gap: "10px",
+                marginBottom: "10px",
                 flexWrap: "wrap",
               }}
             >
@@ -613,9 +622,18 @@ const PurchaseCreate = () => {
                 >
                   <div
                     className="badge-date"
-                    style={{ background: "var(--info)" }}
+                    style={{
+                      background: "var(--info)",
+                      top: "-8px",
+                      left: "12px",
+                      padding: "1px 8px",
+                      fontSize: "10px",
+                      fontWeight: "600",
+                      lineHeight: "14px",
+                      borderRadius: "4px",
+                    }}
                   >
-                    <Calendar size={12} /> {t("Issued Date")}
+                    <Calendar size={11} /> {t("Issued Date")}
                   </div>
                   <input
                     type="date"
@@ -633,7 +651,15 @@ const PurchaseCreate = () => {
                         e.target.showPicker();
                       } catch (err) {}
                     }}
-                    style={{ cursor: "pointer", width: "100%" }}
+                    style={{
+                      cursor: "pointer",
+                      width: "100%",
+                      height: "38px",
+                      fontSize: "13px",
+                      padding: "0 12px",
+                      borderRadius: "4px",
+                      border: "1px solid #cbd5e1",
+                    }}
                   />
                 </div>
               
@@ -746,8 +772,8 @@ const PurchaseCreate = () => {
             <div
               className="form-grid invoice-mid-grid"
               style={{
-                gap: "16px",
-                marginBottom: "82px",
+                gap: "10px",
+                marginBottom: "10px",
                 position: "relative",
               }}
             >
@@ -760,20 +786,23 @@ const PurchaseCreate = () => {
                   style={{
                     display: "flex",
                     border: "1px solid #0ea5e9",
-                    borderRadius: "8px",
+                    borderRadius: "4px",
                     overflow: "hidden",
                     background: "white",
+                    height: "38px",
                   }}
                 >
                   <div
                     style={{
-                      padding: "6px", fontSize: "11px",
+                      padding: "0 10px",
                       borderRight: "1px solid #cbd5e1",
                       display: "flex",
                       alignItems: "center",
+                      justifyContent: "center",
+                      background: "#f8fafc",
                     }}
                   >
-                    <Barcode size={24} style={{ color: "var(--text-muted)" }} />
+                    <Barcode size={20} style={{ color: "#0ea5e9" }} />
                   </div>
                   <input
                     id="barcodeInput"
@@ -808,10 +837,12 @@ const PurchaseCreate = () => {
                     }}
                     style={{
                       flex: 1,
-                      padding: "6px", fontSize: "11px",
+                      padding: "0 10px",
+                      fontSize: "12px",
                       border: "none",
                       outline: "none",
                       background: "transparent",
+                      height: "100%",
                     }}
                   />
                 </div>
@@ -823,8 +854,8 @@ const PurchaseCreate = () => {
                   marginBottom: "0",
                   position: "relative",
                   border: "1px solid #0ea5e9",
-                  borderRadius: "8px",
-                  padding: "1px",
+                  borderRadius: "4px",
+                  padding: "0",
                 }}
                 onKeyDownCapture={(e) => {
                   if (e.key === "Tab" && !e.shiftKey) {
@@ -832,7 +863,7 @@ const PurchaseCreate = () => {
                     setTimeout(() => {
                       const inputs =
                         document.querySelectorAll(`input[data-qty-idx]`);
-                      const targetQty = inputs.length > 0 ? inputs[0] : null;
+                      const targetQty = inputs.length > 0 ? inputs[inputs.length - 1] : null;
                       if (targetQty) {
                         targetQty.focus();
                         setTimeout(() => targetQty.select(), 10);
@@ -880,13 +911,12 @@ const PurchaseCreate = () => {
               style={{
                 overflowX: "auto",
                 overflowY: "auto",
-                flex: 1,
-                minHeight: "200px",
-                maxHeight: "650px",
-                border: "1px solid #e2e8f0",
-                marginBottom: "24px",
-                borderRadius: "8px",
-                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
+                maxHeight: "calc(100vh - 240px)",
+                border: "1px solid #cbd5e1",
+                marginBottom: "8px",
+                borderRadius: "6px",
+                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+                background: "white",
               }}
             >
               <table
@@ -898,113 +928,37 @@ const PurchaseCreate = () => {
                 }}
               >
                 <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
-                  <tr
-                    style={{ background: "var(--secondary)", color: "white" }}
-                  >
-                    <th
-                      style={{
-                        textAlign: "center",
-                        borderRight: "1px solid white",
-                        padding: "6px", fontSize: "11px",
-                        fontSize: "var(--fs-11, 11px)",
-                        width: "50px",
-                      }}
-                    >
+                  <tr style={{ background: "#64748b", color: "white" }}>
+                    <th style={{ textAlign: "center", borderRight: "1px solid #94a3b8", padding: "6px 4px", fontSize: "11px", width: "40px" }}>
                       {t("SL")}
                     </th>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        borderRight: "1px solid white",
-                        padding: "6px", fontSize: "11px",
-                        fontSize: "var(--fs-11, 11px)",
-                      }}
-                    >
+                    <th style={{ textAlign: "left", borderRight: "1px solid #94a3b8", padding: "6px 8px", fontSize: "11px" }}>
                       {t("PRODUCT")}
                     </th>
-                    <th
-                      style={{
-                        textAlign: "center",
-                        borderRight: "1px solid white",
-                        padding: "6px", fontSize: "11px",
-                        fontSize: "var(--fs-11, 11px)",
-                        width: "90px",
-                      }}
-                    >
+                    <th style={{ textAlign: "center", borderRight: "1px solid #94a3b8", padding: "6px 4px", fontSize: "11px", width: "70px" }}>
                       {t("QUANTITY")}
                     </th>
-                    <th
-                      style={{
-                        textAlign: "center",
-                        borderRight: "1px solid white",
-                        padding: "6px", fontSize: "11px",
-                        fontSize: "var(--fs-11, 11px)",
-                        width: "120px",
-                      }}
-                    >
+                    <th style={{ textAlign: "center", borderRight: "1px solid #94a3b8", padding: "6px 4px", fontSize: "11px", width: "90px" }}>
                       {t("BUYING PRICE")}
                     </th>
-                    <th
-                      style={{
-                        textAlign: "right",
-                        borderRight: "1px solid white",
-                        padding: "6px", fontSize: "11px",
-                        fontSize: "var(--fs-11, 11px)",
-                      }}
-                    >
+                    <th style={{ textAlign: "right", borderRight: "1px solid #94a3b8", padding: "6px 8px", fontSize: "11px", width: "100px" }}>
                       {t("TOTAL BUYING PRICE")}
                     </th>
                     {visibleFields.percentage !== false && (
-                      <th
-                        style={{
-                          textAlign: "center",
-                          borderRight: "1px solid white",
-                          padding: "6px", fontSize: "11px",
-                          fontSize: "var(--fs-11, 11px)",
-                          width: "90px",
-                        }}
-                      >
+                      <th style={{ textAlign: "center", borderRight: "1px solid #94a3b8", padding: "6px 4px", fontSize: "11px", width: "70px" }}>
                         {t("PERCENTAGE (%)")}
                       </th>
                     )}
-                    <th
-                      style={{
-                        textAlign: "center",
-                        borderRight: "1px solid white",
-                        padding: "6px", fontSize: "11px",
-                        fontSize: "var(--fs-11, 11px)",
-                        width: "120px",
-                      }}
-                    >
+                    <th style={{ textAlign: "center", borderRight: "1px solid #94a3b8", padding: "6px 4px", fontSize: "11px", width: "90px" }}>
                       {t("SALE PRICE")}
                     </th>
-                    <th
-                      style={{
-                        textAlign: "right",
-                        borderRight: "1px solid white",
-                        padding: "6px", fontSize: "11px",
-                        fontSize: "var(--fs-11, 11px)",
-                      }}
-                    >
+                    <th style={{ textAlign: "right", borderRight: "1px solid #94a3b8", padding: "6px 8px", fontSize: "11px", width: "100px" }}>
                       {t("TOTAL SALE PRICE")}
                     </th>
-                    <th
-                      style={{
-                        textAlign: "center",
-                        borderRight: "1px solid white",
-                        padding: "6px", fontSize: "11px",
-                        fontSize: "var(--fs-11, 11px)",
-                      }}
-                    >
+                    <th style={{ textAlign: "center", borderRight: "1px solid #94a3b8", padding: "6px 4px", fontSize: "11px", width: "50px" }}>
                       {t("BARCODE")}
                     </th>
-                    <th
-                      style={{
-                        textAlign: "center",
-                        padding: "6px", fontSize: "11px",
-                        fontSize: "var(--fs-11, 11px)",
-                      }}
-                    >
+                    <th style={{ textAlign: "center", padding: "6px 4px", fontSize: "11px", width: "50px" }}>
                       {t("ACTION")}
                     </th>
                   </tr>
@@ -1029,21 +983,24 @@ const PurchaseCreate = () => {
                     items.map((item, idx) => (
                       <tr
                         key={idx}
-                        style={{ borderBottom: "1px solid #e2e8f0" }}
+                        style={{ borderBottom: "1px solid #e2e8f0", height: "30px" }}
                       >
-                        <td style={{ textAlign: "center", padding: "4px", fontSize: "12px" }}>
+                        <td style={{ textAlign: "center", padding: "3px 4px", fontSize: "12px" }}>
                           {idx + 1}
                         </td>
                         <td
                           style={{
                             textAlign: "left",
-                            padding: "4px", fontSize: "12px",
+                            padding: "3px 8px",
+                            fontSize: "12px",
                             fontWeight: "500",
+                            color: "#0f172a",
+                            whiteSpace: "nowrap",
                           }}
                         >
-                          {item.name}
+                          {item.name}{item.barcode && item.barcode !== '-' ? ` | ${item.barcode}` : ''}
                         </td>
-                        <td style={{ textAlign: "center", padding: "4px", fontSize: "12px" }}>
+                        <td style={{ textAlign: "center", padding: "3px 4px", fontSize: "12px" }}>
                           <input
                             data-qty-idx={idx}
                             type="number"
@@ -1075,12 +1032,12 @@ const PurchaseCreate = () => {
                             }
                             style={{
                               ...ashInput,
-                              width: "100px",
+                              width: "70px",
                               textAlign: "center",
                             }}
                           />
                         </td>
-                        <td style={{ textAlign: "center", padding: "4px", fontSize: "12px" }}>
+                        <td style={{ textAlign: "center", padding: "3px 4px", fontSize: "12px" }}>
                           <input
                             type="number"
                             value={item.buyingPrice}
@@ -1092,19 +1049,35 @@ const PurchaseCreate = () => {
                                 e.target.value,
                               )
                             }
-                            style={ashInput}
+                            style={{ ...ashInput, width: "80px" }}
                           />
                         </td>
                         <td
                           style={{
                             textAlign: "right",
-                            padding: "4px", fontSize: "12px",
+                            padding: "3px 8px",
+                            fontSize: "12px",
                             fontWeight: "bold",
+                            color: "#1e293b",
+                            whiteSpace: "nowrap",
                           }}
                         >
-                          ৳ {(item.quantity * item.buyingPrice).toFixed(2)}
+                          {(item.quantity * item.buyingPrice).toFixed(2)}
                         </td>
-                        <td style={{ textAlign: "center", padding: "4px", fontSize: "12px" }}>
+                        {visibleFields.percentage !== false && (
+                          <td style={{ textAlign: "center", padding: "3px 4px", fontSize: "12px" }}>
+                            <input
+                              type="number"
+                              value={item.percentage !== undefined ? item.percentage : ''}
+                              onFocus={(e) => e.target.select()}
+                              onChange={(e) =>
+                                updateItemField(idx, "percentage", e.target.value)
+                              }
+                              style={{ ...ashInput, width: "60px" }}
+                            />
+                          </td>
+                        )}
+                        <td style={{ textAlign: "center", padding: "3px 4px", fontSize: "12px" }}>
                           <input
                             type="number"
                             value={item.salePrice}
@@ -1112,99 +1085,70 @@ const PurchaseCreate = () => {
                             onChange={(e) =>
                               updateItemField(idx, "salePrice", e.target.value)
                             }
-                            style={ashInput}
+                            style={{ ...ashInput, width: "80px" }}
                           />
                         </td>
                         <td
                           style={{
                             textAlign: "right",
-                            padding: "4px", fontSize: "12px",
+                            padding: "3px 8px",
+                            fontSize: "12px",
                             fontWeight: "bold",
+                            color: "#1e293b",
+                            whiteSpace: "nowrap",
                           }}
                         >
-                          ৳ {(item.quantity * item.salePrice).toFixed(2)}
+                          {(item.quantity * item.salePrice).toFixed(2)}
                         </td>
-                        <td style={{ textAlign: "center", padding: "4px", fontSize: "12px" }}>
-                          <div
+                        <td style={{ textAlign: "center", padding: "3px 4px", fontSize: "12px" }}>
+                          <button
+                            type="button"
+                            onClick={() => setBarcodeProductToPrint({
+                              ...item,
+                              price: Number(item.salePrice || item.selling_price || item.sales_price || item.buyingPrice || 0),
+                              salePrice: Number(item.salePrice || item.selling_price || item.sales_price || 0),
+                              selling_price: Number(item.salePrice || item.selling_price || item.sales_price || 0),
+                              sales_price: Number(item.salePrice || item.selling_price || item.sales_price || 0),
+                              sale_price: Number(item.salePrice || item.selling_price || item.sales_price || 0),
+                              barcode: item.barcode || item.code || item.custom_barcode_no || '-',
+                              code: item.barcode || item.code || item.custom_barcode_no || '-',
+                              custom_barcode_no: item.barcode || item.code || item.custom_barcode_no || '-',
+                            })}
                             style={{
-                              display: "flex",
-                              flexDirection: "column",
+                              border: "none",
+                              background: "#1e293b",
+                              color: "white",
+                              cursor: "pointer",
+                              padding: "3px 6px",
+                              borderRadius: "4px",
+                              display: "inline-flex",
                               alignItems: "center",
-                              gap: "4px",
-                            }}
-                          >
-                            <div
-                              style={{
-                                fontSize: "13px",
-                                  fontWeight: "700",
-                                  color: "#0f172a",
-                                  maxWidth: "150px",
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                              }}
-                              title={item.barcode}
-                            >
-                              {item.barcode}
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => setBarcodeProductToPrint({
-                                ...item,
-                                price: Number(item.salePrice || item.selling_price || item.sales_price || item.buyingPrice || 0),
-                                salePrice: Number(item.salePrice || item.selling_price || item.sales_price || 0),
-                                selling_price: Number(item.salePrice || item.selling_price || item.sales_price || 0),
-                                sales_price: Number(item.salePrice || item.selling_price || item.sales_price || 0),
-                                sale_price: Number(item.salePrice || item.selling_price || item.sales_price || 0),
-                                barcode: item.barcode || item.code || item.custom_barcode_no || '-',
-                                code: item.barcode || item.code || item.custom_barcode_no || '-',
-                                custom_barcode_no: item.barcode || item.code || item.custom_barcode_no || '-',
-                              })}
-                              style={{
-                                border: "none",
-                                background: "#1e293b",
-                                color: "white",
-                                cursor: "pointer",
-                                padding: "4px 6px",
-                                borderRadius: "4px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                              title={t("Print Barcode")}
-                            >
-                              <Barcode size={16} />
-                            </button>
-                          </div>
-                        </td>
-                        <td style={{ textAlign: "center", padding: "4px", fontSize: "12px" }}>
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: "8px",
                               justifyContent: "center",
-                              alignItems: "center",
                             }}
+                            title={item.barcode ? `${t("Print Barcode")}: ${item.barcode}` : t("Print Barcode")}
                           >
-                            <button
-                              type="button"
-                              onClick={() => removeItem(idx)}
-                              style={{
-                                border: "none",
-                                background: "#ef4444",
-                                color: "white",
-                                cursor: "pointer",
-                                padding: "4px 6px",
-                                borderRadius: "4px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                              title={t("Remove")}
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
+                            <Barcode size={15} />
+                          </button>
+                        </td>
+                        <td style={{ textAlign: "center", padding: "3px 4px", fontSize: "12px" }}>
+                          <button
+                            type="button"
+                            onClick={() => removeItem(idx)}
+                            style={{
+                              border: "none",
+                              background: "#ef4444",
+                              color: "white",
+                              cursor: "pointer",
+                              padding: "3px 6px",
+                              borderRadius: "4px",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                            title={t("Remove")}
+                          >
+                            <Trash2 size={15} />
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -1269,91 +1213,29 @@ const PurchaseCreate = () => {
               </table>
             </div>
 
-            {/* Bill summary and Bottom fields */}
-            <div
-              style={{
-                display: "flex",
-                gap: "24px",
-                flexWrap: "wrap",
-                marginBottom: "24px",
-              }}
-            >
-              {/* Left Column Form fields */}
+            {/* Floating Overlay Widget: Action & Summary Bar */}
+            <div className="purchase-floating-bar no-print">
+              {/* Left Side: Inputs */}
               <div
                 style={{
-                  flex: "0 1 500px",
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "16px",
-                  alignContent: "start",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  flexWrap: "wrap",
                 }}
               >
-                {visibleFields.discount !== false && (
-                  <div style={{ display: "flex", gap: "16px" }}>
-                    <div
-                      style={{
-                        flex: 1,
-                        position: "relative",
-                        border: "1px solid #0ea5e9",
-                        borderRadius: "8px",
-                      }}
-                    >
-                      <BadgeLabel
-                        icon={<HelpCircle size={12} />}
-                        text={t("Discount")}
-                      />
-                      <input
-                        type="number"
-                        step="0.01"
-                        name="discount"
-                        value={formData.discount}
-                        onChange={handleChange}
-                        placeholder="0"
-                        style={{
-                          width: "100%",
-                          padding: "16px",
-                          border: "none",
-                          outline: "none",
-                          background: "transparent",
-                        }}
-                      />
-                    </div>
-                    <div
-                      style={{
-                        flex: 1,
-                        border: "1px solid #0ea5e9",
-                        borderRadius: "8px",
-                      }}
-                    >
-                      <select
-                        name="discount_type"
-                        value={formData.discount_type}
-                        onChange={handleChange}
-                        style={{
-                          width: "100%",
-                          padding: "16px",
-                          border: "none",
-                          outline: "none",
-                          background: "transparent",
-                        }}
-                      >
-                        <option>Percentage (%)</option>
-                        <option>Flat</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-
                 {visibleFields.transport_fare !== false && (
                   <div
                     style={{
                       position: "relative",
                       border: "1px solid #0ea5e9",
-                      borderRadius: "8px",
+                      borderRadius: "6px",
+                      background: "white",
+                      minWidth: "140px",
                     }}
                   >
                     <BadgeLabel
-                      icon={<HelpCircle size={12} />}
+                      icon={<HelpCircle size={10} />}
                       text={t("Transport Fare")}
                     />
                     <input
@@ -1365,68 +1247,117 @@ const PurchaseCreate = () => {
                       placeholder="0"
                       style={{
                         width: "100%",
-                        padding: "16px",
+                        height: "36px",
+                        padding: "6px 12px",
                         border: "none",
                         outline: "none",
                         background: "transparent",
+                        fontSize: "13px",
+                        fontWeight: "600",
                       }}
                     />
                   </div>
                 )}
 
+                {visibleFields.discount !== false && (
+                  <div
+                    style={{
+                      display: "flex",
+                      border: "1px solid #0ea5e9",
+                      borderRadius: "6px",
+                      position: "relative",
+                      background: "white",
+                    }}
+                  >
+                    <BadgeLabel
+                      icon={<HelpCircle size={10} />}
+                      text={t("Discount")}
+                    />
+                    <input
+                      type="number"
+                      step="0.01"
+                      name="discount"
+                      value={formData.discount}
+                      onChange={handleChange}
+                      placeholder="0"
+                      style={{
+                        width: "80px",
+                        height: "36px",
+                        padding: "6px 10px",
+                        border: "none",
+                        outline: "none",
+                        background: "transparent",
+                        fontSize: "13px",
+                      }}
+                    />
+                    <select
+                      name="discount_type"
+                      value={formData.discount_type}
+                      onChange={handleChange}
+                      style={{
+                        height: "36px",
+                        padding: "2px 6px",
+                        border: "none",
+                        borderLeft: "1px solid #e2e8f0",
+                        outline: "none",
+                        background: "transparent",
+                        fontSize: "11px",
+                      }}
+                    >
+                      <option>Percentage (%)</option>
+                      <option>Flat</option>
+                    </select>
+                  </div>
+                )}
+
                 {visibleFields.vat !== false && (
-                  <div style={{ display: "flex", gap: "16px" }}>
-                    <div
+                  <div
+                    style={{
+                      display: "flex",
+                      border: "1px solid #0ea5e9",
+                      borderRadius: "6px",
+                      position: "relative",
+                      background: "white",
+                    }}
+                  >
+                    <BadgeLabel
+                      icon={<HelpCircle size={10} />}
+                      text={t("Vat")}
+                    />
+                    <input
+                      type="number"
+                      step="0.01"
+                      name="vat"
+                      value={formData.vat}
+                      onChange={handleChange}
+                      placeholder="0"
                       style={{
-                        flex: 1,
-                        position: "relative",
-                        border: "1px solid #0ea5e9",
-                        borderRadius: "8px",
+                        width: "80px",
+                        height: "36px",
+                        padding: "6px 10px",
+                        border: "none",
+                        outline: "none",
+                        background: "transparent",
+                        fontSize: "13px",
+                      }}
+                    />
+                    <select
+                      name="vat_type"
+                      value={formData.vat_type}
+                      onChange={handleChange}
+                      style={{
+                        height: "36px",
+                        padding: "2px 6px",
+                        border: "none",
+                        borderLeft: "1px solid #e2e8f0",
+                        outline: "none",
+                        background: "transparent",
+                        fontSize: "11px",
                       }}
                     >
-                      <BadgeLabel
-                        icon={<HelpCircle size={12} />}
-                        text={t("Vat")}
-                      />
-                      <input
-                        type="number"
-                        step="0.01"
-                        name="vat"
-                        value={formData.vat}
-                        onChange={handleChange}
-                        placeholder="0"
-                        style={{
-                          width: "100%",
-                          padding: "16px",
-                          border: "none",
-                          outline: "none",
-                          background: "transparent",
-                        }}
-                      />
-                    </div>
-                    <div
-                      style={{
-                        flex: 1,
-                        border: "1px solid #0ea5e9",
-                        borderRadius: "8px",
-                      }}
-                    >
-                      <select
-                        name="vat_type"
-                        value={formData.vat_type}
-                        onChange={handleChange}
-                        style={{
-                          width: "100%",
-                          padding: "16px",
-                          border: "none",
-                          outline: "none",
-                          background: "transparent",
-                        }}
-                      >
-                        <option>Percentage (%)</option>
-                        <option>Flat</option>
-                      </select>
-                    </div>
+                      <option>Percentage (%)</option>
+                      <option>Flat</option>
+                    </select>
                   </div>
                 )}
 
@@ -1435,11 +1366,13 @@ const PurchaseCreate = () => {
                     style={{
                       position: "relative",
                       border: "1px solid #0ea5e9",
-                      borderRadius: "8px",
+                      borderRadius: "6px",
+                      background: "white",
+                      minWidth: "140px",
                     }}
                   >
                     <BadgeLabel
-                      icon={<HelpCircle size={12} />}
+                      icon={<HelpCircle size={10} />}
                       text={t("Payment Amount")}
                     />
                     <input
@@ -1452,153 +1385,177 @@ const PurchaseCreate = () => {
                       placeholder="0"
                       style={{
                         width: "100%",
-                        padding: "16px",
+                        height: "36px",
+                        padding: "6px 12px",
                         border: "none",
                         outline: "none",
                         background: "transparent",
+                        fontSize: "13px",
+                        fontWeight: "600",
                       }}
                     />
                   </div>
                 )}
               </div>
 
-              {/* Right Column totals */}
+              {/* Right Side: Totals & Buy Button */}
               <div
                 style={{
-                  flex: "0 1 300px",
                   display: "flex",
-                  flexDirection: "column",
-                  gap: "8px",
+                  alignItems: "center",
+                  gap: "10px",
+                  flexWrap: "wrap",
                   marginLeft: "auto",
                 }}
               >
+                {/* Purchase Bill */}
                 <div
                   style={{
+                    height: "36px",
                     background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
-                    border: "1px solid #e2e8f0",
+                    border: "1px solid #cbd5e1",
                     borderRadius: "6px",
-                    padding: "8px 12px",
+                    padding: "0 12px",
                     display: "flex",
-                    justifyContent: "space-between",
                     alignItems: "center",
+                    gap: "8px",
+                    whiteSpace: "nowrap",
                     boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
                   }}
                 >
-                  <div
+                  <span
                     style={{
                       fontSize: "var(--fs-12, 12px)",
                       color: "#475569",
                       fontWeight: "600",
                       textTransform: "uppercase",
-                      letterSpacing: "0.5px"
+                      letterSpacing: "0.5px",
                     }}
                   >
                     {t("Purchase Bill")}
-                  </div>
-                  <div
+                  </span>
+                  <span
                     style={{
                       fontWeight: "800",
                       fontSize: "var(--fs-14, 14px)",
-                      color: "#1e293b"
+                      color: "#1e293b",
                     }}
                   >
                     ৳ {totalBuying.toFixed(2)}
-                  </div>
+                  </span>
                 </div>
+
+                {/* Grand Total */}
                 <div
                   style={{
+                    height: "36px",
                     background: "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)",
                     border: "1px solid #10b981",
                     borderRadius: "6px",
-                    padding: "8px 12px",
+                    padding: "0 12px",
                     display: "flex",
-                    justifyContent: "space-between",
                     alignItems: "center",
+                    gap: "8px",
+                    whiteSpace: "nowrap",
                     boxShadow: "0 2px 4px rgba(16, 185, 129, 0.1)",
                   }}
                 >
-                  <div
+                  <span
                     style={{
                       fontSize: "var(--fs-12, 12px)",
                       color: "#047857",
                       fontWeight: "600",
                       textTransform: "uppercase",
-                      letterSpacing: "0.5px"
+                      letterSpacing: "0.5px",
                     }}
                   >
                     {t("Grand Total")}
-                  </div>
-                  <div
+                  </span>
+                  <span
                     style={{
                       fontWeight: "800",
                       fontSize: "var(--fs-15, 15px)",
-                      color: "#065f46"
+                      color: "#065f46",
                     }}
                   >
                     ৳ {grandTotal.toFixed(2)}
-                  </div>
+                  </span>
                 </div>
+
+                {/* Due */}
                 <div
                   style={{
+                    height: "36px",
                     background: "linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)",
                     border: "1px solid #ef4444",
                     borderRadius: "6px",
-                    padding: "8px 12px",
+                    padding: "0 12px",
                     display: "flex",
-                    justifyContent: "space-between",
                     alignItems: "center",
+                    gap: "8px",
+                    whiteSpace: "nowrap",
                     boxShadow: "0 2px 4px rgba(239, 68, 68, 0.1)",
                   }}
                 >
-                  <div
+                  <span
                     style={{
                       fontSize: "var(--fs-12, 12px)",
                       color: "#b91c1c",
                       fontWeight: "600",
                       textTransform: "uppercase",
-                      letterSpacing: "0.5px"
+                      letterSpacing: "0.5px",
                     }}
                   >
                     {t("Due")}
-                  </div>
-                  <div
+                  </span>
+                  <span
                     style={{
                       fontWeight: "800",
                       fontSize: "var(--fs-15, 15px)",
-                      color: "#991b1b"
+                      color: "#991b1b",
                     }}
                   >
                     ৳ {totalDue.toFixed(2)}
-                  </div>
+                  </span>
                 </div>
-              </div>
-            </div>
 
-            <div className="invoice-fixed-footer" style={{ display: "flex", justifyContent: "center", padding: "16px 0", marginTop: "8px", position: "relative", zIndex: 20 }}>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={() => handleSubmitPurchase(1)}
-                disabled={submitting}
-                style={{
-                  background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
-                  padding: "14px 48px",
-                  fontSize: "var(--fs-16, 16px)",
-                  borderRadius: "8px",
-                  fontWeight: "bold",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "white",
-                  boxShadow: "0 4px 12px rgba(34, 197, 94, 0.3)",
-                  transition: "transform 0.1s ease, box-shadow 0.1s ease",
-                  textTransform: "uppercase",
-                  letterSpacing: "1px",
-                }}
-                onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 16px rgba(34, 197, 94, 0.4)"; }}
-                onMouseOut={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(34, 197, 94, 0.3)"; }}
-              >
-                {isEditMode ? t("Update") : t("Buy")}
-              </button>
+                {/* Buy Button */}
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => handleSubmitPurchase(1)}
+                  disabled={submitting}
+                  style={{
+                    height: "36px",
+                    background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                    padding: "0 26px",
+                    fontSize: "var(--fs-14, 14px)",
+                    borderRadius: "6px",
+                    fontWeight: "bold",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "white",
+                    boxShadow: "0 2px 8px rgba(34, 197, 94, 0.3)",
+                    whiteSpace: "nowrap",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "transform 0.1s ease, box-shadow 0.1s ease",
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                    e.currentTarget.style.boxShadow = "0 4px 12px rgba(34, 197, 94, 0.4)";
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 2px 8px rgba(34, 197, 94, 0.3)";
+                  }}
+                >
+                  {isEditMode ? t("Update") : t("Buy")}
+                </button>
+              </div>
             </div>
           </form>
         </div>

@@ -38,6 +38,7 @@
   --shadow-md: 0px 18px 40px rgba(112, 144, 176, 0.12);
   
   --radius-md: 12px;
+  --sidebar-current-width: 280px;
   --radius-lg: 20px;
   --radius-full: 9999px;
   
@@ -1472,3 +1473,53 @@ html[lang="bn"] textarea {
   grid-template-columns: 1fr 1fr;
 }
 
+
+
+body:has(.sidebar.collapsed) {
+  --sidebar-current-width: 0px !important;
+}
+
+@media (max-width: 900px) {
+  :root {
+    --sidebar-current-width: 0px !important;
+  }
+}
+
+/* Purchase Floating Overlay Bar */
+.purchase-floating-bar {
+  position: fixed;
+  bottom: 10px;
+  left: calc(var(--sidebar-current-width, 280px) + 12px);
+  right: 84px;
+  z-index: 990;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(8px);
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 6px 14px;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.15), 0 3px 8px -2px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), right 0.3s ease;
+}
+
+@media (max-width: 900px) {
+  .purchase-floating-bar {
+    left: 12px;
+    right: 76px;
+    bottom: 12px;
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .purchase-floating-bar {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+  }
+}

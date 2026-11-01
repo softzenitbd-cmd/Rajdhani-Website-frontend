@@ -206,6 +206,17 @@ const Sidebar = ({ isOpen, isCollapsed, closeSidebar, setIsSidebarCollapsed }) =
   const [sidebarWidth, setSidebarWidth] = useState(280);
   const [isResizing, setIsResizing] = useState(false);
 
+  React.useEffect(() => {
+    const updateSidebarWidthVar = () => {
+      const isMobile = window.innerWidth <= 900;
+      const w = isCollapsed || isMobile ? 0 : sidebarWidth;
+      document.documentElement.style.setProperty('--sidebar-current-width', `${w}px`);
+    };
+    updateSidebarWidthVar();
+    window.addEventListener('resize', updateSidebarWidthVar);
+    return () => window.removeEventListener('resize', updateSidebarWidthVar);
+  }, [isCollapsed, sidebarWidth]);
+
   const startResizing = React.useCallback((e) => {
     e.preventDefault();
     setIsResizing(true);
