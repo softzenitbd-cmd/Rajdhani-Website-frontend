@@ -17,6 +17,7 @@ import AddProductModal from "../../components/AddProductModal";
 import AddAccountModal from "../../components/AddAccountModal";
 import AddIncomeCategoryModal from "../../components/AddIncomeCategoryModal";
 import SearchableSelect from "../../components/SearchableSelect";
+import CustomDatePicker from "../../components/CustomDatePicker";
 import { crmService } from "../../services/crmService";
 import { productService } from "../../services/productService";
 import { accountingService } from "../../services/accountingService";
@@ -884,29 +885,46 @@ const InvoiceCreate = () => {
                 <div style={{ position: "relative" }}>
                   <div
                     className="badge-date"
-                    style={{ background: "var(--info)" }}
+                    style={{ background: "var(--info)", zIndex: 3 }}
                   >
                     <Calendar size={12} />{" "}
                     {t("invoice.issued_date", "Issued Date")}
                   </div>
-                  <input
-                    type="date"
-                    name="date"
-                    className="input-date"
-                    value={formData.date}
-                    onChange={handleChange}
-                    onClick={(e) => {
-                      try {
-                        e.target.showPicker();
-                      } catch (err) {}
-                    }}
-                    onFocus={(e) => {
-                      try {
-                        e.target.showPicker();
-                      } catch (err) {}
-                    }}
-                    style={{ cursor: "pointer", width: "100%" }}
-                  />
+                  <div style={{ position: "relative" }}>
+                    <CustomDatePicker
+                      name="date"
+                      value={formData.date}
+                      onChange={handleChange}
+                      placeholder="dd-mm-yyyy"
+                      style={{
+                        cursor: "pointer",
+                        width: "100%",
+                        height: "48px",
+                        fontSize: "14px",
+                        padding: "0 38px 0 16px",
+                        borderRadius: "8px",
+                        border: "1px solid #cbd5e1",
+                        background: "white",
+                        outline: "none",
+                        boxSizing: "border-box",
+                        color: "#334155",
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        right: "12px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        pointerEvents: "none",
+                        color: "#64748b",
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Calendar size={18} />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Time */}

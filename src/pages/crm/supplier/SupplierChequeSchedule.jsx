@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { crmService } from '../../../services/crmService';
+import { lookupCache } from '../../../services/lookupCache';
 import { useApi } from '../../../hooks/useApi';
 import { ENDPOINTS } from '../../../api/endpoints';
 import { useToast } from '../../../context/ToastContext';
@@ -18,6 +19,7 @@ const SupplierChequeSchedule = () => {
   
   const [cheques, setCheques] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
+  const [clients, setClients] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   
@@ -37,9 +39,30 @@ const SupplierChequeSchedule = () => {
 
   const { get, post, patch, del, loading } = useApi();
 
+  const formatDate = (dateVal) => {
+    if (!dateVal) return '-';
+    if (typeof dateVal === 'string') {
+      const clean = dateVal.split('T')[0].trim();
+      const parts = clean.split('-');
+      if (parts.length === 3 && parts[0].length === 4) {
+        const [year, month, day] = parts;
+        return `${day.padStart(2, '0')}-${month.padStart(2, '0')}-${year}`;
+      }
+      if (/^\d{2}-\d{2}-\d{4}$/.test(clean)) {
+        return clean;
+      }
+    }
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return dateVal;
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
   const fetchCheques = async () => {
     try {
-      const res = await get(ENDPOINTS.CRM_SUPPLIER_CHEQUES);
+      const res = await get(`${ENDPOINTS.CRM_SUPPLIER_CHEQUES}?page_size=5000`);
       let data = res.results || res.data || res || [];
       data.sort((a, b) => new Date(a.date) - new Date(b.date));
       setCheques(data);
@@ -50,11 +73,16 @@ const SupplierChequeSchedule = () => {
 
   const fetchSuppliers = async () => {
     try {
-      const res = await get(ENDPOINTS.CRM_SUPPLIERS);
-      const fetchedSuppliers = res.results || res.data || res || [];
+      const res = await get(`${ENDPOINTS.CRM_SUPPLIERS}?page_size=5000`);
+      let fetchedSuppliers = res.results || res.data || res || [];
+      if (!Array.isArray(fetchedSuppliers) || fetchedSuppliers.length === 0) {
+        try {
+          fetchedSuppliers = await lookupCache.getSuppliers();
+        } catch (e) {}
+      }
       
       try {
-        const statsRes = await get(ENDPOINTS.CRM_REPORT_SUPPLIER_DUE);
+        const statsRes = await get(`${ENDPOINTS.CRM_REPORT_SUPPLIER_DUE}?page_size=5000`);
         const statsData = statsRes.results || statsRes.data || statsRes || [];
         
         const updatedSuppliers = fetchedSuppliers.map(sup => {
@@ -67,12 +95,35 @@ const SupplierChequeSchedule = () => {
       }
     } catch (err) {
       console.error(err);
+      try {
+        const fallback = await lookupCache.getSuppliers();
+        setSuppliers(fallback);
+      } catch (e) {}
+    }
+  };
+
+  const fetchClients = async () => {
+    try {
+      const res = await get(`${ENDPOINTS.CRM_CLIENTS}?page_size=5000`);
+      let fetchedClients = res.results || res.data || res || [];
+      if (!Array.isArray(fetchedClients) || fetchedClients.length === 0) {
+        try {
+          fetchedClients = await lookupCache.getClients();
+        } catch (e) {}
+      }
+      setClients(fetchedClients);
+    } catch (err) {
+      try {
+        const fallback = await lookupCache.getClients();
+        setClients(fallback);
+      } catch (e) {}
     }
   };
 
   useEffect(() => {
     fetchCheques();
     fetchSuppliers();
+    fetchClients();
   }, []);
 
   const handleEditClick = (cheque) => {
@@ -155,12 +206,47 @@ const SupplierChequeSchedule = () => {
     }
   };
 
-  const getSupplierName = (supplierVal) => {
+  const getSupplierName = (supplierVal, cheque = {}) => {
+    if (cheque?.supplier_name) return cheque.supplier_name;
+    if (cheque?.supplier?.name) return cheque.supplier.name;
+    if (cheque?.supplier?.company_name) return cheque.supplier.company_name;
+
     if (typeof supplierVal === 'object' && supplierVal !== null) {
-      return supplierVal.name || 'Unknown';
+      return supplierVal.name || supplierVal.company_name || supplierVal.supplier_name || t("Unknown Supplier");
     }
-    const found = suppliers.find(s => s.id === supplierVal || s.uuid === supplierVal);
-    return found ? found.name : supplierVal || 'Unknown';
+
+    const sValStr = String(supplierVal || '').trim().toLowerCase();
+    if (!sValStr) return '-';
+
+    // 1. Search in suppliers
+    const foundSupplier = suppliers.find(s => {
+      const idStr = String(s.id || '').trim().toLowerCase();
+      const uuidStr = String(s.uuid || '').trim().toLowerCase();
+      const supIdStr = String(s.supplier_id || '').trim().toLowerCase();
+      return idStr === sValStr || uuidStr === sValStr || supIdStr === sValStr;
+    });
+    if (foundSupplier) {
+      return foundSupplier.name || foundSupplier.company_name || t("Unknown Supplier");
+    }
+
+    // 2. Search in clients (in case client was linked)
+    const foundClient = clients.find(c => {
+      const idStr = String(c.id || '').trim().toLowerCase();
+      const uuidStr = String(c.uuid || '').trim().toLowerCase();
+      const clientIdStr = String(c.client_id || '').trim().toLowerCase();
+      return idStr === sValStr || uuidStr === sValStr || clientIdStr === sValStr;
+    });
+    if (foundClient) {
+      return foundClient.name || foundClient.company_name || t("Unknown Supplier");
+    }
+
+    // If it is a raw UUID and not found in any list, don't show the raw hex UUID
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sValStr);
+    if (isUuid) {
+      return t("Unknown Supplier");
+    }
+
+    return supplierVal || t("Unknown Supplier");
   };
 
   const filteredCheques = cheques.filter(c => {
@@ -173,7 +259,7 @@ const SupplierChequeSchedule = () => {
       const q = searchTerm.toLowerCase();
       const bMatch = (c.bank_name || c.bank || '').toLowerCase().includes(q);
       const cMatch = (c.cheque_number || c.chequeNo || '').toLowerCase().includes(q);
-      const sMatch = getSupplierName(c.supplier).toLowerCase().includes(q);
+      const sMatch = getSupplierName(c.supplier, c).toLowerCase().includes(q);
       if (!bMatch && !cMatch && !sMatch) match = false;
     }
     
@@ -395,8 +481,8 @@ const SupplierChequeSchedule = () => {
                   <React.Fragment key={cId}>
                     <tr>
                       <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>{index + 1}</td>
-                      <td style={{ verticalAlign: 'middle' }}>{cheque.date ? new Date(cheque.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}</td>
-                      <td style={{ verticalAlign: 'middle' }}>{getSupplierName(cheque.supplier)}</td>
+                      <td style={{ verticalAlign: 'middle' }}>{formatDate(cheque.date)}</td>
+                      <td style={{ verticalAlign: 'middle', fontWeight: '500' }}>{getSupplierName(cheque.supplier, cheque)}</td>
                       <td style={{ verticalAlign: 'middle' }}>{cheque.bank_name || cheque.bank || '-'}</td>
                       <td style={{ verticalAlign: 'middle' }}>{cheque.cheque_number || cheque.chequeNo || '-'}</td>
                       <td style={{ verticalAlign: 'middle', textAlign: 'right', fontWeight: '600', color: '#1e293b' }}>{parseFloat(cheque.amount || 0).toFixed(2)}</td>

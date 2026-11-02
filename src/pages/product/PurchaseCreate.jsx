@@ -12,6 +12,7 @@ import {
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import PrintHeader from "../../components/PrintHeader";
 import SearchableSelect from "../../components/SearchableSelect";
+import CustomDatePicker from "../../components/CustomDatePicker";
 import AddOptionModal from "../../components/AddOptionModal";
 import AddSupplierModal from "../../components/AddSupplierModal";
 import AddProductModal from "../../components/AddProductModal";
@@ -631,36 +632,46 @@ const PurchaseCreate = () => {
                       fontWeight: "600",
                       lineHeight: "14px",
                       borderRadius: "4px",
+                      zIndex: 3,
                     }}
                   >
                     <Calendar size={11} /> {t("Issued Date")}
                   </div>
-                  <input
-                    type="date"
-                    name="date"
-                    className="input-date"
-                    value={formData.date}
-                    onChange={handleChange}
-                    onClick={(e) => {
-                      try {
-                        e.target.showPicker();
-                      } catch (err) {}
-                    }}
-                    onFocus={(e) => {
-                      try {
-                        e.target.showPicker();
-                      } catch (err) {}
-                    }}
-                    style={{
-                      cursor: "pointer",
-                      width: "100%",
-                      height: "38px",
-                      fontSize: "13px",
-                      padding: "0 12px",
-                      borderRadius: "4px",
-                      border: "1px solid #cbd5e1",
-                    }}
-                  />
+                  <div style={{ position: "relative" }}>
+                    <CustomDatePicker
+                      name="date"
+                      value={formData.date}
+                      onChange={handleChange}
+                      placeholder="dd-mm-yyyy"
+                      style={{
+                        cursor: "pointer",
+                        width: "100%",
+                        height: "38px",
+                        fontSize: "13px",
+                        padding: "0 34px 0 12px",
+                        borderRadius: "4px",
+                        border: "1px solid #cbd5e1",
+                        background: "white",
+                        outline: "none",
+                        boxSizing: "border-box",
+                        color: "#1e293b",
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        right: "10px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        pointerEvents: "none",
+                        color: "#64748b",
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Calendar size={16} />
+                    </div>
+                  </div>
                 </div>
               
 

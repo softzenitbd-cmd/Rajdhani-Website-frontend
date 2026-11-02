@@ -27,9 +27,30 @@ const ClientChequeSchedule = () => {
 
   const { get, post, patch, del, loading } = useApi();
 
+  const formatDate = (dateVal) => {
+    if (!dateVal) return '-';
+    if (typeof dateVal === 'string') {
+      const clean = dateVal.split('T')[0].trim();
+      const parts = clean.split('-');
+      if (parts.length === 3 && parts[0].length === 4) {
+        const [year, month, day] = parts;
+        return `${day.padStart(2, '0')}-${month.padStart(2, '0')}-${year}`;
+      }
+      if (/^\d{2}-\d{2}-\d{4}$/.test(clean)) {
+        return clean;
+      }
+    }
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return dateVal;
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
   const fetchCheques = async () => {
     try {
-      const res = await get(ENDPOINTS.CRM_CLIENT_CHEQUES);
+      const res = await get(`${ENDPOINTS.CRM_CLIENT_CHEQUES}?page_size=5000`);
       setCheques(res.results || res.data || res || []);
     } catch (err) {
       console.error(err);
@@ -38,10 +59,20 @@ const ClientChequeSchedule = () => {
 
   const fetchClients = async () => {
     try {
-      const res = await get(ENDPOINTS.CRM_CLIENTS);
-      setClients(res.results || res.data || res || []);
+      const res = await get(`${ENDPOINTS.CRM_CLIENTS}?page_size=5000`);
+      let fetchedClients = res.results || res.data || res || [];
+      if (!Array.isArray(fetchedClients) || fetchedClients.length === 0) {
+        try {
+          fetchedClients = await lookupCache.getClients();
+        } catch (e) {}
+      }
+      setClients(fetchedClients);
     } catch (err) {
       console.error(err);
+      try {
+        const fallback = await lookupCache.getClients();
+        setClients(fallback);
+      } catch (e) {}
     }
   };
 
@@ -125,12 +156,35 @@ const ClientChequeSchedule = () => {
   };
 
   // Helper to find client name
-  const getClientName = (clientVal) => {
+  const getClientName = (clientVal, cheque = {}) => {
+    if (cheque?.client_name) return cheque.client_name;
+    if (cheque?.client?.name) return cheque.client.name;
+    if (cheque?.client?.company_name) return cheque.client.company_name;
+
     if (typeof clientVal === 'object' && clientVal !== null) {
-      return clientVal.name || 'Unknown';
+      return clientVal.name || clientVal.company_name || clientVal.client_name || t("Unknown Client");
     }
-    const found = clients.find(c => c.id === clientVal || c.uuid === clientVal);
-    return found ? found.name : clientVal || 'Unknown';
+
+    const cValStr = String(clientVal || '').trim().toLowerCase();
+    if (!cValStr) return '-';
+
+    const found = clients.find(c => {
+      const idStr = String(c.id || '').trim().toLowerCase();
+      const uuidStr = String(c.uuid || '').trim().toLowerCase();
+      const clientIdStr = String(c.client_id || '').trim().toLowerCase();
+      return idStr === cValStr || uuidStr === cValStr || clientIdStr === cValStr;
+    });
+
+    if (found) {
+      return found.name || found.company_name || t("Unknown Client");
+    }
+
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cValStr);
+    if (isUuid) {
+      return t("Unknown Client");
+    }
+
+    return clientVal || t("Unknown Client");
   };
 
   const renderInlineForm = () => (
@@ -280,8 +334,8 @@ const ClientChequeSchedule = () => {
                       <tr style={{ borderBottom: '1px solid #e2e8f0', background: index % 2 === 0 ? 'white' : '#f8fafc' }}>
                         <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{index + 1}</td>
                         <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{cheque.cheque_number || cheque.chequeNo || '-'}</td>
-                        <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{cheque.date || '-'}</td>
-                        <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{getClientName(cheque.client)}</td>
+                        <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{formatDate(cheque.date)}</td>
+                        <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0', fontWeight: '500' }}>{getClientName(cheque.client, cheque)}</td>
                         <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0' }}>{cheque.bank_name || cheque.bank || '-'}</td>
                         <td style={{ padding: '8px 12px', textAlign: 'right', border: '1px solid #e2e8f0', fontWeight: '600' }}>{parseFloat(cheque.amount || 0).toFixed(2)}</td>
                         <td style={{ padding: '8px 12px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
