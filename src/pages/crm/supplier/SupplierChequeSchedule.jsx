@@ -10,6 +10,7 @@ import { useToast } from '../../../context/ToastContext';
 import { useConfirm } from '../../../context/ConfirmContext';
 import CustomDatePicker from '../../../components/CustomDatePicker';
 import SearchableSelect from '../../../components/SearchableSelect';
+import { money } from '../../../utils/apiHelpers';
 
 
 const SupplierChequeSchedule = () => {
@@ -292,7 +293,7 @@ const SupplierChequeSchedule = () => {
     <td colSpan="7" style={{ padding: '20px', background: '#f8fafc', border: '2px solid var(--primary)', borderRadius: '8px', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1.5fr', gap: '20px', marginBottom: '20px' }}>
         <div style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
+          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold', zIndex: 10 }}>
              {t("Date")}
           </div>
           <CustomDatePicker 
@@ -304,16 +305,45 @@ const SupplierChequeSchedule = () => {
         </div>
         
         <div style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '-10px', left: '10px', display: 'flex', gap: '8px' }}>
-            <div style={{ background: 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
-               {t("Supplier")}
+          <div style={{
+            position: 'absolute',
+            top: '-11px',
+            left: '10px',
+            right: '10px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            zIndex: 10,
+            pointerEvents: 'none'
+          }}>
+            <div style={{
+              background: 'var(--primary)',
+              color: 'white',
+              padding: '2px 8px',
+              borderRadius: '4px',
+              fontSize: 'var(--fs-10, 10px)',
+              fontWeight: 'bold'
+            }}>
+              {t("Supplier")}
             </div>
             {formData.supplier && (() => {
               const selectedSup = suppliers.find(s => String(s.id || s.uuid) === String(formData.supplier));
               const dueAmt = selectedSup ? Number(selectedSup.stats?.due || selectedSup.due || selectedSup.previous_due || 0) : 0;
               return (
-                <div style={{ background: dueAmt > 0 ? '#ef4444' : (dueAmt < 0 ? '#10b981' : '#64748b'), color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
-                  {dueAmt < 0 ? `${t("Advance")}: ${Math.abs(dueAmt).toFixed(2)}` : `${t("Due")}: ${dueAmt.toFixed(2)}`}
+                <div style={{
+                  background: dueAmt > 0 ? '#ef4444' : (dueAmt < 0 ? '#10b981' : '#64748b'),
+                  color: 'white',
+                  padding: '2px 10px',
+                  borderRadius: '4px',
+                  fontSize: 'var(--fs-11, 11px)',
+                  fontWeight: 'bold',
+                  boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px'
+                }}>
+                  <span>{dueAmt < 0 ? t("Advance") : t("Due")}:</span>
+                  <span style={{ fontWeight: '800' }}>৳ {money(Math.abs(dueAmt))}</span>
                 </div>
               );
             })()}
@@ -334,7 +364,7 @@ const SupplierChequeSchedule = () => {
         </div>
 
         <div style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
+          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold', zIndex: 10 }}>
              {t("Bank Name")}
           </div>
           <input 
@@ -350,7 +380,7 @@ const SupplierChequeSchedule = () => {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1.5fr', gap: '20px', marginBottom: '20px' }}>
         <div style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
+          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold', zIndex: 10 }}>
              {t("Cheque Number")}
           </div>
           <input 
@@ -364,7 +394,7 @@ const SupplierChequeSchedule = () => {
         </div>
 
         <div style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold' }}>
+          <div style={{ position: 'absolute', top: '-10px', left: '10px', background: 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: 'var(--fs-10, 10px)', fontWeight: 'bold', zIndex: 10 }}>
              {t("Amount")}
           </div>
           <input 
