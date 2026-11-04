@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingBag, CreditCard, Receipt, CalendarClock, Scale, Plus, RefreshCcw } from 'lucide-react';
+import { ShoppingBag, CreditCard, Receipt, CalendarClock, Scale, RefreshCcw } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
@@ -232,9 +232,6 @@ const Dashboard = () => {
       </div>
 
       {/* Floating Action Button → new invoice */}
-      <div className="fab" onClick={() => navigate('/invoice/add-new')} title={t("New Invoice")} style={{ cursor: 'pointer' }}>
-        <Plus size={24} />
-      </div>
     </div>
   );
 };
