@@ -9,6 +9,7 @@ import { ENDPOINTS } from '../../../api/endpoints';
 import { useToast } from '../../../context/ToastContext';
 import { useConfirm } from '../../../context/ConfirmContext';
 import CustomDatePicker from '../../../components/CustomDatePicker';
+import SearchableSelect from '../../../components/SearchableSelect';
 
 
 const SupplierChequeSchedule = () => {
@@ -317,17 +318,19 @@ const SupplierChequeSchedule = () => {
               );
             })()}
           </div>
-          <select 
-            name="supplier"
+          <SearchableSelect
+            options={suppliers.map(s => ({
+              value: s.id || s.uuid,
+              label: s.name || s.company_name || s.supplier_name || '',
+              searchValue: s.phone || s.mobile || ''
+            }))}
             value={formData.supplier}
-            onChange={handleChange}
-            style={{ width: '100%', padding: '12px 16px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: 'var(--fs-13, 13px)', color: '#1e293b', background: 'white' }}
-          >
-            <option value="">{t("Select Supplier")}</option>
-            {suppliers.map(s => (
-              <option key={s.id || s.uuid} value={s.id || s.uuid}>{s.name}</option>
-            ))}
-          </select>
+            onChange={(value) => setFormData(prev => ({ ...prev, supplier: value }))}
+            placeholder={t("Select Supplier")}
+            searchPlaceholder={t("Search Supplier")}
+            hideOptionsUntilSearch
+            style={{ width: '100%', fontSize: 'var(--fs-13, 13px)', color: '#1e293b' }}
+          />
         </div>
 
         <div style={{ position: 'relative' }}>

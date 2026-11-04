@@ -161,8 +161,34 @@ const Header = ({ toggleSidebar }) => {
         <Menu className="mobile-menu-btn" size={24} style={{ cursor: 'pointer' }} onClick={toggleSidebar} />
         <span style={{ fontSize: 'var(--fs-18, 18px)', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{companyName || t('app_name')}</span>
       </div>
-      
 
+      <nav className="header-nav-scroll" aria-label={t('header.shortcut_menu')}>
+        {navButtons.map((item) => (
+          <button
+            key={item.path}
+            type="button"
+            onClick={() => navigate(item.path)}
+            title={item.label}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 10px',
+              border: '1px solid rgba(255,255,255,0.35)',
+              borderRadius: '6px',
+              background: 'rgba(255,255,255,0.12)',
+              color: 'white',
+              fontSize: 'var(--fs-12, 12px)',
+              fontWeight: 600,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {item.icon}
+            {item.label}
+          </button>
+        ))}
+      </nav>
 
       <div className="top-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
         <button 
@@ -327,4 +353,3 @@ const Header = ({ toggleSidebar }) => {
 };
 
 export default Header;
-

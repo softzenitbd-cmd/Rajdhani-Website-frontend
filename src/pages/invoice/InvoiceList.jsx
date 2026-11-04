@@ -329,7 +329,8 @@ const InvoiceList = () => {
                 const globalIndex = (currentPage - 1) * limit + index + 1;
                 const clientObj = (clients || []).find(c => String(c.id) === String(inv.client || inv.client_id));
                 const clientName = inv.client_name || inv.clientName || (clientObj ? (clientObj.name || clientObj.company_name) : (inv.client === 'C.CASTOMER' ? 'C.CASTOMER' : (inv.client || 'C.CASTOMER')));
-                const clientPhone = clientObj?.phone || clientObj?.contact_person || '';
+                const clientPhone = inv.client_phone || inv.phone || clientObj?.phone || clientObj?.contact_person || '';
+                const clientAddress = inv.client_address || inv.address || clientObj?.address || '';
 
                 const catObj = (accounts || []).find(a => String(a.id) === String(inv.category_id || inv.category || inv.account_id));
                 const categoryName = inv.category_name || (catObj ? catObj.name : (inv.category_id || inv.category || 'CASH SELL'));
@@ -370,7 +371,8 @@ const InvoiceList = () => {
                     </td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', lineHeight: '1.4' }}>
                       <div style={{ fontWeight: '500' }}>{clientName}</div>
-                      <div style={{ color: '#64748b', fontSize: 'var(--fs-11, 11px)' }}>{clientPhone}</div>
+                      {clientPhone && <div style={{ color: '#64748b', fontSize: 'var(--fs-11, 11px)' }}>{clientPhone}</div>}
+                      {clientAddress && <div style={{ color: '#64748b', fontSize: 'var(--fs-11, 11px)' }}>{clientAddress}</div>}
                     </td>
                     <td style={{ textAlign: 'center', padding: '10px 8px', borderRight: '1px solid #e2e8f0', fontWeight: '500' }}>
                       {cleanInvId}
