@@ -57,7 +57,7 @@ const SalesReturnCreate = () => {
         crmService.getClients({ page_size: 5000 }).catch(() => []),
         productService.getProducts({ page_size: 500 }).catch(() => []),
         accountingService.getAccounts().catch(() => []),
-        crmService.getClientDueReport().catch(() => []),
+        crmService.getClientDueReport({ page_size: 5000 }).catch(() => []),
       ]);
 
       const rawClients = Array.isArray(clientRes) ? clientRes : clientRes?.results || [];
@@ -410,7 +410,94 @@ const SalesReturnCreate = () => {
       );
     })();
 
-  const dueAmount = selectedClientObj ? Number(selectedClientObj.due ?? selectedClientObj.previous_due ?? 0) : 0;
+  const [clientLiveDue, setClientLiveDue] = useState(null);
+
+  useEffect(() => {
+    const handleInvalidate = (e) => {
+      if (!e?.detail || e.detail === 'clients') {
+        fetchPrerequisites();
+      }
+    };
+    window.addEventListener('rg:lookup-invalidate', handleInvalidate);
+    return () => window.removeEventListener('rg:lookup-invalidate', handleInvalidate);
+  }, []);
+
+  useEffect(() => {
+    let isCancelled = false;
+    if (!formData.clientId) {
+      setClientLiveDue(null);
+      return;
+    }
+    const client = (clients || []).find(
+      (c) => String(c.id || c.uuid) === String(formData.clientId)
+    );
+
+    const initialDue = Number(
+      client?.due ??
+      client?.current_due ??
+      client?.total_due ??
+      client?.previous_due ??
+      client?.opening_balance ??
+      0
+    );
+    setClientLiveDue(initialDue);
+
+    crmService
+      .getClientDueReport({ client_id: formData.clientId })
+      .then((res) => {
+        if (isCancelled) return;
+        const list = Array.isArray(res) ? res : res?.results || res?.data || [];
+        const found =
+          list.find(
+            (s) =>
+              String(s.client_id || s.id || s.uuid) === String(formData.clientId)
+          ) || (list.length === 1 ? list[0] : null);
+
+        if (found) {
+          const apiDue =
+            found.due ??
+            found.current_due ??
+            found.total_due ??
+            found.balance ??
+            found.due_amount;
+          if (apiDue !== undefined && apiDue !== null) {
+            setClientLiveDue(Number(apiDue));
+          } else if (
+            found.sales_amount !== undefined ||
+            found.previous_due !== undefined
+          ) {
+            const prev = Number(
+              found.previous_due ||
+                client?.previous_due ||
+                client?.opening_balance ||
+                0
+            );
+            const sales = Number(found.sales_amount || found.sales || 0);
+            const col = Number(found.collection || found.receive || 0);
+            const ret = Number(found.return_amount || found.sales_return || 0);
+            setClientLiveDue(Math.max(0, prev + sales - col - ret));
+          }
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [formData.clientId, clients]);
+
+  const dueAmount = selectedClientObj
+    ? clientLiveDue !== null
+      ? clientLiveDue
+      : Number(
+          selectedClientObj.due ??
+          selectedClientObj.current_due ??
+          selectedClientObj.total_due ??
+          selectedClientObj.previous_due ??
+          selectedClientObj.opening_balance ??
+          0
+        )
+    : 0;
 
 
 

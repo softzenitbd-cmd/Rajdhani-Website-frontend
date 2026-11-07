@@ -503,6 +503,20 @@ const InvoiceCreate = () => {
         String(selectedClientObj.name || selectedClientObj.company_name || ""),
       )
     : false;
+
+  useEffect(() => {
+    const handleInvalidate = (e) => {
+      if (!e?.detail || e.detail === 'clients') {
+        crmService.getClients({ page_size: 5000 }).then(res => {
+          const clientData = Array.isArray(res) ? res : res?.results || [];
+          if (clientData.length > 0) setClients(clientData);
+        }).catch(() => {});
+      }
+    };
+    window.addEventListener('rg:lookup-invalidate', handleInvalidate);
+    return () => window.removeEventListener('rg:lookup-invalidate', handleInvalidate);
+  }, []);
+
   useEffect(() => {
     let isCancelled = false;
     if (!formData.clientId) {
@@ -510,50 +524,54 @@ const InvoiceCreate = () => {
       return;
     }
     const client = (clients || []).find(
-      (c) => String(c.id) === String(formData.clientId)
+      (c) => String(c.id || c.uuid) === String(formData.clientId)
     );
-    const isDef = client
-      ? /c\.?\s*customer|c\.?\s*castomer|c\.?\s*coustomer|^c\.|default/i.test(
-          String(client.name || client.company_name || "")
-        )
-      : false;
 
-    if (isDef) {
-      setClientLiveDue(0);
-      return;
-    }
-
-    setClientLiveDue(
-      Number(
-        client?.due ?? client?.previous_due ?? client?.opening_balance ?? 0
-      )
+    const initialDue = Number(
+      client?.due ??
+      client?.current_due ??
+      client?.total_due ??
+      client?.previous_due ??
+      client?.opening_balance ??
+      0
     );
+    setClientLiveDue(initialDue);
 
     crmService
       .getClientDueReport({ client_id: formData.clientId })
       .then((res) => {
         if (isCancelled) return;
-        const list = Array.isArray(res) ? res : res?.results || [];
-        const found = list.find(
-          (s) =>
-            String(s.client_id || s.id || s.uuid) === String(formData.clientId)
-        );
-        if (found && found.due !== undefined) {
-          setClientLiveDue(Number(found.due));
-        } else if (
-          found &&
-          (found.sales_amount !== undefined || found.previous_due !== undefined)
-        ) {
-          const prev = Number(
-            found.previous_due ||
-              client?.previous_due ||
-              client?.opening_balance ||
-              0
-          );
-          const sales = Number(found.sales_amount || found.sales || 0);
-          const col = Number(found.collection || found.receive || 0);
-          const ret = Number(found.return_amount || found.sales_return || 0);
-          setClientLiveDue(Math.max(0, prev + sales - col - ret));
+        const list = Array.isArray(res) ? res : res?.results || res?.data || [];
+        const found =
+          list.find(
+            (s) =>
+              String(s.client_id || s.id || s.uuid) === String(formData.clientId)
+          ) || (list.length === 1 ? list[0] : null);
+
+        if (found) {
+          const apiDue =
+            found.due ??
+            found.current_due ??
+            found.total_due ??
+            found.balance ??
+            found.due_amount;
+          if (apiDue !== undefined && apiDue !== null) {
+            setClientLiveDue(Number(apiDue));
+          } else if (
+            found.sales_amount !== undefined ||
+            found.previous_due !== undefined
+          ) {
+            const prev = Number(
+              found.previous_due ||
+                client?.previous_due ||
+                client?.opening_balance ||
+                0
+            );
+            const sales = Number(found.sales_amount || found.sales || 0);
+            const col = Number(found.collection || found.receive || 0);
+            const ret = Number(found.return_amount || found.sales_return || 0);
+            setClientLiveDue(Math.max(0, prev + sales - col - ret));
+          }
         }
       })
       .catch(() => {});
@@ -563,17 +581,18 @@ const InvoiceCreate = () => {
     };
   }, [formData.clientId, clients]);
 
-  const dueAmount =
-    selectedClientObj && !isDefaultClient
-      ? clientLiveDue !== null
-        ? clientLiveDue
-        : Number(
-            selectedClientObj.due ||
-              selectedClientObj.previous_due ||
-              selectedClientObj.opening_balance ||
-              0
-          )
-      : 0;
+  const dueAmount = selectedClientObj
+    ? clientLiveDue !== null
+      ? clientLiveDue
+      : Number(
+          selectedClientObj.due ||
+            selectedClientObj.current_due ||
+            selectedClientObj.total_due ||
+            selectedClientObj.previous_due ||
+            selectedClientObj.opening_balance ||
+            0
+        )
+    : 0;
 
   // Calculations
   const totalQuantity = items.reduce(
@@ -877,7 +896,7 @@ const InvoiceCreate = () => {
                       paddingLeft: "4px",
                     }}
                   >
-                    {t("common.due", "Due")}: {dueAmount.toFixed(0)}
+                    {t("common.due", "Due")}: {dueAmount.toFixed(2)}
                   </div>
                 </div>
 
