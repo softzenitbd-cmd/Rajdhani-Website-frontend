@@ -200,7 +200,7 @@ const SalesReturnList = () => {
       await saleService.deleteSalesReturn(targetId);
 
       // 4. Restore the balance into client's due if applicable
-      if (resolvedClientId && !isDefault && balanceToRestore > 0) {
+      if (resolvedClientId && balanceToRestore > 0) {
         try {
           let currentClientData = null;
           try {
@@ -222,25 +222,27 @@ const SalesReturnList = () => {
 
           const restoredDue = (currentPrevDue + balanceToRestore).toFixed(2);
 
-          const patchPayload = {
-            previous_due: restoredDue,
-            due: restoredDue,
-            opening_due: restoredDue,
-            opening_balance: restoredDue
-          };
-
-          if (currentClientData?.name) patchPayload.name = currentClientData.name;
-          if (currentClientData?.phone) patchPayload.phone = currentClientData.phone;
-          if (currentClientData?.group) {
-            patchPayload.group = typeof currentClientData.group === 'object'
-              ? (currentClientData.group.id || currentClientData.group.uuid)
-              : currentClientData.group;
+          // Try updating ONLY previous_due first so DRF does not trigger phone unique validators
+          try {
+            await crmService.updateClient(resolvedClientId, {
+              previous_due: restoredDue,
+            });
+          } catch (firstErr) {
+            console.warn("Minimal previous_due patch failed, trying fallback payload", firstErr);
+            const fallbackPayload = {
+              previous_due: restoredDue,
+              opening_balance: restoredDue,
+              opening_due: restoredDue,
+              due: restoredDue,
+            };
+            if (currentClientData?.name) fallbackPayload.name = currentClientData.name;
+            if (currentClientData?.group) {
+              fallbackPayload.group = typeof currentClientData.group === 'object'
+                ? (currentClientData.group.id || currentClientData.group.uuid)
+                : currentClientData.group;
+            }
+            await crmService.updateClient(resolvedClientId, fallbackPayload);
           }
-          if (currentClientData?.address !== undefined) {
-            patchPayload.address = currentClientData.address || '';
-          }
-
-          await crmService.updateClient(resolvedClientId, patchPayload);
 
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('rg:lookup-invalidate', { detail: 'clients' }));

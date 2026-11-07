@@ -83,7 +83,20 @@ const ReceiveList = () => {
     return () => clearTimeout(timer);
   }, [clientId, invoiceNo, receiptNo, fromDate, toDate, limit]);
 
-  const handleDelete = (id) => {
+  const handleDelete = (item) => {
+    const row = typeof item === 'object' && item !== null ? item : receives.find(r => r.id === item);
+    const id = row?.id || item;
+    const amount = Number(row?.amount || 0);
+    const rawClientId = typeof row?.client === 'object' && row?.client !== null
+      ? (row.client.id || row.client.uuid)
+      : (row?.client || row?.client_id);
+    const clientObj = clients.find(c => 
+      (rawClientId && String(c.id || c.uuid) === String(rawClientId)) ||
+      (row?.client_name && (c.name === row.client_name || c.company_name === row.client_name)) ||
+      (row?.client_phone && c.phone === row.client_phone)
+    );
+    const resolvedClientId = rawClientId || clientObj?.id || clientObj?.uuid;
+
     confirm({
       title: t("Delete Receive?"),
       description: t("Are you sure you want to delete this record?"),
@@ -95,6 +108,56 @@ const ReceiveList = () => {
             // Fallback if not specifically implemented
             await accountingService.delete('/api/accounting/receives/' + id + '/');
           }
+
+          if (resolvedClientId && amount > 0) {
+            try {
+              let currentClientData = null;
+              try {
+                const cRes = await crmService.getClient(resolvedClientId);
+                currentClientData = cRes?.data || cRes;
+              } catch (e) {
+                currentClientData = clientObj;
+              }
+
+              const currentPrevDue = Number(
+                currentClientData?.previous_due ??
+                currentClientData?.due ??
+                clientObj?.previous_due ??
+                clientObj?.due ??
+                0
+              );
+
+              const restoredDue = (currentPrevDue + amount).toFixed(2);
+
+              try {
+                await crmService.updateClient(resolvedClientId, {
+                  previous_due: restoredDue,
+                });
+              } catch (firstErr) {
+                console.warn("Minimal previous_due patch failed on receive delete, trying fallback", firstErr);
+                const fallbackPayload = {
+                  previous_due: restoredDue,
+                  opening_balance: restoredDue,
+                  opening_due: restoredDue,
+                  due: restoredDue,
+                };
+                if (currentClientData?.name) fallbackPayload.name = currentClientData.name;
+                if (currentClientData?.group) {
+                  fallbackPayload.group = typeof currentClientData.group === 'object'
+                    ? (currentClientData.group.id || currentClientData.group.uuid)
+                    : currentClientData.group;
+                }
+                await crmService.updateClient(resolvedClientId, fallbackPayload);
+              }
+
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('rg:lookup-invalidate', { detail: 'clients' }));
+              }
+            } catch (err) {
+              console.error("Failed to restore client due on receive delete:", err);
+            }
+          }
+
           toast.success(t("Deleted successfully"));
           fetchReceives();
         } catch (error) {
@@ -297,7 +360,7 @@ const ReceiveList = () => {
                       <button onClick={() => setEditing(row)} style={{ background: '#0ea5e9', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer' }}>
                         <Edit size={16} />
                       </button>
-                      <button onClick={() => handleDelete(row.id)} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer' }}>
+                      <button onClick={() => handleDelete(row)} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer' }}>
                         <Trash2 size={16} />
                       </button>
                     </div>
