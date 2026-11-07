@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { List, Layers, Plus, Package, Scale } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import PrintHeader from '../../components/PrintHeader';
 import AddOptionModal from '../../components/AddOptionModal';
 import { productService } from '../../services/productService';
@@ -34,8 +34,10 @@ const ProductCreate = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const editingProduct = location.state?.product || null;
-  const isEditMode = !!editingProduct;
+  const { id: paramId } = useParams();
+  const [fetchedProduct, setFetchedProduct] = useState(null);
+  const editingProduct = location.state?.product || fetchedProduct || null;
+  const isEditMode = Boolean(editingProduct || paramId);
 
   // Fields of POST/PATCH /api/product/list/
   const EMPTY = {
@@ -68,29 +70,65 @@ const ProductCreate = () => {
   const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
 
-
+  useEffect(() => {
+    if (paramId && !location.state?.product) {
+      productService.getProductById(paramId).then(p => {
+        if (p) setFetchedProduct(p);
+      }).catch(err => {
+        console.error("Failed to fetch product by id", err);
+      });
+    }
+  }, [paramId, location.state]);
 
   useEffect(() => {
     if (editingProduct) {
-      const idOf = (v) => (v && typeof v === 'object' ? v.id ?? v.uuid ?? '' : v ?? '');
+      const idOf = (v, detail) => {
+        if (v && typeof v === 'object') return v.id ?? v.uuid ?? '';
+        if (v) return v;
+        if (detail && typeof detail === 'object') return detail.id ?? detail.uuid ?? '';
+        return '';
+      };
       setFormData({
         name: editingProduct.name || '',
-        custom_barcode_no: editingProduct.custom_barcode_no || editingProduct.barcode || '',
-        buying_price: editingProduct.buying_price ?? editingProduct.purchase_price ?? '',
-        selling_price: editingProduct.selling_price ?? editingProduct.sales_price ?? '',
+        custom_barcode_no: editingProduct.custom_barcode_no || editingProduct.barcode || editingProduct.code || '',
+        buying_price: editingProduct.buying_price ?? editingProduct.purchase_price ?? editingProduct.buy ?? '',
+        selling_price: editingProduct.selling_price ?? editingProduct.sales_price ?? editingProduct.sell ?? '',
         wholesale_price: editingProduct.wholesale_price ?? '',
-        opening_stock: editingProduct.opening_stock ?? editingProduct.stock ?? '',
-        stock_warning: editingProduct.stock_warning ?? '',
-        unit: idOf(editingProduct.unit),
-        group: idOf(editingProduct.group),
-        brand: idOf(editingProduct.brand),
-        color: idOf(editingProduct.color),
-        size: idOf(editingProduct.size),
-        warehouse: idOf(editingProduct.warehouse),
+        opening_stock: editingProduct.opening_stock ?? editingProduct.stock ?? editingProduct.openingStock ?? '',
+        stock_warning: editingProduct.stock_warning ?? editingProduct.stockWarning ?? '',
+        unit: idOf(editingProduct.unit, editingProduct.unit_details || editingProduct.unit_detail),
+        group: idOf(editingProduct.group, editingProduct.group_details || editingProduct.group_detail),
+        brand: idOf(editingProduct.brand, editingProduct.brand_details || editingProduct.brand_detail),
+        color: idOf(editingProduct.color, editingProduct.color_details || editingProduct.color_detail),
+        size: idOf(editingProduct.size, editingProduct.size_details || editingProduct.size_detail),
+        warehouse: idOf(editingProduct.warehouse, editingProduct.warehouse_details || editingProduct.warehouse_detail),
         status: editingProduct.status ?? 1,
       });
     }
   }, [editingProduct]);
+
+  useEffect(() => {
+    if (editingProduct) {
+      setFormData(prev => {
+        let updated = { ...prev };
+        if (!updated.unit && units.length > 0) {
+          const match = units.find(u => 
+            u.id === editingProduct.unit || 
+            (u.name && editingProduct.unit_name && u.name.trim().toLowerCase() === editingProduct.unit_name.trim().toLowerCase())
+          );
+          if (match) updated.unit = match.id;
+        }
+        if (!updated.group && groups.length > 0) {
+          const match = groups.find(g => 
+            g.id === editingProduct.group || 
+            (g.name && editingProduct.group_name && g.name.trim().toLowerCase() === editingProduct.group_name.trim().toLowerCase())
+          );
+          if (match) updated.group = match.id;
+        }
+        return updated;
+      });
+    }
+  }, [units, groups, editingProduct]);
 
   const fetchPrerequisites = async () => {
     try {
@@ -148,6 +186,12 @@ const ProductCreate = () => {
     try {
       setSubmitting(true);
       const money = (v) => Number(v || 0).toFixed(2);
+      const targetId = editingProduct?.id || editingProduct?.uuid || editingProduct?.product_id || paramId;
+      if (isEditMode && !targetId) {
+        toast.error(t("Product ID missing for update"));
+        return;
+      }
+
       const payload = {
         name: formData.name.trim(),
         buying_price: money(formData.buying_price),
@@ -170,15 +214,12 @@ const ProductCreate = () => {
       }
       
       payload.opening_stock = money(formData.opening_stock);
-      if (!isEditMode) {
-        // opening stock is only meaningful on create – purchases / sales move stock afterwards
-
-        payload.stock = money(formData.opening_stock);
-      }
+      // Ensure stock is updated together with opening stock
+      payload.stock = money(formData.opening_stock);
 
       try {
-        if (isEditMode && editingProduct?.id) {
-          await productService.updateProduct(editingProduct.id, payload);
+        if (isEditMode && targetId) {
+          await productService.updateProduct(targetId, payload);
           toast.success(t("Product updated successfully via API!"));
         } else {
           await productService.createProduct(payload);
@@ -208,7 +249,10 @@ const ProductCreate = () => {
           status: 1,
         });
       } else {
-        navigate('/product/list');
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('rg:lookup-invalidate', { detail: 'products' }));
+        }
+        navigate('/product/list', { state: { refreshedAt: Date.now() } });
       }
     } catch (err) {
       console.error("Error saving product:", err);

@@ -360,6 +360,8 @@
   "Delete Client": "ক্লায়েন্ট মুছুন",
   "Delete Expense Category": "খরচ ক্যাটাগরি মুছুন",
   "Delete Invoice": "ইনভয়েস মুছুন",
+  "Delete Purchase Invoice": "ক্রয় ইনভয়েস মুছুন",
+  "Delete Purchase Return": "ক্রয় ফেরত মুছুন",
   "Delete Product": "পণ্য মুছুন",
   "Delete Return": "রিটার্ন মুছুন",
   "Delete User": "ইউজার মুছুন",
@@ -821,6 +823,8 @@
   "PURCHASE INVOICE": "ক্রয় ইনভয়েস",
   "PURCHASE RETURN": "ক্রয় ফেরত",
   "PURCHASED GARMENTS / APPAREL ITEMS": "ক্রয়কৃত গার্মেন্টস / পোশাক আইটেম",
+  "Purchased Items": "ক্রয়কৃত পণ্যসমূহ",
+  "Purchased Product": "ক্রয়কৃত পণ্য",
   "Paid": "পরিশোধিত",
   "Paid Amount": "পরিশোধিত পরিমাণ",
   "Parent Category": "মূল ক্যাটাগরি",
@@ -1080,6 +1084,7 @@
   "Sales Return Created Successfully!": "বিক্রয় ফেরত সফলভাবে তৈরি হয়েছে!",
   "Sales Return Invoices": "বিক্রয় ফেরত ইনভয়েস",
   "Sales Return List": "সেলস রিটার্ন তালিকা",
+  "Sales return deleted and client due restored successfully!": "সেলস রিটার্ন মুছে ফেলা হয়েছে এবং ক্লায়েন্টের পূর্বের বকেয়া যোগ করা হয়েছে!",
   "Sales Return converted to Final successfully!": "বিক্রয় ফেরত সফলভাবে চূড়ান্ত করা হয়েছে!",
   "SalesReturn": "বিক্রয় ফেরত",
   "Save": "সংরক্ষণ",
@@ -1459,5 +1464,6 @@
   "🖨️ Print Memo": "🖨️ মেমো প্রিন্ট",
   "🚫 Deactivate": "🚫 নিষ্ক্রিয় করুন",
   "Unknown Supplier": "অজানা সাপ্লায়ার",
-  "Unknown Client": "অজানা কাস্টমার"
+  "Unknown Client": "অজানা কাস্টমার",
+  "Product ID missing for update": "আপডেটের জন্য প্রোডাক্ট আইডি পাওয়া যায়নি"
 }

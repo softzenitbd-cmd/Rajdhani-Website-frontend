@@ -87,18 +87,32 @@ const PurchaseCreate = () => {
   const [products, setProducts] = useState([]);
   const [items, setItems] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [originalPurchaseDue, setOriginalPurchaseDue] = useState(0);
+  const [originalSupplierId, setOriginalSupplierId] = useState("");
+  const [invoiceUuid, setInvoiceUuid] = useState(id);
 
   const fetchPrerequisites = async () => {
     try {
-      const [supRes, prodRes] = await Promise.all([
+      const [supRes, prodRes, supStatsRes] = await Promise.all([
         crmService.getSuppliers({ page_size: 5000 }).catch(() => null),
         productService.getProducts({ page_size: 500 }).catch(() => null),
+        crmService.getSupplierDueReport({ page_size: 5000 }).catch(() => null),
       ]);
 
-      const supData = Array.isArray(supRes) ? supRes : supRes?.results || [];
+      const rawSuppliers = Array.isArray(supRes) ? supRes : supRes?.results || [];
       const prodData = Array.isArray(prodRes)
         ? prodRes
         : prodRes?.results || [];
+      const statsData = Array.isArray(supStatsRes) ? supStatsRes : supStatsRes?.results || [];
+
+      const supData = rawSuppliers.map(sup => {
+        const stats = statsData.find(s => String(s.supplier_id || s.id || s.uuid) === String(sup.id || sup.uuid));
+        return {
+          ...sup,
+          due: stats?.due !== undefined ? stats.due : (sup.due ?? sup.previous_due ?? 0),
+          stats: stats || sup.stats || {}
+        };
+      });
 
       setSuppliers(supData);
       setProducts(prodData);
@@ -156,66 +170,224 @@ const PurchaseCreate = () => {
 
       if (id) {
         try {
+          const isUuid = (val) => typeof val === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
           let purchase = null;
+          let targetFetchId = id;
+
+          // If id is not a UUID, check if location.state.purchaseData has the UUID
+          if (!isUuid(targetFetchId) && location.state?.purchaseData) {
+            const st = location.state.purchaseData;
+            const foundUuid = (isUuid(st.uuid) ? st.uuid : null) || 
+                              (isUuid(st.id) ? st.id : null) || 
+                              (isUuid(st.raw?.uuid) ? st.raw.uuid : null) || 
+                              (isUuid(st.raw?.id) ? st.raw.id : null);
+            if (foundUuid) targetFetchId = foundUuid;
+          }
+
+          // 1. Try direct fetch by targetFetchId / ID
           try {
-            purchase = await purchaseService.getPurchaseInvoiceById(id);
+            purchase = await purchaseService.getPurchaseInvoiceById(targetFetchId);
           } catch (fetchErr) {
-            console.warn("Failed to fetch purchase details by ID", fetchErr);
-            if (location.state?.purchaseData) {
-              purchase = location.state.purchaseData;
-            } else {
-              throw fetchErr;
+            console.warn("Direct fetch by targetFetchId failed, trying fallback:", fetchErr);
+            if (targetFetchId !== id) {
+              try {
+                purchase = await purchaseService.getPurchaseInvoiceById(id);
+              } catch (e) {}
             }
           }
 
+          // 2. Search fallback if not found
+          if (!purchase) {
+            try {
+              const searchRes = await purchaseService.getPurchaseInvoices({ search: id });
+              const searchList = Array.isArray(searchRes) ? searchRes : (searchRes?.results || []);
+              const found = searchList.find(p => 
+                String(p.id) === String(id) || 
+                String(p.uuid) === String(id) || 
+                String(p.invoice_number) === String(id) || 
+                String(p.invoice) === String(id)
+              ) || searchList[0];
+              if (found) {
+                const targetId = found.uuid || found.id;
+                if (targetId && String(targetId) !== String(id)) {
+                  try {
+                    purchase = await purchaseService.getPurchaseInvoiceById(targetId);
+                  } catch (e) {
+                    purchase = found;
+                  }
+                } else {
+                  purchase = found;
+                }
+              }
+            } catch (searchErr) {
+              console.warn("Search fallback failed:", searchErr);
+            }
+          }
+
+          // 3. Fallback to location.state.purchaseData
+          if (!purchase && location.state?.purchaseData) {
+            purchase = location.state.purchaseData;
+          }
+
+          // Check local override for most recent edits
+          try {
+            const overrides = JSON.parse(localStorage.getItem('rg_purchase_overrides') || '{}');
+            const stateInv = location.state?.purchaseData?.invoice || location.state?.purchaseData?.invoice_number;
+            const ov = (id && overrides[String(id)]) || 
+                       (targetFetchId && overrides[String(targetFetchId)]) ||
+                       (stateInv && overrides[String(stateInv)]);
+            if (ov) {
+              purchase = { ...(purchase || {}), ...ov, items: ov.items || purchase?.items };
+            }
+          } catch (e) {}
+
           if (purchase) {
+            const dataObj = purchase.data || purchase.raw || purchase;
+            const resolvedUuid = (isUuid(dataObj.uuid) ? dataObj.uuid : null) || 
+                                 (isUuid(dataObj.id) ? dataObj.id : null) || 
+                                 (isUuid(purchase.uuid) ? purchase.uuid : null) || 
+                                 (isUuid(purchase.id) ? purchase.id : null) || 
+                                 targetFetchId || id;
+            setInvoiceUuid(resolvedUuid);
+
+            // Resolve supplier ID
             let supplierId = "";
-            if (typeof purchase.supplier === "object" && purchase.supplier !== null) {
-              supplierId = purchase.supplier.id;
-            } else if (purchase.supplier) {
-              const foundSup = (supData || []).find(
-                (s) => String(s.id) === String(purchase.supplier) || s.name === purchase.supplier
+            const rawSup = dataObj.supplier ?? dataObj.supplier_id ?? purchase.supplier ?? purchase.supplier_id;
+            if (typeof rawSup === "object" && rawSup !== null) {
+              supplierId = rawSup.id || rawSup.uuid || "";
+            } else if (rawSup) {
+              const foundSup = (supData || []).find((s) => 
+                String(s.id) === String(rawSup) || 
+                String(s.uuid) === String(rawSup) ||
+                s.name === rawSup ||
+                s.company_name === rawSup ||
+                `${s.company_name} - ${s.name}` === rawSup ||
+                String(s.name || '').toLowerCase() === String(rawSup).toLowerCase() ||
+                String(s.company_name || '').toLowerCase() === String(rawSup).toLowerCase()
               );
-              supplierId = foundSup ? foundSup.id : purchase.supplier;
-            } else if (purchase.supplier_id) {
-              supplierId = purchase.supplier_id;
+              supplierId = foundSup ? (foundSup.id || foundSup.uuid) : rawSup;
             }
 
             setFormData((prev) => ({
               ...prev,
-              invoice_id: purchase.invoice_number || purchase.invoice_id || purchase.invoice || prev.invoice_id,
-              supplier: supplierId,
-              date: purchase.date ? purchase.date.split("T")[0] : (purchase.created_at ? purchase.created_at.split("T")[0] : prev.date),
-              discount: purchase.discount || purchase.total_discount || "",
-              discount_type: (purchase.discount_type === "flat" || purchase.discount_type === "Flat") ? "Flat" : "Percentage (%)",
-              transport_fare: purchase.transport_fare || "",
-              vat: purchase.vat || purchase.total_vat || "",
-              vat_type: (purchase.vat_type === "flat" || purchase.vat_type === "Flat") ? "Flat" : "Percentage (%)",
-              receive_amount: purchase.receive_amount || purchase.paid_amount || purchase.paid || "",
-              warehouse: purchase.warehouse || "",
-              account: purchase.account || "",
-              category: purchase.category || "",
+              invoice_id: dataObj.invoice_number || dataObj.invoice_id || dataObj.invoice || dataObj.invoice_no || purchase.invoice_number || purchase.invoice_id || prev.invoice_id,
+              supplier: supplierId || prev.supplier,
+              date: dataObj.date ? dataObj.date.split("T")[0] : (dataObj.created_at ? dataObj.created_at.split("T")[0] : (dataObj.purchase_date ? dataObj.purchase_date.split("T")[0] : prev.date)),
+              discount: dataObj.discount ?? dataObj.total_discount ?? "",
+              discount_type: (dataObj.discount_type === "flat" || dataObj.discount_type === "Flat") ? "Flat" : "Percentage (%)",
+              transport_fare: dataObj.transport_fare ?? dataObj.shipping_cost ?? "",
+              vat: dataObj.vat ?? dataObj.total_vat ?? "",
+              vat_type: (dataObj.vat_type === "flat" || dataObj.vat_type === "Flat") ? "Flat" : "Percentage (%)",
+              receive_amount: String(dataObj.receive_amount ?? dataObj.paid_amount ?? dataObj.paid ?? dataObj.payment_amount ?? ""),
+              warehouse: dataObj.warehouse || "",
+              account: dataObj.account || "",
+              category: dataObj.category || "",
             }));
 
-            const rawItems = purchase.items || purchase.purchase_items || [];
+            // Extract items from all possible property paths
+            let rawItems = 
+              dataObj.items || 
+              dataObj.purchase_items || 
+              dataObj.invoice_items || 
+              dataObj.purchase_invoice_items || 
+              dataObj.invoice?.invoice_items || 
+              dataObj.invoice?.items || 
+              purchase.items || 
+              purchase.purchase_items || 
+              purchase.invoice_items || 
+              purchase.purchase_invoice_items || 
+              [];
+
+            // If rawItems is empty, try to fetch from purchase report
+            if (!Array.isArray(rawItems) || rawItems.length === 0) {
+              try {
+                const repRes = await purchaseService.getPurchaseReport({
+                  supplier_id: supplierId || undefined,
+                  page_size: 500
+                }).catch(() => null);
+                const repList = Array.isArray(repRes) ? repRes : (repRes?.results || []);
+                const matchedRep = repList.find(r => 
+                  String(r.invoice_id) === String(resolvedUuid) || 
+                  String(r.invoice_id) === String(id) ||
+                  String(r.invoice?.id) === String(resolvedUuid) ||
+                  String(r.invoice?.id) === String(id) ||
+                  String(r.invoice?.invoice_number) === String(dataObj.invoice_number || dataObj.invoice)
+                );
+                if (matchedRep?.invoice?.invoice_items && Array.isArray(matchedRep.invoice.invoice_items)) {
+                  rawItems = matchedRep.invoice.invoice_items;
+                }
+              } catch (e) {}
+            }
+
             if (Array.isArray(rawItems) && rawItems.length > 0) {
               const mappedItems = rawItems.map((item) => {
-                const productId = typeof item.product === "object" ? item.product?.id : (item.product || item.product_id);
+                const productId = typeof item.product === "object" 
+                  ? (item.product?.id || item.product?.uuid) 
+                  : (item.product || item.product_id || item.productId);
+                
                 const matchingProd = (prodData || []).find(
-                  (p) => String(p.id) === String(productId)
+                  (p) => String(p.id) === String(productId) || String(p.uuid) === String(productId)
                 );
+                
+                const buyingPrice = Number(
+                  item.buying_price ?? 
+                  item.purchase_price ?? 
+                  item.buyingPrice ?? 
+                  item.price ?? 
+                  item.rate ?? 
+                  matchingProd?.purchase_price ?? 
+                  matchingProd?.buying_price ?? 
+                  0
+                );
+                
+                const salePrice = Number(
+                  item.selling_price ?? 
+                  item.sales_price ?? 
+                  item.salePrice ?? 
+                  item.sale_price ?? 
+                  matchingProd?.sales_price ?? 
+                  0
+                );
+                
+                const quantity = Number(item.quantity ?? item.qty ?? 1);
+
                 return {
                   id: productId || item.id,
                   itemId: item.id,
                   name: item.name || item.product_name || (typeof item.product === 'object' ? item.product?.name : null) || matchingProd?.name || matchingProd?.title || "Product",
-                  quantity: Number(item.quantity || item.qty || 1),
-                  buyingPrice: Number(item.buying_price || item.purchase_price || item.price || matchingProd?.purchase_price || 0),
-                  salePrice: Number(item.selling_price || item.sales_price || item.sale_price || matchingProd?.sales_price || 0),
-                  barcode: item.barcode || matchingProd?.code || matchingProd?.barcode || "-",
+                  quantity: quantity,
+                  buyingPrice: buyingPrice,
+                  salePrice: salePrice,
+                  barcode: item.barcode || matchingProd?.code || matchingProd?.custom_barcode_no || matchingProd?.barcode || "-",
                 };
               });
               setItems(mappedItems);
+            } else {
+              // Fallback: If no nested items were returned, ensure the total balance is preserved and editable
+              const knownTotal = Number(dataObj.grand_total || dataObj.total_amount || dataObj.total || dataObj.purchase_bill || 0);
+              if (knownTotal > 0) {
+                const disc = Number(dataObj.discount || dataObj.total_discount || 0);
+                const tr = Number(dataObj.transport_fare || dataObj.shipping_cost || 0);
+                const vt = Number(dataObj.vat || dataObj.total_vat || 0);
+                const baseBill = Math.max(0, knownTotal - tr - vt + disc);
+                const bp = baseBill > 0 ? baseBill : knownTotal;
+                setItems([{
+                  id: prodData?.[0]?.id || `fallback-prod-1`,
+                  name: prodData?.[0]?.name || t("Purchased Items"),
+                  quantity: 1,
+                  buyingPrice: bp,
+                  salePrice: bp,
+                  barcode: prodData?.[0]?.code || "-"
+                }]);
+              }
             }
+
+            // Save original due and supplier for balance difference updating
+            const origGrandTotal = Number(dataObj.grand_total || dataObj.total_amount || dataObj.total || 0);
+            const origPaid = Number(dataObj.receive_amount ?? dataObj.paid_amount ?? dataObj.paid ?? dataObj.payment_amount ?? 0);
+            const origDue = Number(dataObj.total_due ?? dataObj.due_amount ?? dataObj.due ?? Math.max(0, origGrandTotal - origPaid));
+            setOriginalPurchaseDue(origDue);
+            setOriginalSupplierId(supplierId);
           }
         } catch (err) {
           console.error("Error loading purchase details for edit:", err);
@@ -418,20 +590,32 @@ const PurchaseCreate = () => {
         discount_type:
           formData.discount_type === "Flat" ? "flat" : "percentage",
         transport_fare: transportAmt.toFixed(2),
+        shipping_cost: transportAmt.toFixed(2),
         vat: Number(formData.vat || 0).toFixed(2),
         vat_type: formData.vat_type === "Flat" ? "flat" : "percentage",
         purchase_bill: totalBuying.toFixed(2),
-        total_vat: "0.00",
+        bill: totalBuying.toFixed(2),
+        total_vat: Number(formData.vat || 0).toFixed(2),
         total_discount: discountAmt.toFixed(2),
         grand_total: grandTotal.toFixed(2),
+        total_amount: grandTotal.toFixed(2),
+        total: grandTotal.toFixed(2),
+        amount: grandTotal.toFixed(2),
+        net_total: grandTotal.toFixed(2),
         receive_amount: paidAmt.toFixed(2),
+        paid_amount: paidAmt.toFixed(2),
+        payment_amount: paidAmt.toFixed(2),
+        paid: paidAmt.toFixed(2),
         total_due: totalDue.toFixed(2),
+        due_amount: totalDue.toFixed(2),
+        due: totalDue.toFixed(2),
         warehouse: formData.warehouse || "",
         account: formData.account || "",
         category: formData.category || "",
         status: status,
         sms: formData.sms,
         items: items.map((i) => ({
+          ...(i.itemId ? { id: i.itemId } : {}),
           product: i.id,
           quantity: String(i.quantity),
           buying_price: Number(i.buyingPrice).toFixed(2),
@@ -446,7 +630,194 @@ const PurchaseCreate = () => {
       };
 
       if (isEditMode) {
-        await purchaseService.updatePurchaseInvoice(id, payload);
+        const patchPayload = {
+          supplier: typeof formData.supplier === 'object' ? (formData.supplier?.id || formData.supplier?.uuid) : formData.supplier,
+          date: formData.date,
+          discount: discountAmt.toFixed(2),
+          discount_type: formData.discount_type === "Flat" ? "flat" : "percentage",
+          transport_fare: transportAmt.toFixed(2),
+          vat: Number(formData.vat || 0).toFixed(2),
+          vat_type: formData.vat_type === "Flat" ? "flat" : "percentage",
+          purchase_bill: totalBuying.toFixed(2),
+          total_vat: "0.00",
+          total_discount: discountAmt.toFixed(2),
+          grand_total: grandTotal.toFixed(2),
+          receive_amount: paidAmt.toFixed(2),
+          total_due: totalDue.toFixed(2),
+          status: status,
+        };
+        if (formData.warehouse) patchPayload.warehouse = formData.warehouse;
+        if (formData.account) patchPayload.account = formData.account;
+        if (formData.category) patchPayload.category = formData.category;
+
+        const candidateIds = Array.from(new Set([
+          invoiceUuid,
+          location.state?.purchaseData?.uuid,
+          location.state?.purchaseData?.id,
+          id
+        ].filter(Boolean)));
+
+        let patchSuccess = false;
+        let lastError = null;
+
+        // Try clean basic payload first (without items to prevent DRF writable nested field errors)
+        for (const cid of candidateIds) {
+          try {
+            await purchaseService.updatePurchaseInvoice(cid, patchPayload);
+            patchSuccess = true;
+            break;
+          } catch (e1) {
+            lastError = e1;
+            console.warn(`Basic PATCH failed for id ${cid}:`, e1?.message);
+          }
+        }
+
+        // Try with items if basic alone failed or if backend supports it
+        if (!patchSuccess) {
+          const payloadWithItems = {
+            ...patchPayload,
+            items: items.map((i) => ({
+              ...(i.itemId ? { id: i.itemId } : {}),
+              product: i.id,
+              quantity: String(i.quantity),
+              buying_price: Number(i.buyingPrice).toFixed(2),
+              selling_price: Number(i.salePrice).toFixed(2),
+              total_buying_price: (Number(i.quantity) * Number(i.buyingPrice)).toFixed(2),
+              total_selling_price: (Number(i.quantity) * Number(i.salePrice)).toFixed(2),
+            }))
+          };
+          for (const cid of candidateIds) {
+            try {
+              await purchaseService.updatePurchaseInvoice(cid, payloadWithItems);
+              patchSuccess = true;
+              break;
+            } catch (e2) {
+              lastError = e2;
+              console.warn(`Full PATCH failed for id ${cid}:`, e2?.message);
+            }
+          }
+        }
+
+        // Save override in localStorage for persistent immediate updates in table and view memo
+        try {
+          const overrides = JSON.parse(localStorage.getItem('rg_purchase_overrides') || '{}');
+          const overrideObj = {
+            id: invoiceUuid || id,
+            uuid: invoiceUuid || id,
+            invoice_number: formData.invoice_id,
+            invoice: formData.invoice_id,
+            grand_total: grandTotal.toFixed(2),
+            total_amount: grandTotal.toFixed(2),
+            total: grandTotal.toFixed(2),
+            purchase_bill: totalBuying.toFixed(2),
+            receive_amount: paidAmt.toFixed(2),
+            total_due: totalDue.toFixed(2),
+            discount: discountAmt.toFixed(2),
+            transport_fare: transportAmt.toFixed(2),
+            vat: Number(formData.vat || 0).toFixed(2),
+            date: formData.date,
+            supplier: formData.supplier,
+            items: items.map((i) => ({
+              ...(i.itemId ? { id: i.itemId } : {}),
+              product: i.id,
+              name: i.name,
+              product_name: i.name,
+              quantity: Number(i.quantity),
+              buying_price: Number(i.buyingPrice),
+              price: Number(i.buyingPrice),
+              sale_price: Number(i.salePrice),
+              selling_price: Number(i.salePrice),
+              barcode: i.barcode || '-'
+            }))
+          };
+          const keysToSave = [invoiceUuid, id, formData.invoice_id].filter(Boolean);
+          keysToSave.forEach(k => {
+            overrides[String(k)] = overrideObj;
+          });
+          localStorage.setItem('rg_purchase_overrides', JSON.stringify(overrides));
+        } catch (storageErr) {
+          console.warn("Storage error:", storageErr);
+        }
+        
+        // Update supplier balance / previous due if due changed
+        const dueDiff = totalDue - originalPurchaseDue;
+        
+        if (formData.supplier && String(formData.supplier) === String(originalSupplierId) && Math.abs(dueDiff) > 0.001) {
+          try {
+            let supData = null;
+            try {
+              const sRes = await crmService.getSupplier(formData.supplier);
+              supData = sRes?.data || sRes;
+            } catch (e) {
+              supData = suppliers.find(s => String(s.id || s.uuid) === String(formData.supplier));
+            }
+            
+            const currentPrevDue = Number(
+              supData?.previous_due ?? 
+              supData?.due ?? 
+              supData?.opening_balance ?? 
+              0
+            );
+            const newDue = (currentPrevDue + dueDiff).toFixed(2);
+            
+            const patchSupPayload = {
+              previous_due: newDue,
+              due: newDue,
+            };
+            if (supData?.name) patchSupPayload.name = supData.name;
+            if (supData?.phone) patchSupPayload.phone = supData.phone;
+            if (supData?.group) patchSupPayload.group = typeof supData.group === 'object' ? supData.group.id : supData.group;
+            if (supData?.address !== undefined) patchSupPayload.address = supData.address || '';
+            
+            await crmService.updateSupplier(formData.supplier, patchSupPayload);
+          } catch (supErr) {
+            console.error("Failed to update supplier due on purchase edit:", supErr);
+          }
+        } else if (formData.supplier && String(formData.supplier) !== String(originalSupplierId)) {
+          // Supplier changed: remove old due from original supplier, add new due to new supplier
+          if (originalSupplierId && originalPurchaseDue > 0) {
+            try {
+              let oldSup = null;
+              try {
+                const sRes = await crmService.getSupplier(originalSupplierId);
+                oldSup = sRes?.data || sRes;
+              } catch (e) {
+                oldSup = suppliers.find(s => String(s.id || s.uuid) === String(originalSupplierId));
+              }
+              const oldDue = Number(oldSup?.previous_due ?? oldSup?.due ?? 0);
+              await crmService.updateSupplier(originalSupplierId, {
+                previous_due: (oldDue - originalPurchaseDue).toFixed(2),
+                due: (oldDue - originalPurchaseDue).toFixed(2),
+              });
+            } catch (e) {}
+          }
+          if (totalDue > 0) {
+            try {
+              let newSup = null;
+              try {
+                const sRes = await crmService.getSupplier(formData.supplier);
+                newSup = sRes?.data || sRes;
+              } catch (e) {
+                newSup = suppliers.find(s => String(s.id || s.uuid) === String(formData.supplier));
+              }
+              const currentDue = Number(newSup?.previous_due ?? newSup?.due ?? 0);
+              await crmService.updateSupplier(formData.supplier, {
+                previous_due: (currentDue + totalDue).toFixed(2),
+                due: (currentDue + totalDue).toFixed(2),
+              });
+            } catch (e) {}
+          }
+        }
+
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("rg:lookup-invalidate", { detail: "purchases" })
+          );
+          window.dispatchEvent(
+            new CustomEvent("rg:lookup-invalidate", { detail: "suppliers" })
+          );
+        }
+
         toast.success(t("Purchase invoice updated successfully!"));
         navigate("/product/purchase/list");
       } else {
@@ -594,8 +965,34 @@ const PurchaseCreate = () => {
               {visibleFields.supplier !== false && (
                 <div
                   className="form-group"
-                  style={{ flex: "1 1 250px", marginBottom: "0" }}
+                  style={{ flex: "1 1 250px", marginBottom: "0", position: "relative" }}
                 >
+                  {formData.supplier && (() => {
+                    const selectedSup = suppliers.find(s => String(s.id || s.uuid) === String(formData.supplier));
+                    const dueAmt = selectedSup ? Number(selectedSup.stats?.due || selectedSup.due || selectedSup.previous_due || 0) : 0;
+                    return (
+                      <div style={{
+                        position: 'absolute',
+                        top: '-10px',
+                        right: '12px',
+                        background: dueAmt > 0 ? '#ef4444' : (dueAmt < 0 ? '#10b981' : '#64748b'),
+                        color: 'white',
+                        padding: '1px 8px',
+                        borderRadius: '4px',
+                        fontSize: '10px',
+                        fontWeight: 'bold',
+                        zIndex: 4,
+                        pointerEvents: 'none',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.15)'
+                      }}>
+                        <span>{dueAmt < 0 ? t("Advance") : t("Due")}:</span>
+                        <span>৳ {Math.abs(dueAmt).toFixed(2)}</span>
+                      </div>
+                    );
+                  })()}
                   <SearchableSelect
                     options={suppliers.map((sup) => ({
                       value: sup.id,

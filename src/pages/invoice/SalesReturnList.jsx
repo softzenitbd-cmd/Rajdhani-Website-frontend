@@ -137,10 +137,12 @@ const SalesReturnList = () => {
   };
 
   const handleDeleteReturn = async (ret) => {
-    const targetId = typeof ret === 'object' ? ret.id : ret;
-    const displayNo = typeof ret === 'object' 
-      ? (ret.return_invoice_id || ret.invoiceNo || ret.invoice_no || (ret.id ? `ID: ${ret.id}` : 'Return')) 
-      : `ID: ${ret}`;
+    const targetId = typeof ret === 'object' && ret !== null ? ret.id : ret;
+    const returnItem = typeof ret === 'object' && ret !== null 
+      ? ret 
+      : (returns.find(r => String(r.id) === String(targetId)) || {});
+
+    const displayNo = returnItem.return_invoice_id || returnItem.invoiceNo || returnItem.invoice_no || (targetId ? `ID: ${targetId}` : 'Return');
 
     const isConfirmed = await confirm({
       title: t("Delete Sales Return"),
@@ -152,10 +154,119 @@ const SalesReturnList = () => {
     if (!isConfirmed) return;
 
     try {
+      // 1. Calculate the balance amount that was credited against client due
+      const isDraft = returnItem.status === 0 || returnItem.status === '0' || String(returnItem.status).toLowerCase() === 'draft';
+      
+      const billAmt = Number(returnItem.bill_amount || returnItem.total_bill || returnItem.grand_total || 0);
+      const recAmt = Number(returnItem.receive_amount || returnItem.paid_amount || 0);
+      const rawDue = returnItem.total_due ?? returnItem.due_amount ?? returnItem.dueAmount;
+
+      let balanceToRestore = 0;
+      if (!isDraft) {
+        if (rawDue !== undefined && rawDue !== null && Number(rawDue) > 0) {
+          balanceToRestore = Number(rawDue);
+        } else if (billAmt > recAmt) {
+          balanceToRestore = billAmt - recAmt;
+        } else if (billAmt > 0 && recAmt === 0) {
+          balanceToRestore = billAmt;
+        } else if (billAmt > 0) {
+          balanceToRestore = billAmt;
+        }
+      }
+
+      // 2. Identify the target client
+      const rawClientId = (typeof returnItem.client === 'object' && returnItem.client !== null)
+        ? (returnItem.client.id || returnItem.client.uuid)
+        : (returnItem.client || returnItem.client_id || returnItem.clientId);
+
+      const clientObj = clients.find(c => 
+        (rawClientId && String(c.id || c.uuid) === String(rawClientId)) ||
+        (returnItem.client_name && (c.name === returnItem.client_name || c.company_name === returnItem.client_name)) ||
+        (returnItem.client_phone && c.phone && c.phone === returnItem.client_phone)
+      );
+
+      const resolvedClientId = rawClientId || clientObj?.id || clientObj?.uuid;
+
+      const clientName = clientObj?.name || clientObj?.company_name || returnItem.client_name || '';
+      const isDefault = 
+        clientName.toLowerCase().includes('c.customer') ||
+        clientName.toLowerCase().includes('c.castomer') ||
+        clientName.toLowerCase().includes('c.coustomer') ||
+        clientName.toLowerCase().includes('c. customer') ||
+        clientName.toLowerCase() === 'default' ||
+        clientName.toLowerCase().startsWith('c.');
+
+      // 3. Delete the sales return record via API
       await saleService.deleteSalesReturn(targetId);
-      toast.success(t("Sales Return deleted successfully!"));
-      setReturns(prev => prev.filter(item => item.id !== targetId));
+
+      // 4. Restore the balance into client's due if applicable
+      if (resolvedClientId && !isDefault && balanceToRestore > 0) {
+        try {
+          let currentClientData = null;
+          try {
+            const cRes = await crmService.getClient(resolvedClientId);
+            currentClientData = cRes?.data || cRes;
+          } catch (e) {
+            currentClientData = clientObj;
+          }
+
+          const currentPrevDue = Number(
+            currentClientData?.previous_due ??
+            currentClientData?.due ??
+            currentClientData?.opening_due ??
+            currentClientData?.opening_balance ??
+            clientObj?.previous_due ??
+            clientObj?.due ??
+            0
+          );
+
+          const restoredDue = (currentPrevDue + balanceToRestore).toFixed(2);
+
+          const patchPayload = {
+            previous_due: restoredDue,
+            due: restoredDue,
+            opening_due: restoredDue,
+            opening_balance: restoredDue
+          };
+
+          if (currentClientData?.name) patchPayload.name = currentClientData.name;
+          if (currentClientData?.phone) patchPayload.phone = currentClientData.phone;
+          if (currentClientData?.group) {
+            patchPayload.group = typeof currentClientData.group === 'object'
+              ? (currentClientData.group.id || currentClientData.group.uuid)
+              : currentClientData.group;
+          }
+          if (currentClientData?.address !== undefined) {
+            patchPayload.address = currentClientData.address || '';
+          }
+
+          await crmService.updateClient(resolvedClientId, patchPayload);
+
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('rg:lookup-invalidate', { detail: 'clients' }));
+          }
+
+          setClients(prev => prev.map(c => {
+            if (String(c.id || c.uuid) === String(resolvedClientId)) {
+              return {
+                ...c,
+                previous_due: restoredDue,
+                due: restoredDue,
+                opening_due: restoredDue,
+                opening_balance: restoredDue
+              };
+            }
+            return c;
+          }));
+        } catch (clientErr) {
+          console.error("Failed to restore client due after sales return deletion:", clientErr);
+        }
+      }
+
+      toast.success(t("Sales return deleted and client due restored successfully!"));
+      setReturns(prev => prev.filter(item => String(item.id) !== String(targetId)));
       fetchReturns();
+      fetchPrerequisites();
     } catch (err) {
       console.error("Error deleting sales return:", err);
       toast.error(err.message || t("Delete failed"));

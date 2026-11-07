@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PrintHeader from '../../components/PrintHeader';
 import { RotateCcw, Edit, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { productService } from '../../services/productService';
 import { exportToExcel } from '../../utils/excelExporter';
 import { useToast } from '../../context/ToastContext';
@@ -11,11 +11,11 @@ import CustomDatePicker from '../../components/CustomDatePicker';
 import Pagination from '../../components/Pagination';
 import { fmtDate } from '../../utils/apiHelpers';
 
-
 const ProductList = () => {
   const toast = useToast();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [products, setProducts] = useState([]);
   const [groups, setGroups] = useState([]);
@@ -39,12 +39,12 @@ const ProductList = () => {
     const dataToExport = products.map((p, index) => ({
       'SL': (currentPage - 1) * limit + index + 1,
       'Product Name': p.name,
-      'Buying Price (BDT)': p.purchase_price || p.buy || '0.00',
-      'Selling Price (BDT)': p.sales_price || p.sell || '0.00',
-      'Unit': p.unit_name || p.unit || 'Pcs',
-      'Barcode': p.code || p.barcode || '-',
-      'Stock Warning': p.stockWarning || '1',
-      'Opening Stock': p.stock || p.openingStock || '0.00',
+      'Buying Price (BDT)': p.buying_price ?? p.purchase_price ?? p.buy ?? '0.00',
+      'Selling Price (BDT)': p.selling_price ?? p.sales_price ?? p.sell ?? '0.00',
+      'Unit': p.unit_name || p.unit_details?.name || p.unit || 'Pcs',
+      'Barcode': p.custom_barcode_no || p.code || p.barcode || '-',
+      'Stock Warning': p.stock_warning ?? p.stockWarning ?? '1',
+      'Opening Stock': p.opening_stock ?? p.stock ?? p.openingStock ?? '0.00',
       'Created Date': p.created_at ? new Date(p.created_at).toLocaleDateString() : (p.createdAt || '-')
     }));
     exportToExcel(dataToExport, 'Product_List');
@@ -66,7 +66,7 @@ const ProductList = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const res = await productService.getProducts({ ...filters, page: currentPage, page_size: limit });
+      const res = await productService.getProducts({ ...filters, page: currentPage, page_size: limit, _t: Date.now() });
       const apiData = Array.isArray(res) ? res : (res?.results || []);
       const combined = apiData;
       setTotalCount(res?.count || combined.length);
@@ -100,7 +100,17 @@ const ProductList = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [filters, currentPage, limit]);
+  }, [filters, currentPage, limit, location.key]);
+
+  useEffect(() => {
+    const handleInvalidate = (e) => {
+      if (!e?.detail || e.detail === 'products') {
+        fetchProducts();
+      }
+    };
+    window.addEventListener('rg:lookup-invalidate', handleInvalidate);
+    return () => window.removeEventListener('rg:lookup-invalidate', handleInvalidate);
+  }, []);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -132,7 +142,7 @@ const ProductList = () => {
     try {
       await productService.deleteProduct(id);
       
-      setProducts(prev => prev.filter(p => p.id !== id));
+      setProducts(prev => prev.filter(p => (p.id || p.uuid) !== id));
       toast.success(t("Product deleted successfully!"));
     } catch (err) {
       console.error("Error deleting product:", err);
@@ -285,19 +295,19 @@ const ProductList = () => {
                       <td style={{ textAlign: 'left', padding: '8px', borderRight: '1px solid #e2e8f0' }}>
                         <div style={{ fontWeight: 'bold' }}>{prod.name}</div>
                         <div style={{ color: 'var(--text-muted)' }}>
-                          {t("Buy Price: ৳")}{prod.purchase_price || prod.buy || '0.00'} {t("| Sell Price: ৳")}{prod.sales_price || prod.sell || '0.00'} {t("| Unit:")} {prod.unit_name || prod.unit || t("PEACE")}
+                          {t("Buy Price: ৳")}{prod.buying_price ?? prod.purchase_price ?? prod.buy ?? '0.00'} {t("| Sell Price: ৳")}{prod.selling_price ?? prod.sales_price ?? prod.sell ?? '0.00'} {t("| Unit:")} {prod.unit_name || prod.unit_details?.name || prod.unit || t("PEACE")}
                         </div>
                       </td>
-                      <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.code || prod.barcode || '-'}</td>
-                      <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.stockWarning || '1'}</td>
-                      <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.stock || prod.openingStock || '0.00'}</td>
+                      <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.custom_barcode_no || prod.code || prod.barcode || '-'}</td>
+                      <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.stock_warning ?? prod.stockWarning ?? '1'}</td>
+                      <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{prod.opening_stock ?? prod.stock ?? prod.openingStock ?? '0.00'}</td>
                       <td style={{ textAlign: 'center', padding: '8px', borderRight: '1px solid #e2e8f0' }}>{fmtDate(prod.created_at || prod.date || prod.createdAt) || '-'}</td>
                       <td style={{ textAlign: 'center', padding: '8px' }}>
                         <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
                           <button onClick={() => navigate('/product/create', { state: { product: prod } })} className="action-btn-sm edit" style={{ background: 'var(--info)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title={t("Edit Product")}>
                             <Edit size={14} />
                           </button>
-                          <button onClick={() => handleDeleteProduct(prod.id)} className="action-btn-sm delete" style={{ background: 'var(--danger)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title={t("Delete Product")}>
+                          <button onClick={() => handleDeleteProduct(prod.id || prod.uuid)} className="action-btn-sm delete" style={{ background: 'var(--danger)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title={t("Delete Product")}>
                             <Trash2 size={14} />
                           </button>
                         </div>

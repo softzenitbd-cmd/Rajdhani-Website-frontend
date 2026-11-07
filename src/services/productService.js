@@ -35,18 +35,24 @@ const nameOfDetail = (row, key) => {
  */
 export const normalizeProduct = (p) => {
   if (!p || typeof p !== 'object') return p;
-  const idOf = (v) => (v && typeof v === 'object' ? v.id ?? v.uuid : v);
+  const idOf = (v, detail) => {
+    if (v && typeof v === 'object') return v.id ?? v.uuid;
+    if (v) return v;
+    if (detail && typeof detail === 'object') return detail.id ?? detail.uuid;
+    return null;
+  };
   const barcode = p.custom_barcode_no || p.barcode || p.code || '';
   const buying = p.buying_price ?? p.purchase_price ?? p.buy_price ?? 0;
   const selling = p.selling_price ?? p.sales_price ?? p.sell_price ?? p.price ?? 0;
   return {
     ...p,
-    unit: idOf(p.unit),
-    group: idOf(p.group),
-    brand: idOf(p.brand),
-    color: idOf(p.color),
-    size: idOf(p.size),
-    warehouse: idOf(p.warehouse),
+    id: p.id ?? p.uuid,
+    unit: idOf(p.unit, p.unit_details || p.unit_detail),
+    group: idOf(p.group, p.group_details || p.group_detail),
+    brand: idOf(p.brand, p.brand_details || p.brand_detail),
+    color: idOf(p.color, p.color_details || p.color_detail),
+    size: idOf(p.size, p.size_details || p.size_detail),
+    warehouse: idOf(p.warehouse, p.warehouse_details || p.warehouse_detail),
     custom_barcode_no: barcode,
     barcode,
     code: barcode,
@@ -55,7 +61,7 @@ export const normalizeProduct = (p) => {
     selling_price: selling,
     sales_price: selling,
     price: selling,
-    stock: p.stock ?? p.current_stock ?? 0,
+    stock: p.stock ?? p.current_stock ?? p.opening_stock ?? 0,
     unit_name: nameOfDetail(p, 'unit'),
     group_name: nameOfDetail(p, 'group'),
     brand_name: nameOfDetail(p, 'brand'),
@@ -134,7 +140,7 @@ export const productService = {
    * barcode lookups should use findByBarcode() instead.
    */
   getProducts: async (filters = {}) => {
-    const params = { page_size: filters.page_size || 200 };
+    const params = { page_size: filters.page_size || 200, _t: filters._t || Date.now() };
     if (filters.all) {
       params.no_page = true;
       params.limit = 5000;
@@ -232,11 +238,19 @@ export const productService = {
   },
 
   updateProduct: async (id, data) => {
-    return normalizeProduct(await apiClient.patch(`${ENDPOINTS.PRODUCT_LIST}${id}/`, toProductPayload(data)));
+    const updated = normalizeProduct(await apiClient.patch(`${ENDPOINTS.PRODUCT_LIST}${id}/`, toProductPayload(data)));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('rg:lookup-invalidate', { detail: 'products' }));
+    }
+    return updated;
   },
 
   deleteProduct: async (id) => {
-    return await apiClient.delete(`${ENDPOINTS.PRODUCT_LIST}${id}/`);
+    const res = await apiClient.delete(`${ENDPOINTS.PRODUCT_LIST}${id}/`);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('rg:lookup-invalidate', { detail: 'products' }));
+    }
+    return res;
   },
 
   // ==========================================

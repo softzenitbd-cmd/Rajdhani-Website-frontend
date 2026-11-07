@@ -49,6 +49,10 @@ export const crmService = {
     return await apiClient.get(ENDPOINTS.CRM_CLIENTS, { params });
   },
 
+  getClient: async (id) => {
+    return await apiClient.get(`${ENDPOINTS.CRM_CLIENTS}${id}/`);
+  },
+
   createClient: async (data) => {
     const res = await apiClient.post(ENDPOINTS.CRM_CLIENTS, data);
     invalidateLookup('clients');
@@ -56,11 +60,15 @@ export const crmService = {
   },
 
   updateClient: async (id, data) => {
-    return await apiClient.patch(`${ENDPOINTS.CRM_CLIENTS}${id}/`, data);
+    const res = await apiClient.patch(`${ENDPOINTS.CRM_CLIENTS}${id}/`, data);
+    invalidateLookup('clients');
+    return res;
   },
 
   deleteClient: async (id) => {
-    return await apiClient.delete(`${ENDPOINTS.CRM_CLIENTS}${id}/`);
+    const res = await apiClient.delete(`${ENDPOINTS.CRM_CLIENTS}${id}/`);
+    invalidateLookup('clients');
+    return res;
   },
 
   // ==========================================
@@ -98,6 +106,10 @@ export const crmService = {
     return await apiClient.get(ENDPOINTS.CRM_SUPPLIERS, { params });
   },
 
+  getSupplier: async (id) => {
+    return await apiClient.get(`${ENDPOINTS.CRM_SUPPLIERS}${id}/`);
+  },
+
   createSupplier: async (data) => {
     const res = await apiClient.post(ENDPOINTS.CRM_SUPPLIERS, data);
     invalidateLookup('suppliers');
@@ -105,11 +117,15 @@ export const crmService = {
   },
 
   updateSupplier: async (id, data) => {
-    return await apiClient.patch(`${ENDPOINTS.CRM_SUPPLIERS}${id}/`, data);
+    const res = await apiClient.patch(`${ENDPOINTS.CRM_SUPPLIERS}${id}/`, data);
+    invalidateLookup('suppliers');
+    return res;
   },
 
   deleteSupplier: async (id) => {
-    return await apiClient.delete(`${ENDPOINTS.CRM_SUPPLIERS}${id}/`);
+    const res = await apiClient.delete(`${ENDPOINTS.CRM_SUPPLIERS}${id}/`);
+    invalidateLookup('suppliers');
+    return res;
   },
 
   // ==========================================

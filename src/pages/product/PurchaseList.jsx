@@ -7,12 +7,15 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { purchaseService } from '../../services/purchaseService';
 import { crmService } from '../../services/crmService';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 import { fmtDate } from '../../utils/apiHelpers';
 
 const PurchaseList = () => {
   const toast = useToast();
+  const confirm = useConfirm();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
 
 
 
@@ -34,7 +37,7 @@ const PurchaseList = () => {
     try {
       setLoading(true);
       const [purRes, supRes] = await Promise.all([
-        purchaseService.getPurchaseInvoices(filters).catch(() => null),
+        purchaseService.getPurchaseInvoices({ page_size: 500, _t: Date.now(), ...filters }).catch(() => null),
         crmService.getSuppliers({ page_size: 5000, limit: 5000 }).catch(() => null)
       ]);
 
@@ -46,14 +49,12 @@ const PurchaseList = () => {
 
       if (purRes) {
         const list = Array.isArray(purRes) ? purRes : (purRes?.results || []);
+        let overrides = {};
+        try {
+          overrides = JSON.parse(localStorage.getItem('rg_purchase_overrides') || '{}');
+        } catch (e) {}
+
         setPurchases(list.map((item, idx) => {
-          let supName = item.supplier_name || item.supplier_detail?.company_name || item.supplier_detail?.name || item.supplier?.company_name || item.supplier?.name;
-          if (!supName && item.supplier) {
-             const s = sList.find(x => String(x.id) === String(item.supplier) || String(x.uuid) === String(item.supplier));
-             supName = s ? (s.company_name || s.name || `${s.first_name || ''} ${s.last_name || ''}`.trim()) : '';
-
-          }
-
           let inv = String(item.invoice_number || item.invoice || item.id || (idx + 100));
           if (inv.startsWith('INV-')) inv = inv.replace('INV-', '');
           if (inv.length > 20) {
@@ -62,14 +63,43 @@ const PurchaseList = () => {
              if (!isNaN(num)) inv = String(num);
           }
 
+          const itemKey = String(item.id || item.uuid || '');
+          const override = (itemKey && overrides[itemKey]) || 
+                           (item.uuid && overrides[String(item.uuid)]) || 
+                           (item.id && overrides[String(item.id)]) || 
+                           (item.invoice_number && overrides[String(item.invoice_number)]) || 
+                           (inv && overrides[String(inv)]) || 
+                           null;
+
+          const mergedItem = override ? { ...item, ...override, items: override.items || item.items } : item;
+
+          let supName = mergedItem.supplier_name || mergedItem.supplier_detail?.company_name || mergedItem.supplier_detail?.name || mergedItem.supplier?.company_name || mergedItem.supplier?.name;
+          if (!supName && mergedItem.supplier) {
+             const s = sList.find(x => String(x.id) === String(mergedItem.supplier) || String(x.uuid) === String(mergedItem.supplier));
+             supName = s ? (s.company_name || s.name || `${s.first_name || ''} ${s.last_name || ''}`.trim()) : '';
+          }
+
+          const itemsSum = (Array.isArray(mergedItem.items) && mergedItem.items.length > 0)
+            ? mergedItem.items.reduce((sum, it) => sum + (Number(it.quantity || 1) * Number(it.buying_price || it.purchase_price || it.price || 0)), 0)
+            : 0;
+
+          const getNum = (v) => {
+            const n = Number(v);
+            return !isNaN(n) && n > 0 ? n : 0;
+          };
+
+          const computedTotal = (override && override.grand_total !== undefined)
+            ? Number(override.grand_total)
+            : (getNum(mergedItem.grand_total) || getNum(mergedItem.total_amount) || getNum(mergedItem.total) || getNum(mergedItem.purchase_bill) || (itemsSum > 0 ? itemsSum : 0));
+
           return {
-            ...item,
-            id: item.id || idx + 1,
-            date: fmtDate(item.purchase_date || item.date || item.created_at) || '-',
+            ...mergedItem,
+            id: mergedItem.id || mergedItem.uuid || idx + 1,
+            date: fmtDate(mergedItem.purchase_date || mergedItem.date || mergedItem.created_at) || '-',
             invoice: inv,
             supplier: supName || '-',
-            total: parseFloat(item.total_amount || item.grand_total || item.total || 0).toFixed(2),
-            raw: item
+            total: parseFloat(computedTotal || 0).toFixed(2),
+            raw: mergedItem
           };
         }));
       } else {
@@ -85,7 +115,17 @@ const PurchaseList = () => {
 
   useEffect(() => {
     fetchData();
-  }, []); // Fetch only on mount, frontend filter handles the rest
+  }, [location.key]);
+
+  useEffect(() => {
+    const handleInvalidate = (e) => {
+      if (!e.detail || e.detail === 'purchases' || e.detail === 'suppliers') {
+        fetchData();
+      }
+    };
+    window.addEventListener('rg:lookup-invalidate', handleInvalidate);
+    return () => window.removeEventListener('rg:lookup-invalidate', handleInvalidate);
+  }, []);
 
   const handleFilterChange = (field, val) => {
     setFilters(prev => ({ ...prev, [field]: val }));
@@ -101,15 +141,34 @@ const PurchaseList = () => {
     });
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm(t("Are you sure you want to delete this purchase invoice?"))) return;
+  const handleDelete = async (purchaseItem) => {
+    const targetId = typeof purchaseItem === 'object' && purchaseItem !== null
+      ? (purchaseItem.raw?.id || purchaseItem.raw?.uuid || purchaseItem.id || purchaseItem.uuid)
+      : purchaseItem;
+    const invNo = typeof purchaseItem === 'object' ? (purchaseItem.invoice || targetId) : targetId;
+    const isConfirmed = await confirm({
+      title: t("Delete Purchase Invoice"),
+      message: t("Are you sure you want to delete purchase invoice #{{v0}}?", { v0: invNo }),
+      confirmText: t("Delete"),
+      cancelText: t("Cancel"),
+      variant: 'danger'
+    });
+    if (!isConfirmed) return;
     try {
-      await purchaseService.deletePurchaseInvoice(id).catch(() => null);
-      setPurchases(prev => prev.filter(p => p.id !== id));
+      await purchaseService.deletePurchaseInvoice(targetId).catch(() => null);
+      try {
+        const overrides = JSON.parse(localStorage.getItem('rg_purchase_overrides') || '{}');
+        delete overrides[String(targetId)];
+        if (typeof purchaseItem === 'object' && purchaseItem?.invoice) {
+          delete overrides[String(purchaseItem.invoice)];
+        }
+        localStorage.setItem('rg_purchase_overrides', JSON.stringify(overrides));
+      } catch (e) {}
+      setPurchases(prev => prev.filter(p => (p.raw?.id || p.raw?.uuid || p.id) !== targetId));
       toast.success(t("Purchase invoice deleted successfully!"));
     } catch (err) {
       console.error("Error deleting purchase:", err);
-      setPurchases(prev => prev.filter(p => p.id !== id));
+      setPurchases(prev => prev.filter(p => (p.raw?.id || p.raw?.uuid || p.id) !== targetId));
     }
   };
 
@@ -146,8 +205,6 @@ const PurchaseList = () => {
     }
     return true;
   });
-
-  const location = useLocation();
 
   useEffect(() => {
     if (location.state?.printPurchase && purchases.length > 0) {
@@ -331,10 +388,27 @@ const PurchaseList = () => {
                         <button onClick={() => { setSelectedPurchase(purchase); setShowViewModal(true); }} className="action-btn-sm" style={{ background: 'var(--success)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title={t("View Invoice")}>
                           <Eye size={14} />
                         </button>
-                        <button onClick={() => handleDelete(purchase.id)} className="action-btn-sm" style={{ background: 'var(--danger)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title={t("Delete Invoice")}>
+                        <button onClick={() => handleDelete(purchase)} className="action-btn-sm" style={{ background: 'var(--danger)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }} title={t("Delete Invoice")}>
                           <Trash2 size={14} />
                         </button>
-                        <button onClick={() => navigate(`/product/purchase/edit/${purchase.id}`, { state: { purchaseData: purchase } })} className="action-btn-sm" title={t("Edit Invoice")} style={{ background: 'var(--info)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }}><Edit size={14} /></button>
+                        <button 
+                          onClick={() => {
+                            const isUuid = (val) => typeof val === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+                            const rawObj = purchase.raw || purchase;
+                            const editId = (isUuid(rawObj.uuid) ? rawObj.uuid : null) || 
+                                           (isUuid(rawObj.id) ? rawObj.id : null) || 
+                                           rawObj.uuid || 
+                                           rawObj.id || 
+                                           purchase.uuid || 
+                                           purchase.id;
+                            navigate(`/product/purchase/edit/${editId}`, { state: { purchaseData: rawObj } });
+                          }} 
+                          className="action-btn-sm" 
+                          title={t("Edit Invoice")} 
+                          style={{ background: 'var(--info)', border: 'none', borderRadius: '4px', padding: '6px', color: 'white', cursor: 'pointer' }}
+                        >
+                          <Edit size={14} />
+                        </button>
                       </div>
                     </td>
                   </tr>

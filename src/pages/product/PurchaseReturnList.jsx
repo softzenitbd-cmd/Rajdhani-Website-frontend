@@ -8,12 +8,14 @@ import { purchaseService } from '../../services/purchaseService';
 import { crmService } from '../../services/crmService';
 import { exportToExcel } from '../../utils/excelExporter';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 import CustomDatePicker from '../../components/CustomDatePicker';
 import { fmtDate } from '../../utils/apiHelpers';
 
 
 const PurchaseReturnList = () => {
   const toast = useToast();
+  const confirm = useConfirm();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -116,7 +118,14 @@ const PurchaseReturnList = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm(t("Are you sure you want to delete return #{{v0}}?", { v0: id }))) return;
+    const isConfirmed = await confirm({
+      title: t("Delete Purchase Return"),
+      message: t("Are you sure you want to delete return #{{v0}}?", { v0: id }),
+      confirmText: t("Delete"),
+      cancelText: t("Cancel"),
+      variant: 'danger'
+    });
+    if (!isConfirmed) return;
     try {
       await purchaseService.deletePurchaseReturn(id);
       setReturns(prev => prev.filter(r => String(r.id) !== String(id)));

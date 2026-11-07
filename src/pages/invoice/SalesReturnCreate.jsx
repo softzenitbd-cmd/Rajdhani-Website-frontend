@@ -481,6 +481,12 @@ const SalesReturnCreate = () => {
         );
       }
 
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("rg:lookup-invalidate", { detail: "clients" })
+        );
+      }
+
       if (shouldPrint) {
         navigate("/invoice/sales-return/list", {
           state: { printReturn: resData?.id || true },

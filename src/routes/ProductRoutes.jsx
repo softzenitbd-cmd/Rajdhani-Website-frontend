@@ -20,6 +20,7 @@ const ProductRoutes = () => {
       <Routes>
         <Route path="/" element={<Navigate to="list" replace />} />
         <Route path="create" element={<ProductCreate />} />
+        <Route path="edit/:id" element={<ProductCreate />} />
         <Route path="list" element={<ProductList />} />
         <Route path="group" element={<ProductGroup />} />
         <Route path="unit" element={<ProductUnit />} />
