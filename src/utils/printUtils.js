@@ -57,7 +57,10 @@ export const printElement = (target, options = {}) => {
     window.print();
     return;
   }
-  const { title = '', withHeader = true, pageSize = 'A4 portrait', extraCss = '' } = options;
+  const isPos = options.isPos || options.pageSize?.includes('80mm') || options.pageSize?.includes('58mm') || (typeof target === 'string' && target.includes('pos'));
+  const { title = '', withHeader = true, pageSize = isPos ? '80mm auto' : 'A4 portrait', extraCss = '' } = options;
+  const pageMargin = options.margin !== undefined ? options.margin : (isPos ? '1mm 2mm' : '10mm');
+  const bodyPadding = options.bodyPadding !== undefined ? options.bodyPadding : (isPos ? '1mm' : '8px');
 
   const iframe = document.createElement('iframe');
   iframe.setAttribute('aria-hidden', 'true');
@@ -69,13 +72,21 @@ export const printElement = (target, options = {}) => {
   doc.write(`<!doctype html><html><head><meta charset="utf-8"><title>${title || document.title}</title>
     ${collectStyles()}
     <style>
-      @page { size: ${pageSize}; margin: 10mm; }
-      html, body { background: #fff !important; margin: 0; padding: 0; color: #000; font-family: inherit; }
-      body { padding: 8px; }
+      @page { size: ${pageSize}; margin: ${pageMargin}; }
+      html, body { background: #fff !important; margin: 0; padding: 0; color: #000; font-family: 'Segoe UI', Arial, sans-serif, 'Hind Siliguri'; }
+      body { padding: ${bodyPadding}; box-sizing: border-box; }
       .no-print, .no-print-col, .action-column, button, input[type=button], input[type=submit] { display: none !important; }
       table { width: 100%; border-collapse: collapse; }
-      th, td { border: 1px solid #94a3b8; padding: 4px 6px; font-size: 11px; }
-      th { background: #f1f5f9; }
+      th, td { border: 1px solid #000; padding: 3px 4px; font-size: 11px; color: #000; }
+      th { background: #f8fafc; font-weight: bold; }
+      ${isPos ? `
+        @page { size: 80mm auto; margin: 1mm 2mm; }
+        body { width: 76mm !important; max-width: 80mm !important; margin: 0 auto !important; padding: 1mm !important; }
+        .pos-receipt-wrapper { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; box-sizing: border-box !important; }
+        .receipt-header-image img { max-width: 100% !important; height: auto !important; max-height: 85px !important; object-fit: contain !important; }
+        table { border-collapse: collapse !important; width: 100% !important; color: black !important; font-size: 11px !important; }
+        th, td { border: 1px solid black !important; padding: 3px 4px !important; color: black !important; }
+      ` : ''}
       ${extraCss}
     </style></head><body>
     ${withHeader ? companyHeaderHtml(title) : ''}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import PrintHeader from "../../components/PrintHeader";
+import { printElement } from "../../utils/printUtils";
 import {
   Plus,
   X,
@@ -63,35 +64,41 @@ const InvoiceCreate = () => {
   const [isCashSellAccModalOpen, setIsCashSellAccModalOpen] = useState(false);
   const [printInvoiceData, setPrintInvoiceData] = useState(null);
 
+  const handleClosePrintModal = () => {
+    setPrintInvoiceData(null);
+    setItems([]);
+    setFormData({
+      clientId: "",
+      date: new Date().toISOString().split("T")[0],
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      barcode: "",
+      productId: "",
+      totalBalanceAcc: "TOTAL BALENCE",
+      cashSellAcc: "CASH SELL",
+      discountAmount: "0",
+      receiveAmount: "0",
+      sms: false,
+    });
+  };
+
+  const triggerPosPrint = () => {
+    printElement("pos-receipt-print-area", {
+      withHeader: false,
+      pageSize: "80mm auto",
+      isPos: true,
+    });
+  };
+
   useEffect(() => {
     if (printInvoiceData) {
-      const handleAfterPrint = () => {
-        setPrintInvoiceData(null);
-        setItems([]);
-        setFormData({
-          clientId: "",
-          date: new Date().toISOString().split("T")[0],
-          time: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          barcode: "",
-          productId: "",
-          totalBalanceAcc: "TOTAL BALENCE",
-          cashSellAcc: "CASH SELL",
-          discountAmount: "0",
-          receiveAmount: "0",
-          sms: false,
-        });
-      };
-      window.addEventListener("afterprint", handleAfterPrint);
-
       const timer = setTimeout(() => {
-        window.print();
-      }, 600);
+        triggerPosPrint();
+      }, 500);
 
       return () => {
-        window.removeEventListener("afterprint", handleAfterPrint);
         clearTimeout(timer);
       };
     }
@@ -1778,23 +1785,88 @@ const InvoiceCreate = () => {
             left: 0,
             right: 0,
             bottom: 0,
-            background: "white",
+            background: "rgba(0, 0, 0, 0.6)",
             zIndex: 999999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "16px",
           }}
         >
           <div
-            id="pos-receipt-print-area"
-            className="pos-receipt-wrapper"
+            className="printable-modal-content"
             style={{
-              margin: "0 auto",
+              background: "#f8f9fa",
               width: "100%",
-              maxWidth: "300px",
-              background: "white",
-              padding: "8px",
-              boxSizing: "border-box",
+              maxWidth: "420px",
+              borderRadius: "8px",
+              padding: "16px",
+              boxShadow: "0 20px 40px rgba(0, 0, 0, 0.25)",
+              maxHeight: "92vh",
+              overflowY: "auto",
             }}
           >
-            <div style={{ padding: "8px" }}>
+            <div
+              className="no-print"
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "12px",
+                borderBottom: "1px solid #e2e8f0",
+                paddingBottom: "10px",
+              }}
+            >
+              <button
+                onClick={triggerPosPrint}
+                style={{
+                  background: "#000",
+                  color: "#fff",
+                  border: "none",
+                  padding: "6px 14px",
+                  cursor: "pointer",
+                  borderRadius: "4px",
+                  fontWeight: "bold",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  fontSize: "12px",
+                }}
+              >
+                🖨️ {t("Print POS (3-inch)")}
+              </button>
+              <button
+                onClick={handleClosePrintModal}
+                style={{
+                  border: "none",
+                  background: "#ef4444",
+                  color: "#fff",
+                  padding: "6px 12px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  fontWeight: "bold",
+                  fontSize: "12px",
+                }}
+              >
+                ✕ {t("Close")}
+              </button>
+            </div>
+
+            <div
+              id="pos-receipt-print-area"
+              className="pos-receipt-wrapper"
+              style={{
+                margin: "0 auto",
+                width: "100%",
+                maxWidth: "320px",
+                background: "white",
+                padding: "8px",
+                boxSizing: "border-box",
+                borderRadius: "4px",
+                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              <div style={{ padding: "8px" }}>
               <PrintHeader showOnScreen={true} isPos={true} />
               {(() => {
                 const selectedInvoice = printInvoiceData;
@@ -1987,7 +2059,7 @@ const InvoiceCreate = () => {
                               border: "1px solid black",
                               padding: "2px 4px",
                               textAlign: "left",
-                              width: "55%",
+                              width: "48%",
                             }}
                           >
                             নাম
@@ -1996,7 +2068,8 @@ const InvoiceCreate = () => {
                             style={{
                               border: "1px solid black",
                               padding: "2px 4px",
-                              textAlign: "left",
+                              textAlign: "right",
+                              width: "18%",
                             }}
                           >
                             মুল্য
@@ -2005,7 +2078,8 @@ const InvoiceCreate = () => {
                             style={{
                               border: "1px solid black",
                               padding: "2px 4px",
-                              textAlign: "left",
+                              textAlign: "center",
+                              width: "14%",
                             }}
                           >
                             পরিমাণ
@@ -2014,7 +2088,8 @@ const InvoiceCreate = () => {
                             style={{
                               border: "1px solid black",
                               padding: "2px 4px",
-                              textAlign: "left",
+                              textAlign: "right",
+                              width: "20%",
                             }}
                           >
                             মোট
@@ -2046,6 +2121,7 @@ const InvoiceCreate = () => {
                                     border: "1px solid black",
                                     padding: "2px 4px",
                                     textAlign: "left",
+                                    wordBreak: "break-word",
                                   }}
                                 >
                                   {displayItemName}
@@ -2054,7 +2130,8 @@ const InvoiceCreate = () => {
                                   style={{
                                     border: "1px solid black",
                                     padding: "2px 4px",
-                                    textAlign: "left",
+                                    textAlign: "right",
+                                    whiteSpace: "nowrap",
                                   }}
                                 >
                                   {rate}
@@ -2063,7 +2140,7 @@ const InvoiceCreate = () => {
                                   style={{
                                     border: "1px solid black",
                                     padding: "2px 4px",
-                                    textAlign: "left",
+                                    textAlign: "center",
                                   }}
                                 >
                                   {qty}
@@ -2072,7 +2149,8 @@ const InvoiceCreate = () => {
                                   style={{
                                     border: "1px solid black",
                                     padding: "2px 4px",
-                                    textAlign: "left",
+                                    textAlign: "right",
+                                    whiteSpace: "nowrap",
                                   }}
                                 >
                                   {itemTotal}
@@ -2095,7 +2173,7 @@ const InvoiceCreate = () => {
                               style={{
                                 border: "1px solid black",
                                 padding: "2px 4px",
-                                textAlign: "left",
+                                textAlign: "right",
                               }}
                             >
                               {invoiceBill}
@@ -2104,7 +2182,7 @@ const InvoiceCreate = () => {
                               style={{
                                 border: "1px solid black",
                                 padding: "2px 4px",
-                                textAlign: "left",
+                                textAlign: "center",
                               }}
                             >
                               1
@@ -2113,7 +2191,7 @@ const InvoiceCreate = () => {
                               style={{
                                 border: "1px solid black",
                                 padding: "2px 4px",
-                                textAlign: "left",
+                                textAlign: "right",
                               }}
                             >
                               {invoiceBill}
@@ -2136,7 +2214,7 @@ const InvoiceCreate = () => {
                             style={{
                               border: "1px solid black",
                               padding: "2px 4px",
-                              textAlign: "left",
+                              textAlign: "center",
                               fontWeight: "bold",
                             }}
                           >
@@ -2146,7 +2224,7 @@ const InvoiceCreate = () => {
                             style={{
                               border: "1px solid black",
                               padding: "2px 4px",
-                              textAlign: "left",
+                              textAlign: "right",
                             }}
                           ></td>
                         </tr>
@@ -2299,7 +2377,8 @@ const InvoiceCreate = () => {
             </div>
           </div>
         </div>
-      )}
+      </div>
+    )}
     </div>
   );
 };

@@ -58,7 +58,7 @@ const PrintHeader = ({ showOnScreen = false, isPos = false }) => {
   // 1. Uploaded banner image
   if (headerMode === 'image' && headerImage && !bannerFailed) {
     return (
-      <div className={`receipt-header-image${visibilityClass}`} style={{ marginBottom: isPos ? '8px' : '20px', textAlign: 'center' }}>
+      <div className={`receipt-header-image${visibilityClass}`} style={{ marginBottom: isPos ? '6px' : '20px', textAlign: 'center' }}>
         <img
           src={headerImage}
           alt={info.company_name || t("Company banner")}
@@ -66,12 +66,12 @@ const PrintHeader = ({ showOnScreen = false, isPos = false }) => {
           style={{
             width: isPos ? '100%' : 'auto',
             maxWidth: '100%',
-            height: isPos ? '120px' : 'auto',
-            maxHeight: '240px',
+            height: 'auto',
+            maxHeight: isPos ? '85px' : '240px',
             display: 'block',
             margin: '0 auto',
             borderRadius: '4px',
-            objectFit: isPos ? 'fill' : 'contain'
+            objectFit: 'contain'
           }}
         />
       </div>
@@ -81,9 +81,9 @@ const PrintHeader = ({ showOnScreen = false, isPos = false }) => {
   // 2. Card 1 - cursive "Rajdhani Garments"
   if (activeCard === 'card1') {
     return (
-      <div className={`receipt-header-text${visibilityClass}`} style={{ border: isPos ? 'none' : '2px solid #000', borderRadius: isPos ? '0' : '8px', padding: isPos ? '4px 0' : '16px 24px', background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: isPos ? '0 auto 8px auto' : '0 auto 20px auto', maxWidth: '800px' }}>
-        <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-36, 36px)', color: 'black', fontWeight: 'bold', display: 'block' }}>{info.company_name || t("Rajdhani")}</h2>
-        <h3 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-24, 24px)', color: 'black', display: 'block' }}>{info.company_type || t("Garments")}</h3>
+      <div className={`receipt-header-text${visibilityClass}`} style={{ border: isPos ? 'none' : '2px solid #000', borderRadius: isPos ? '0' : '8px', padding: isPos ? '2px 0' : '16px 24px', background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: isPos ? '0 auto 6px auto' : '0 auto 20px auto', maxWidth: isPos ? '100%' : '800px' }}>
+        <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: isPos ? '20px' : 'var(--fs-36, 36px)', color: 'black', fontWeight: 'bold', display: 'block' }}>{info.company_name || t("Rajdhani")}</h2>
+        <h3 style={{ fontFamily: 'cursive', margin: 0, fontSize: isPos ? '14px' : 'var(--fs-24, 24px)', color: 'black', display: 'block' }}>{info.company_type || t("Garments")}</h3>
       </div>
     );
   }
@@ -91,9 +91,9 @@ const PrintHeader = ({ showOnScreen = false, isPos = false }) => {
   // 3. Card 3 - cursive "Rajdhani Super Shop"
   if (activeCard === 'card3') {
     return (
-      <div className={`receipt-header-text${visibilityClass}`} style={{ border: isPos ? 'none' : '2px solid #000', borderRadius: isPos ? '0' : '8px', padding: isPos ? '4px 0' : '16px 24px', background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: isPos ? '0 auto 8px auto' : '0 auto 20px auto', maxWidth: '800px' }}>
-        <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-36, 36px)', color: 'black', fontWeight: 'bold', display: 'block' }}>{info.company_name || t("Rajdhani")}</h2>
-        <h3 style={{ fontFamily: 'cursive', margin: 0, fontSize: 'var(--fs-24, 24px)', color: 'black', display: 'block' }}>{t("Super Shop")}</h3>
+      <div className={`receipt-header-text${visibilityClass}`} style={{ border: isPos ? 'none' : '2px solid #000', borderRadius: isPos ? '0' : '8px', padding: isPos ? '2px 0' : '16px 24px', background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: isPos ? '0 auto 6px auto' : '0 auto 20px auto', maxWidth: isPos ? '100%' : '800px' }}>
+        <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: isPos ? '20px' : 'var(--fs-36, 36px)', color: 'black', fontWeight: 'bold', display: 'block' }}>{info.company_name || t("Rajdhani")}</h2>
+        <h3 style={{ fontFamily: 'cursive', margin: 0, fontSize: isPos ? '14px' : 'var(--fs-24, 24px)', color: 'black', display: 'block' }}>{t("Super Shop")}</h3>
       </div>
     );
   }
@@ -103,33 +103,33 @@ const PrintHeader = ({ showOnScreen = false, isPos = false }) => {
     <div className={`receipt-header-text receipt-header-card${visibilityClass}`} style={{
       border: isPos ? 'none' : '2px solid #000',
       borderRadius: isPos ? '0' : '8px',
-      padding: isPos ? '4px 0' : '12px 20px',
+      padding: isPos ? '2px 0' : '12px 20px',
       background: 'white',
       textAlign: 'center',
-      margin: isPos ? '0 auto 8px auto' : '0 auto 16px auto',
-      maxWidth: '850px'
+      margin: isPos ? '0 auto 6px auto' : '0 auto 16px auto',
+      maxWidth: isPos ? '100%' : '850px'
     }}>
       {info.invoice_greetings && (
-        <div className="receipt-header-greetings" style={{ fontSize: 'var(--fs-13, 13px)', fontWeight: 'bold', color: 'black', marginBottom: '6px' }}>
+        <div className="receipt-header-greetings" style={{ fontSize: isPos ? '10px' : 'var(--fs-13, 13px)', fontWeight: 'bold', color: 'black', marginBottom: '4px' }}>
           {info.invoice_greetings}
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', margin: '6px 0' }}>
-        <div className="receipt-header-logo" style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px dashed black', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <ShoppingCart size={20} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: isPos ? '8px' : '14px', margin: '4px 0' }}>
+        <div className="receipt-header-logo" style={{ width: isPos ? '30px' : '40px', height: isPos ? '30px' : '40px', borderRadius: '50%', border: '1px dashed black', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <ShoppingCart size={isPos ? 16 : 20} />
         </div>
         <div style={{ textAlign: 'left' }}>
-          <h2 className="receipt-header-title" style={{ margin: 0, fontSize: 'var(--fs-28, 28px)', fontWeight: '900', color: 'black', lineHeight: '1.2' }}>
+          <h2 className="receipt-header-title" style={{ margin: 0, fontSize: isPos ? '18px' : 'var(--fs-28, 28px)', fontWeight: '900', color: 'black', lineHeight: '1.2' }}>
             {info.company_name || ''}
           </h2>
           {(info.address || info.present_address) && (
-            <p className="receipt-header-subtext" style={{ margin: '3px 0 0 0', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', color: 'black' }}>
+            <p className="receipt-header-subtext" style={{ margin: '2px 0 0 0', fontSize: isPos ? '10px' : 'var(--fs-11, 11px)', fontWeight: 'bold', color: 'black' }}>
               {info.address || info.present_address}
             </p>
           )}
           {(info.phone_number || info.phone) && (
-            <p className="receipt-header-subtext" style={{ margin: '2px 0 0 0', fontSize: 'var(--fs-11, 11px)', fontWeight: 'bold', color: 'black' }}>
+            <p className="receipt-header-subtext" style={{ margin: '1px 0 0 0', fontSize: isPos ? '10px' : 'var(--fs-11, 11px)', fontWeight: 'bold', color: 'black' }}>
               {info.phone_number || info.phone}
             </p>
           )}

@@ -431,20 +431,20 @@ const InvoiceList = () => {
 
       {/* POS / Printable Invoice Modal */}
       {showViewModal && selectedInvoice && (
-        <div className="printable-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div className="printable-modal-content" style={{ background: '#f8f9fa', width: '100%', maxWidth: '800px', borderRadius: '8px', padding: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', maxHeight: '90vh', overflowY: 'auto' }}>
+        <div className="printable-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
+          <div className="printable-modal-content" style={{ background: '#f8f9fa', width: '100%', maxWidth: '420px', borderRadius: '8px', padding: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.25)', maxHeight: '92vh', overflowY: 'auto' }}>
             
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <button onClick={() => printElement('pos-receipt-print-area', { withHeader: false, pageSize: '80mm auto', extraCss: 'body { padding: 0 !important; } .pos-receipt-wrapper { width: 100% !important; margin: 0 !important; } .receipt-header-image img { max-width: 100% !important; } table { border-collapse: collapse !important; width: 100% !important; color: black !important; } th, td { border: 1px solid black !important; }' })} className="no-print" style={{ background: '#000', color: 'white', border: 'none', padding: '6px 16px', cursor: 'pointer', borderRadius: '4px', fontWeight: 'bold' }}>
-                🖨️ Printable
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+              <button onClick={() => printElement('pos-receipt-print-area', { withHeader: false, pageSize: '80mm auto', isPos: true })} className="no-print" style={{ background: '#000', color: 'white', border: 'none', padding: '6px 14px', cursor: 'pointer', borderRadius: '4px', fontWeight: 'bold', fontSize: '12px' }}>
+                🖨️ {t("Print POS (3-inch)")}
               </button>
-              <button onClick={() => navigate('/invoice/create')} className="no-print" style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 16px', cursor: 'pointer', borderRadius: '4px', fontWeight: 'bold' }}>
-                + Add New
+              <button onClick={() => navigate('/invoice/create')} className="no-print" style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 14px', cursor: 'pointer', borderRadius: '4px', fontWeight: 'bold', fontSize: '12px' }}>
+                + {t("Add New")}
               </button>
-              <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#e2e8f0', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', color: '#0f172a', fontWeight: 'bold', marginLeft: 'auto' }}>✕ Close</button>
+              <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#ef4444', color: '#fff', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', marginLeft: 'auto' }}>✕ {t("Close")}</button>
             </div>
 
-            <div id="pos-receipt-print-area" className="pos-receipt-wrapper" style={{ margin: '0 auto', width: '100%', maxWidth: '300px', background: 'white', padding: '8px', boxSizing: 'border-box' }}>
+            <div id="pos-receipt-print-area" className="pos-receipt-wrapper" style={{ margin: '0 auto', width: '100%', maxWidth: '320px', background: 'white', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
               <div style={{ padding: '8px' }}>
                 
                 {/* Dynamic Header */}
@@ -506,10 +506,10 @@ const InvoiceList = () => {
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px', color: 'black', marginBottom: '0' }}>
                         <thead>
                           <tr>
-                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left', width: '55%' }}>নাম</th>
-                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>মুল্য</th>
-                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>পরিমাণ</th>
-                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>মোট</th>
+                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left', width: '48%' }}>নাম</th>
+                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right', width: '18%' }}>মুল্য</th>
+                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center', width: '14%' }}>পরিমাণ</th>
+                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right', width: '20%' }}>মোট</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -521,25 +521,25 @@ const InvoiceList = () => {
                               const displayItemName = `${item.name || item.product_name || item.title || 'Item'} ${item.barcode ? `(${item.barcode})` : ''}`;
                               return (
                                 <tr key={idx}>
-                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>{displayItemName}</td>
-                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>{rate}</td>
-                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>{qty}</td>
-                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>{itemTotal}</td>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left', wordBreak: 'break-word' }}>{displayItemName}</td>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right', whiteSpace: 'nowrap' }}>{rate}</td>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{qty}</td>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right', whiteSpace: 'nowrap' }}>{itemTotal}</td>
                                 </tr>
                               );
                             })
                           ) : (
                             <tr>
                               <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>সাধারণ আইটেম</td>
-                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>{invoiceBill}</td>
-                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>1</td>
-                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>{invoiceBill}</td>
+                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{invoiceBill}</td>
+                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>1</td>
+                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{invoiceBill}</td>
                             </tr>
                           )}
                           <tr>
                             <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left', fontWeight: 'bold' }}>মোট পরিমাণ</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left', fontWeight: 'bold' }}>{totalQty || 1}</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}></td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center', fontWeight: 'bold' }}>{totalQty || 1}</td>
+                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}></td>
                           </tr>
                           <tr>
                             <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>ইনভয়েস বিল =</td>

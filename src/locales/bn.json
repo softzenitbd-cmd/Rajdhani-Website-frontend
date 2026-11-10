@@ -899,6 +899,7 @@
   "Previous Due": "পূর্বের বাকী",
   "Previous Due Amount": "পূর্বের বাকীর পরিমাণ",
   "Price": "মুল্য",
+  "Price: ": "মূল্য: ",
   "Price: ৳": "মূল্য: ৳",
   "Primary Button Color": "প্রাইমারি বাটনের রং",
   "Print": "প্রিন্ট",
@@ -1242,6 +1243,15 @@
   "Statement": "স্টেটমেন্ট",
   "Status": "অবস্থা",
   "Status:": "স্ট্যাটাস:",
+  "Sticker Size": "স্টিকার সাইজ",
+  "Medium (50x30mm)": "মাঝারি (50×30mm)",
+  "Large (50x40mm)": "বড় (50×40mm)",
+  "Extra Large (75x50mm)": "খুব বড় (75×50mm)",
+  "Compact (38x25mm)": "ছোট (38×25mm)",
+  "Printer Mode": "প্রিন্টার মোড",
+  "Thermal Barcode Printer (Roll)": "থার্মাল বারকোড প্রিন্টার (রোল)",
+  "A4 Sheet Paper (Grid)": "A4 শিট পেপার (গ্রিড)",
+  "Zoom / Scale": "জুম / স্কেল",
   "Stock List": "স্টক তালিকা",
   "Stock Warning (qty)": "স্টক সতর্কতা (পরিমাণ)",
   "Stock Warning Qty": "স্টক সতর্কতার পরিমাণ",
@@ -1465,5 +1475,6 @@
   "🚫 Deactivate": "🚫 নিষ্ক্রিয় করুন",
   "Unknown Supplier": "অজানা সাপ্লায়ার",
   "Unknown Client": "অজানা কাস্টমার",
-  "Product ID missing for update": "আপডেটের জন্য প্রোডাক্ট আইডি পাওয়া যায়নি"
+  "Product ID missing for update": "আপডেটের জন্য প্রোডাক্ট আইডি পাওয়া যায়নি",
+  "Print POS (3-inch)": "POS প্রিন্ট (৩ ইঞ্চি)"
 }
