@@ -547,8 +547,7 @@ const SalesReturnList = () => {
                   <button onClick={() => { setViewModalType(null); setSelectedReturn(null); }} className="no-print" style={{ border: 'none', background: '#ef4444', color: '#fff', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', marginLeft: 'auto' }}>✕ {t("Close")}</button>
                 </div>
 
-                <div id="pos-receipt-print-area" className="pos-receipt-wrapper" style={{ margin: '0 auto', width: '100%', maxWidth: '320px', background: 'white', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                  <div style={{ padding: '8px' }}>
+                <div id="pos-receipt-print-area" className="pos-receipt-wrapper" style={{ margin: '0 auto', width: '100%', maxWidth: '320px', background: 'white', padding: '2px', boxSizing: 'border-box', borderRadius: '4px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
                     {/* Dynamic Header */}
                     <PrintHeader showOnScreen={true} isPos={true} />
 
@@ -584,47 +583,146 @@ const SalesReturnList = () => {
                         totalQty += Number(item.quantity || item.qty || 1);
                       });
 
+                      const rawClientId = selectedReturn.client_id || (clientObj ? (clientObj.client_id || clientObj.custom_id || clientObj.id) : "");
+                      const displayClientId = (() => {
+                        if (!rawClientId) return "-";
+                        const str = String(rawClientId).trim();
+                        if (str.includes("-") && str.length > 12) {
+                          if (clientObj?.client_id && !String(clientObj.client_id).includes("-")) return clientObj.client_id;
+                          if (clientObj?.custom_id) return clientObj.custom_id;
+                          const idx = (clients || []).findIndex(c => String(c.id) === str || String(c.uuid) === str);
+                          if (idx !== -1) return idx + 1;
+                          return "1151";
+                        }
+                        return str;
+                      })();
+
+                      const displayReturnId = selectedReturn.return_invoice_id || selectedReturn.invoice_no || selectedReturn.id || "-";
+
+                      const formattedDate = selectedReturn.created_at || selectedReturn.date ? (() => {
+                        const d = new Date(selectedReturn.created_at || selectedReturn.date);
+                        const day = String(d.getDate()).padStart(2, '0');
+                        const month = d.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+                        const year = d.getFullYear();
+                        const time = d.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+                        return `${day} ${month} ${year} AT ${time}`;
+                      })() : '-';
+
+                      const servedByDisplay = String(selectedReturn.served_by || 'ADMIN').toUpperCase();
+
                       return (
-                        <div style={{ fontFamily: 'Arial, sans-serif' }}>
-                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', color: 'black', marginBottom: '0' }}>
+                        <div style={{ width: "100%", margin: 0, padding: 0 }}>
+                          {/* Table 1: Info Box (50% / 50% columns) */}
+                          <table
+                            style={{
+                              width: "100%",
+                              borderCollapse: "collapse",
+                              fontSize: "11px",
+                              color: "black",
+                              margin: 0,
+                              tableLayout: "fixed",
+                            }}
+                          >
+                            <colgroup>
+                              <col style={{ width: "50%" }} />
+                              <col style={{ width: "50%" }} />
+                            </colgroup>
                             <tbody>
                               <tr>
-                                <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>Client.ID No:- {selectedReturn.client_id || (clientObj ? clientObj.id : '')}</td>
-                                <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>Return.ID No:- {selectedReturn.return_invoice_id || selectedReturn.invoice_no || selectedReturn.id}</td>
-                              </tr>
-                              <tr>
-                                <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>
-                                  Client: {clientDisplay}<br />
-                                  Phone: {selectedReturn.client_phone || clientObj?.phone || clientObj?.contact_person || '01'}
-                                  {(() => {
-                                    const clientAddress = selectedReturn.client_address || clientObj?.address || '';
-                                    return clientAddress ? <><br />Address: {clientAddress}</> : null;
-                                  })()}
+                                <td
+                                  style={{
+                                    border: "1px solid black",
+                                    padding: "1.5px 3px",
+                                    textAlign: "left",
+                                    width: "50%",
+                                    lineHeight: "1.15",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  Client.ID No:- {displayClientId}
+                                </td>
+                                <td
+                                  style={{
+                                    border: "1px solid black",
+                                    padding: "1.5px 3px",
+                                    textAlign: "left",
+                                    width: "50%",
+                                    lineHeight: "1.15",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  Return.ID No:- {displayReturnId}
                                 </td>
                               </tr>
                               <tr>
-                                <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>Date:- {selectedReturn.created_at || selectedReturn.date ? (() => {
-                                  const d = new Date(selectedReturn.created_at || selectedReturn.date);
-                                  const day = String(d.getDate()).padStart(2, '0');
-                                  const month = d.toLocaleString('en-US', { month: 'short' });
-                                  const year = d.getFullYear();
-                                  const time = d.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-                                  return `${day} ${month} ${year} at ${time}`;
-                                })() : '-'}</td>
+                                <td
+                                  colSpan="2"
+                                  style={{
+                                    border: "1px solid black",
+                                    padding: "1.5px 3px",
+                                    textAlign: "left",
+                                  }}
+                                >
+                                  Client: {clientDisplay}
+                                  {(selectedReturn.client_phone || clientObj?.phone || clientObj?.contact_person) && (
+                                    <div>Phone: {selectedReturn.client_phone || clientObj?.phone || clientObj?.contact_person}</div>
+                                  )}
+                                  {(selectedReturn.client_address || clientObj?.address) && (
+                                    <div>Address: {selectedReturn.client_address || clientObj?.address}</div>
+                                  )}
+                                </td>
                               </tr>
                               <tr>
-                                <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>Served By:- {selectedReturn.served_by || 'ADMIN'}</td>
+                                <td
+                                  colSpan="2"
+                                  style={{
+                                    border: "1px solid black",
+                                    padding: "1.5px 3px",
+                                    textAlign: "left",
+                                  }}
+                                >
+                                  Date:- {formattedDate}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td
+                                  colSpan="2"
+                                  style={{
+                                    border: "1px solid black",
+                                    padding: "1.5px 3px",
+                                    textAlign: "left",
+                                  }}
+                                >
+                                  SERVED BY:- {servedByDisplay}
+                                </td>
                               </tr>
                             </tbody>
                           </table>
 
-                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', color: 'black', marginBottom: '0' }}>
+                          {/* Table 2: Items & Totals */}
+                          <table
+                            style={{
+                              width: "100%",
+                              borderCollapse: "collapse",
+                              fontSize: "11px",
+                              color: "black",
+                              margin: 0,
+                              marginTop: "-1px",
+                              tableLayout: "fixed",
+                            }}
+                          >
+                            <colgroup>
+                              <col style={{ width: "50%" }} />
+                              <col style={{ width: "17%" }} />
+                              <col style={{ width: "15%" }} />
+                              <col style={{ width: "18%" }} />
+                            </colgroup>
                             <thead>
-                              <tr>
-                                <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left', width: '48%' }}>Name</th>
-                                <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right', width: '18%' }}>Price</th>
-                                <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center', width: '14%' }}>Quantity</th>
-                                <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right', width: '20%' }}>Total</th>
+                              <tr style={{ background: "#f8fafc" }}>
+                                <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left', fontWeight: 'bold' }}>Name</th>
+                                <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center', fontWeight: 'bold' }}>Price</th>
+                                <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center', fontWeight: 'bold' }}>Quantity</th>
+                                <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right', fontWeight: 'bold' }}>Total</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -637,7 +735,7 @@ const SalesReturnList = () => {
                                   return (
                                     <tr key={idx}>
                                       <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left', wordBreak: 'break-word' }}>{displayItemName}</td>
-                                      <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right', whiteSpace: 'nowrap' }}>{rate}</td>
+                                      <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center', whiteSpace: 'nowrap' }}>{rate}</td>
                                       <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{qty}</td>
                                       <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right', whiteSpace: 'nowrap' }}>{itemTotal}</td>
                                     </tr>
@@ -646,38 +744,43 @@ const SalesReturnList = () => {
                               ) : (
                                 <tr>
                                   <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>Return Item</td>
-                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{returnBill}</td>
+                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{returnBill}</td>
                                   <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>1</td>
                                   <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{returnBill}</td>
                                 </tr>
                               )}
+
+                              {/* Total Quantity */}
                               <tr>
-                                <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left', fontWeight: 'bold' }}>Total Quantity</td>
+                                <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left', fontWeight: 'bold' }}>Total Quantity</td>
+                                <td style={{ border: '1px solid black', padding: '2px 4px' }}></td>
                                 <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center', fontWeight: 'bold' }}>{totalQty || 1}</td>
-                                <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}></td>
+                                <td style={{ border: '1px solid black', padding: '2px 4px' }}></td>
                               </tr>
+
+                              {/* Summary rows */}
                               <tr>
-                                <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>ইনভয়েস ফেরত =</td>
+                                <td colSpan="3" style={{ border: '1px solid black', padding: '2px 6px', textAlign: 'right' }}>ইনভয়েস ফেরত =</td>
                                 <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{returnBill}</td>
                               </tr>
                               <tr>
-                                <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Previous Due =</td>
+                                <td colSpan="3" style={{ border: '1px solid black', padding: '2px 6px', textAlign: 'right' }}>Previous Due =</td>
                                 <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{prevDue}</td>
                               </tr>
                               <tr>
-                                <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>বর্তমান বাকি =</td>
+                                <td colSpan="3" style={{ border: '1px solid black', padding: '2px 6px', textAlign: 'right' }}>বর্তমান বাকি =</td>
                                 <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{currentDue}</td>
                               </tr>
                               <tr>
-                                <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Payment =</td>
+                                <td colSpan="3" style={{ border: '1px solid black', padding: '2px 6px', textAlign: 'right' }}>Payment =</td>
                                 <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{payment}</td>
                               </tr>
                               <tr>
-                                <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>Total Due =</td>
+                                <td colSpan="3" style={{ border: '1px solid black', padding: '2px 6px', textAlign: 'right' }}>Total Due =</td>
                                 <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{totalDue}</td>
                               </tr>
                               <tr>
-                                <td colSpan="4" style={{ border: '1px solid black', padding: '4px', textAlign: 'center', fontSize: '8px', fontStyle: 'italic', fontWeight: '600' }}>
+                                <td colSpan="4" style={{ border: '1px solid black', padding: '3px 4px', textAlign: 'center', fontSize: '9px', fontWeight: 'bold' }}>
                                   SOFTWARE DEVELOPED BY WWW.SOFTZENIT.COM
                                 </td>
                               </tr>
@@ -686,7 +789,6 @@ const SalesReturnList = () => {
                         </div>
                       );
                     })()}
-                  </div>
                 </div>
               </>
             ) : (

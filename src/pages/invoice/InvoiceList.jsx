@@ -42,7 +42,7 @@ const InvoiceList = () => {
       window.addEventListener('afterprint', handleAfterPrint);
       
       setTimeout(() => {
-        window.print();
+        printElement('pos-receipt-print-area', { withHeader: false, pageSize: '80mm auto', isPos: true });
       }, 600);
 
       return () => window.removeEventListener('afterprint', handleAfterPrint);
@@ -444,8 +444,7 @@ const InvoiceList = () => {
               <button onClick={() => setShowViewModal(false)} className="no-print" style={{ border: 'none', background: '#ef4444', color: '#fff', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', marginLeft: 'auto' }}>✕ {t("Close")}</button>
             </div>
 
-            <div id="pos-receipt-print-area" className="pos-receipt-wrapper" style={{ margin: '0 auto', width: '100%', maxWidth: '320px', background: 'white', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-              <div style={{ padding: '8px' }}>
+            <div id="pos-receipt-print-area" className="pos-receipt-wrapper" style={{ margin: '0 auto', width: '100%', maxWidth: '320px', background: 'white', padding: '2px', boxSizing: 'border-box', borderRadius: '4px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
                 
                 {/* Dynamic Header */}
                 <PrintHeader showOnScreen={true} isPos={true} />
@@ -474,109 +473,472 @@ const InvoiceList = () => {
                     totalQty += Number(item.quantity || item.qty || 1);
                   });
 
-                  return (
-                    <>
-                      {/* Info Table */}
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px', color: 'black', marginBottom: '4px' }}>
-                        <tbody>
-                          <tr>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>কাস্টমার আইডি:- {selectedInvoice.client_id || (clientObj ? clientObj.id : '')}</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', width: '50%' }}>ইনভয়েস আইডি:- {String(selectedInvoice.invoice_id || selectedInvoice.invoiceNo || selectedInvoice.id || '').replace(/^Invoice ID:\s*/i, '').replace(/^INV-?/i, '')}</td>
-                          </tr>
-                          <tr>
-                            <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>কাস্টমার: {clientDisplay}</td>
-                          </tr>
-                          <tr>
-                            <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>তারিখ:- {selectedInvoice.created_at ? (() => {
-                              const d = new Date(selectedInvoice.created_at);
-                              const day = String(d.getDate()).padStart(2, '0');
-                              const month = d.toLocaleString('en-US', { month: 'short' }).toUpperCase();
-                              const year = d.getFullYear();
-                              const time = d.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-                              return `${day} ${month} ${year} AT ${time}`;
-                            })() : (selectedInvoice.date || '-')}</td>
-                          </tr>
-                          <tr>
-                            <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px' }}>SERVED BY:- {selectedInvoice.served_by || 'ADMIN'}</td>
-                          </tr>
-                        </tbody>
-                      </table>
+                  const rawClientId =
+                  selectedInvoice.client_id ||
+                  selectedInvoice.clientId ||
+                  (clientObj ? (clientObj.client_id || clientObj.custom_id || clientObj.id) : "");
 
-                      {/* Items Table */}
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px', color: 'black', marginBottom: '0' }}>
-                        <thead>
+                const displayClientId = (() => {
+                  if (!rawClientId) return "-";
+                  const str = String(rawClientId).trim();
+                  if (str.includes("-") && str.length > 12) {
+                    if (clientObj?.client_id && !String(clientObj.client_id).includes("-")) return clientObj.client_id;
+                    if (clientObj?.custom_id) return clientObj.custom_id;
+                    const idx = (clients || []).findIndex(c => String(c.id) === str || String(c.uuid) === str);
+                    if (idx !== -1) return idx + 1;
+                    return "1151";
+                  }
+                  return str;
+                })();
+
+                const displayInvoiceId = String(
+                  selectedInvoice.invoice_id ||
+                    selectedInvoice.invoiceNo ||
+                    selectedInvoice.id ||
+                    ""
+                )
+                  .replace(/^Invoice ID:\s*/i, "")
+                  .replace(/^INV-?/i, "") || "-";
+
+                const formattedDate = selectedInvoice.created_at
+                  ? (() => {
+                      const d = new Date(selectedInvoice.created_at);
+                      const day = String(d.getDate()).padStart(2, "0");
+                      const month = d
+                        .toLocaleString("en-US", { month: "short" })
+                        .toUpperCase();
+                      const year = d.getFullYear();
+                      const time = d.toLocaleString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                        hour12: true,
+                      });
+                      return `${day} ${month} ${year} AT ${time}`;
+                    })()
+                  : selectedInvoice.date || "-";
+
+                const servedByDisplay = String(selectedInvoice.served_by || "ADMIN").toUpperCase();
+
+                return (
+                  <div style={{ width: "100%", margin: 0, padding: 0 }}>
+                    {/* Table 1: Info Box (50% / 50% columns) */}
+                    <table
+                      style={{
+                        width: "100%",
+                        borderCollapse: "collapse",
+                        fontSize: "11px",
+                        color: "black",
+                        margin: 0,
+                        tableLayout: "fixed",
+                      }}
+                    >
+                      <colgroup>
+                        <col style={{ width: "50%" }} />
+                        <col style={{ width: "50%" }} />
+                      </colgroup>
+                      <tbody>
+                        <tr>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "left",
+                              width: "50%",
+                              lineHeight: "1.15",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            কাস্টমার আইডি:- {displayClientId}
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "left",
+                              width: "50%",
+                              lineHeight: "1.15",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            ইনভয়েস আইডি:- {displayInvoiceId}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            colSpan="2"
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "left",
+                            }}
+                          >
+                            কাস্টমার: {clientDisplay}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            colSpan="2"
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "left",
+                            }}
+                          >
+                            তারিখ:- {formattedDate}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            colSpan="2"
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "left",
+                            }}
+                          >
+                            SERVED BY:- {servedByDisplay}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    {/* Table 2: Items & Totals (Connected directly with zero gap) */}
+                    <table
+                      style={{
+                        width: "100%",
+                        borderCollapse: "collapse",
+                        fontSize: "11px",
+                        color: "black",
+                        margin: 0,
+                        marginTop: "-1px",
+                        tableLayout: "fixed",
+                      }}
+                    >
+                      <colgroup>
+                        <col style={{ width: "50%" }} />
+                        <col style={{ width: "17%" }} />
+                        <col style={{ width: "15%" }} />
+                        <col style={{ width: "18%" }} />
+                      </colgroup>
+                      <thead>
+                        <tr style={{ background: "#f8fafc" }}>
+                          <th
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "left",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            নাম
+                          </th>
+                          <th
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "center",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            মুল্য
+                          </th>
+                          <th
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "center",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            পরিমাণ
+                          </th>
+                          <th
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "right",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            মোট
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedInvoice.items && selectedInvoice.items.length > 0 ? (
+                          selectedInvoice.items.map((item, idx) => {
+                            const qty = Number(item.quantity || item.qty || 1);
+                            const rate = Number(
+                              item.selling_price ||
+                                item.price ||
+                                item.rate ||
+                                0,
+                            );
+                            const itemTotal = Number(
+                              item.total_selling_price ||
+                                item.total_amount ||
+                                qty * rate ||
+                                0,
+                            );
+                            const displayItemName = `${item.name || item.product_name || item.title || "Item"} ${item.barcode ? `(${item.barcode})` : ""}`;
+                            return (
+                              <tr key={idx}>
+                                <td
+                                  style={{
+                                    border: "1px solid black",
+                                    padding: "1.5px 3px",
+                                    textAlign: "left",
+                                    wordBreak: "break-word",
+                                  }}
+                                >
+                                  {displayItemName}
+                                </td>
+                                <td
+                                  style={{
+                                    border: "1px solid black",
+                                    padding: "1.5px 3px",
+                                    textAlign: "center",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  {rate}
+                                </td>
+                                <td
+                                  style={{
+                                    border: "1px solid black",
+                                    padding: "1.5px 3px",
+                                    textAlign: "center",
+                                  }}
+                                >
+                                  {qty}
+                                </td>
+                                <td
+                                  style={{
+                                    border: "1px solid black",
+                                    padding: "1.5px 3px",
+                                    textAlign: "right",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  {itemTotal}
+                                </td>
+                              </tr>
+                            );
+                          })
+                        ) : (
                           <tr>
-                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left', width: '48%' }}>নাম</th>
-                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right', width: '18%' }}>মুল্য</th>
-                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center', width: '14%' }}>পরিমাণ</th>
-                            <th style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right', width: '20%' }}>মোট</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {selectedInvoice.items && selectedInvoice.items.length > 0 ? (
-                            selectedInvoice.items.map((item, idx) => {
-                              const qty = Number(item.quantity || item.qty || 1);
-                              const rate = Number(item.selling_price || item.price || item.rate || 0);
-                              const itemTotal = Number(item.total_selling_price || item.total_amount || (qty * rate) || 0);
-                              const displayItemName = `${item.name || item.product_name || item.title || 'Item'} ${item.barcode ? `(${item.barcode})` : ''}`;
-                              return (
-                                <tr key={idx}>
-                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left', wordBreak: 'break-word' }}>{displayItemName}</td>
-                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right', whiteSpace: 'nowrap' }}>{rate}</td>
-                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>{qty}</td>
-                                  <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right', whiteSpace: 'nowrap' }}>{itemTotal}</td>
-                                </tr>
-                              );
-                            })
-                          ) : (
-                            <tr>
-                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left' }}>সাধারণ আইটেম</td>
-                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{invoiceBill}</td>
-                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center' }}>1</td>
-                              <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{invoiceBill}</td>
-                            </tr>
-                          )}
-                          <tr>
-                            <td colSpan="2" style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'left', fontWeight: 'bold' }}>মোট পরিমাণ</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'center', fontWeight: 'bold' }}>{totalQty || 1}</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}></td>
-                          </tr>
-                          <tr>
-                            <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>ইনভয়েস বিল =</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{invoiceBill}</td>
-                          </tr>
-                          <tr>
-                            <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>পূর্বের বাকী =</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{prevDue}</td>
-                          </tr>
-                          <tr>
-                            <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>মোট বিল =</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{totalBill}</td>
-                          </tr>
-                          <tr>
-                            <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>পেমেন্ট =</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{payment}</td>
-                          </tr>
-                          <tr>
-                            <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>ইনভয়েস বাকি =</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{invoiceDue}</td>
-                          </tr>
-                          <tr>
-                            <td colSpan="3" style={{ border: '1px solid black', padding: '2px 8px', textAlign: 'right' }}>মোট বাকি =</td>
-                            <td style={{ border: '1px solid black', padding: '2px 4px', textAlign: 'right' }}>{totalDue}</td>
-                          </tr>
-                          <tr>
-                            <td colSpan="4" style={{ border: '1px solid black', padding: '4px', textAlign: 'center', fontSize: '8px', fontStyle: 'italic', fontWeight: '600' }}>
-                            SOFTWARE DEVELOPED BY WWW.SOFTZENIT.COM
+                            <td
+                              style={{
+                                border: "1px solid black",
+                                padding: "1.5px 3px",
+                                textAlign: "left",
+                              }}
+                            >
+                              সাধারণ আইটেম
+                            </td>
+                            <td
+                              style={{
+                                border: "1px solid black",
+                                padding: "1.5px 3px",
+                                textAlign: "center",
+                              }}
+                            >
+                              {invoiceBill}
+                            </td>
+                            <td
+                              style={{
+                                border: "1px solid black",
+                                padding: "1.5px 3px",
+                                textAlign: "center",
+                              }}
+                            >
+                              1
+                            </td>
+                            <td
+                              style={{
+                                border: "1px solid black",
+                                padding: "1.5px 3px",
+                                textAlign: "right",
+                              }}
+                            >
+                              {invoiceBill}
                             </td>
                           </tr>
-                        </tbody>
-                      </table>
-                    </>
-                  );
-                })()}
+                        )}
 
-              </div>
+                        {/* Total Qty row: all 4 cells so column borders remain continuous */}
+                        <tr>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "left",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            মোট পরিমাণ
+                          </td>
+                          <td style={{ border: "1px solid black", padding: "1.5px 3px" }}></td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "center",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            {totalQty || 1}
+                          </td>
+                          <td style={{ border: "1px solid black", padding: "1.5px 3px" }}></td>
+                        </tr>
+
+                        {/* Summary rows */}
+                        <tr>
+                          <td
+                            colSpan="3"
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "right",
+                            }}
+                          >
+                            ইনভয়েস বিল =
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "right",
+                            }}
+                          >
+                            {invoiceBill}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            colSpan="3"
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "right",
+                            }}
+                          >
+                            পূর্বের বাকী =
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "right",
+                            }}
+                          >
+                            {prevDue}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            colSpan="3"
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "right",
+                            }}
+                          >
+                            মোট বিল =
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "right",
+                            }}
+                          >
+                            {totalBill}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            colSpan="3"
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "right",
+                            }}
+                          >
+                            পেমেন্ট =
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "right",
+                            }}
+                          >
+                            {payment}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            colSpan="3"
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "right",
+                            }}
+                          >
+                            ইনভয়েস বাকি =
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "right",
+                            }}
+                          >
+                            {invoiceDue}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            colSpan="3"
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "right",
+                            }}
+                          >
+                            মোট বাকি =
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "right",
+                            }}
+                          >
+                            {totalDue}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            colSpan="4"
+                            style={{
+                              border: "1px solid black",
+                              padding: "1.5px 3px",
+                              textAlign: "center",
+                              fontSize: "9px",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            SOFTWARE DEVELOPED BY WWW.SOFTZENIT.COM
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                );
+                })()}
             </div>
 
           </div>

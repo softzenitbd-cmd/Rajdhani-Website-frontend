@@ -58,7 +58,7 @@ const PrintHeader = ({ showOnScreen = false, isPos = false }) => {
   // 1. Uploaded banner image
   if (headerMode === 'image' && headerImage && !bannerFailed) {
     return (
-      <div className={`receipt-header-image${visibilityClass}`} style={{ marginBottom: isPos ? '6px' : '20px', textAlign: 'center' }}>
+      <div className={`receipt-header-image${visibilityClass}`} style={{ marginBottom: isPos ? '2px' : '20px', textAlign: 'center' }}>
         <img
           src={headerImage}
           alt={info.company_name || t("Company banner")}
@@ -81,7 +81,7 @@ const PrintHeader = ({ showOnScreen = false, isPos = false }) => {
   // 2. Card 1 - cursive "Rajdhani Garments"
   if (activeCard === 'card1') {
     return (
-      <div className={`receipt-header-text${visibilityClass}`} style={{ border: isPos ? 'none' : '2px solid #000', borderRadius: isPos ? '0' : '8px', padding: isPos ? '2px 0' : '16px 24px', background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: isPos ? '0 auto 6px auto' : '0 auto 20px auto', maxWidth: isPos ? '100%' : '800px' }}>
+      <div className={`receipt-header-text${visibilityClass}`} style={{ border: isPos ? 'none' : '2px solid #000', borderRadius: isPos ? '0' : '8px', padding: isPos ? '2px 0' : '16px 24px', background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: isPos ? '0 auto 2px auto' : '0 auto 20px auto', maxWidth: isPos ? '100%' : '800px' }}>
         <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: isPos ? '20px' : 'var(--fs-36, 36px)', color: 'black', fontWeight: 'bold', display: 'block' }}>{info.company_name || t("Rajdhani")}</h2>
         <h3 style={{ fontFamily: 'cursive', margin: 0, fontSize: isPos ? '14px' : 'var(--fs-24, 24px)', color: 'black', display: 'block' }}>{info.company_type || t("Garments")}</h3>
       </div>
@@ -91,7 +91,7 @@ const PrintHeader = ({ showOnScreen = false, isPos = false }) => {
   // 3. Card 3 - cursive "Rajdhani Super Shop"
   if (activeCard === 'card3') {
     return (
-      <div className={`receipt-header-text${visibilityClass}`} style={{ border: isPos ? 'none' : '2px solid #000', borderRadius: isPos ? '0' : '8px', padding: isPos ? '2px 0' : '16px 24px', background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: isPos ? '0 auto 6px auto' : '0 auto 20px auto', maxWidth: isPos ? '100%' : '800px' }}>
+      <div className={`receipt-header-text${visibilityClass}`} style={{ border: isPos ? 'none' : '2px solid #000', borderRadius: isPos ? '0' : '8px', padding: isPos ? '2px 0' : '16px 24px', background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: isPos ? '0 auto 2px auto' : '0 auto 20px auto', maxWidth: isPos ? '100%' : '800px' }}>
         <h2 style={{ fontFamily: 'cursive', margin: 0, fontSize: isPos ? '20px' : 'var(--fs-36, 36px)', color: 'black', fontWeight: 'bold', display: 'block' }}>{info.company_name || t("Rajdhani")}</h2>
         <h3 style={{ fontFamily: 'cursive', margin: 0, fontSize: isPos ? '14px' : 'var(--fs-24, 24px)', color: 'black', display: 'block' }}>{t("Super Shop")}</h3>
       </div>

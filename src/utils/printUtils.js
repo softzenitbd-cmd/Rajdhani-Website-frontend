@@ -73,19 +73,23 @@ export const printElement = (target, options = {}) => {
     ${collectStyles()}
     <style>
       @page { size: ${pageSize}; margin: ${pageMargin}; }
-      html, body { background: #fff !important; margin: 0; padding: 0; color: #000; font-family: 'Segoe UI', Arial, sans-serif, 'Hind Siliguri'; }
+      html, body { background: #fff !important; margin: 0; padding: 0; color: #000; font-family: 'Hind Siliguri', Arial, sans-serif !important; }
       body { padding: ${bodyPadding}; box-sizing: border-box; }
       .no-print, .no-print-col, .action-column, button, input[type=button], input[type=submit] { display: none !important; }
-      table { width: 100%; border-collapse: collapse; }
-      th, td { border: 1px solid #000; padding: 3px 4px; font-size: 11px; color: #000; }
+      table { width: 100%; border-collapse: collapse; font-family: 'Hind Siliguri', Arial, sans-serif !important; }
+      th, td { border: 1px solid #000; padding: 3px 4px; font-size: 11px; color: #000; font-family: 'Hind Siliguri', Arial, sans-serif !important; }
       th { background: #f8fafc; font-weight: bold; }
       ${isPos ? `
-        @page { size: 80mm auto; margin: 1mm 2mm; }
-        body { width: 76mm !important; max-width: 80mm !important; margin: 0 auto !important; padding: 1mm !important; }
-        .pos-receipt-wrapper { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; box-sizing: border-box !important; }
+        @page { size: 80mm auto !important; margin: 1mm 1.5mm !important; }
+        html, body { width: 76mm !important; max-width: 80mm !important; margin: 0 auto !important; padding: 0 !important; font-family: 'Hind Siliguri', Arial, sans-serif !important; height: auto !important; min-height: 0 !important; }
+        .pos-receipt-wrapper { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; box-sizing: border-box !important; font-family: 'Hind Siliguri', Arial, sans-serif !important; height: auto !important; }
+        .pos-receipt-wrapper .receipt-header-image,
+        .pos-receipt-wrapper .receipt-header-text,
+        .pos-receipt-wrapper .print-header { margin: 0 0 2px 0 !important; padding: 0 !important; }
         .receipt-header-image img { max-width: 100% !important; height: auto !important; max-height: 85px !important; object-fit: contain !important; }
-        table { border-collapse: collapse !important; width: 100% !important; color: black !important; font-size: 11px !important; }
-        th, td { border: 1px solid black !important; padding: 3px 4px !important; color: black !important; }
+        table { border-collapse: collapse !important; width: 100% !important; color: black !important; font-size: 11px !important; margin: 0 !important; table-layout: fixed !important; font-family: 'Hind Siliguri', Arial, sans-serif !important; height: auto !important; }
+        tr { height: auto !important; }
+        th, td { border: 1px solid black !important; padding: 1.5px 3px !important; color: black !important; line-height: 1.15 !important; font-family: 'Hind Siliguri', Arial, sans-serif !important; height: auto !important; }
       ` : ''}
       ${extraCss}
     </style></head><body>

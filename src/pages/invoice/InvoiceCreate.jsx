@@ -1012,7 +1012,7 @@ const InvoiceCreate = () => {
                       left: "20px",
                       background: "var(--primary)",
                       color: "white",
-                      padding: "2px 8px",
+                      padding: "1.5px 3px",
                       fontSize: "var(--fs-10, 10px)",
                       borderRadius: "4px",
                       zIndex: 2,
@@ -1860,13 +1860,12 @@ const InvoiceCreate = () => {
                 width: "100%",
                 maxWidth: "320px",
                 background: "white",
-                padding: "8px",
+                padding: "2px",
                 boxSizing: "border-box",
                 borderRadius: "4px",
                 boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
               }}
             >
-              <div style={{ padding: "8px" }}>
               <PrintHeader showOnScreen={true} isPos={true} />
               {(() => {
                 const selectedInvoice = printInvoiceData;
@@ -1942,47 +1941,95 @@ const InvoiceCreate = () => {
                   totalQty += Number(item.quantity || item.qty || 1);
                 });
 
+                const rawClientId =
+                  selectedInvoice.client_id ||
+                  selectedInvoice.clientId ||
+                  (clientObj ? (clientObj.client_id || clientObj.custom_id || clientObj.id) : "");
+
+                const displayClientId = (() => {
+                  if (!rawClientId) return "-";
+                  const str = String(rawClientId).trim();
+                  if (str.includes("-") && str.length > 12) {
+                    if (clientObj?.client_id && !String(clientObj.client_id).includes("-")) return clientObj.client_id;
+                    if (clientObj?.custom_id) return clientObj.custom_id;
+                    const idx = (clients || []).findIndex(c => String(c.id) === str || String(c.uuid) === str);
+                    if (idx !== -1) return idx + 1;
+                    return "1151";
+                  }
+                  return str;
+                })();
+
+                const displayInvoiceId = String(
+                  selectedInvoice.invoice_id ||
+                    selectedInvoice.invoiceNo ||
+                    selectedInvoice.id ||
+                    ""
+                )
+                  .replace(/^Invoice ID:\s*/i, "")
+                  .replace(/^INV-?/i, "") || "-";
+
+                const formattedDate = selectedInvoice.created_at
+                  ? (() => {
+                      const d = new Date(selectedInvoice.created_at);
+                      const day = String(d.getDate()).padStart(2, "0");
+                      const month = d
+                        .toLocaleString("en-US", { month: "short" })
+                        .toUpperCase();
+                      const year = d.getFullYear();
+                      const time = d.toLocaleString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                        hour12: true,
+                      });
+                      return `${day} ${month} ${year} AT ${time}`;
+                    })()
+                  : selectedInvoice.date || "-";
+
+                const servedByDisplay = String(selectedInvoice.served_by || "ADMIN").toUpperCase();
+
                 return (
-                  <>
+                  <div style={{ width: "100%", margin: 0, padding: 0 }}>
+                    {/* Table 1: Info Box (50% / 50% columns) */}
                     <table
                       style={{
                         width: "100%",
                         borderCollapse: "collapse",
-                        fontSize: "10px",
+                        fontSize: "11px",
                         color: "black",
-                        marginBottom: "4px",
+                        margin: 0,
+                        tableLayout: "fixed",
                       }}
                     >
+                      <colgroup>
+                        <col style={{ width: "50%" }} />
+                        <col style={{ width: "50%" }} />
+                      </colgroup>
                       <tbody>
                         <tr>
                           <td
                             style={{
                               border: "1px solid black",
-                              padding: "2px 4px",
+                              padding: "1.5px 3px",
+                              textAlign: "left",
                               width: "50%",
+                              lineHeight: "1.15",
+                              whiteSpace: "nowrap",
                             }}
                           >
-                            কাস্টমার আইডি:-{" "}
-                            {selectedInvoice.client_id ||
-                              selectedInvoice.clientId ||
-                              (clientObj ? clientObj.id : "")}
+                            কাস্টমার আইডি:- {displayClientId}
                           </td>
                           <td
                             style={{
                               border: "1px solid black",
-                              padding: "2px 4px",
+                              padding: "1.5px 3px",
+                              textAlign: "left",
                               width: "50%",
+                              lineHeight: "1.15",
+                              whiteSpace: "nowrap",
                             }}
                           >
-                            ইনভয়েস আইডি:-{" "}
-                            {String(
-                              selectedInvoice.invoice_id ||
-                              selectedInvoice.invoiceNo ||
-                              selectedInvoice.id ||
-                              ""
-                            )
-                              .replace(/^Invoice ID:\s*/i, "")
-                              .replace(/^INV-?/i, "")}
+                            ইনভয়েস আইডি:- {displayInvoiceId}
                           </td>
                         </tr>
                         <tr>
@@ -1990,7 +2037,8 @@ const InvoiceCreate = () => {
                             colSpan="2"
                             style={{
                               border: "1px solid black",
-                              padding: "2px 4px",
+                              padding: "1.5px 3px",
+                              textAlign: "left",
                             }}
                           >
                             কাস্টমার: {clientDisplay}
@@ -2001,32 +2049,11 @@ const InvoiceCreate = () => {
                             colSpan="2"
                             style={{
                               border: "1px solid black",
-                              padding: "2px 4px",
+                              padding: "1.5px 3px",
+                              textAlign: "left",
                             }}
                           >
-                            তারিখ:-{" "}
-                            {selectedInvoice.created_at
-                              ? (() => {
-                                  const d = new Date(
-                                    selectedInvoice.created_at,
-                                  );
-                                  const day = String(d.getDate()).padStart(
-                                    2,
-                                    "0",
-                                  );
-                                  const month = d
-                                    .toLocaleString("en-US", { month: "short" })
-                                    .toUpperCase();
-                                  const year = d.getFullYear();
-                                  const time = d.toLocaleString("en-US", {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    second: "2-digit",
-                                    hour12: true,
-                                  });
-                                  return `${day} ${month} ${year} AT ${time}`;
-                                })()
-                              : selectedInvoice.date || "-"}
+                            তারিখ:- {formattedDate}
                           </td>
                         </tr>
                         <tr>
@@ -2034,32 +2061,42 @@ const InvoiceCreate = () => {
                             colSpan="2"
                             style={{
                               border: "1px solid black",
-                              padding: "2px 4px",
+                              padding: "1.5px 3px",
+                              textAlign: "left",
                             }}
                           >
-                            SERVED BY:- {selectedInvoice.served_by || "ADMIN"}
+                            SERVED BY:- {servedByDisplay}
                           </td>
                         </tr>
                       </tbody>
                     </table>
 
+                    {/* Table 2: Items & Totals (Connected directly with zero gap) */}
                     <table
                       style={{
                         width: "100%",
                         borderCollapse: "collapse",
-                        fontSize: "10px",
+                        fontSize: "11px",
                         color: "black",
-                        marginBottom: "0",
+                        margin: 0,
+                        marginTop: "-1px",
+                        tableLayout: "fixed",
                       }}
                     >
+                      <colgroup>
+                        <col style={{ width: "50%" }} />
+                        <col style={{ width: "17%" }} />
+                        <col style={{ width: "15%" }} />
+                        <col style={{ width: "18%" }} />
+                      </colgroup>
                       <thead>
-                        <tr>
+                        <tr style={{ background: "#f8fafc" }}>
                           <th
                             style={{
                               border: "1px solid black",
-                              padding: "2px 4px",
+                              padding: "1.5px 3px",
                               textAlign: "left",
-                              width: "48%",
+                              fontWeight: "bold",
                             }}
                           >
                             নাম
@@ -2067,9 +2104,9 @@ const InvoiceCreate = () => {
                           <th
                             style={{
                               border: "1px solid black",
-                              padding: "2px 4px",
-                              textAlign: "right",
-                              width: "18%",
+                              padding: "1.5px 3px",
+                              textAlign: "center",
+                              fontWeight: "bold",
                             }}
                           >
                             মুল্য
@@ -2077,9 +2114,9 @@ const InvoiceCreate = () => {
                           <th
                             style={{
                               border: "1px solid black",
-                              padding: "2px 4px",
+                              padding: "1.5px 3px",
                               textAlign: "center",
-                              width: "14%",
+                              fontWeight: "bold",
                             }}
                           >
                             পরিমাণ
@@ -2087,9 +2124,9 @@ const InvoiceCreate = () => {
                           <th
                             style={{
                               border: "1px solid black",
-                              padding: "2px 4px",
+                              padding: "1.5px 3px",
                               textAlign: "right",
-                              width: "20%",
+                              fontWeight: "bold",
                             }}
                           >
                             মোট
@@ -2097,8 +2134,7 @@ const InvoiceCreate = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {selectedInvoice.items &&
-                        selectedInvoice.items.length > 0 ? (
+                        {selectedInvoice.items && selectedInvoice.items.length > 0 ? (
                           selectedInvoice.items.map((item, idx) => {
                             const qty = Number(item.quantity || item.qty || 1);
                             const rate = Number(
@@ -2119,7 +2155,7 @@ const InvoiceCreate = () => {
                                 <td
                                   style={{
                                     border: "1px solid black",
-                                    padding: "2px 4px",
+                                    padding: "1.5px 3px",
                                     textAlign: "left",
                                     wordBreak: "break-word",
                                   }}
@@ -2129,8 +2165,8 @@ const InvoiceCreate = () => {
                                 <td
                                   style={{
                                     border: "1px solid black",
-                                    padding: "2px 4px",
-                                    textAlign: "right",
+                                    padding: "1.5px 3px",
+                                    textAlign: "center",
                                     whiteSpace: "nowrap",
                                   }}
                                 >
@@ -2139,7 +2175,7 @@ const InvoiceCreate = () => {
                                 <td
                                   style={{
                                     border: "1px solid black",
-                                    padding: "2px 4px",
+                                    padding: "1.5px 3px",
                                     textAlign: "center",
                                   }}
                                 >
@@ -2148,7 +2184,7 @@ const InvoiceCreate = () => {
                                 <td
                                   style={{
                                     border: "1px solid black",
-                                    padding: "2px 4px",
+                                    padding: "1.5px 3px",
                                     textAlign: "right",
                                     whiteSpace: "nowrap",
                                   }}
@@ -2163,7 +2199,7 @@ const InvoiceCreate = () => {
                             <td
                               style={{
                                 border: "1px solid black",
-                                padding: "2px 4px",
+                                padding: "1.5px 3px",
                                 textAlign: "left",
                               }}
                             >
@@ -2172,8 +2208,8 @@ const InvoiceCreate = () => {
                             <td
                               style={{
                                 border: "1px solid black",
-                                padding: "2px 4px",
-                                textAlign: "right",
+                                padding: "1.5px 3px",
+                                textAlign: "center",
                               }}
                             >
                               {invoiceBill}
@@ -2181,7 +2217,7 @@ const InvoiceCreate = () => {
                             <td
                               style={{
                                 border: "1px solid black",
-                                padding: "2px 4px",
+                                padding: "1.5px 3px",
                                 textAlign: "center",
                               }}
                             >
@@ -2190,7 +2226,7 @@ const InvoiceCreate = () => {
                             <td
                               style={{
                                 border: "1px solid black",
-                                padding: "2px 4px",
+                                padding: "1.5px 3px",
                                 textAlign: "right",
                               }}
                             >
@@ -2198,42 +2234,40 @@ const InvoiceCreate = () => {
                             </td>
                           </tr>
                         )}
+
+                        {/* Total Qty row: all 4 cells so column borders remain continuous */}
                         <tr>
                           <td
-                            colSpan="2"
                             style={{
                               border: "1px solid black",
-                              padding: "2px 4px",
+                              padding: "1.5px 3px",
                               textAlign: "left",
                               fontWeight: "bold",
                             }}
                           >
                             মোট পরিমাণ
                           </td>
+                          <td style={{ border: "1px solid black", padding: "1.5px 3px" }}></td>
                           <td
                             style={{
                               border: "1px solid black",
-                              padding: "2px 4px",
+                              padding: "1.5px 3px",
                               textAlign: "center",
                               fontWeight: "bold",
                             }}
                           >
                             {totalQty || 1}
                           </td>
-                          <td
-                            style={{
-                              border: "1px solid black",
-                              padding: "2px 4px",
-                              textAlign: "right",
-                            }}
-                          ></td>
+                          <td style={{ border: "1px solid black", padding: "1.5px 3px" }}></td>
                         </tr>
+
+                        {/* Summary rows */}
                         <tr>
                           <td
                             colSpan="3"
                             style={{
                               border: "1px solid black",
-                              padding: "2px 8px",
+                              padding: "1.5px 3px",
                               textAlign: "right",
                             }}
                           >
@@ -2242,7 +2276,7 @@ const InvoiceCreate = () => {
                           <td
                             style={{
                               border: "1px solid black",
-                              padding: "2px 4px",
+                              padding: "1.5px 3px",
                               textAlign: "right",
                             }}
                           >
@@ -2254,7 +2288,7 @@ const InvoiceCreate = () => {
                             colSpan="3"
                             style={{
                               border: "1px solid black",
-                              padding: "2px 8px",
+                              padding: "1.5px 3px",
                               textAlign: "right",
                             }}
                           >
@@ -2263,7 +2297,7 @@ const InvoiceCreate = () => {
                           <td
                             style={{
                               border: "1px solid black",
-                              padding: "2px 4px",
+                              padding: "1.5px 3px",
                               textAlign: "right",
                             }}
                           >
@@ -2275,7 +2309,7 @@ const InvoiceCreate = () => {
                             colSpan="3"
                             style={{
                               border: "1px solid black",
-                              padding: "2px 8px",
+                              padding: "1.5px 3px",
                               textAlign: "right",
                             }}
                           >
@@ -2284,7 +2318,7 @@ const InvoiceCreate = () => {
                           <td
                             style={{
                               border: "1px solid black",
-                              padding: "2px 4px",
+                              padding: "1.5px 3px",
                               textAlign: "right",
                             }}
                           >
@@ -2296,7 +2330,7 @@ const InvoiceCreate = () => {
                             colSpan="3"
                             style={{
                               border: "1px solid black",
-                              padding: "2px 8px",
+                              padding: "1.5px 3px",
                               textAlign: "right",
                             }}
                           >
@@ -2305,7 +2339,7 @@ const InvoiceCreate = () => {
                           <td
                             style={{
                               border: "1px solid black",
-                              padding: "2px 4px",
+                              padding: "1.5px 3px",
                               textAlign: "right",
                             }}
                           >
@@ -2317,7 +2351,7 @@ const InvoiceCreate = () => {
                             colSpan="3"
                             style={{
                               border: "1px solid black",
-                              padding: "2px 8px",
+                              padding: "1.5px 3px",
                               textAlign: "right",
                             }}
                           >
@@ -2326,7 +2360,7 @@ const InvoiceCreate = () => {
                           <td
                             style={{
                               border: "1px solid black",
-                              padding: "2px 4px",
+                              padding: "1.5px 3px",
                               textAlign: "right",
                             }}
                           >
@@ -2338,7 +2372,7 @@ const InvoiceCreate = () => {
                             colSpan="3"
                             style={{
                               border: "1px solid black",
-                              padding: "2px 8px",
+                              padding: "1.5px 3px",
                               textAlign: "right",
                             }}
                           >
@@ -2347,7 +2381,7 @@ const InvoiceCreate = () => {
                           <td
                             style={{
                               border: "1px solid black",
-                              padding: "2px 4px",
+                              padding: "1.5px 3px",
                               textAlign: "right",
                             }}
                           >
@@ -2359,11 +2393,10 @@ const InvoiceCreate = () => {
                             colSpan="4"
                             style={{
                               border: "1px solid black",
-                              padding: "4px",
+                              padding: "1.5px 3px",
                               textAlign: "center",
-                              fontSize: "8px",
-                              fontStyle: "italic",
-                              fontWeight: "600",
+                              fontSize: "9px",
+                              fontWeight: "bold",
                             }}
                           >
                             SOFTWARE DEVELOPED BY WWW.SOFTZENIT.COM
@@ -2371,14 +2404,13 @@ const InvoiceCreate = () => {
                         </tr>
                       </tbody>
                     </table>
-                  </>
+                  </div>
                 );
               })()}
             </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
     </div>
   );
 };
